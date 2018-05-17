@@ -19,7 +19,7 @@ language: node_js
 before_script:
   - npm install -g flutter-cli
 script:  
-  - cd device_calendar\example
+  - cd device_calendar/example
   - flutter build apk
 
 cache:
