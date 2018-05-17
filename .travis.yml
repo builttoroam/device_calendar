@@ -15,15 +15,10 @@ addons:
     packages:
       - libstdc++6
       - fonts-droid
-node_js:
-  - "iojs"
-  - "7"
-install:
-  - npm install
+language: node_js
 before_script:
-  
-script:
   - npm install -g flutter-cli
+script:  
   - flutter build apk -t lib/main_prod.dart
 
 cache:
