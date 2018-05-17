@@ -6,7 +6,7 @@ import '../common/constants.dart';
 import '../models/calendar.dart';
 
 const MethodChannel _calendarsChannel =
-    const MethodChannel('${Constants.channelsNamePrefix}/calendars');
+    const MethodChannel('${Constants.channelsNamePrefix}/device_calendar');
 
 /// A singleton service providing functionality to work with device calendar(s)
 class CalendarsService {
