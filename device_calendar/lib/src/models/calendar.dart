@@ -1,3 +1,5 @@
+part of device_calendar;
+
 /// Device calendar abstraction
 class Calendar {
   /// Platform-specific unique calendar identifier
