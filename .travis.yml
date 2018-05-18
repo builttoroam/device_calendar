@@ -22,22 +22,21 @@ addons:
     packages:
       - libstdc++6
       - fonts-droid
+env:
+  - NODE_VERSION="8"
+before_install:
+  # Installing Node.js
+  - nvm install $NODE_VERSION
 install:
   - echo y | sdkmanager 'ndk-bundle'
   - echo y | sdkmanager 'cmake;3.6.3155560'
   - export ANDROID_HOME=$HOME/android/sdk
   - export ANDROID_NDK_HOME=$HOME/android/sdk/ndk-bundle
-language: node_js
-sudo: false
-env:
-  global:
-    - ANDROID_HOME=${TRAVIS_BUILD_DIR}/android-sdk
 before_script:
   - npm install -g flutter-cli
 script:  
   - cd device_calendar/example
   - flutter build apk
-
 cache:
   directories:
     - $HOME/.pub-cache
