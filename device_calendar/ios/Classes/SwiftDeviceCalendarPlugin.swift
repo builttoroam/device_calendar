@@ -5,7 +5,7 @@ import EventKit
 public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     static let channelName = "plugins.builttoroam.com/device_calendar";
     let eventStore = EKEventStore();
-    let retrieveCalendarsMethodName = "retrieveCalendars";
+    let retrieveCalendarsMethod = "retrieveCalendars";
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
@@ -14,8 +14,11 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if(call.method == retrieveCalendarsMethodName) {
-            eventStore.calendars(for: .event)
+        if(call.method == retrieveCalendarsMethod) {
+            requestPermission(completion: {
+                (accessGranted: Bool) in
+                self.eventStore.calendars(for: .event)
+            })
         }
     }
     
