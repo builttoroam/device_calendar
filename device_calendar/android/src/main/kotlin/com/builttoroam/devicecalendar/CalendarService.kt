@@ -9,6 +9,7 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
+import com.builttoroam.devicecalendar.models.Calendar
 import io.flutter.plugin.common.MethodChannel
 
 
@@ -53,7 +54,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                     + CalendarContract.Calendars.OWNER_ACCOUNT + " = ?))");
             val cursor: Cursor? = contentResolver?.query(uri, EVENT_PROJECTION, null, null, null);
 
-            val calendars: MutableList<String> = mutableListOf<String>();
+            val calendars: MutableList<Calendar> = mutableListOf<Calendar>();
 
             while (cursor != null && cursor.moveToNext()) {
                 // Get the field values
@@ -62,7 +63,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                 val accountName = cursor.getString(PROJECTION_ACCOUNT_NAME_INDEX);
                 val ownerName = cursor.getString(PROJECTION_OWNER_ACCOUNT_INDEX);
 
-                calendars.add(displayName);
+                calendars.add(Calendar(calID.toString(), displayName));
             }
 
             _channelResult?.success(calendars);
