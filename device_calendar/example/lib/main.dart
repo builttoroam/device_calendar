@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:device_calendar/device_calendar.dart';
-import 'package:device_calendar/models/calendar.dart';
-import 'package:device_calendar/services/calendars.dart';
 
 void main() => runApp(new MyApp());
 
@@ -14,7 +12,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
   List<Calendar> _calendars = new List<Calendar>();
-  CalendarsService _calendarsService = new CalendarsService();
+  DeviceCalendarPlugin _deviceCalendarPlugin = new DeviceCalendarPlugin();
 
   @override
   initState() {
@@ -28,8 +26,7 @@ class _MyAppState extends State<MyApp> {
     List<Calendar> calendars;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      platformVersion = await DeviceCalendar.platformVersion;
-      calendars = await _calendarsService.retrieveCalendars();
+      calendars = await _deviceCalendarPlugin.retrieveCalendars();
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }

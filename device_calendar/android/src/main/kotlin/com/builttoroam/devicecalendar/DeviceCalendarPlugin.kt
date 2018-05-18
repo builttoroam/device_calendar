@@ -21,15 +21,19 @@ val EVENT_PROJECTION: Array<String> = arrayOf(
 );
 
 // The indices for the projection array above.
-val PROJECTION_ID_INDEX: Int = 0;
-val PROJECTION_ACCOUNT_NAME_INDEX: Int = 1;
-val PROJECTION_DISPLAY_NAME_INDEX: Int = 2;
-val PROJECTION_OWNER_ACCOUNT_INDEX: Int = 3;
+const val PROJECTION_ID_INDEX: Int = 0;
+const val PROJECTION_ACCOUNT_NAME_INDEX: Int = 1;
+const val PROJECTION_DISPLAY_NAME_INDEX: Int = 2;
+const val PROJECTION_OWNER_ACCOUNT_INDEX: Int = 3;
+const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar";
+
+
 
 class DeviceCalendarPlugin() : MethodCallHandler {
 
     private lateinit var _registrar: Registrar;
     private lateinit var _calendarService: CalendarService;
+    val RETRIEVE_CALENDARS_METHOD = "retrieveCalendars";
 
     private constructor(registrar: Registrar, calendarService: CalendarService) : this() {
         _registrar = registrar;
@@ -42,13 +46,13 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             val context: Context = registrar.context();
             val activity: Activity = registrar.activity();
 
-            val calendarService: CalendarService = CalendarService(activity, context);
-            val instance: DeviceCalendarPlugin = DeviceCalendarPlugin(registrar, calendarService);
+            val calendarService = CalendarService(activity, context);
+            val instance = DeviceCalendarPlugin(registrar, calendarService);
 
             val channel = MethodChannel(registrar.messenger(), "device_calendar")
             channel.setMethodCallHandler(instance)
 
-            val calendarsChannel = MethodChannel(registrar.messenger(), "plugins.flutter.io/calendars")
+            val calendarsChannel = MethodChannel(registrar.messenger(), CHANNEL_NAME)
             calendarsChannel.setMethodCallHandler(instance)
 
             registrar.addRequestPermissionsResultListener(calendarService);
@@ -59,10 +63,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         _calendarService.setPendingResult(result);
 
         when (call.method) {
-            "getPlatformVersion" -> {
-                result.success("Android ${android.os.Build.VERSION.RELEASE}")
-            }
-            "retrieve" -> {
+            RETRIEVE_CALENDARS_METHOD -> {
                 val calendars = _calendarService.retrieveCalendars();
 
                 // result.success("OK");
