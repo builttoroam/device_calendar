@@ -3,7 +3,5 @@ import 'package:test/test.dart';
 
 void main() {
   DeviceCalendarPlugin deviceCalendarPlugin;
-  setUp(() {
-  });
+  setUp(() {});
 }
-
