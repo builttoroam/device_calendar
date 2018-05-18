@@ -41,7 +41,7 @@ matrix:
       osx_image: xcode8.3      
       before_install:
         # Installing Node.js
-        - nvm install $NODE_VERSION
+        - nvm install 8
       before_script:
         - npm install -g flutter-cli
       script:
