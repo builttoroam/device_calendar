@@ -30,6 +30,7 @@ matrix:
         # Installing Node.js
         - nvm install $NODE_VERSION
       install:  
+        - ant deps
         - export ANDROID_HOME=$HOME/android-sdk   
       before_script:
         - npm install -g flutter-cli     
