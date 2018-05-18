@@ -1,6 +1,7 @@
-matrix:
-  env:
+env:
+  global:    
     - NODE_VERSION="8"
+matrix:
   include: 
     - os: linux
       language: android
@@ -41,12 +42,12 @@ matrix:
       osx_image: xcode8.3      
       before_install:
         # Installing Node.js
-        - nvm install 8
+        - nvm install $NODE_VERSION
       before_script:
         - npm install -g flutter-cli
       script:
         - cd device_calendar/example  
-        - flutter ios --release --no-codesign --verbose
+        - flutter build ios --release --no-codesign --verbose
 cache:
   directories:
     - $HOME/.pub-cache
