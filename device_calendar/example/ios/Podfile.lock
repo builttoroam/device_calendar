@@ -5,13 +5,13 @@ PODS:
 
 DEPENDENCIES:
   - device_calendar (from `Pods/.symlinks/plugins/device_calendar/ios`)
-  - Flutter (from `Pods/.symlinks/flutter/ios-release`)
+  - Flutter (from `Pods/.symlinks/flutter/ios`)
 
 EXTERNAL SOURCES:
   device_calendar:
     :path: Pods/.symlinks/plugins/device_calendar/ios
   Flutter:
-    :path: Pods/.symlinks/flutter/ios-release
+    :path: Pods/.symlinks/flutter/ios
 
 SPEC CHECKSUMS:
   device_calendar: 3489adaccf26d7c3aab29c77e97b01e4b7cb06ee

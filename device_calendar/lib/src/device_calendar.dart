@@ -10,8 +10,7 @@ class DeviceCalendarPlugin {
     return _instance;
   }
 
-  DeviceCalendarPlugin._createInstance() {
-  }
+  DeviceCalendarPlugin._createInstance();
 
   /// Retrieves all of the device defined calendars
   Future<List<Calendar>> retrieveCalendars() async {
@@ -27,11 +26,17 @@ class DeviceCalendarPlugin {
   }
 }
 
-List<Calendar> _parseCalendars(List<dynamic> calendarsJson) {
-  final List<Calendar> calendars = new List<Calendar>();
-  for (var item in calendarsJson) {
-    calendars.add(new Calendar("1", name: item));
+List<Calendar> _parseCalendars(String calendarsJson) {
+    final List<Calendar> calendars = new List<Calendar>();
+
+  var decodedCalendars = json.decode(calendarsJson);
+  for(var decodedCalendar in decodedCalendars) {
+    var calendar = new Calendar.fromJson(decodedCalendar);
+    calendars.add(calendar);
   }
+  // for (var item in calendarsJson) {
+  //   calendars.add(new Calendar("1", name: item));
+  // }
 
   return calendars;
 }
