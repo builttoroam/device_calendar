@@ -1,4 +1,6 @@
 matrix:
+  env:
+    - NODE_VERSION="8"
   include: 
     - os: linux
       language: android
@@ -22,28 +24,29 @@ matrix:
             - ubuntu-toolchain-r-test # if we don't specify this, the libstdc++6 we get is the wrong version
           packages:
             - libstdc++6
-            - fonts-droid
-      env:
-        - NODE_VERSION="8"
+            - fonts-droid      
       before_install:
         # Installing Node.js
         - nvm install $NODE_VERSION
       install:  
-        - export ANDROID_HOME=$HOME/android-sdk        
+        - export ANDROID_HOME=$HOME/android-sdk   
+      before_script:
+        - npm install -g flutter-cli     
       scritp: 
+        - cd device_calendar/example  
         - flutter build apk
 
     - os: osx
       language: generic
-      osx_image: xcode8.3
-      before_script:        
+      osx_image: xcode8.3      
+      before_install:
+        # Installing Node.js
+        - nvm install $NODE_VERSION
+      before_script:
+        - npm install -g flutter-cli
       script:
+        - cd device_calendar/example  
         - flutter ios --release --no-codesign --verbose
-
-before_script:
-  - npm install -g flutter-cli
-script:
-  - cd device_calendar/example  
 cache:
-        directories:
-          - $HOME/.pub-cache
+  directories:
+    - $HOME/.pub-cache
