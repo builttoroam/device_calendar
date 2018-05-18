@@ -1,9 +1,15 @@
 os: linux
 language: android
 licenses:
-
+  - 'android-sdk-preview-license-.+'
+  - 'android-sdk-license-.+'
+  - 'google-gdk-license-.+'
 android:
   components:
+     - tools
+     - platform-tools
+     - build-tools-27.0.3
+     - android-27
   
 jdk: oraclejdk8
 sudo: false
