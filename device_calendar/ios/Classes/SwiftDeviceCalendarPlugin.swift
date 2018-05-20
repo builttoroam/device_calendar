@@ -3,6 +3,11 @@ import UIKit
 import EventKit
 
 public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
+    struct Calendar: Codable {
+        let id: String;
+        let name: String;
+    }
+    
     static let channelName = "plugins.builttoroam.com/device_calendar";
     let eventStore = EKEventStore();
     let retrieveCalendarsMethod = "retrieveCalendars";
@@ -17,7 +22,22 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         if(call.method == retrieveCalendarsMethod) {
             requestPermission(completion: {
                 (accessGranted: Bool) in
-                self.eventStore.calendars(for: .event)
+                do {
+                    let ekCalendars = self.eventStore.calendars(for: .event)
+                    var calendars = [Calendar]()
+                    for ekCalendar in ekCalendars {
+                        let calendar = Calendar(id: ekCalendar.calendarIdentifier, name: ekCalendar.title)
+                        calendars.append(calendar)
+                    }
+                    
+                    let jsonEncoder = JSONEncoder();
+                    let jsonData = try jsonEncoder.encode(calendars)
+                    
+                    let jsonString = String(data: jsonData, encoding: .utf8)
+                    result(jsonString)
+                } catch {
+                    result(FlutterError(code: "ERROR", message: error.localizedDescription, details: nil))
+                }
             })
         }
     }
