@@ -61,13 +61,14 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
     public fun retrieveCalendars() {
         if (ensurePermissionsGranted()) {
+
+            val contentResolver: ContentResolver? = _context?.getContentResolver();
+            val uri: Uri = CalendarContract.Calendars.CONTENT_URI;
+            val cursor: Cursor? = contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null);
+
+            val calendars: MutableList<Calendar> = mutableListOf<Calendar>();
+
             try {
-                val contentResolver: ContentResolver? = _context?.getContentResolver();
-                val uri: Uri = CalendarContract.Calendars.CONTENT_URI;
-                val cursor: Cursor? = contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null);
-
-                val calendars: MutableList<Calendar> = mutableListOf<Calendar>();
-
                 while (cursor?.moveToNext() ?: false) {
 
                     val calendar = parseCalendar(cursor);
@@ -81,6 +82,8 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
             } catch (e: Exception) {
                 _channelResult?.error("exception", e.message, null);
                 println(e.message);
+            } finally {
+                cursor?.close();
             }
         }
 
@@ -89,18 +92,18 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
     public fun retrieveCelandar(calendarId: String): Calendar? {
         if (ensurePermissionsGranted()) {
+
+            val calendarIdNumber = calendarId?.toLongOrNull();
+            if (calendarIdNumber == null) {
+                _channelResult?.error("invalid_argument", "Calendar ID is not a number", null);
+                return null;
+            }
+
+            val contentResolver: ContentResolver? = _context?.getContentResolver();
+            val uri: Uri = CalendarContract.Calendars.CONTENT_URI;
+            val cursor: Cursor? = contentResolver?.query(ContentUris.withAppendedId(uri, calendarIdNumber), CALENDAR_PROJECTION, null, null, null);
+
             try {
-                val calendarIdNumber = calendarId?.toLongOrNull();
-                if (calendarIdNumber == null) {
-                    _channelResult?.error("invalid_argument", "Calendar ID is not a number", null);
-                    return null;
-                }
-
-                val contentResolver: ContentResolver? = _context?.getContentResolver();
-                val uri: Uri = CalendarContract.Calendars.CONTENT_URI;
-                val cursor: Cursor? = contentResolver?.query(ContentUris.withAppendedId(uri, calendarIdNumber), CALENDAR_PROJECTION, null, null, null);
-
-
                 if (cursor?.moveToFirst() ?: false) {
                     val calendar = parseCalendar(cursor);
                     return calendar;
@@ -109,7 +112,9 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                 }
             } catch (e: Exception) {
                 println(e.message);
-            };
+            } finally {
+                cursor?.close();
+            }
 
         }
 
@@ -150,6 +155,8 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
             } catch (e: Exception) {
                 _channelResult?.error("exception", e.message, null);
                 println(e.message);
+            } finally {
+                cursor?.close();
             }
 
         }
