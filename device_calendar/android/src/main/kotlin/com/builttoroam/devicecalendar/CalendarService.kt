@@ -11,6 +11,9 @@ import android.net.Uri
 import android.provider.CalendarContract
 import com.builttoroam.devicecalendar.models.Calendar
 import io.flutter.plugin.common.MethodChannel
+import com.google.gson.Gson
+
+
 
 
 public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
@@ -20,10 +23,12 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     private var _activity: Activity? = null;
     private var _context: Context? = null;
     private var _channelResult: MethodChannel.Result? = null;
+    private var _gson: Gson? = null;
 
     public constructor(activity: Activity, context: Context) {
         _activity = activity;
         _context = context;
+        _gson = Gson();
     }
 
     public override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
@@ -66,7 +71,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                 calendars.add(Calendar(calID.toString(), displayName));
             }
 
-            _channelResult?.success(calendars);
+            _channelResult?.success(_gson?.toJson(calendars));
         }
 
         return;
