@@ -19,6 +19,10 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJEC
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.CALENDAR_RETRIEVAL_FAILURE
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EXCEPTION
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_MESSAGE
 import com.builttoroam.devicecalendar.models.Calendar
 import com.builttoroam.devicecalendar.models.Event
 import io.flutter.plugin.common.MethodChannel
@@ -80,7 +84,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
                 _channelResult?.success(_gson?.toJson(calendars));
             } catch (e: Exception) {
-                _channelResult?.error("exception", e.message, null);
+                _channelResult?.error(EXCEPTION, e.message, null);
                 println(e.message);
             } finally {
                 cursor?.close();
@@ -95,7 +99,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
             val calendarIdNumber = calendarId?.toLongOrNull();
             if (calendarIdNumber == null) {
-                _channelResult?.error("invalid_argument", "Calendar ID is not a number", null);
+                _channelResult?.error(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_MESSAGE, null);
                 return null;
             }
 
@@ -126,7 +130,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         if (ensurePermissionsGranted()) {
             val calendar = retrieveCelandar(calendarId);
             if (calendar == null) {
-                _channelResult?.error("calendar_retrieval_failure", "Couldn't retrieve the Calendar with ID ${calendarId}", null);
+                _channelResult?.error(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}", null);
                 return;
             }
             val contentResolver: ContentResolver? = _context?.getContentResolver();
@@ -153,7 +157,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
                 _channelResult?.success(_gson?.toJson(events));
             } catch (e: Exception) {
-                _channelResult?.error("exception", e.message, null);
+                _channelResult?.error(EXCEPTION, e.message, null);
                 println(e.message);
             } finally {
                 cursor?.close();
