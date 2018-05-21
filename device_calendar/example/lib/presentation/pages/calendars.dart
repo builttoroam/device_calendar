@@ -2,7 +2,6 @@ import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
-import '../../common/app_routes.dart';
 import 'calendar_events.dart';
 
 class CalendarsPage extends StatefulWidget {

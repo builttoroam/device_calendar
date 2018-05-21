@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'common/app_routes.dart';
-import 'presentation/pages/calendar_events.dart';
 import 'presentation/pages/calendars.dart';
 
 void main() => runApp(new MyApp());
