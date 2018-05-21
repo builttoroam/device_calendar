@@ -54,4 +54,17 @@ class DeviceCalendarPlugin {
 
     return new List<Event>();
   }
+
+  /// Delete calendar event
+  Future<bool> deleteEvent(Calendar calendar, Event event) async {
+    try {
+      var succeeded = await channel.invokeMethod('deleteEvent',
+          <String, Object>{'calendarId': calendar.id, 'eventId': event.id});
+      return succeeded;
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
+  }
 }
