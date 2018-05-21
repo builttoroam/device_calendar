@@ -8,7 +8,7 @@ class Event {
 
   Event.fromJson(Map<String, dynamic> json) {
     if (json == null) {
-      return;
+      throw new ArgumentError(Constants.fromJsonMapIsNull);
     }
 
     title = json['title'];
