@@ -11,6 +11,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
@@ -19,10 +20,11 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJEC
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.CALENDAR_IS_READ_ONLY
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.CALENDAR_RETRIEVAL_FAILURE
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EXCEPTION
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
-import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_MESSAGE
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE
 import com.builttoroam.devicecalendar.models.Calendar
 import com.builttoroam.devicecalendar.models.Event
 import io.flutter.plugin.common.MethodChannel
@@ -99,7 +101,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
             val calendarIdNumber = calendarId?.toLongOrNull();
             if (calendarIdNumber == null) {
-                _channelResult?.error(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_MESSAGE, null);
+                _channelResult?.error(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE, null);
                 return null;
             }
 
@@ -168,6 +170,38 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         return;
     }
 
+    public fun deleteEvent(calendarId: String, eventId: String) {
+        if (ensurePermissionsGranted()) {
+            var existingCal = retrieveCelandar(calendarId);
+            if (existingCal == null) {
+                _channelResult?.error(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}", null);
+                return;
+            }
+
+            if (existingCal.isReadyOnly) {
+                _channelResult?.error(CALENDAR_IS_READ_ONLY, "Calendar with ID ${calendarId} is read only", null);
+                return;
+            }
+
+            // TODO handle recurring events
+
+            val eventsUriBuilder = CalendarContract.Events.CONTENT_URI.buildUpon();
+            val eventIdNumber = eventId.toLongOrNull();
+            if (eventIdNumber == null) {
+                _channelResult?.error(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE, null);
+                return;
+            }
+
+            val eventsUriWithId = ContentUris.appendId(eventsUriBuilder, eventIdNumber).build();
+            val contentResolver: ContentResolver? = _context?.getContentResolver();
+            val deleteSucceeded = contentResolver?.delete(eventsUriWithId, null, null) ?: 0;
+
+            _channelResult?.success(deleteSucceeded > 0);
+        }
+
+        return;
+    }
+
     private fun ensurePermissionsGranted(): Boolean {
 
         if (atLeastAPI(23)) {
@@ -189,10 +223,14 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
         val calId = cursor.getLong(CALENDAR_PROJECTION_ID_INDEX);
         val displayName = cursor.getString(CALENDAR_PROJECTION_DISPLAY_NAME_INDEX);
+        val accessLevel = cursor.getInt(CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX);
         val accountName = cursor.getString(CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX);
         val ownerName = cursor.getString(CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX);
 
-        return Calendar(calId.toString(), displayName);
+        val calendar = Calendar(calId.toString(), displayName);
+        calendar.isReadyOnly = isCalendarReadOnly(accessLevel);
+
+        return calendar;
     }
 
     private fun parseEvent(cursor: Cursor?): Event? {
@@ -205,6 +243,17 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         val description = cursor.getString(EVENT_PROJECTION_DESCRIPTION_INDEX);
 
         return Event(eventId.toString(), title);
+    }
+
+    private fun isCalendarReadOnly(accessLevel: Int): Boolean {
+        when (accessLevel) {
+            CalendarContract.Events.CAL_ACCESS_CONTRIBUTOR,
+            CalendarContract.Events.CAL_ACCESS_ROOT,
+            CalendarContract.Events.CAL_ACCESS_OWNER,
+            CalendarContract.Events.CAL_ACCESS_EDITOR
+            -> return false;
+            else -> return true;
+        }
     }
 
     private fun finishWithSuccess() {
