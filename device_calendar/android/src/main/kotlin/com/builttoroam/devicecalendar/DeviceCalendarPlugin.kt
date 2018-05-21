@@ -2,7 +2,9 @@ package com.builttoroam.devicecalendar
 
 import android.app.Activity
 import android.content.Context
-import android.provider.CalendarContract
+import com.builttoroam.devicecalendar.common.ErrorCodes
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.EVENT_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE
 
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -22,9 +24,11 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     // Methods
     val RETRIEVE_CALENDARS_METHOD = "retrieveCalendars";
     val RETRIEVE_CALENDAR_EVENTS_METHOD = "retrieveEvents";
+    val DELETE_CALENDAR_EVENT_METHOD = "deleteEvent";
 
     // Method arguments
     val CALENDAR_ID_ARGUMENT = "calendarId";
+    val EVENT_ID_ARGUMENT = "eventId";
 
     private constructor(registrar: Registrar, calendarService: CalendarService) : this() {
         _registrar = registrar;
@@ -60,10 +64,25 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             RETRIEVE_CALENDAR_EVENTS_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT);
                 if (calendarId?.isNullOrEmpty() ?: true) {
-                    result.error("invalid_argument", "Calendar ID argument has not been specified or is invalid", null);
+                    result.error(ErrorCodes.INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE, null);
                 } else {
                     val events = _calendarService.retrieveEvents(calendarId);
                 }
+            }
+            DELETE_CALENDAR_EVENT_METHOD -> {
+                val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT);
+                val eventId = call.argument<String>(EVENT_ID_ARGUMENT);
+                if (calendarId == null || calendarId.isEmpty()) {
+                    result.error(ErrorCodes.INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE, null);
+                    return;
+                }
+                if (eventId == null || eventId.isEmpty()) {
+                    result.error(ErrorCodes.INVALID_ARGUMENT, EVENT_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE, null);
+                    return;
+                }
+
+                val succeeded = _calendarService.deleteEvent(calendarId, eventId);
+
             }
             else -> {
                 result.notImplemented()

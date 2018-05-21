@@ -45,7 +45,8 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
                           child: new Column(
                             children: <Widget>[
                               new Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10.0),
                                 child: new FlutterLogo(),
                               ),
                               new ListTile(
@@ -59,7 +60,35 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
                                     icon: new Icon(Icons.edit),
                                   ),
                                   new IconButton(
-                                    onPressed: () {},
+                                    onPressed: () async {
+                                      await showDialog<Null>(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (BuildContext context) {
+                                            return new AlertDialog(
+                                              title: new Text(
+                                                  'Are you sure you want to delete this event?'),
+                                              actions: <Widget>[
+                                                new FlatButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: new Text('Cancel'),
+                                                ),
+                                                new FlatButton(
+                                                  onPressed: () async {
+                                                    await _deviceCalendarPlugin
+                                                        .deleteEvent(
+                                                            _calendar,
+                                                            _calendarEvents[
+                                                                index]);
+                                                  },
+                                                  child: new Text('Ok'),
+                                                ),
+                                              ],
+                                            );
+                                          });
+                                    },
                                     icon: new Icon(Icons.delete),
                                   ),
                                 ],
