@@ -35,16 +35,21 @@ class DeviceCalendarPlugin {
   }
 
   /// Retrieves calendar events
-  Future<List<Event>> retrieveEvents(Calendar calendar) async {
+  Future<List<Event>> retrieveEvents(
+      String calendarId, DateTime startDate, DateTime endDate) async {
     try {
-      var eventsJson = await channel.invokeMethod(
-          'retrieveEvents', <String, Object>{'calendarId': calendar.id});
+      var eventsJson =
+          await channel.invokeMethod('retrieveEvents', <String, Object>{
+        'calendarId': calendarId,
+        'startDate': startDate.millisecondsSinceEpoch,
+        'endDate': endDate.millisecondsSinceEpoch
+      });
       final List<Event> events = new List<Event>();
 
       var decodedEvents = json.decode(eventsJson);
       for (var decodedCalendar in decodedEvents) {
-        var calendar = new Event.fromJson(decodedCalendar);
-        events.add(calendar);
+        var event = new Event.fromJson(decodedCalendar);
+        events.add(event);
       }
 
       return events;
