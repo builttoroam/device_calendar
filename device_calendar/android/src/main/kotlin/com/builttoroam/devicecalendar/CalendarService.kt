@@ -17,6 +17,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJEC
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DELETED_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
@@ -33,12 +34,18 @@ import com.google.gson.Gson
 
 public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
-    private val REQUEST_CODE_RETRIEVE_CALENDARS = 0
+    private val REQUEST_CODE_RETRIEVE_CALENDARS = 0;
+    private val REQUEST_CODE_RETRIEVE_EVENTS = 1;
+    private val REQUEST_CODE_RETRIEVE_CALENDAR = 2;
+    private val REQUEST_CODE_DELETE_EVENT = 3;
 
     private var _activity: Activity? = null;
     private var _context: Context? = null;
     private var _channelResult: MethodChannel.Result? = null;
     private var _gson: Gson? = null;
+
+    private var _calendarId: String = "";
+    private var _eventId: String = "";
 
     public constructor(activity: Activity, context: Context) {
         _activity = activity;
@@ -49,13 +56,39 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     public override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
         val permissionGranted = grantResults.isNotEmpty() && grantResults[0] === PackageManager.PERMISSION_GRANTED
 
-        if (requestCode === REQUEST_CODE_RETRIEVE_CALENDARS) {
-            if (permissionGranted) {
-                retrieveCalendars();
-            } else {
-                finishWithSuccess()
+        when (requestCode) {
+            REQUEST_CODE_RETRIEVE_CALENDARS -> {
+                if (permissionGranted) {
+                    retrieveCalendars();
+                } else {
+                    finishWithSuccess(null);
+                }
+                return true;
             }
-            return true
+            REQUEST_CODE_RETRIEVE_EVENTS -> {
+                if (permissionGranted) {
+                    retrieveEvents(_calendarId);
+                } else {
+                    finishWithSuccess(null);
+                }
+                return true;
+            }
+            REQUEST_CODE_RETRIEVE_CALENDAR -> {
+                if (permissionGranted) {
+                    retrieveCalendar(_calendarId);
+                } else {
+                    finishWithSuccess(null);
+                }
+                return true;
+            }
+            REQUEST_CODE_DELETE_EVENT -> {
+                if (permissionGranted) {
+                    deleteEvent(_eventId, _calendarId);
+                } else {
+                    finishWithSuccess(null);
+                }
+                return true;
+            }
         }
 
         return false
@@ -66,7 +99,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     }
 
     public fun retrieveCalendars() {
-        if (ensurePermissionsGranted()) {
+        if (ensurePermissionsGranted(REQUEST_CODE_RETRIEVE_CALENDARS)) {
 
             val contentResolver: ContentResolver? = _context?.getContentResolver();
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI;
@@ -84,9 +117,9 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                     calendars.add(calendar);
                 }
 
-                _channelResult?.success(_gson?.toJson(calendars));
+                finishWithSuccess(_gson?.toJson(calendars));
             } catch (e: Exception) {
-                _channelResult?.error(EXCEPTION, e.message, null);
+                finishWithError(EXCEPTION, e.message);
                 println(e.message);
             } finally {
                 cursor?.close();
@@ -96,12 +129,14 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         return;
     }
 
-    public fun retrieveCelandar(calendarId: String): Calendar? {
-        if (ensurePermissionsGranted()) {
-
+    public fun retrieveCalendar(calendarId: String, isInternalCall: Boolean = false): Calendar? {
+        _calendarId = calendarId;
+        if (isInternalCall || ensurePermissionsGranted(REQUEST_CODE_RETRIEVE_CALENDAR)) {
             val calendarIdNumber = calendarId?.toLongOrNull();
             if (calendarIdNumber == null) {
-                _channelResult?.error(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE, null);
+                if (!isInternalCall) {
+                    finishWithError(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE);
+                }
                 return null;
             }
 
@@ -112,27 +147,32 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
             try {
                 if (cursor?.moveToFirst() ?: false) {
                     val calendar = parseCalendar(cursor);
-                    return calendar;
+                    if (isInternalCall) {
+                        return calendar;
+                    } else {
+                        finishWithSuccess(_gson?.toJson(calendar));
+                    }
                 } else {
-
+                    if (!isInternalCall) {
+                        finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}");
+                    }
                 }
             } catch (e: Exception) {
                 println(e.message);
             } finally {
                 cursor?.close();
             }
-
         }
 
         return null;
     }
 
-
     public fun retrieveEvents(calendarId: String) {
-        if (ensurePermissionsGranted()) {
-            val calendar = retrieveCelandar(calendarId);
+        _calendarId = calendarId;
+        if (ensurePermissionsGranted(REQUEST_CODE_RETRIEVE_EVENTS)) {
+            val calendar = retrieveCalendar(calendarId, true);
             if (calendar == null) {
-                _channelResult?.error(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}", null);
+                finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}");
                 return;
             }
             val contentResolver: ContentResolver? = _context?.getContentResolver();
@@ -141,29 +181,32 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
             // TODO add start & end date
 
             var eventsUri = eventsUriBuilder.build();
-            var eventsSelectionQuery = "${CalendarContract.Events.CALENDAR_ID} = ${calendarId}";
+            var eventsSelectionQuery = "(${CalendarContract.Events.CALENDAR_ID} = ${calendarId}) AND (${CalendarContract.Events.DELETED} != 1)";
             var cursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, CalendarContract.Events.DTSTART + " ASC");
 
+            val events: MutableList<Event> = mutableListOf<Event>();
+
             try {
+                if (cursor?.moveToFirst() ?: false) {
+                    do {
+                        val event = parseEvent(cursor);
+                        if (event == null) {
+                            continue;
+                        }
 
-                val events: MutableList<Event> = mutableListOf<Event>();
-                while (cursor?.moveToNext() ?: false) {
+                        events.add(event);
 
-                    val event = parseEvent(cursor);
-                    if (event == null) {
-                        continue;
-                    }
+                    } while (cursor?.moveToNext() ?: false);
 
-                    events.add(event);
                 }
-
-                _channelResult?.success(_gson?.toJson(events));
             } catch (e: Exception) {
-                _channelResult?.error(EXCEPTION, e.message, null);
+                finishWithError(EXCEPTION, e.message);
                 println(e.message);
             } finally {
                 cursor?.close();
             }
+
+            finishWithSuccess(_gson?.toJson(events));
 
         }
 
@@ -171,44 +214,46 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     }
 
     public fun deleteEvent(calendarId: String, eventId: String) {
-        if (ensurePermissionsGranted()) {
-            var existingCal = retrieveCelandar(calendarId);
+        _eventId = eventId;
+        _calendarId = calendarId;
+        if (ensurePermissionsGranted(REQUEST_CODE_DELETE_EVENT)) {
+            var existingCal = retrieveCalendar(calendarId, true);
             if (existingCal == null) {
-                _channelResult?.error(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}", null);
+                finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}");
                 return;
             }
 
             if (existingCal.isReadyOnly) {
-                _channelResult?.error(CALENDAR_IS_READ_ONLY, "Calendar with ID ${calendarId} is read only", null);
+                finishWithError(CALENDAR_IS_READ_ONLY, "Calendar with ID ${calendarId} is read only");
                 return;
             }
 
             // TODO handle recurring events
 
-            val eventsUriBuilder = CalendarContract.Events.CONTENT_URI.buildUpon();
             val eventIdNumber = eventId.toLongOrNull();
             if (eventIdNumber == null) {
-                _channelResult?.error(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE, null);
+                finishWithError(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE);
                 return;
             }
 
-            val eventsUriWithId = ContentUris.appendId(eventsUriBuilder, eventIdNumber).build();
+            val eventsUriWithId = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventIdNumber);
             val contentResolver: ContentResolver? = _context?.getContentResolver();
+            contentResolver?.notifyChange(eventsUriWithId, null);
             val deleteSucceeded = contentResolver?.delete(eventsUriWithId, null, null) ?: 0;
 
-            _channelResult?.success(deleteSucceeded > 0);
+            finishWithSuccess(deleteSucceeded > 0);
         }
 
         return;
     }
 
-    private fun ensurePermissionsGranted(): Boolean {
+    private fun ensurePermissionsGranted(requestCode: Int): Boolean {
 
         if (atLeastAPI(23)) {
             val writeCalendarPermissionGranted = _activity?.checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED;
             val readCalendarPermissionGranted = _activity?.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED;
             if (!writeCalendarPermissionGranted || !readCalendarPermissionGranted) {
-                _activity?.requestPermissions(arrayOf(Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR), REQUEST_CODE_RETRIEVE_CALENDARS);
+                _activity?.requestPermissions(arrayOf(Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR), requestCode);
                 return false;
             }
         }
@@ -241,8 +286,11 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         val eventId = cursor.getString(EVENT_PROJECTION_ID_INDEX);
         val title = cursor.getString(EVENT_PROJECTION_TITLE_INDEX);
         val description = cursor.getString(EVENT_PROJECTION_DESCRIPTION_INDEX);
+        val deleted = cursor.getInt(EVENT_PROJECTION_DELETED_INDEX);
 
-        return Event(eventId.toString(), title);
+        val event = Event(eventId.toString(), title);
+        event.deleted = deleted > 0;
+        return event;
     }
 
     private fun isCalendarReadOnly(accessLevel: Int): Boolean {
@@ -256,13 +304,17 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         }
     }
 
-    private fun finishWithSuccess() {
-        _channelResult?.success(null);
+    private fun <T> finishWithSuccess(result: T) {
+        _channelResult?.success(result);
+        clearChannelResult();
+    }
+
+    private fun finishWithError(errorCode: String, errorMessage: String?) {
+        _channelResult?.error(errorCode, errorMessage, null);
         clearChannelResult();
     }
 
     private fun clearChannelResult() {
-
         _channelResult = null;
     }
 
