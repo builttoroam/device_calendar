@@ -72,4 +72,35 @@ class DeviceCalendarPlugin {
 
     return false;
   }
+
+  /// Create an event
+  ///
+  /// returns: Newly created event ID
+  Future<BaseResult<String>> createEvent(Calendar calendar, Event event) async {
+    var res = new BaseResult<String>(null);
+    if (calendar?.id == null ||
+        (event?.title?.isEmpty ?? false) ||
+        event.start == null ||
+        event.end == null) {
+      res.errorMessages.add(Constants.invalidArgument);
+      res.errorMessages.add(Constants.createEventArgumentReuirements);
+
+      return res;
+    }
+
+    try {
+      res.data = await channel.invokeMethod('createEvent', <String, Object>{
+        'calendarId': calendar.id,
+        'eventTitle': event.title,
+        'eventStartDate': event.start.millisecondsSinceEpoch,
+        'eventEndDate': event.end.millisecondsSinceEpoch,
+      });
+      res.isSuccess = true;
+    } catch (e) {
+      res.errorMessages.add(e.toString());
+      print(e);
+    }
+
+    return res;
+  }
 }

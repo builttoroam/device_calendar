@@ -7,6 +7,7 @@ class Event {
   DateTime start;
   DateTime end;
 
+  Event({this.title, this.start, this.end});
 
   Event.fromJson(Map<String, dynamic> json) {
     if (json == null) {
