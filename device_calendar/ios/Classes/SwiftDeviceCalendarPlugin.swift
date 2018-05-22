@@ -11,6 +11,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     static let channelName = "plugins.builttoroam.com/device_calendar";
     let eventStore = EKEventStore();
     let retrieveCalendarsMethod = "retrieveCalendars";
+    let retrieveEventsMethod = "retrieveEvents";
+    let calendarIdArgument = "calendarId";
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
@@ -19,7 +21,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if(call.method == retrieveCalendarsMethod) {
+        switch call.method {
+        case retrieveCalendarsMethod:
             requestPermission(completion: {
                 (accessGranted: Bool) in
                 do {
@@ -39,6 +42,15 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                     result(FlutterError(code: "ERROR", message: error.localizedDescription, details: nil))
                 }
             })
+        case retrieveEventsMethod:
+            requestPermission(completion: {
+                (accessGranted: Bool) in
+                let arguments = call.arguments as! Dictionary<String, AnyObject>;
+                let calendarId = arguments[self.calendarIdArgument] as! String;
+                let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
+            })
+        default:
+            result(FlutterMethodNotImplemented)
         }
     }
     

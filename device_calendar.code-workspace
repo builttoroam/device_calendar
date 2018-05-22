@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "device_calendar"
+		},
+		{
+			"path": "device_calendar/example",
+			"name": "example"
+		}
+	],
+	"settings": {}
+}
