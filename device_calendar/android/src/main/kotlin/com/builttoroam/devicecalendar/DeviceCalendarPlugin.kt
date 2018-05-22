@@ -78,9 +78,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT);
                 val eventTitle = call.argument<String>(EVENT_TITLE_ARGUMENT);
                 val eventStart = call.argument<Long>(EVENT_START_DATE_ARGUMENT);
-                // val eventStartEpoch = eventStart.toLongOrNull();
                 val eventEnd = call.argument<Long>(EVENT_END_DATE_ARGUMENT);
-                // val eventEndEpoch = eventEnd.toLongOrNull();
 
                 if (calendarId == null || calendarId.isEmpty() || eventTitle == null || eventTitle.isEmpty()) {
                     result.error(ErrorCodes.INVALID_ARGUMENT, CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE, null);
