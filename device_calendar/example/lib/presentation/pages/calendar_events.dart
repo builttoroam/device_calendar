@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
+
+import '../event_item.dart';
 
 class CalendarEventsPage extends StatefulWidget {
   final Calendar _calendar;
@@ -17,6 +21,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
 
   DeviceCalendarPlugin _deviceCalendarPlugin;
   List<Event> _calendarEvents;
+  bool _isLoading = true;
 
   _CalendarEventsPageState(this._calendar) {
     _deviceCalendarPlugin = new DeviceCalendarPlugin();
@@ -34,70 +39,48 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
     return new Scaffold(
       appBar: new AppBar(title: new Text('${_calendar.name} events')),
       body: hasAnyEvents
-          ? new Column(
+          ? new Stack(
               children: <Widget>[
-                new Expanded(
-                    flex: 1,
-                    child: new ListView.builder(
-                      itemCount: _calendarEvents?.length ?? 0,
-                      itemBuilder: (BuildContext context, int index) {
-                        return new Card(
-                          child: new Column(
-                            children: <Widget>[
-                              new Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 10.0),
-                                child: new FlutterLogo(),
-                              ),
-                              new ListTile(
-                                title: new Text(_calendarEvents[index].title),
-                              ),
-                              new ButtonTheme.bar(
-                                  child: new ButtonBar(
-                                children: <Widget>[
-                                  new IconButton(
-                                    onPressed: () {},
-                                    icon: new Icon(Icons.edit),
-                                  ),
-                                  new IconButton(
-                                    onPressed: () async {
-                                      await showDialog<Null>(
-                                          context: context,
-                                          barrierDismissible: false,
-                                          builder: (BuildContext context) {
-                                            return new AlertDialog(
-                                              title: new Text(
-                                                  'Are you sure you want to delete this event?'),
-                                              actions: <Widget>[
-                                                new FlatButton(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: new Text('Cancel'),
-                                                ),
-                                                new FlatButton(
-                                                  onPressed: () async {
-                                                    await _deviceCalendarPlugin
-                                                        .deleteEvent(
-                                                            _calendar,
-                                                            _calendarEvents[
-                                                                index]);
-                                                  },
-                                                  child: new Text('Ok'),
-                                                ),
-                                              ],
-                                            );
-                                          });
-                                    },
-                                    icon: new Icon(Icons.delete),
-                                  ),
-                                ],
-                              ))
-                            ],
-                          ),
-                        );
-                      },
-                    ))
+                new Column(
+                  children: <Widget>[
+                    new Expanded(
+                        flex: 1,
+                        child: new ListView.builder(
+                          itemCount: _calendarEvents?.length ?? 0,
+                          itemBuilder: (BuildContext context, int index) {
+                            return new EventItem(
+                                _calendar,
+                                _calendarEvents[index],
+                                _deviceCalendarPlugin, () {
+                              setState(() {
+                                _isLoading = true;
+                              });
+                            }, (deleteSuceedeed) async {
+                              if (deleteSuceedeed) {
+                                await _retrieveCalendarEvents();
+                              } else {
+                                Scaffold.of(context).showSnackBar(new SnackBar(
+                                      content: new Text(
+                                          'Oops, we ran into an issue deleting the event'),
+                                      backgroundColor: Colors.red,
+                                      duration: new Duration(seconds: 5),
+                                    ));
+                                setState(() {
+                                  _isLoading = false;
+                                });
+                              }
+                            });
+                          },
+                        ))
+                  ],
+                ),
+                new Offstage(
+                    offstage: !_isLoading,
+                    child: new Container(
+                        decoration: new BoxDecoration(
+                            color: new Color.fromARGB(155, 192, 192, 192)),
+                        child:
+                            new Center(child: new CircularProgressIndicator())))
               ],
             )
           : new Center(child: new Text('No events found')),
@@ -108,10 +91,11 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
     );
   }
 
-  void _retrieveCalendarEvents() async {
+  Future _retrieveCalendarEvents() async {
     var calendarEvents = await _deviceCalendarPlugin.retrieveEvents(_calendar);
     setState(() {
       _calendarEvents = calendarEvents;
+      _isLoading = false;
     });
   }
 }
