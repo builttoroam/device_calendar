@@ -4,6 +4,7 @@ import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 
 import '../event_item.dart';
+import 'calendar_event.dart';
 
 class CalendarEventsPage extends StatefulWidget {
   final Calendar _calendar;
@@ -85,7 +86,15 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
             )
           : new Center(child: new Text('No events found')),
       floatingActionButton: new FloatingActionButton(
-        onPressed: () {},
+        onPressed: () async {
+          final refreshEvents = await Navigator.push(context,
+              new MaterialPageRoute(builder: (BuildContext context) {
+            return new CalendarEventPage(_calendar);
+          }));
+          if (refreshEvents) {
+            _retrieveCalendarEvents();
+          }
+        },
         child: new Icon(Icons.add),
       ),
     );
