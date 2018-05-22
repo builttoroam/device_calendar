@@ -17,6 +17,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJEC
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DELETED_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
@@ -180,29 +181,32 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
             // TODO add start & end date
 
             var eventsUri = eventsUriBuilder.build();
-            var eventsSelectionQuery = "${CalendarContract.Events.CALENDAR_ID} = ${calendarId}";
+            var eventsSelectionQuery = "(${CalendarContract.Events.CALENDAR_ID} = ${calendarId}) AND (${CalendarContract.Events.DELETED} != 1)";
             var cursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, CalendarContract.Events.DTSTART + " ASC");
 
+            val events: MutableList<Event> = mutableListOf<Event>();
+
             try {
+                if (cursor?.moveToFirst() ?: false) {
+                    do {
+                        val event = parseEvent(cursor);
+                        if (event == null) {
+                            continue;
+                        }
 
-                val events: MutableList<Event> = mutableListOf<Event>();
-                while (cursor?.moveToNext() ?: false) {
+                        events.add(event);
 
-                    val event = parseEvent(cursor);
-                    if (event == null) {
-                        continue;
-                    }
+                    } while (cursor?.moveToNext() ?: false);
 
-                    events.add(event);
                 }
-
-                finishWithSuccess(_gson?.toJson(events));
             } catch (e: Exception) {
                 finishWithError(EXCEPTION, e.message);
                 println(e.message);
             } finally {
                 cursor?.close();
             }
+
+            finishWithSuccess(_gson?.toJson(events));
 
         }
 
@@ -226,15 +230,15 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
             // TODO handle recurring events
 
-            val eventsUriBuilder = CalendarContract.Events.CONTENT_URI.buildUpon();
             val eventIdNumber = eventId.toLongOrNull();
             if (eventIdNumber == null) {
                 finishWithError(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE);
                 return;
             }
 
-            val eventsUriWithId = ContentUris.appendId(eventsUriBuilder, eventIdNumber).build();
+            val eventsUriWithId = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventIdNumber);
             val contentResolver: ContentResolver? = _context?.getContentResolver();
+            contentResolver?.notifyChange(eventsUriWithId, null);
             val deleteSucceeded = contentResolver?.delete(eventsUriWithId, null, null) ?: 0;
 
             finishWithSuccess(deleteSucceeded > 0);
@@ -282,8 +286,11 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         val eventId = cursor.getString(EVENT_PROJECTION_ID_INDEX);
         val title = cursor.getString(EVENT_PROJECTION_TITLE_INDEX);
         val description = cursor.getString(EVENT_PROJECTION_DESCRIPTION_INDEX);
+        val deleted = cursor.getInt(EVENT_PROJECTION_DELETED_INDEX);
 
-        return Event(eventId.toString(), title);
+        val event = Event(eventId.toString(), title);
+        event.deleted = deleted > 0;
+        return event;
     }
 
     private fun isCalendarReadOnly(accessLevel: Int): Boolean {
