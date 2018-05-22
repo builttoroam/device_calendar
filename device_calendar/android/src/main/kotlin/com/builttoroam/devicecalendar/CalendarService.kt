@@ -39,10 +39,10 @@ import java.util.*
 public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
     private val REQUEST_CODE_RETRIEVE_CALENDARS = 0;
-    private val REQUEST_CODE_RETRIEVE_EVENTS = 1;
-    private val REQUEST_CODE_RETRIEVE_CALENDAR = 2;
-    private val REQUEST_CODE_CREATE_EVENT = 3;
-    private val REQUEST_CODE_DELETE_EVENT = 4;
+    private val REQUEST_CODE_RETRIEVE_EVENTS = REQUEST_CODE_RETRIEVE_CALENDARS + 1;
+    private val REQUEST_CODE_RETRIEVE_CALENDAR = REQUEST_CODE_RETRIEVE_EVENTS + 1;
+    private val REQUEST_CODE_CREATE_EVENT = REQUEST_CODE_RETRIEVE_CALENDAR + 1;
+    private val REQUEST_CODE_DELETE_EVENT = REQUEST_CODE_CREATE_EVENT + 1;
 
     private var _activity: Activity? = null;
     private var _context: Context? = null;
