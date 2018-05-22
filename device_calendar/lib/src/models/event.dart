@@ -17,9 +17,14 @@ class Event {
     id = json['id'];
     title = json['title'];
     int startMillisecondsSinceEpoch = json['start'];
-    start = new DateTime.fromMillisecondsSinceEpoch(startMillisecondsSinceEpoch);
+    if (startMillisecondsSinceEpoch != null) {
+      start =
+          new DateTime.fromMillisecondsSinceEpoch(startMillisecondsSinceEpoch);
+    }
     int endMillisecondsSinceEpoch = json['end'];
-    end = new DateTime.fromMillisecondsSinceEpoch(endMillisecondsSinceEpoch);
+    if (endMillisecondsSinceEpoch != null) {
+      end = new DateTime.fromMillisecondsSinceEpoch(endMillisecondsSinceEpoch);
+    }
   }
 
   Map<String, dynamic> toJson() {
