@@ -1,5 +1,6 @@
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../date_time_picker.dart';
 
@@ -23,10 +24,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   DeviceCalendarPlugin _deviceCalendarPlugin;
 
   DateTime _fromDate = new DateTime.now();
-  TimeOfDay _fromTime = const TimeOfDay(hour: 7, minute: 28);
+  TimeOfDay _fromTime = const TimeOfDay(hour: 12, minute: 0);
 
   DateTime _toDate = new DateTime.now();
-  TimeOfDay _toTime = const TimeOfDay(hour: 7, minute: 28);
+  TimeOfDay _toTime = const TimeOfDay(hour: 13, minute: 0);
 
   bool _autovalidate = false;
 
@@ -38,106 +39,126 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      key: _scaffoldKey,
-      appBar: new AppBar(
-        title: new Text('Create new event'),
-      ),
-      body: new Column(
-        children: <Widget>[
-          new Form(
-            autovalidate: _autovalidate,
-            key: _formKey,
-            child: new Column(
-              children: <Widget>[
-                new Row(
+        key: _scaffoldKey,
+        appBar: new AppBar(
+          title: new Text('Create new event'),
+        ),
+        body: new SingleChildScrollView(
+          child: new Column(
+            children: <Widget>[
+              new Form(
+                autovalidate: _autovalidate,
+                key: _formKey,
+                child: new Column(
                   children: <Widget>[
-                    new Expanded(
-                        flex: 1,
-                        child: new Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: new TextFormField(
-                            decoration: const InputDecoration(
-                                labelText: 'Title',
-                                hintText: 'Meeting with Gloria...'),
-                            validator: _validateTitle,
-                            onSaved: (String value) {
-                              _event.title = value;
-                            },
-                          ),
-                        )),
-                  ],
-                ),
-                new Row(
-                  children: <Widget>[
-                    new Expanded(
-                        flex: 1,
-                        child: new Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: new DateTimePicker(
-                                labelText: 'From',
-                                selectedDate: _fromDate,
-                                selectedTime: _fromTime,
-                                selectDate: (DateTime date) {
-                                  setState(() {
-                                    _fromDate = date;
-                                    _event.start = date;
-                                  });
+                    new Row(
+                      children: <Widget>[
+                        new Expanded(
+                            flex: 1,
+                            child: new Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: new TextFormField(
+                                decoration: const InputDecoration(
+                                    labelText: 'Title',
+                                    hintText: 'Meeting with Gloria...'),
+                                validator: _validateTitle,
+                                onSaved: (String value) {
+                                  _event.title = value;
                                 },
-                                selectTime: (TimeOfDay time) {
-                                  setState(() {
-                                    _fromTime = time;
-                                  });
-                                })))
-                  ],
-                ),
-                new Row(
-                  children: <Widget>[
-                    new Expanded(
-                        flex: 1,
-                        child: new Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: new DateTimePicker(
-                                labelText: 'To',
-                                selectedDate: _toDate,
-                                selectedTime: _toTime,
-                                selectDate: (DateTime date) {
-                                  setState(() {
-                                    _fromDate = date;
-                                    _event.end = date;
-                                  });
+                              ),
+                            )),
+                      ],
+                    ),
+                    new Row(
+                      children: <Widget>[
+                        new Expanded(
+                            flex: 1,
+                            child: new Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: new TextFormField(
+                                decoration: const InputDecoration(
+                                    labelText: 'Description',
+                                    hintText: 'Remember to buy flowers...'),
+                                onSaved: (String value) {
+                                  _event.description = value;
                                 },
-                                selectTime: (TimeOfDay time) {
-                                  setState(() {
-                                    _fromTime = time;
-                                  });
-                                })))
+                              ),
+                            )),
+                      ],
+                    ),
+                    new Row(
+                      children: <Widget>[
+                        new Expanded(
+                            flex: 1,
+                            child: new Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: new DateTimePicker(
+                                    labelText: 'From',
+                                    selectedDate: _fromDate,
+                                    selectedTime: _fromTime,
+                                    selectDate: (DateTime date) {
+                                      setState(() {
+                                        _fromDate = date;
+                                        _event.start = _combineDateWithTime(_fromDate, _fromTime);;
+                                      });
+                                    },
+                                    selectTime: (TimeOfDay time) {
+                                      setState(() {
+                                        _fromTime = time;
+                                        _event.start = _combineDateWithTime(_fromDate, _fromTime);
+                                      });
+                                    })))
+                      ],
+                    ),
+                    new Row(
+                      children: <Widget>[
+                        new Expanded(
+                            flex: 1,
+                            child: new Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: new DateTimePicker(
+                                    labelText: 'To',
+                                    selectedDate: _toDate,
+                                    selectedTime: _toTime,
+                                    selectDate: (DateTime date) {
+                                      setState(() {
+                                        _toDate = date;
+                                        _event.end = _combineDateWithTime(_toDate, _toTime);;
+                                      });
+                                    },
+                                    selectTime: (TimeOfDay time) {
+                                      setState(() {
+                                        _toTime = time;
+                                        _event.end = _combineDateWithTime(_toDate, _toTime);
+                                      });
+                                    })))
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
-          )
-        ],
-      ),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: () async {
-          final FormState form = _formKey.currentState;
-          if (!form.validate()) {
-            _autovalidate = true; // Start validating on every change.
-            showInSnackBar('Please fix the errors in red before submitting.');
-          } else {
-            form.save();
-            var createEventResult =
-                await _deviceCalendarPlugin.createEvent(_calendar, _event);
-            if (createEventResult.isSuccess) {
-              Navigator.pop(context, true);
+              )
+            ],
+          ),
+        ),
+        floatingActionButton: new FloatingActionButton(
+          onPressed: () async {
+            final FormState form = _formKey.currentState;
+            if (!form.validate()) {
+              _autovalidate = true; // Start validating on every change.
+              showInSnackBar('Please fix the errors in red before submitting.');
             } else {
-              showInSnackBar(createEventResult.errorMessages.join('|'));
+              form.save();
+              var createEventResult =
+                  await _deviceCalendarPlugin.createEvent(_calendar, _event);
+              if (createEventResult.isSuccess) {
+                Navigator.pop(context, true);
+              } else {
+                showInSnackBar(createEventResult.errorMessages.join('|'));
+              }
             }
-          }
-        },
-        child: new Icon(Icons.check),
-      ),
-    );
+          },
+          child: new Icon(Icons.check),
+        ));
   }
 
   String _validateTitle(String value) {
@@ -146,6 +167,13 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     }
 
     return null;
+  }
+
+  DateTime _combineDateWithTime(DateTime date, TimeOfDay time) {
+    final dateWithoutTime =
+        DateTime.parse(new DateFormat("y-MM-dd 00:00:00").format(_fromDate));
+    return dateWithoutTime
+        .add(new Duration(hours: time.hour, minutes: time.minute));
   }
 
   void showInSnackBar(String value) {

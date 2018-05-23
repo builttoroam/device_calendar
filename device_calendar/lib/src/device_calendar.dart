@@ -92,6 +92,7 @@ class DeviceCalendarPlugin {
       res.data = await channel.invokeMethod('createEvent', <String, Object>{
         'calendarId': calendar.id,
         'eventTitle': event.title,
+        'eventDescription': event.description,
         'eventStartDate': event.start.millisecondsSinceEpoch,
         'eventEndDate': event.end.millisecondsSinceEpoch,
       });
