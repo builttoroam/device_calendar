@@ -82,7 +82,7 @@ class DeviceCalendarPlugin {
         event.end == null ||
         event.start.isAfter(event.end)) {
       res.errorMessages.add(Constants.invalidArgument);
-      res.errorMessages.add(Constants.createOrUpdateEventArgumentReuirements);
+      res.errorMessages.add(Constants.createOrUpdateEventArgumentRequirements);
 
       return res;
     }
