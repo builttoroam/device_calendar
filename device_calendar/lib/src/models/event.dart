@@ -3,6 +3,7 @@ part of device_calendar;
 class Event {
   String id;
   String title;
+  String description;
 
   DateTime start;
   DateTime end;
@@ -16,6 +17,7 @@ class Event {
 
     id = json['id'];
     title = json['title'];
+    description = json['description'];
     int startMillisecondsSinceEpoch = json['start'];
     if (startMillisecondsSinceEpoch != null) {
       start =
@@ -31,6 +33,7 @@ class Event {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['id'] = this.id;
     data['title'] = this.title;
+    data['description'] = this.description;
     data['start'] = this.start.millisecondsSinceEpoch;
     data['end'] = this.end.millisecondsSinceEpoch;
 

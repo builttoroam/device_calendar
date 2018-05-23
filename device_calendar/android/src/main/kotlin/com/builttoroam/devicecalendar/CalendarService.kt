@@ -18,7 +18,6 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJEC
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DELETED_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
@@ -33,6 +32,12 @@ import io.flutter.plugin.common.MethodChannel
 import com.google.gson.Gson
 import android.provider.CalendarContract.Events
 import android.content.ContentValues
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_END_DATE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_START_DATE_INDEX
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EVENTS_RETRIEVAL_FAILURE
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EVENT_CREATION_FAILURE
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.EVENTS_START_DATE_LARGER_THAN_END_DATE_MESSAGE
 import java.util.*
 
 
@@ -49,12 +54,14 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     private var _channelResult: MethodChannel.Result? = null;
     private var _gson: Gson? = null;
 
+    // TODO MK Rethink this approach of 'caching' values between getting the permissions and running the calendar function again
+    //         The issue with this approach is that it will fail when there's multiple calls handled at the same time
     private var _calendarId: String = "";
+    private var _calendarEventsStartDate: Long = -1;
+    private var _calendarEventsEndDate: Long = -1;
     private var _eventId: String = "";
 
-    private var _eventTitle: String = "";
-    private var _eventStartDate: Long = -1;
-    private var _eventEndDate: Long = -1;
+    private var _event: Event? = null;
 
     public constructor(activity: Activity, context: Context) {
         _activity = activity;
@@ -76,7 +83,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
             }
             REQUEST_CODE_RETRIEVE_EVENTS -> {
                 if (permissionGranted) {
-                    retrieveEvents(_calendarId);
+                    retrieveEvents(_calendarId, _calendarEventsStartDate, _calendarEventsEndDate);
                 } else {
                     finishWithSuccess(null);
                 }
@@ -92,7 +99,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
             }
             REQUEST_CODE_CREATE_EVENT -> {
                 if (permissionGranted) {
-                    createEvent(_calendarId, _eventTitle, _eventStartDate, _eventEndDate);
+                    createEvent(_calendarId, _event);
                 } else {
                     finishWithSuccess(null);
                 }
@@ -185,21 +192,29 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         return null;
     }
 
-    public fun retrieveEvents(calendarId: String) {
+    public fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long) {
         _calendarId = calendarId;
+        _calendarEventsStartDate = startDate;
+        _calendarEventsEndDate = endDate;
         if (ensurePermissionsGranted(REQUEST_CODE_RETRIEVE_EVENTS)) {
             val calendar = retrieveCalendar(calendarId, true);
             if (calendar == null) {
                 finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}");
                 return;
             }
+            if (startDate > endDate) {
+                finishWithError(EVENTS_RETRIEVAL_FAILURE, EVENTS_START_DATE_LARGER_THAN_END_DATE_MESSAGE);
+                return;
+            }
+
             val contentResolver: ContentResolver? = _context?.getContentResolver();
             var eventsUriBuilder = CalendarContract.Events.CONTENT_URI.buildUpon();
 
-            // TODO add start & end date
-
             var eventsUri = eventsUriBuilder.build();
-            var eventsSelectionQuery = "(${CalendarContract.Events.CALENDAR_ID} = ${calendarId}) AND (${CalendarContract.Events.DELETED} != 1)";
+            var eventsSelectionQuery = "(${CalendarContract.Events.CALENDAR_ID} = ${calendarId}) AND " +
+                    "(${CalendarContract.Instances.DTSTART} >= ${startDate}) AND " +
+                    "(${CalendarContract.Instances.DTEND} <= ${endDate}) AND " +
+                    "(${CalendarContract.Events.DELETED} != 1)";
             var cursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, CalendarContract.Events.DTSTART + " ASC");
 
             val events: MutableList<Event> = mutableListOf<Event>();
@@ -232,17 +247,21 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     }
 
     @SuppressLint("MissingPermission")
-    public fun createEvent(calendarId: String, eventTitle: String, eventStartDate: Long, eventEndDate: Long) {
+    public fun createEvent(calendarId: String, event: Event?) {
         _calendarId = calendarId;
-        _eventTitle = eventTitle;
-        _eventStartDate = eventStartDate;
-        _eventEndDate = eventEndDate;
+        _event = event;
         if (ensurePermissionsGranted(REQUEST_CODE_CREATE_EVENT)) {
+            if (event == null) {
+                finishWithError(EVENT_CREATION_FAILURE, CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE);
+                return;
+            }
+
             val contentResolver: ContentResolver? = _context?.getContentResolver();
             val values = ContentValues();
-            values.put(Events.DTSTART, eventStartDate);
-            values.put(Events.DTEND, eventEndDate);
-            values.put(Events.TITLE, eventTitle);
+            values.put(Events.DTSTART, event.start);
+            values.put(Events.DTEND, event.end);
+            values.put(Events.TITLE, event.title);
+            values.put(Events.DESCRIPTION, event.description);
             values.put(Events.CALENDAR_ID, calendarId);
 
             // MK using current device time zone
@@ -336,10 +355,15 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         val eventId = cursor.getString(EVENT_PROJECTION_ID_INDEX);
         val title = cursor.getString(EVENT_PROJECTION_TITLE_INDEX);
         val description = cursor.getString(EVENT_PROJECTION_DESCRIPTION_INDEX);
-        val deleted = cursor.getInt(EVENT_PROJECTION_DELETED_INDEX);
+        val startDate = cursor.getLong(EVENT_PROJECTION_START_DATE_INDEX);
+        val endDate = cursor.getLong(EVENT_PROJECTION_END_DATE_INDEX);
 
-        val event = Event(eventId.toString(), title);
-        event.deleted = deleted > 0;
+        val event = Event(title);
+        event.id = eventId.toString();
+        event.description = description;
+        event.start = startDate;
+        event.end = endDate;
+
         return event;
     }
 

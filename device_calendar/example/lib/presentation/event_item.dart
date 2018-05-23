@@ -1,5 +1,6 @@
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class EventItem extends StatelessWidget {
   final Calendar _calendar;
@@ -16,13 +17,52 @@ class EventItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return new Card(
       child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           new Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
             child: new FlutterLogo(),
           ),
           new ListTile(
-            title: new Text(_calendarEvent.title),
+              title: new Text(_calendarEvent.title),
+              subtitle: new Text(_calendarEvent.description)),
+          new Container(
+            padding: new EdgeInsets.symmetric(horizontal: 16.0),
+            child: new Column(
+              children: <Widget>[
+                new Align(
+                  alignment: Alignment.topLeft,
+                  child: new Row(
+                    children: <Widget>[
+                      new Container(
+                        width: 50.0,
+                        child: new Text('Starts'),
+                      ),
+                      new Text(new DateFormat.yMd()
+                          .add_jm()
+                          .format(_calendarEvent.start)),
+                    ],
+                  ),
+                ),
+                new Padding(
+                  padding: new EdgeInsets.symmetric(vertical: 5.0),
+                ),
+                new Align(
+                  alignment: Alignment.topLeft,
+                  child: new Row(
+                    children: <Widget>[
+                      new Container(
+                        width: 50.0,
+                        child: new Text('Ends'),
+                      ),
+                      new Text(new DateFormat.yMd()
+                          .add_jm()
+                          .format(_calendarEvent.end)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           new ButtonTheme.bar(
               child: new ButtonBar(
