@@ -82,9 +82,10 @@ class DeviceCalendarPlugin {
     if (calendar?.id == null ||
         (event?.title?.isEmpty ?? false) ||
         event.start == null ||
-        event.end == null) {
+        event.end == null ||
+        event.start.isAfter(event.end)) {
       res.errorMessages.add(Constants.invalidArgument);
-      res.errorMessages.add(Constants.createEventArgumentReuirements);
+      res.errorMessages.add(Constants.createOrUpdateEventArgumentReuirements);
 
       return res;
     }
