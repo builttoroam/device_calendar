@@ -142,7 +142,9 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         return false
     }
 
+    @Synchronized
     public fun setPendingResult(channelResult: MethodChannel.Result) {
+        // TODO MK the channel result should be cached (in case there's multiple requests getting in)
         _channelResult = channelResult;
     }
 
