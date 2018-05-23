@@ -1,5 +1,6 @@
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../date_time_picker.dart';
 
@@ -98,12 +99,13 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                     selectDate: (DateTime date) {
                                       setState(() {
                                         _fromDate = date;
-                                        _event.start = date;
+                                        _event.start = _combineDateWithTime(_fromDate, _fromTime);;
                                       });
                                     },
                                     selectTime: (TimeOfDay time) {
                                       setState(() {
                                         _fromTime = time;
+                                        _event.start = _combineDateWithTime(_fromDate, _fromTime);
                                       });
                                     })))
                       ],
@@ -120,13 +122,14 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                     selectedTime: _toTime,
                                     selectDate: (DateTime date) {
                                       setState(() {
-                                        _fromDate = date;
-                                        _event.end = date;
+                                        _toDate = date;
+                                        _event.end = _combineDateWithTime(_toDate, _toTime);;
                                       });
                                     },
                                     selectTime: (TimeOfDay time) {
                                       setState(() {
-                                        _fromTime = time;
+                                        _toTime = time;
+                                        _event.end = _combineDateWithTime(_toDate, _toTime);
                                       });
                                     })))
                       ],
@@ -164,6 +167,13 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     }
 
     return null;
+  }
+
+  DateTime _combineDateWithTime(DateTime date, TimeOfDay time) {
+    final dateWithoutTime =
+        DateTime.parse(new DateFormat("y-MM-dd 00:00:00").format(_fromDate));
+    return dateWithoutTime
+        .add(new Duration(hours: time.hour, minutes: time.minute));
   }
 
   void showInSnackBar(String value) {
