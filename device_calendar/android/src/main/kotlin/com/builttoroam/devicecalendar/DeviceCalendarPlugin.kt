@@ -83,7 +83,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             CREATE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT);
                 val eventTitle = call.argument<String>(EVENT_TITLE_ARGUMENT);
-                val eventDescription = call.argument<String>(EVENT_TITLE_ARGUMENT);
+                val eventDescription = call.argument<String>(EVENT_DESCRIPTION_ARGUMENT);
                 val eventStart = call.argument<Long>(EVENT_START_DATE_ARGUMENT);
                 val eventEnd = call.argument<Long>(EVENT_END_DATE_ARGUMENT);
 
