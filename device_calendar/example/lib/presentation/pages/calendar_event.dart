@@ -52,7 +52,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     return new Scaffold(
         key: _scaffoldKey,
         appBar: new AppBar(
-          title: new Text(_event.id.isEmpty
+          title: new Text(_event.id?.isEmpty ?? true
               ? 'Create new event'
               : 'Edit event ${_event.title}'),
         ),
