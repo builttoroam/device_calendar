@@ -1,6 +1,7 @@
 package com.builttoroam.devicecalendar
 
 import android.Manifest
+import android.annotation.SuppressLint
 import io.flutter.plugin.common.PluginRegistry;
 import android.content.pm.PackageManager
 import android.app.Activity
@@ -30,14 +31,18 @@ import com.builttoroam.devicecalendar.models.Calendar
 import com.builttoroam.devicecalendar.models.Event
 import io.flutter.plugin.common.MethodChannel
 import com.google.gson.Gson
+import android.provider.CalendarContract.Events
+import android.content.ContentValues
+import java.util.*
 
 
 public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
     private val REQUEST_CODE_RETRIEVE_CALENDARS = 0;
-    private val REQUEST_CODE_RETRIEVE_EVENTS = 1;
-    private val REQUEST_CODE_RETRIEVE_CALENDAR = 2;
-    private val REQUEST_CODE_DELETE_EVENT = 3;
+    private val REQUEST_CODE_RETRIEVE_EVENTS = REQUEST_CODE_RETRIEVE_CALENDARS + 1;
+    private val REQUEST_CODE_RETRIEVE_CALENDAR = REQUEST_CODE_RETRIEVE_EVENTS + 1;
+    private val REQUEST_CODE_CREATE_EVENT = REQUEST_CODE_RETRIEVE_CALENDAR + 1;
+    private val REQUEST_CODE_DELETE_EVENT = REQUEST_CODE_CREATE_EVENT + 1;
 
     private var _activity: Activity? = null;
     private var _context: Context? = null;
@@ -46,6 +51,10 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
     private var _calendarId: String = "";
     private var _eventId: String = "";
+
+    private var _eventTitle: String = "";
+    private var _eventStartDate: Long = -1;
+    private var _eventEndDate: Long = -1;
 
     public constructor(activity: Activity, context: Context) {
         _activity = activity;
@@ -81,6 +90,14 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                 }
                 return true;
             }
+            REQUEST_CODE_CREATE_EVENT -> {
+                if (permissionGranted) {
+                    createEvent(_calendarId, _eventTitle, _eventStartDate, _eventEndDate);
+                } else {
+                    finishWithSuccess(null);
+                }
+                return true;
+            }
             REQUEST_CODE_DELETE_EVENT -> {
                 if (permissionGranted) {
                     deleteEvent(_eventId, _calendarId);
@@ -98,6 +115,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         _channelResult = channelResult;
     }
 
+    @SuppressLint("MissingPermission")
     public fun retrieveCalendars() {
         if (ensurePermissionsGranted(REQUEST_CODE_RETRIEVE_CALENDARS)) {
 
@@ -213,6 +231,40 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         return;
     }
 
+    @SuppressLint("MissingPermission")
+    public fun createEvent(calendarId: String, eventTitle: String, eventStartDate: Long, eventEndDate: Long) {
+        _calendarId = calendarId;
+        _eventTitle = eventTitle;
+        _eventStartDate = eventStartDate;
+        _eventEndDate = eventEndDate;
+        if (ensurePermissionsGranted(REQUEST_CODE_CREATE_EVENT)) {
+            val contentResolver: ContentResolver? = _context?.getContentResolver();
+            val values = ContentValues();
+            values.put(Events.DTSTART, eventStartDate);
+            values.put(Events.DTEND, eventEndDate);
+            values.put(Events.TITLE, eventTitle);
+            values.put(Events.CALENDAR_ID, calendarId);
+
+            // MK using current device time zone
+            val calendar: java.util.Calendar = java.util.Calendar.getInstance();
+            val currentTimeZone: TimeZone = calendar.timeZone;
+            values.put(Events.EVENT_TIMEZONE, currentTimeZone.displayName);
+
+            try {
+                val uri = contentResolver?.insert(CalendarContract.Events.CONTENT_URI, values);
+
+                // get the event ID that is the last element in the Uri
+                val eventID = java.lang.Long.parseLong(uri?.getLastPathSegment());
+
+                finishWithSuccess(eventID.toString());
+            } catch (e: Exception) {
+                finishWithError(EXCEPTION, e.message);
+                println(e.message);
+            } finally {
+            }
+        }
+    }
+
     public fun deleteEvent(calendarId: String, eventId: String) {
         _eventId = eventId;
         _calendarId = calendarId;
@@ -243,8 +295,6 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
             finishWithSuccess(deleteSucceeded > 0);
         }
-
-        return;
     }
 
     private fun ensurePermissionsGranted(requestCode: Int): Boolean {

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import com.builttoroam.devicecalendar.common.ErrorCodes
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.EVENT_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE
 
 import io.flutter.plugin.common.MethodChannel
@@ -25,10 +26,14 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     val RETRIEVE_CALENDARS_METHOD = "retrieveCalendars";
     val RETRIEVE_CALENDAR_EVENTS_METHOD = "retrieveEvents";
     val DELETE_CALENDAR_EVENT_METHOD = "deleteEvent";
+    val CREATE_CALENDAR_EVENT_METHOD = "createEvent";
 
     // Method arguments
     val CALENDAR_ID_ARGUMENT = "calendarId";
     val EVENT_ID_ARGUMENT = "eventId";
+    val EVENT_TITLE_ARGUMENT = "eventTitle";
+    val EVENT_START_DATE_ARGUMENT = "eventStartDate";
+    val EVENT_END_DATE_ARGUMENT = "eventEndDate";
 
     private constructor(registrar: Registrar, calendarService: CalendarService) : this() {
         _registrar = registrar;
@@ -59,15 +64,28 @@ class DeviceCalendarPlugin() : MethodCallHandler {
 
         when (call.method) {
             RETRIEVE_CALENDARS_METHOD -> {
-                val calendars = _calendarService.retrieveCalendars();
+                _calendarService.retrieveCalendars();
             }
             RETRIEVE_CALENDAR_EVENTS_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT);
-                if (calendarId?.isNullOrEmpty() ?: true) {
+                if (calendarId == null || calendarId.isEmpty()) {
                     result.error(ErrorCodes.INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE, null);
                 } else {
-                    val events = _calendarService.retrieveEvents(calendarId);
+                    _calendarService.retrieveEvents(calendarId);
                 }
+            }
+            CREATE_CALENDAR_EVENT_METHOD -> {
+                val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT);
+                val eventTitle = call.argument<String>(EVENT_TITLE_ARGUMENT);
+                val eventStart = call.argument<Long>(EVENT_START_DATE_ARGUMENT);
+                val eventEnd = call.argument<Long>(EVENT_END_DATE_ARGUMENT);
+
+                if (calendarId == null || calendarId.isEmpty() || eventTitle == null || eventTitle.isEmpty()) {
+                    result.error(ErrorCodes.INVALID_ARGUMENT, CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE, null);
+                    return;
+                }
+
+                _calendarService.createEvent(calendarId, eventTitle, eventStart, eventEnd);
             }
             DELETE_CALENDAR_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT);
@@ -81,8 +99,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                     return;
                 }
 
-                val succeeded = _calendarService.deleteEvent(calendarId, eventId);
-
+                _calendarService.deleteEvent(calendarId, eventId);
             }
             else -> {
                 result.notImplemented()
