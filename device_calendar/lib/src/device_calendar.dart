@@ -44,13 +44,10 @@ class DeviceCalendarPlugin {
         'startDate': startDate.millisecondsSinceEpoch,
         'endDate': endDate.millisecondsSinceEpoch
       });
-      final List<Event> events = new List<Event>();
 
-      var decodedEvents = json.decode(eventsJson);
-      for (var decodedCalendar in decodedEvents) {
-        var event = new Event.fromJson(decodedCalendar);
-        events.add(event);
-      }
+      final List<Event> events = json.decode(eventsJson).map<Event>((decodedEvent) {
+        return new Event.fromJson(decodedEvent);
+      }).toList();
 
       return events;
     } catch (e) {
