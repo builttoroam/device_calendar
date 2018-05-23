@@ -46,8 +46,8 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     private val REQUEST_CODE_RETRIEVE_CALENDARS = 0;
     private val REQUEST_CODE_RETRIEVE_EVENTS = REQUEST_CODE_RETRIEVE_CALENDARS + 1;
     private val REQUEST_CODE_RETRIEVE_CALENDAR = REQUEST_CODE_RETRIEVE_EVENTS + 1;
-    private val REQUEST_CODE_CREATE_EVENT = REQUEST_CODE_RETRIEVE_CALENDAR + 1;
-    private val REQUEST_CODE_DELETE_EVENT = REQUEST_CODE_CREATE_EVENT + 1;
+    private val REQUEST_CODE_CREATE_OR_UPDATE_EVENT = REQUEST_CODE_RETRIEVE_CALENDAR + 1;
+    private val REQUEST_CODE_DELETE_EVENT = REQUEST_CODE_CREATE_OR_UPDATE_EVENT + 1;
 
     private var _activity: Activity? = null;
     private var _context: Context? = null;
@@ -97,7 +97,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                 }
                 return true;
             }
-            REQUEST_CODE_CREATE_EVENT -> {
+            REQUEST_CODE_CREATE_OR_UPDATE_EVENT -> {
                 if (permissionGranted) {
                     createOrUpdateEvent(_calendarId, _event);
                 } else {
@@ -250,7 +250,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     public fun createOrUpdateEvent(calendarId: String, event: Event?) {
         _calendarId = calendarId;
         _event = event;
-        if (ensurePermissionsGranted(REQUEST_CODE_CREATE_EVENT)) {
+        if (ensurePermissionsGranted(REQUEST_CODE_CREATE_OR_UPDATE_EVENT)) {
             if (event == null) {
                 finishWithError(EVENT_CREATION_FAILURE, CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE);
                 return;
