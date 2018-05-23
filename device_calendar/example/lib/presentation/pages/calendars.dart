@@ -29,7 +29,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: new AppBar(
-          title: new Text('Plugin example app'),
+          title: new Text('Calendars'),
         ),
         body: new Column(
           children: <Widget>[
