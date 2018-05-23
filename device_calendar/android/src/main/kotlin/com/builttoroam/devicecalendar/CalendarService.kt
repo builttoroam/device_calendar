@@ -99,7 +99,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
             }
             REQUEST_CODE_CREATE_EVENT -> {
                 if (permissionGranted) {
-                    createEvent(_calendarId, _event);
+                    createOrUpdateEvent(_calendarId, _event);
                 } else {
                     finishWithSuccess(null);
                 }
@@ -247,7 +247,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     }
 
     @SuppressLint("MissingPermission")
-    public fun createEvent(calendarId: String, event: Event?) {
+    public fun createOrUpdateEvent(calendarId: String, event: Event?) {
         _calendarId = calendarId;
         _event = event;
         if (ensurePermissionsGranted(REQUEST_CODE_CREATE_EVENT)) {
@@ -270,12 +270,17 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
             values.put(Events.EVENT_TIMEZONE, currentTimeZone.displayName);
 
             try {
-                val uri = contentResolver?.insert(CalendarContract.Events.CONTENT_URI, values);
+                var eventId: Long? = event.id?.toLongOrNull();
+                if (eventId == null) {
+                    val uri = contentResolver?.insert(CalendarContract.Events.CONTENT_URI, values);
+                    // get the event ID that is the last element in the Uri
+                    eventId = java.lang.Long.parseLong(uri?.getLastPathSegment());
+                } else {
+                    contentResolver?.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), values, null, null);
+                }
 
-                // get the event ID that is the last element in the Uri
-                val eventID = java.lang.Long.parseLong(uri?.getLastPathSegment());
 
-                finishWithSuccess(eventID.toString());
+                finishWithSuccess(eventId?.toString());
             } catch (e: Exception) {
                 finishWithError(EXCEPTION, e.message);
                 println(e.message);

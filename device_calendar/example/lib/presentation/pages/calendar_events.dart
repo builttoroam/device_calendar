@@ -52,25 +52,10 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
                             return new EventItem(
                                 _calendar,
                                 _calendarEvents[index],
-                                _deviceCalendarPlugin, () {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                            }, (deleteSuceedeed) async {
-                              if (deleteSuceedeed) {
-                                await _retrieveCalendarEvents();
-                              } else {
-                                Scaffold.of(context).showSnackBar(new SnackBar(
-                                      content: new Text(
-                                          'Oops, we ran into an issue deleting the event'),
-                                      backgroundColor: Colors.red,
-                                      duration: new Duration(seconds: 5),
-                                    ));
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              }
-                            });
+                                _deviceCalendarPlugin,
+                                _onLoading,
+                                _onDeletedFinished,
+                                _onTapped);
                           },
                         ))
                   ],
@@ -98,6 +83,37 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
         child: new Icon(Icons.add),
       ),
     );
+  }
+
+  void _onLoading() {
+    setState(() {
+      _isLoading = true;
+    });
+  }
+
+  Future _onDeletedFinished(deleteSuceedeed) async {
+    if (deleteSuceedeed) {
+      await _retrieveCalendarEvents();
+    } else {
+      Scaffold.of(context).showSnackBar(new SnackBar(
+            content: new Text('Oops, we ran into an issue deleting the event'),
+            backgroundColor: Colors.red,
+            duration: new Duration(seconds: 5),
+          ));
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future _onTapped(Event event) async {
+    final refreshEvents = await Navigator.push(context,
+        new MaterialPageRoute(builder: (BuildContext context) {
+      return new CalendarEventPage(_calendar, event);
+    }));
+    if (refreshEvents) {
+      _retrieveCalendarEvents();
+    }
   }
 
   Future _retrieveCalendarEvents() async {
