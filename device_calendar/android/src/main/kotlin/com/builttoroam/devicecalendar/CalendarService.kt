@@ -34,9 +34,11 @@ import android.provider.CalendarContract.Events
 import android.content.ContentValues
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_END_DATE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_START_DATE_INDEX
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.DELETING_RECURRING_EVENT_NOT_SUPPORTED
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EVENTS_RETRIEVAL_FAILURE
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EVENT_CREATION_FAILURE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.EVENTS_START_DATE_LARGER_THAN_END_DATE_MESSAGE
 import java.util.*
 
@@ -157,7 +159,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     public fun retrieveCalendar(calendarId: String, isInternalCall: Boolean = false): Calendar? {
         _calendarId = calendarId;
         if (isInternalCall || ensurePermissionsGranted(REQUEST_CODE_RETRIEVE_CALENDAR)) {
-            val calendarIdNumber = calendarId?.toLongOrNull();
+            val calendarIdNumber = calendarId.toLongOrNull();
             if (calendarIdNumber == null) {
                 if (!isInternalCall) {
                     finishWithError(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE);
@@ -279,7 +281,6 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                     contentResolver?.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), values, null, null);
                 }
 
-
                 finishWithSuccess(eventId?.toString());
             } catch (e: Exception) {
                 finishWithError(EXCEPTION, e.message);
@@ -304,17 +305,19 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                 return;
             }
 
-            // TODO handle recurring events
-
             val eventIdNumber = eventId.toLongOrNull();
             if (eventIdNumber == null) {
                 finishWithError(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE);
                 return;
             }
 
-            val eventsUriWithId = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventIdNumber);
             val contentResolver: ContentResolver? = _context?.getContentResolver();
-            contentResolver?.notifyChange(eventsUriWithId, null);
+            if (isRecurringEvent(eventIdNumber, contentResolver)) {
+                finishWithError(DELETING_RECURRING_EVENT_NOT_SUPPORTED, DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE);
+                return;
+            }
+
+            val eventsUriWithId = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventIdNumber);
             val deleteSucceeded = contentResolver?.delete(eventsUriWithId, null, null) ?: 0;
 
             finishWithSuccess(deleteSucceeded > 0);
@@ -381,6 +384,38 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
             -> return false;
             else -> return true;
         }
+    }
+
+    private fun isRecurringEvent(eventId: Long, contentResolver: ContentResolver?): Boolean {
+        val eventProjection: Array<String> = arrayOf(
+                // There are a number of properties related to recurrence that
+                // we could check. The Android docs state: "For non-recurring events,
+                // you must include DTEND. For recurring events, you must include a
+                // DURATION in addition to RRULE or RDATE." The API will also throw
+                // an exception if you try to set both DTEND and DURATION on an
+                // event. Thus, it seems reasonable to trust that DURATION will
+                // only be present if the event is recurring.
+                //
+                CalendarContract.Events.DURATION
+        );
+
+        var isRecurring = false;
+        var cursor: Cursor? = null;
+
+        try {
+            cursor = contentResolver?.query(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), eventProjection, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                isRecurring = !(cursor.getString(0)?.isNullOrEmpty() ?: true);
+            } else {
+
+            }
+        } catch (e: Exception) {
+            println(e);
+        } finally {
+            cursor?.close();
+        }
+
+        return isRecurring;
     }
 
     private fun <T> finishWithSuccess(result: T) {
