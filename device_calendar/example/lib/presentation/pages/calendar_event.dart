@@ -6,12 +6,13 @@ import '../date_time_picker.dart';
 
 class CalendarEventPage extends StatefulWidget {
   final Calendar _calendar;
+  final Event _event;
 
-  CalendarEventPage(this._calendar);
+  CalendarEventPage(this._calendar, [this._event]);
 
   @override
   _CalendarEventPageState createState() {
-    return new _CalendarEventPageState(_calendar);
+    return new _CalendarEventPageState(_calendar, _event);
   }
 }
 
@@ -23,17 +24,27 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   Event _event;
   DeviceCalendarPlugin _deviceCalendarPlugin;
 
-  DateTime _fromDate = new DateTime.now();
-  TimeOfDay _fromTime = const TimeOfDay(hour: 12, minute: 0);
+  DateTime _startDate;
+  TimeOfDay _startTime;
 
-  DateTime _toDate = new DateTime.now();
-  TimeOfDay _toTime = const TimeOfDay(hour: 13, minute: 0);
+  DateTime _endDate;
+  TimeOfDay _endTime;
 
   bool _autovalidate = false;
 
-  _CalendarEventPageState(this._calendar) {
+  _CalendarEventPageState(this._calendar, this._event) {
     _deviceCalendarPlugin = new DeviceCalendarPlugin();
-    _event = new Event(start: _fromDate, end: _toDate);
+    if (this._event == null) {
+      _startDate = new DateTime.now();
+      _endDate = new DateTime.now().add(new Duration(hours: 1));
+      _event = new Event(start: _startDate, end: _endDate);
+    } else {
+      _startDate = _event.start;
+      _endDate = _event.end;
+    }
+
+    _startTime = new TimeOfDay(hour: _startDate.hour, minute: _startDate.minute);
+    _endTime = new TimeOfDay(hour: _endDate.hour, minute: _endDate.minute);
   }
 
   @override
@@ -41,7 +52,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     return new Scaffold(
         key: _scaffoldKey,
         appBar: new AppBar(
-          title: new Text('Create new event'),
+          title: new Text(_event.id.isEmpty
+              ? 'Create new event'
+              : 'Edit event ${_event.title}'),
         ),
         body: new SingleChildScrollView(
           child: new Column(
@@ -58,6 +71,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             child: new Padding(
                               padding: const EdgeInsets.all(10.0),
                               child: new TextFormField(
+                                initialValue: _event.title,
                                 decoration: const InputDecoration(
                                     labelText: 'Title',
                                     hintText: 'Meeting with Gloria...'),
@@ -76,6 +90,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             child: new Padding(
                               padding: const EdgeInsets.all(10.0),
                               child: new TextFormField(
+                                initialValue: _event.description,
                                 decoration: const InputDecoration(
                                     labelText: 'Description',
                                     hintText: 'Remember to buy flowers...'),
@@ -94,18 +109,20 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 padding: const EdgeInsets.all(10.0),
                                 child: new DateTimePicker(
                                     labelText: 'From',
-                                    selectedDate: _fromDate,
-                                    selectedTime: _fromTime,
+                                    selectedDate: _startDate,
+                                    selectedTime: _startTime,
                                     selectDate: (DateTime date) {
                                       setState(() {
-                                        _fromDate = date;
-                                        _event.start = _combineDateWithTime(_fromDate, _fromTime);;
+                                        _startDate = date;
+                                        _event.start = _combineDateWithTime(
+                                            _startDate, _startTime);
                                       });
                                     },
                                     selectTime: (TimeOfDay time) {
                                       setState(() {
-                                        _fromTime = time;
-                                        _event.start = _combineDateWithTime(_fromDate, _fromTime);
+                                        _startTime = time;
+                                        _event.start = _combineDateWithTime(
+                                            _startDate, _startTime);
                                       });
                                     })))
                       ],
@@ -118,18 +135,20 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 padding: const EdgeInsets.all(10.0),
                                 child: new DateTimePicker(
                                     labelText: 'To',
-                                    selectedDate: _toDate,
-                                    selectedTime: _toTime,
+                                    selectedDate: _endDate,
+                                    selectedTime: _endTime,
                                     selectDate: (DateTime date) {
                                       setState(() {
-                                        _toDate = date;
-                                        _event.end = _combineDateWithTime(_toDate, _toTime);;
+                                        _endDate = date;
+                                        _event.end = _combineDateWithTime(
+                                            _endDate, _endTime);
                                       });
                                     },
                                     selectTime: (TimeOfDay time) {
                                       setState(() {
-                                        _toTime = time;
-                                        _event.end = _combineDateWithTime(_toDate, _toTime);
+                                        _endTime = time;
+                                        _event.end = _combineDateWithTime(
+                                            _endDate, _endTime);
                                       });
                                     })))
                       ],
@@ -148,12 +167,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
               showInSnackBar('Please fix the errors in red before submitting.');
             } else {
               form.save();
-              var createEventResult =
-                  await _deviceCalendarPlugin.createEvent(_calendar, _event);
+              var createEventResult = await _deviceCalendarPlugin
+                  .createOrUpdateEvent(_calendar, _event);
               if (createEventResult.isSuccess) {
                 Navigator.pop(context, true);
               } else {
-                showInSnackBar(createEventResult.errorMessages.join('|'));
+                showInSnackBar(createEventResult.errorMessages.join(' | '));
               }
             }
           },
@@ -171,7 +190,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   DateTime _combineDateWithTime(DateTime date, TimeOfDay time) {
     final dateWithoutTime =
-        DateTime.parse(new DateFormat("y-MM-dd 00:00:00").format(_fromDate));
+        DateTime.parse(new DateFormat("y-MM-dd 00:00:00").format(_startDate));
     return dateWithoutTime
         .add(new Duration(hours: time.hour, minutes: time.minute));
   }
