@@ -32,8 +32,13 @@ import io.flutter.plugin.common.MethodChannel
 import com.google.gson.Gson
 import android.provider.CalendarContract.Events
 import android.content.ContentValues
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_END_DATE_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_START_DATE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ALL_DAY_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_BEGIN_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DURATION_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_END_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_EVENT_LOCATION_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_DATE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.DELETING_RECURRING_EVENT_NOT_SUPPORTED
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EVENTS_RETRIEVAL_FAILURE
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EVENT_CREATION_FAILURE
@@ -220,6 +225,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         return null
     }
 
+    @SuppressLint("MissingPermission")
     public fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             val calendar = retrieveCalendar(calendarId, pendingChannelResult, true)
@@ -233,14 +239,16 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             }
 
             val contentResolver: ContentResolver? = _context?.getContentResolver()
-            var eventsUriBuilder = CalendarContract.Events.CONTENT_URI.buildUpon()
 
-            var eventsUri = eventsUriBuilder.build()
-            var eventsSelectionQuery = "(${CalendarContract.Events.CALENDAR_ID} = ${calendarId}) AND " +
-                    "(${CalendarContract.Instances.DTSTART} >= ${startDate}) AND " +
-                    "(${CalendarContract.Instances.DTEND} <= ${endDate}) AND " +
+            val eventsUriBuilder = CalendarContract.Instances.CONTENT_URI.buildUpon()
+            ContentUris.appendId(eventsUriBuilder, startDate)
+            ContentUris.appendId(eventsUriBuilder, endDate)
+
+            val eventsUri = eventsUriBuilder.build()
+            val eventsSelectionQuery = "(${CalendarContract.Events.CALENDAR_ID} = ${calendarId}) AND" +
                     "(${CalendarContract.Events.DELETED} != 1)"
-            var cursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, CalendarContract.Events.DTSTART + " ASC")
+            val eventsSortOrder = CalendarContract.Events.DTSTART + " ASC"
+            val cursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, eventsSortOrder)
 
             val events: MutableList<Event> = mutableListOf()
 
@@ -255,7 +263,6 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                         events.add(event)
 
                     } while (cursor?.moveToNext() ?: false)
-
                 }
             } catch (e: Exception) {
                 finishWithError(EXCEPTION, e.message, pendingChannelResult)
@@ -400,15 +407,22 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         val eventId = cursor.getString(EVENT_PROJECTION_ID_INDEX)
         val title = cursor.getString(EVENT_PROJECTION_TITLE_INDEX)
         val description = cursor.getString(EVENT_PROJECTION_DESCRIPTION_INDEX)
-        val startDate = cursor.getLong(EVENT_PROJECTION_START_DATE_INDEX)
-        val endDate = cursor.getLong(EVENT_PROJECTION_END_DATE_INDEX)
+        val begin = cursor.getLong(EVENT_PROJECTION_BEGIN_INDEX)
+        val end = cursor.getLong(EVENT_PROJECTION_END_INDEX)
+        val duration = cursor.getLong(EVENT_PROJECTION_DURATION_INDEX)
+        val recurringDate = cursor.getString(EVENT_PROJECTION_RECURRING_DATE_INDEX)
+        val recurringRule = cursor.getString(EVENT_PROJECTION_RECURRING_RULE_INDEX)
+        val allDay = cursor.getInt(EVENT_PROJECTION_ALL_DAY_INDEX) > 0
+        val location = cursor.getString(EVENT_PROJECTION_EVENT_LOCATION_INDEX)
 
         val event = Event(title)
         event.eventId = eventId.toString()
         event.calendarId = calendarId
         event.description = description
-        event.start = startDate
-        event.end = endDate
+        event.start = begin
+        event.end = end
+        event.allDay = allDay
+        event.location = location
 
         return event
     }
