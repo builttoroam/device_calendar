@@ -18,13 +18,11 @@ class DeviceCalendarPlugin {
   Future<List<Calendar>> retrieveCalendars() async {
     try {
       var calendarsJson = await channel.invokeMethod('retrieveCalendars');
-      final List<Calendar> calendars = new List<Calendar>();
 
-      var decodedCalendars = json.decode(calendarsJson);
-      for (var decodedCalendar in decodedCalendars) {
-        var calendar = new Calendar.fromJson(decodedCalendar);
-        calendars.add(calendar);
-      }
+      final List<Calendar> calendars =
+          json.decode(calendarsJson).map<Calendar>((decodedCalendar) {
+        return new Calendar.fromJson(decodedCalendar);
+      }).toList();
 
       return calendars;
     } catch (e) {
