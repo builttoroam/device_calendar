@@ -9,5 +9,5 @@ class CalendarMethodsParametersCacheModel(val pendingChannelResult: MethodChanne
                                           var calendarEventsEndDate: Long = -1,
                                           var eventId: String = "",
                                           var event: Event? = null) {
-    var ownCacheKey: Int? = null;
+    var ownCacheKey: Int? = null
 }
