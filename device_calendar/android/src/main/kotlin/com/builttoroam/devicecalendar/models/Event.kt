@@ -5,4 +5,6 @@ class Event(val title: String) {
     var description: String? = null
     var start: Long = -1
     var end: Long = -1
+    var allDay: Boolean = false
+    var location: String? = null
 }
