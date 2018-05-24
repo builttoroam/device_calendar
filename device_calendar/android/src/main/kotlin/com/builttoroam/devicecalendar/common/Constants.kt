@@ -41,5 +41,23 @@ class Constants {
                 CalendarContract.Events.ALL_DAY,
                 CalendarContract.Events.EVENT_LOCATION
         )
+
+        const val ATTENDEE_ID_INDEX: Int = 0
+        const val ATTENDEE_EVENT_ID_INDEX: Int = 1
+        const val ATTENDEE_NAME_INDEX: Int = 2
+        const val ATTENDEE_EMAIL_INDEX: Int = 3
+        const val ATTENDEE_TYPE_INDEX: Int = 4
+        const val ATTENDEE_RELATIONSHIP_INDEX: Int = 5
+        const val ATTENDEE_STATUS_INDEX: Int = 6
+
+        val ATTENDEE_PROJECTION: Array<String> = arrayOf(
+                CalendarContract.Attendees._ID,
+                CalendarContract.Attendees.EVENT_ID,
+                CalendarContract.Attendees.ATTENDEE_NAME,
+                CalendarContract.Attendees.ATTENDEE_EMAIL,
+                CalendarContract.Attendees.ATTENDEE_TYPE,
+                CalendarContract.Attendees.ATTENDEE_RELATIONSHIP,
+                CalendarContract.Attendees.ATTENDEE_STATUS
+        )
     }
 }
