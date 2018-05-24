@@ -57,10 +57,10 @@ class DeviceCalendarPlugin {
   }
 
   /// Delete calendar event
-  Future<bool> deleteEvent(Calendar calendar, Event event) async {
+  Future<bool> deleteEvent(String calendarId, String eventId) async {
     try {
       var succeeded = await channel.invokeMethod('deleteEvent',
-          <String, Object>{'calendarId': calendar.id, 'eventId': event.id});
+          <String, Object>{'calendarId': calendarId, 'eventId': eventId});
       return succeeded;
     } catch (e) {
       print(e);
@@ -72,10 +72,9 @@ class DeviceCalendarPlugin {
   /// Creates or updates an event
   ///
   /// returns: event ID
-  Future<BaseResult<String>> createOrUpdateEvent(
-      String calendarId, Event event) async {
+  Future<BaseResult<String>> createOrUpdateEvent(Event event) async {
     var res = new BaseResult<String>(null);
-    if ((calendarId?.isEmpty ?? true) ||
+    if ((event.calendarId?.isEmpty ?? true) ||
         (event?.title?.isEmpty ?? false) ||
         event.start == null ||
         event.end == null ||
@@ -89,8 +88,8 @@ class DeviceCalendarPlugin {
     try {
       res.data =
           await channel.invokeMethod('createOrUpdateEvent', <String, Object>{
-        'calendarId': calendarId,
-        'eventId': event.id,
+        'calendarId': event.calendarId,
+        'eventId': event.eventId,
         'eventTitle': event.title,
         'eventDescription': event.description,
         'eventStartDate': event.start.millisecondsSinceEpoch,
