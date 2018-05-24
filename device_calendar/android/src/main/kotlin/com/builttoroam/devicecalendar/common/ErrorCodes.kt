@@ -8,6 +8,6 @@ class ErrorCodes {
         const val EVENTS_RETRIEVAL_FAILURE: String = "events_retrieval_failure";
         const val EVENT_CREATION_FAILURE: String = "event_creation_failure";
         const val CALENDAR_IS_READ_ONLY: String = "calendar_is_read_only";
-        const val DELETING_RECURRING_EVENT_NOT_SUPPORTED: String = "deteling_recurring_event_not_supported";
+        const val DELETING_RECURRING_EVENT_NOT_SUPPORTED: String = "deleting_recurring_event_not_supported";
     }
 }
