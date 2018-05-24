@@ -7,6 +7,9 @@ class Event {
 
   DateTime start;
   DateTime end;
+  
+  bool allDay;
+  String location;
 
   Event({this.title, this.start, this.end});
 
@@ -27,6 +30,8 @@ class Event {
     if (endMillisecondsSinceEpoch != null) {
       end = new DateTime.fromMillisecondsSinceEpoch(endMillisecondsSinceEpoch);
     }
+    allDay = json['allDay'];
+    location = json['location'];
   }
 
   Map<String, dynamic> toJson() {
@@ -36,6 +41,8 @@ class Event {
     data['description'] = this.description;
     data['start'] = this.start.millisecondsSinceEpoch;
     data['end'] = this.end.millisecondsSinceEpoch;
+    data['allDay'] = this.allDay;
+    data['location'] = this.location;
 
     return data;
   }

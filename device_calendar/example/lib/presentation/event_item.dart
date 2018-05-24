@@ -11,6 +11,8 @@ class EventItem extends StatelessWidget {
   final VoidCallback _onLoadingStarted;
   final Function(bool) _onDeleteFinished;
 
+  final double _eventFieldNameWidth = 75.0;
+
   EventItem(this._calendar, this._calendarEvent, this._deviceCalendarPlugin,
       this._onLoadingStarted, this._onDeleteFinished, this._onTapped);
 
@@ -40,7 +42,7 @@ class EventItem extends StatelessWidget {
                     child: new Row(
                       children: <Widget>[
                         new Container(
-                          width: 50.0,
+                          width: _eventFieldNameWidth,
                           child: new Text('Starts'),
                         ),
                         new Text(_calendarEvent == null
@@ -59,7 +61,7 @@ class EventItem extends StatelessWidget {
                     child: new Row(
                       children: <Widget>[
                         new Container(
-                          width: 50.0,
+                          width: _eventFieldNameWidth,
                           child: new Text('Ends'),
                         ),
                         new Text(_calendarEvent.end == null
@@ -67,6 +69,44 @@ class EventItem extends StatelessWidget {
                             : new DateFormat.yMd()
                                 .add_jm()
                                 .format(_calendarEvent.end)),
+                      ],
+                    ),
+                  ),
+                  new SizedBox(
+                    height: 10.0,
+                  ),
+                  new Align(
+                    alignment: Alignment.topLeft,
+                    child: new Row(
+                      children: <Widget>[
+                        new Container(
+                          width: _eventFieldNameWidth,
+                          child: new Text('All day?'),
+                        ),
+                        new Text(_calendarEvent.allDay != null &&
+                                _calendarEvent.allDay
+                            ? 'Yes'
+                            : 'No')
+                      ],
+                    ),
+                  ),
+                  new SizedBox(
+                    height: 10.0,
+                  ),
+                  new Align(
+                    alignment: Alignment.topLeft,
+                    child: new Row(
+                      children: <Widget>[
+                        new Container(
+                          width: _eventFieldNameWidth,
+                          child: new Text('Location'),
+                        ),
+                        new Expanded(
+                          child: new Text(
+                            _calendarEvent?.location ?? '',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
                       ],
                     ),
                   ),
