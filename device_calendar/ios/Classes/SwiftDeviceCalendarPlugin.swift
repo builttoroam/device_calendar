@@ -9,7 +9,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     struct Event: Codable {
-        let id: String
+        let eventId: String
+        let calendarId: String
         let title: String
         let description: String?
         let start: Int
@@ -77,7 +78,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                     let ekEvents = self.eventStore.events(matching: predicate)
                     var events = [Event]()
                     for ekEvent in ekEvents {
-                        let event = Event(id: ekEvent.eventIdentifier, title: ekEvent.title, description: ekEvent.notes, start: Int(ekEvent.startDate.timeIntervalSince1970) * 1000, end: Int(ekEvent.endDate.timeIntervalSince1970) * 1000)
+                        let event = Event(eventId: ekEvent.eventIdentifier, calendarId: calendarId, title: ekEvent.title, description: ekEvent.notes, start: Int(ekEvent.startDate.timeIntervalSince1970) * 1000, end: Int(ekEvent.endDate.timeIntervalSince1970) * 1000)
                         events.append(event)
                     }
                     
