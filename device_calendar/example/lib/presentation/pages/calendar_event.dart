@@ -168,7 +168,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
             } else {
               form.save();
               var createEventResult = await _deviceCalendarPlugin
-                  .createOrUpdateEvent(_calendar, _event);
+                  .createOrUpdateEvent(_calendar?.id, _event);
               if (createEventResult.isSuccess) {
                 Navigator.pop(context, true);
               } else {
