@@ -29,8 +29,8 @@ class EventItem extends StatelessWidget {
               child: new FlutterLogo(),
             ),
             new ListTile(
-                title: new Text(_calendarEvent.title),
-                subtitle: new Text(_calendarEvent.description)),
+                title: new Text(_calendarEvent.title ?? ''),
+                subtitle: new Text(_calendarEvent.description ?? '')),
             new Container(
               padding: new EdgeInsets.symmetric(horizontal: 16.0),
               child: new Column(
@@ -43,9 +43,11 @@ class EventItem extends StatelessWidget {
                           width: 50.0,
                           child: new Text('Starts'),
                         ),
-                        new Text(new DateFormat.yMd()
-                            .add_jm()
-                            .format(_calendarEvent.start)),
+                        new Text(_calendarEvent == null
+                            ? ''
+                            : new DateFormat.yMd()
+                                .add_jm()
+                                .format(_calendarEvent.start)),
                       ],
                     ),
                   ),
@@ -60,9 +62,11 @@ class EventItem extends StatelessWidget {
                           width: 50.0,
                           child: new Text('Ends'),
                         ),
-                        new Text(new DateFormat.yMd()
-                            .add_jm()
-                            .format(_calendarEvent.end)),
+                        new Text(_calendarEvent.end == null
+                            ? ''
+                            : new DateFormat.yMd()
+                                .add_jm()
+                                .format(_calendarEvent.end)),
                       ],
                     ),
                   ),
