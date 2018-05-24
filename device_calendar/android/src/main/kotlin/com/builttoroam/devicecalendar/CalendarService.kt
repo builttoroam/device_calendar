@@ -52,11 +52,10 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     private val CREATE_OR_UPDATE_EVENT_METHOD_CODE = RETRIEVE_CALENDAR_METHOD_CODE + 1;
     private val DELETE_EVENT_METHOD_CODE = CREATE_OR_UPDATE_EVENT_METHOD_CODE + 1;
 
-    private val _cacheMap: MutableMap<Int, CalendarMethodsParametersCacheModel> = mutableMapOf<Int, CalendarMethodsParametersCacheModel>();
+    private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> = mutableMapOf<Int, CalendarMethodsParametersCacheModel>();
 
     private var _activity: Activity? = null;
     private var _context: Context? = null;
-    private var _channelResult: MethodChannel.Result? = null;
     private var _gson: Gson? = null;
 
     public constructor(activity: Activity, context: Context) {
@@ -68,72 +67,76 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     public override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
         val permissionGranted = grantResults.isNotEmpty() && grantResults[0] === PackageManager.PERMISSION_GRANTED
 
-        if (!_cacheMap.containsKey(requestCode)) {
-            // TODO MK handle this in a better manner (e.g. include error information in the response)
-            finishWithSuccess(null);
+        if (!_cachedParametersMap.containsKey(requestCode)) {
+            // We ran into a situation which theoretically should never happen.
+            // However, we can potentially run into this situation if plugin user is requesting other permissions (e.g. image picking) in his app
+            //
+            // There's nothing that can be done at this stage, besides finishing gracefully
             return true;
         }
 
-        val cachedValues: CalendarMethodsParametersCacheModel? = _cacheMap[requestCode];
+        val cachedValues: CalendarMethodsParametersCacheModel? = _cachedParametersMap[requestCode];
         if (cachedValues == null) {
-            // TODO MK handle this in a better manner (e.g. include error information in the response)
-            finishWithSuccess(null);
+            // Another situation that theoretically should never happen.
+            // No exceptions, this should not happen, ever
+            //
+            // There's nothing that can be done at this stage, besides finishing gracefully
             return true;
         }
 
         when (cachedValues.calendarServiceMethodCode) {
             RETRIEVE_CALENDARS_METHOD_CODE -> {
                 if (permissionGranted) {
-                    retrieveCalendars();
+                    retrieveCalendars(cachedValues.pendingChannelResult);
                 } else {
-                    finishWithSuccess(null);
+                    finishWithSuccess(null, cachedValues.pendingChannelResult);
                 }
 
-                _cacheMap.remove(requestCode);
+                _cachedParametersMap.remove(requestCode);
 
                 return true;
             }
             RETRIEVE_EVENTS_METHOD_CODE -> {
                 if (permissionGranted) {
-                    retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate);
+                    retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.pendingChannelResult);
                 } else {
-                    finishWithSuccess(null);
+                    finishWithSuccess(null, cachedValues.pendingChannelResult);
                 }
 
-                _cacheMap.remove(requestCode);
+                _cachedParametersMap.remove(requestCode);
 
                 return true;
             }
             RETRIEVE_CALENDAR_METHOD_CODE -> {
                 if (permissionGranted) {
-                    retrieveCalendar(cachedValues.calendarId);
+                    retrieveCalendar(cachedValues.calendarId, cachedValues.pendingChannelResult);
                 } else {
-                    finishWithSuccess(null);
+                    finishWithSuccess(null, cachedValues.pendingChannelResult);
                 }
 
-                _cacheMap.remove(requestCode);
+                _cachedParametersMap.remove(requestCode);
 
                 return true;
             }
             CREATE_OR_UPDATE_EVENT_METHOD_CODE -> {
                 if (permissionGranted) {
-                    createOrUpdateEvent(cachedValues.calendarId, cachedValues.event);
+                    createOrUpdateEvent(cachedValues.calendarId, cachedValues.event, cachedValues.pendingChannelResult);
                 } else {
-                    finishWithSuccess(null);
+                    finishWithSuccess(null, cachedValues.pendingChannelResult);
                 }
 
-                _cacheMap.remove(requestCode);
+                _cachedParametersMap.remove(requestCode);
 
                 return true;
             }
             DELETE_EVENT_METHOD_CODE -> {
                 if (permissionGranted) {
-                    deleteEvent(cachedValues.eventId, cachedValues.calendarId);
+                    deleteEvent(cachedValues.eventId, cachedValues.calendarId, cachedValues.pendingChannelResult);
                 } else {
-                    finishWithSuccess(null);
+                    finishWithSuccess(null, cachedValues.pendingChannelResult);
                 }
 
-                _cacheMap.remove(requestCode);
+                _cachedParametersMap.remove(requestCode);
 
                 return true;
             }
@@ -142,14 +145,8 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
         return false
     }
 
-    @Synchronized
-    public fun setPendingResult(channelResult: MethodChannel.Result) {
-        // TODO MK the channel result should be cached (in case there's multiple requests getting in)
-        _channelResult = channelResult;
-    }
-
     @SuppressLint("MissingPermission")
-    public fun retrieveCalendars() {
+    public fun retrieveCalendars(pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
 
             val contentResolver: ContentResolver? = _context?.getContentResolver();
@@ -168,27 +165,27 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                     calendars.add(calendar);
                 }
 
-                finishWithSuccess(_gson?.toJson(calendars));
+                finishWithSuccess(_gson?.toJson(calendars), pendingChannelResult);
             } catch (e: Exception) {
-                finishWithError(EXCEPTION, e.message);
+                finishWithError(EXCEPTION, e.message, pendingChannelResult);
                 println(e.message);
             } finally {
                 cursor?.close();
             }
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(RETRIEVE_CALENDARS_METHOD_CODE);
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_CALENDARS_METHOD_CODE);
             requestPermissions(parameters);
         }
 
         return;
     }
 
-    public fun retrieveCalendar(calendarId: String, isInternalCall: Boolean = false): Calendar? {
+    public fun retrieveCalendar(calendarId: String, pendingChannelResult: MethodChannel.Result, isInternalCall: Boolean = false): Calendar? {
         if (isInternalCall || arePermissionsGranted()) {
             val calendarIdNumber = calendarId.toLongOrNull();
             if (calendarIdNumber == null) {
                 if (!isInternalCall) {
-                    finishWithError(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE);
+                    finishWithError(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE, pendingChannelResult);
                 }
                 return null;
             }
@@ -203,11 +200,11 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                     if (isInternalCall) {
                         return calendar;
                     } else {
-                        finishWithSuccess(_gson?.toJson(calendar));
+                        finishWithSuccess(_gson?.toJson(calendar), pendingChannelResult);
                     }
                 } else {
                     if (!isInternalCall) {
-                        finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}");
+                        finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}", pendingChannelResult);
                     }
                 }
             } catch (e: Exception) {
@@ -216,22 +213,22 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                 cursor?.close();
             }
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(RETRIEVE_CALENDAR_METHOD_CODE, calendarId);
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_CALENDAR_METHOD_CODE, calendarId);
             requestPermissions(parameters);
         }
 
         return null;
     }
 
-    public fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long) {
+    public fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
-            val calendar = retrieveCalendar(calendarId, true);
+            val calendar = retrieveCalendar(calendarId, pendingChannelResult, true);
             if (calendar == null) {
-                finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}");
+                finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}", pendingChannelResult);
                 return;
             }
             if (startDate > endDate) {
-                finishWithError(EVENTS_RETRIEVAL_FAILURE, EVENTS_START_DATE_LARGER_THAN_END_DATE_MESSAGE);
+                finishWithError(EVENTS_RETRIEVAL_FAILURE, EVENTS_START_DATE_LARGER_THAN_END_DATE_MESSAGE, pendingChannelResult);
                 return;
             }
 
@@ -261,15 +258,15 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
                 }
             } catch (e: Exception) {
-                finishWithError(EXCEPTION, e.message);
+                finishWithError(EXCEPTION, e.message, pendingChannelResult);
                 println(e.message);
             } finally {
                 cursor?.close();
             }
 
-            finishWithSuccess(_gson?.toJson(events));
+            finishWithSuccess(_gson?.toJson(events), pendingChannelResult);
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(RETRIEVE_EVENTS_METHOD_CODE, calendarId, startDate, endDate);
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_EVENTS_METHOD_CODE, calendarId, startDate, endDate);
             requestPermissions(parameters);
         }
 
@@ -277,10 +274,10 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
     }
 
     @SuppressLint("MissingPermission")
-    public fun createOrUpdateEvent(calendarId: String, event: Event?) {
+    public fun createOrUpdateEvent(calendarId: String, event: Event?, pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             if (event == null) {
-                finishWithError(EVENT_CREATION_FAILURE, CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE);
+                finishWithError(EVENT_CREATION_FAILURE, CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE, pendingChannelResult);
                 return;
             }
 
@@ -307,50 +304,50 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
                     contentResolver?.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), values, null, null);
                 }
 
-                finishWithSuccess(eventId?.toString());
+                finishWithSuccess(eventId?.toString(), pendingChannelResult);
             } catch (e: Exception) {
-                finishWithError(EXCEPTION, e.message);
+                finishWithError(EXCEPTION, e.message, pendingChannelResult);
                 println(e.message);
             } finally {
             }
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(CREATE_OR_UPDATE_EVENT_METHOD_CODE, calendarId);
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, CREATE_OR_UPDATE_EVENT_METHOD_CODE, calendarId);
             parameters.event = event;
             requestPermissions(parameters);
         }
     }
 
-    public fun deleteEvent(calendarId: String, eventId: String) {
+    public fun deleteEvent(calendarId: String, eventId: String, pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
-            var existingCal = retrieveCalendar(calendarId, true);
+            var existingCal = retrieveCalendar(calendarId, pendingChannelResult, true);
             if (existingCal == null) {
-                finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}");
+                finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}", pendingChannelResult);
                 return;
             }
 
             if (existingCal.isReadyOnly) {
-                finishWithError(CALENDAR_IS_READ_ONLY, "Calendar with ID ${calendarId} is read only");
+                finishWithError(CALENDAR_IS_READ_ONLY, "Calendar with ID ${calendarId} is read only", pendingChannelResult);
                 return;
             }
 
             val eventIdNumber = eventId.toLongOrNull();
             if (eventIdNumber == null) {
-                finishWithError(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE);
+                finishWithError(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE, pendingChannelResult);
                 return;
             }
 
             val contentResolver: ContentResolver? = _context?.getContentResolver();
             if (isRecurringEvent(eventIdNumber, contentResolver)) {
-                finishWithError(DELETING_RECURRING_EVENT_NOT_SUPPORTED, DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE);
+                finishWithError(DELETING_RECURRING_EVENT_NOT_SUPPORTED, DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE, pendingChannelResult);
                 return;
             }
 
             val eventsUriWithId = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventIdNumber);
             val deleteSucceeded = contentResolver?.delete(eventsUriWithId, null, null) ?: 0;
 
-            finishWithSuccess(deleteSucceeded > 0);
+            finishWithSuccess(deleteSucceeded > 0, pendingChannelResult);
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(DELETE_EVENT_METHOD_CODE, calendarId);
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, DELETE_EVENT_METHOD_CODE, calendarId);
             parameters.eventId = eventId;
             requestPermissions(parameters);
         }
@@ -460,25 +457,31 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
 
     @Synchronized
     private fun generateUniqueRequestCodeAndCacheParameters(parameters: CalendarMethodsParametersCacheModel): Int {
-        // TODO we can ran out of the Int's at some point so this probably should re-use Int's
-        val uniqueRequestCode: Int = (_cacheMap.keys?.max() ?: 0) + 1;
-        _cacheMap[uniqueRequestCode] = parameters;
+        // TODO we can ran out of Int's at some point so this probably should re-use some of the freed ones
+        val uniqueRequestCode: Int = (_cachedParametersMap.keys?.max() ?: 0) + 1;
+        parameters.ownCacheKey = uniqueRequestCode;
+        _cachedParametersMap[uniqueRequestCode] = parameters;
 
         return uniqueRequestCode;
     }
 
-    private fun <T> finishWithSuccess(result: T) {
-        _channelResult?.success(result);
-        clearChannelResult();
+    private fun <T> finishWithSuccess(result: T, pendingChannelResult: MethodChannel.Result) {
+        pendingChannelResult.success(result);
+        clearCachedParameters(pendingChannelResult);
     }
 
-    private fun finishWithError(errorCode: String, errorMessage: String?) {
-        _channelResult?.error(errorCode, errorMessage, null);
-        clearChannelResult();
+    private fun finishWithError(errorCode: String, errorMessage: String?, pendingChannelResult: MethodChannel.Result) {
+        pendingChannelResult.error(errorCode, errorMessage, null);
+        clearCachedParameters(pendingChannelResult);
     }
 
-    private fun clearChannelResult() {
-        _channelResult = null;
+    private fun clearCachedParameters(pendingChannelResult: MethodChannel.Result) {
+        val cachedParameters = _cachedParametersMap.values.filter { it.pendingChannelResult == pendingChannelResult }.toList();
+        for (cachedParameter in cachedParameters) {
+            if (_cachedParametersMap.containsKey(cachedParameter.ownCacheKey)) {
+                _cachedParametersMap.remove(cachedParameter.ownCacheKey);
+            }
+        }
     }
 
     private fun atLeastAPI(api: Int): Boolean {
