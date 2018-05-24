@@ -44,13 +44,10 @@ class DeviceCalendarPlugin {
         'startDate': startDate.millisecondsSinceEpoch,
         'endDate': endDate.millisecondsSinceEpoch
       });
-      final List<Event> events = new List<Event>();
 
-      var decodedEvents = json.decode(eventsJson);
-      for (var decodedCalendar in decodedEvents) {
-        var event = new Event.fromJson(decodedCalendar);
-        events.add(event);
-      }
+      final List<Event> events = json.decode(eventsJson).map<Event>((decodedEvent) {
+        return new Event.fromJson(decodedEvent);
+      }).toList();
 
       return events;
     } catch (e) {
@@ -77,14 +74,15 @@ class DeviceCalendarPlugin {
   ///
   /// returns: event ID
   Future<BaseResult<String>> createOrUpdateEvent(
-      Calendar calendar, Event event) async {
+      String calendarId, Event event) async {
     var res = new BaseResult<String>(null);
-    if (calendar?.id == null ||
+    if ((calendarId?.isEmpty ?? true) ||
         (event?.title?.isEmpty ?? false) ||
         event.start == null ||
-        event.end == null) {
+        event.end == null ||
+        event.start.isAfter(event.end)) {
       res.errorMessages.add(Constants.invalidArgument);
-      res.errorMessages.add(Constants.createEventArgumentReuirements);
+      res.errorMessages.add(Constants.createOrUpdateEventArgumentRequirements);
 
       return res;
     }
@@ -92,7 +90,7 @@ class DeviceCalendarPlugin {
     try {
       res.data =
           await channel.invokeMethod('createOrUpdateEvent', <String, Object>{
-        'calendarId': calendar.id,
+        'calendarId': calendarId,
         'eventId': event.id,
         'eventTitle': event.title,
         'eventDescription': event.description,
