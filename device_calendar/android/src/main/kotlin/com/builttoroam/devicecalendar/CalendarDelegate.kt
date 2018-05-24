@@ -417,6 +417,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
         val event = Event(title)
         event.eventId = eventId.toString()
+        event.calendarId = calendarId
         event.description = description
         event.start = begin
         event.end = end
@@ -427,13 +428,13 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     }
 
     private fun isCalendarReadOnly(accessLevel: Int): Boolean {
-        when (accessLevel) {
+        return when (accessLevel) {
             CalendarContract.Events.CAL_ACCESS_CONTRIBUTOR,
             CalendarContract.Events.CAL_ACCESS_ROOT,
             CalendarContract.Events.CAL_ACCESS_OWNER,
             CalendarContract.Events.CAL_ACCESS_EDITOR
-            -> return false
-            else -> return true
+            -> false
+            else -> true
         }
     }
 
