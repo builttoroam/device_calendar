@@ -44,7 +44,7 @@ import com.builttoroam.devicecalendar.models.CalendarMethodsParametersCacheModel
 import java.util.*
 
 
-public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
+public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
     private val RETRIEVE_CALENDARS_METHOD_CODE = 0;
     private val RETRIEVE_EVENTS_METHOD_CODE = RETRIEVE_CALENDARS_METHOD_CODE + 1;
@@ -84,7 +84,7 @@ public class CalendarService : PluginRegistry.RequestPermissionsResultListener {
             return true;
         }
 
-        when (cachedValues.calendarServiceMethodCode) {
+        when (cachedValues.calendarDelegateMethodCode) {
             RETRIEVE_CALENDARS_METHOD_CODE -> {
                 if (permissionGranted) {
                     retrieveCalendars(cachedValues.pendingChannelResult);
