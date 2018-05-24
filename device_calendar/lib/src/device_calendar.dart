@@ -74,9 +74,9 @@ class DeviceCalendarPlugin {
   ///
   /// returns: event ID
   Future<BaseResult<String>> createOrUpdateEvent(
-      Calendar calendar, Event event) async {
+      String calendarId, Event event) async {
     var res = new BaseResult<String>(null);
-    if (calendar?.id == null ||
+    if ((calendarId?.isEmpty ?? true) ||
         (event?.title?.isEmpty ?? false) ||
         event.start == null ||
         event.end == null ||
@@ -90,7 +90,7 @@ class DeviceCalendarPlugin {
     try {
       res.data =
           await channel.invokeMethod('createOrUpdateEvent', <String, Object>{
-        'calendarId': calendar.id,
+        'calendarId': calendarId,
         'eventId': event.id,
         'eventTitle': event.title,
         'eventDescription': event.description,
