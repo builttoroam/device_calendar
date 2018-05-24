@@ -37,7 +37,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     if (this._event == null) {
       _startDate = new DateTime.now();
       _endDate = new DateTime.now().add(new Duration(hours: 1));
-      _event = new Event(start: _startDate, end: _endDate);
+      _event = new Event(this._calendar.id, start: _startDate, end: _endDate);
     } else {
       _startDate = _event.start;
       _endDate = _event.end;
@@ -53,7 +53,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     return new Scaffold(
         key: _scaffoldKey,
         appBar: new AppBar(
-          title: new Text(_event.id?.isEmpty ?? true
+          title: new Text(_event.eventId?.isEmpty ?? true
               ? 'Create new event'
               : 'Edit event ${_event.title}'),
         ),
@@ -168,8 +168,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
               showInSnackBar('Please fix the errors in red before submitting.');
             } else {
               form.save();
-              var createEventResult = await _deviceCalendarPlugin
-                  .createOrUpdateEvent(_calendar?.id, _event);
+              var createEventResult =
+                  await _deviceCalendarPlugin.createOrUpdateEvent(_event);
               if (createEventResult.isSuccess) {
                 Navigator.pop(context, true);
               } else {

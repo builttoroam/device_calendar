@@ -104,7 +104,8 @@ class EventItem extends StatelessWidget {
                                   _onLoadingStarted();
                                   final deleteSucceeded =
                                       await _deviceCalendarPlugin.deleteEvent(
-                                          _calendar, _calendarEvent);
+                                          _calendarEvent.calendarId,
+                                          _calendarEvent.eventId);
                                   _onDeleteFinished(deleteSucceeded);
                                 },
                                 child: new Text('Ok'),

@@ -250,12 +250,12 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             val eventsSortOrder = CalendarContract.Events.DTSTART + " ASC"
             val cursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, eventsSortOrder)
 
-            val events: MutableList<Event> = mutableListOf<Event>()
+            val events: MutableList<Event> = mutableListOf()
 
             try {
                 if (cursor?.moveToFirst() ?: false) {
                     do {
-                        val event = parseEvent(cursor)
+                        val event = parseEvent(calendarId, cursor)
                         if (event == null) {
                             continue
                         }
@@ -302,7 +302,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             values.put(Events.EVENT_TIMEZONE, currentTimeZone.displayName)
 
             try {
-                var eventId: Long? = event.id?.toLongOrNull()
+                var eventId: Long? = event.eventId?.toLongOrNull()
                 if (eventId == null) {
                     val uri = contentResolver?.insert(CalendarContract.Events.CONTENT_URI, values)
                     // get the event ID that is the last element in the Uri
@@ -399,7 +399,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         return calendar
     }
 
-    private fun parseEvent(cursor: Cursor?): Event? {
+    private fun parseEvent(calendarId: String, cursor: Cursor?): Event? {
         if (cursor == null) {
             return null
         }
@@ -416,7 +416,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         val location = cursor.getString(EVENT_PROJECTION_EVENT_LOCATION_INDEX)
 
         val event = Event(title)
-        event.id = eventId.toString()
+        event.eventId = eventId.toString()
         event.description = description
         event.start = begin
         event.end = end
