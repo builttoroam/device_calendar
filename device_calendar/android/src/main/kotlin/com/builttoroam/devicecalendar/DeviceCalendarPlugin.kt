@@ -64,11 +64,9 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     }
 
     override fun onMethodCall(call: MethodCall, result: Result): Unit {
-        _calendarService.setPendingResult(result);
-
         when (call.method) {
             RETRIEVE_CALENDARS_METHOD -> {
-                _calendarService.retrieveCalendars();
+                _calendarService.retrieveCalendars(result);
             }
             RETRIEVE_EVENTS_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT);
@@ -77,7 +75,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 if (calendarId == null || calendarId.isEmpty()) {
                     result.error(ErrorCodes.INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE, null);
                 } else {
-                    _calendarService.retrieveEvents(calendarId, startDate, endDate);
+                    _calendarService.retrieveEvents(calendarId, startDate, endDate, result);
                 }
             }
             CREATE_OR_UPDATE_EVENT_METHOD -> {
@@ -99,7 +97,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 event.start = eventStart;
                 event.end = eventEnd;
 
-                _calendarService.createOrUpdateEvent(calendarId, event);
+                _calendarService.createOrUpdateEvent(calendarId, event, result);
             }
             DELETE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT);
@@ -113,7 +111,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                     return;
                 }
 
-                _calendarService.deleteEvent(calendarId, eventId);
+                _calendarService.deleteEvent(calendarId, eventId, result);
             }
             else -> {
                 result.notImplemented()
