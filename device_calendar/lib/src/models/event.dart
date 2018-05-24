@@ -1,21 +1,23 @@
 part of device_calendar;
 
 class Event {
-  String id;
+  String eventId;
+  String calendarId;
   String title;
   String description;
 
   DateTime start;
   DateTime end;
 
-  Event({this.title, this.start, this.end});
+  Event(this.calendarId, {this.title, this.start, this.end});
 
   Event.fromJson(Map<String, dynamic> json) {
     if (json == null) {
       throw new ArgumentError(Constants.fromJsonMapIsNull);
     }
 
-    id = json['id'];
+    eventId = json['eventId'];
+    calendarId = json['calendarId'];
     title = json['title'];
     description = json['description'];
     int startMillisecondsSinceEpoch = json['start'];
@@ -31,7 +33,8 @@ class Event {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
+    data['eventId'] = this.eventId;
+    data['calendarId'] = this.calendarId;
     data['title'] = this.title;
     data['description'] = this.description;
     data['start'] = this.start.millisecondsSinceEpoch;
