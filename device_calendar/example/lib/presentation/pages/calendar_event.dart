@@ -43,7 +43,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _endDate = _event.end;
     }
 
-    _startTime = new TimeOfDay(hour: _startDate.hour, minute: _startDate.minute);
+    _startTime =
+        new TimeOfDay(hour: _startDate.hour, minute: _startDate.minute);
     _endTime = new TimeOfDay(hour: _endDate.hour, minute: _endDate.minute);
   }
 
