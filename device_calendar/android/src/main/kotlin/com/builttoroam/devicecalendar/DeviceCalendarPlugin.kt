@@ -21,7 +21,7 @@ const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar";
 class DeviceCalendarPlugin() : MethodCallHandler {
 
     private lateinit var _registrar: Registrar;
-    private lateinit var _calendarService: CalendarService;
+    private lateinit var _calendarDelegate: CalendarDelegate;
 
     // Methods
     val RETRIEVE_CALENDARS_METHOD = "retrieveCalendars";
@@ -39,9 +39,9 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     val EVENT_START_DATE_ARGUMENT = "eventStartDate";
     val EVENT_END_DATE_ARGUMENT = "eventEndDate";
 
-    private constructor(registrar: Registrar, calendarService: CalendarService) : this() {
+    private constructor(registrar: Registrar, calendarDelegate: CalendarDelegate) : this() {
         _registrar = registrar;
-        _calendarService = calendarService;
+        _calendarDelegate = calendarDelegate;
     }
 
     companion object {
@@ -50,8 +50,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             val context: Context = registrar.context();
             val activity: Activity = registrar.activity();
 
-            val calendarService = CalendarService(activity, context);
-            val instance = DeviceCalendarPlugin(registrar, calendarService);
+            val calendarDelegate = CalendarDelegate(activity, context);
+            val instance = DeviceCalendarPlugin(registrar, calendarDelegate);
 
             val channel = MethodChannel(registrar.messenger(), "device_calendar")
             channel.setMethodCallHandler(instance)
@@ -59,14 +59,14 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             val calendarsChannel = MethodChannel(registrar.messenger(), CHANNEL_NAME)
             calendarsChannel.setMethodCallHandler(instance)
 
-            registrar.addRequestPermissionsResultListener(calendarService);
+            registrar.addRequestPermissionsResultListener(calendarDelegate);
         }
     }
 
     override fun onMethodCall(call: MethodCall, result: Result): Unit {
         when (call.method) {
             RETRIEVE_CALENDARS_METHOD -> {
-                _calendarService.retrieveCalendars(result);
+                _calendarDelegate.retrieveCalendars(result);
             }
             RETRIEVE_EVENTS_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT);
@@ -75,7 +75,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 if (calendarId == null || calendarId.isEmpty()) {
                     result.error(ErrorCodes.INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE, null);
                 } else {
-                    _calendarService.retrieveEvents(calendarId, startDate, endDate, result);
+                    _calendarDelegate.retrieveEvents(calendarId, startDate, endDate, result);
                 }
             }
             CREATE_OR_UPDATE_EVENT_METHOD -> {
@@ -97,7 +97,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 event.start = eventStart;
                 event.end = eventEnd;
 
-                _calendarService.createOrUpdateEvent(calendarId, event, result);
+                _calendarDelegate.createOrUpdateEvent(calendarId, event, result);
             }
             DELETE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT);
@@ -111,7 +111,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                     return;
                 }
 
-                _calendarService.deleteEvent(calendarId, eventId, result);
+                _calendarDelegate.deleteEvent(calendarId, eventId, result);
             }
             else -> {
                 result.notImplemented()
