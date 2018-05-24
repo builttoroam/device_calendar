@@ -45,7 +45,8 @@ class DeviceCalendarPlugin {
         'endDate': endDate.millisecondsSinceEpoch
       });
 
-      final List<Event> events = json.decode(eventsJson).map<Event>((decodedEvent) {
+      final List<Event> events =
+          json.decode(eventsJson).map<Event>((decodedEvent) {
         return new Event.fromJson(decodedEvent);
       }).toList();
 
