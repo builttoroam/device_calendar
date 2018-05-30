@@ -56,6 +56,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     private val RETRIEVE_CALENDAR_METHOD_CODE = RETRIEVE_EVENTS_METHOD_CODE + 1
     private val CREATE_OR_UPDATE_EVENT_METHOD_CODE = RETRIEVE_CALENDAR_METHOD_CODE + 1
     private val DELETE_EVENT_METHOD_CODE = CREATE_OR_UPDATE_EVENT_METHOD_CODE + 1
+    private val REQUEST_PERMISSIONS_METHOD_CODE = DELETE_EVENT_METHOD_CODE + 1
 
     private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> = mutableMapOf<Int, CalendarMethodsParametersCacheModel>()
 
@@ -145,9 +146,22 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
                 return true
             }
+            REQUEST_PERMISSIONS_METHOD_CODE -> {
+                finishWithSuccess(permissionGranted, cachedValues.pendingChannelResult)
+                return true
+            }
         }
 
         return false
+    }
+
+    public fun requestPermissions(pendingChannelResult: MethodChannel.Result) {
+        val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, REQUEST_PERMISSIONS_METHOD_CODE)
+        requestPermissions(parameters)
+    }
+
+    public fun hasPermissions(pendingChannelResult: MethodChannel.Result) {
+        finishWithSuccess(arePermissionsGranted(), pendingChannelResult)
     }
 
     @SuppressLint("MissingPermission")
@@ -368,7 +382,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             return writeCalendarPermissionGranted && readCalendarPermissionGranted
         }
 
-        return false
+        return true
     }
 
     private fun requestPermissions(parameters: CalendarMethodsParametersCacheModel) {
