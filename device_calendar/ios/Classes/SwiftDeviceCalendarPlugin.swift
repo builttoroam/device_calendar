@@ -6,6 +6,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     struct Calendar: Codable {
         let id: String
         let name: String
+        let isReadOnly: Bool
     }
     
     struct Event: Codable {
@@ -15,6 +16,18 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let description: String?
         let start: Int
         let end: Int
+        let allDay: Bool
+        let attendees: [Attendee]
+        let location: Location?
+    }
+    
+    struct Attendee: Codable {
+        let name: String
+    }
+    
+    struct Location: Codable {
+        let latitude: Double
+        let longitude: Double
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
@@ -76,7 +89,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let ekCalendars = self.eventStore.calendars(for: .event)
             var calendars = [Calendar]()
             for ekCalendar in ekCalendars {
-                let calendar = Calendar(id: ekCalendar.calendarIdentifier, name: ekCalendar.title)
+                let calendar = Calendar(id: ekCalendar.calendarIdentifier, name: ekCalendar.title, isReadOnly: !ekCalendar.allowsContentModifications)
                 calendars.append(calendar)
             }
             
@@ -97,7 +110,26 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let ekEvents = self.eventStore.events(matching: predicate)
             var events = [Event]()
             for ekEvent in ekEvents {
-                let event = Event(eventId: ekEvent.eventIdentifier, calendarId: calendarId, title: ekEvent.title, description: ekEvent.notes, start: Int(ekEvent.startDate.timeIntervalSince1970) * 1000, end: Int(ekEvent.endDate.timeIntervalSince1970) * 1000)
+                var attendees = [Attendee]()
+                if (ekEvent.attendees != nil) {
+                    for ekParticipant in ekEvent.attendees! {
+                        if(ekParticipant.name == nil) {
+                            continue
+                        }
+                        let attendee = Attendee(name: ekParticipant.name!)
+                        attendees.append(attendee)
+                    }
+                    
+                }
+                
+                var location: Location?
+                location = nil
+                if #available(iOS 9.0, *) {
+                    if(ekEvent.structuredLocation?.geoLocation != nil) {
+                        location = Location(latitude: (ekEvent.structuredLocation?.geoLocation?.coordinate.latitude)!, longitude: (ekEvent.structuredLocation?.geoLocation?.coordinate.longitude)!)
+                    }
+                }
+                let event = Event(eventId: ekEvent.eventIdentifier, calendarId: calendarId, title: ekEvent.title, description: ekEvent.notes, start: Int(ekEvent.startDate.timeIntervalSince1970) * 1000, end: Int(ekEvent.endDate.timeIntervalSince1970) * 1000, allDay: ekEvent.isAllDay, attendees: attendees, location: location)
                 events.append(event)
             }
             
@@ -132,6 +164,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                     return
                 }
             }
+            
             ekEvent!.title = title
             ekEvent!.notes = description
             ekEvent!.startDate = startDate
