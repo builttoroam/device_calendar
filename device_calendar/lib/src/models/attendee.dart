@@ -1,6 +1,8 @@
 part of device_calendar;
 
+/// A person attending an event
 class Attendee {
+  /// The name of the attendee
   String name;
 
   Attendee(this.name);

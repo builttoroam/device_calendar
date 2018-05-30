@@ -44,7 +44,7 @@ class DeviceCalendarPlugin {
     return new List<Calendar>();
   }
 
-  /// Retrieves calendar events
+  /// Retrieves the events from the specified calendar that fall within a certain date/time range
   Future<List<Event>> retrieveEvents(
       String calendarId, DateTime startDate, DateTime endDate) async {
     try {
@@ -68,7 +68,7 @@ class DeviceCalendarPlugin {
     return new List<Event>();
   }
 
-  /// Delete calendar event
+  /// Deletes an event from a calendar
   Future<bool> deleteEvent(String calendarId, String eventId) async {
     try {
       var succeeded = await channel.invokeMethod('deleteEvent',
