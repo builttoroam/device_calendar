@@ -1,6 +1,6 @@
 part of device_calendar;
 
-/// A singleton service providing functionality to work with device calendar(s)
+/// Provides functionality for working with device calendar(s)
 class DeviceCalendarPlugin {
   static const MethodChannel channel =
       const MethodChannel('plugins.builttoroam.com/device_calendar');
@@ -13,6 +13,18 @@ class DeviceCalendarPlugin {
   }
 
   DeviceCalendarPlugin._createInstance();
+
+  /// Requests permissions to modify the calendars on the device
+  Future<bool> requestPermissions() async {
+    var permissionsGranted = await channel.invokeMethod('requestPermissions');
+    return permissionsGranted;
+  }
+
+  /// Checks if permissions for modifying the device calendars have been granted
+  Future<bool> hasPermissions() async {
+    var permissionsGranted = await channel.invokeMethod('hasPermissions');
+    return permissionsGranted;
+  }
 
   /// Retrieves all of the device defined calendars
   Future<List<Calendar>> retrieveCalendars() async {

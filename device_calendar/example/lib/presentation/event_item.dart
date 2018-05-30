@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class EventItem extends StatelessWidget {
-  final Calendar _calendar;
   final Event _calendarEvent;
   final DeviceCalendarPlugin _deviceCalendarPlugin;
 
@@ -13,7 +12,7 @@ class EventItem extends StatelessWidget {
 
   final double _eventFieldNameWidth = 75.0;
 
-  EventItem(this._calendar, this._calendarEvent, this._deviceCalendarPlugin,
+  EventItem(this._calendarEvent, this._deviceCalendarPlugin,
       this._onLoadingStarted, this._onDeleteFinished, this._onTapped);
 
   @override
