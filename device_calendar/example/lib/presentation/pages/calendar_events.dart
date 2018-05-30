@@ -110,7 +110,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
         new MaterialPageRoute(builder: (BuildContext context) {
       return new CalendarEventPage(_calendar, event);
     }));
-    if (refreshEvents) {
+    if (refreshEvents != null && refreshEvents) {
       _retrieveCalendarEvents();
     }
   }
