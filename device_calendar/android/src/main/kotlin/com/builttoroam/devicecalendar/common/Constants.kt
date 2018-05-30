@@ -30,7 +30,7 @@ class Constants {
         const val EVENT_PROJECTION_EVENT_LOCATION_INDEX: Int = 9
 
         val EVENT_PROJECTION: Array<String> = arrayOf(
-                CalendarContract.Events._ID,
+                CalendarContract.Instances.EVENT_ID,
                 CalendarContract.Events.TITLE,
                 CalendarContract.Events.DESCRIPTION,
                 CalendarContract.Instances.BEGIN,

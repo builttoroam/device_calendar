@@ -109,6 +109,26 @@ class EventItem extends StatelessWidget {
                       ],
                     ),
                   ),
+                  new SizedBox(
+                    height: 10.0,
+                  ),
+                  new Align(
+                    alignment: Alignment.topLeft,
+                    child: new Row(
+                      children: <Widget>[
+                        new Container(
+                          width: _eventFieldNameWidth,
+                          child: new Text('Attendees'),
+                        ),
+                        new Expanded(
+                          child: new Text(
+                            _calendarEvent?.attendees?.where((a) => a.name?.isNotEmpty ?? false)?.map((a) => a.name)?.join(', ') ?? '',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

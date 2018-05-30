@@ -5,9 +5,7 @@ import android.annotation.SuppressLint
 import io.flutter.plugin.common.PluginRegistry
 import android.content.pm.PackageManager
 import android.app.Activity
-import android.content.ContentResolver
-import android.content.ContentUris
-import android.content.Context
+import android.content.*
 import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
@@ -31,7 +29,12 @@ import com.builttoroam.devicecalendar.models.Event
 import io.flutter.plugin.common.MethodChannel
 import com.google.gson.Gson
 import android.provider.CalendarContract.Events
-import android.content.ContentValues
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EMAIL_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EVENT_ID_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_ID_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ALL_DAY_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_BEGIN_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DURATION_INDEX
@@ -45,6 +48,7 @@ import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EVENT_CREATION
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.EVENTS_START_DATE_LARGER_THAN_END_DATE_MESSAGE
+import com.builttoroam.devicecalendar.models.Attendee
 import com.builttoroam.devicecalendar.models.CalendarMethodsParametersCacheModel
 import java.util.*
 
@@ -71,7 +75,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     }
 
     public override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
-        val permissionGranted = grantResults.isNotEmpty() && grantResults[0] === PackageManager.PERMISSION_GRANTED
+        val permissionGranted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
 
         if (!_cachedParametersMap.containsKey(requestCode)) {
             // We ran into a situation which theoretically should never happen.
@@ -262,27 +266,29 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             val eventsSelectionQuery = "(${CalendarContract.Events.CALENDAR_ID} = ${calendarId}) AND" +
                     "(${CalendarContract.Events.DELETED} != 1)"
             val eventsSortOrder = CalendarContract.Events.DTSTART + " ASC"
-            val cursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, eventsSortOrder)
+            val eventsCursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, eventsSortOrder)
 
             val events: MutableList<Event> = mutableListOf()
 
             try {
-                if (cursor?.moveToFirst() ?: false) {
+                if (eventsCursor?.moveToFirst() ?: false) {
                     do {
-                        val event = parseEvent(calendarId, cursor)
+                        val event = parseEvent(calendarId, eventsCursor)
                         if (event == null) {
                             continue
                         }
 
                         events.add(event)
 
-                    } while (cursor?.moveToNext() ?: false)
+                    } while (eventsCursor?.moveToNext() ?: false)
+
+                    updateEventAttendees(events, contentResolver, pendingChannelResult)
                 }
             } catch (e: Exception) {
                 finishWithError(EXCEPTION, e.message, pendingChannelResult)
                 println(e.message)
             } finally {
-                cursor?.close()
+                eventsCursor?.close()
             }
 
             finishWithSuccess(_gson?.toJson(events), pendingChannelResult)
@@ -325,7 +331,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                     contentResolver?.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), values, null, null)
                 }
 
-                finishWithSuccess(eventId?.toString(), pendingChannelResult)
+                finishWithSuccess(eventId.toString(), pendingChannelResult)
             } catch (e: Exception) {
                 finishWithError(EXCEPTION, e.message, pendingChannelResult)
                 println(e.message)
@@ -418,7 +424,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             return null
         }
 
-        val eventId = cursor.getString(EVENT_PROJECTION_ID_INDEX)
+        val eventId = cursor.getLong(EVENT_PROJECTION_ID_INDEX)
         val title = cursor.getString(EVENT_PROJECTION_TITLE_INDEX)
         val description = cursor.getString(EVENT_PROJECTION_DESCRIPTION_INDEX)
         val begin = cursor.getLong(EVENT_PROJECTION_BEGIN_INDEX)
@@ -439,6 +445,26 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         event.location = location
 
         return event
+    }
+
+    private fun parseAttendee(cursor: Cursor?): Attendee? {
+        if (cursor == null) {
+            return null
+        }
+
+        val id = cursor.getLong(ATTENDEE_ID_INDEX)
+        val eventId = cursor.getLong(ATTENDEE_EVENT_ID_INDEX)
+        val name = cursor.getString(ATTENDEE_NAME_INDEX)
+        val email = cursor.getString(ATTENDEE_EMAIL_INDEX)
+        val type = cursor.getInt(ATTENDEE_TYPE_INDEX)
+
+        val attendee = Attendee(name)
+        attendee.id = id
+        attendee.eventId = eventId
+        attendee.email = email
+        attendee.attendanceRequired = type == CalendarContract.Attendees.TYPE_REQUIRED
+
+        return attendee
     }
 
     private fun isCalendarReadOnly(accessLevel: Int): Boolean {
@@ -482,6 +508,42 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         }
 
         return isRecurring
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun updateEventAttendees(events: MutableList<Event>, contentResolver: ContentResolver?, pendingChannelResult: MethodChannel.Result) {
+
+        if (events == null) {
+            return
+        }
+
+        val eventsMapById = events.associateBy { it.eventId }
+        val attendeesQueryEventIds = eventsMapById.values.map { "(${CalendarContract.Attendees.EVENT_ID} = ${it.eventId})" }
+        val attendeesQuery = attendeesQueryEventIds.joinToString(" OR ")
+        val attendeesCursor = contentResolver?.query(CalendarContract.Attendees.CONTENT_URI, ATTENDEE_PROJECTION, attendeesQuery, null, null);
+
+        try {
+            if (attendeesCursor?.moveToFirst() ?: false) {
+                do {
+                    val attendee = parseAttendee(attendeesCursor)
+                    if (attendee == null) {
+                        continue
+                    }
+
+                    if (eventsMapById.containsKey(attendee.eventId.toString())) {
+                        val attendeeEvent = eventsMapById[attendee.eventId.toString()]
+                        attendeeEvent?.attendees?.add(attendee)
+                    }
+
+                } while (attendeesCursor?.moveToNext() ?: false)
+            }
+        } catch (e: Exception) {
+            finishWithError(EXCEPTION, e.message, pendingChannelResult)
+            println(e.message)
+        } finally {
+            attendeesCursor?.close();
+        }
+
     }
 
     @Synchronized
