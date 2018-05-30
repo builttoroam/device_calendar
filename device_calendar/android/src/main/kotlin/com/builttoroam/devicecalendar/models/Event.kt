@@ -8,4 +8,5 @@ class Event(val title: String) {
     var end: Long = -1
     var allDay: Boolean = false
     var location: String? = null
+    var attendees: MutableList<Attendee> = mutableListOf()
 }
