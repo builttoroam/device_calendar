@@ -15,15 +15,37 @@ class DeviceCalendarPlugin {
   DeviceCalendarPlugin._createInstance();
 
   /// Requests permissions to modify the calendars on the device
-  Future<bool> requestPermissions() async {
-    var permissionsGranted = await channel.invokeMethod('requestPermissions');
-    return permissionsGranted;
+  Future<Result<bool>> requestPermissions() async {
+    var res = new Result(false);
+    
+    try {
+      var permissionsGranted = await channel.invokeMethod('requestPermissions');
+
+      res.isSuccess = true;
+      res.data = permissionsGranted;
+    } on PlatformException catch (e) {
+      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
+      print(e);
+    }
+
+    return res;
   }
 
   /// Checks if permissions for modifying the device calendars have been granted
-  Future<bool> hasPermissions() async {
-    var permissionsGranted = await channel.invokeMethod('hasPermissions');
-    return permissionsGranted;
+  Future<Result<bool>> hasPermissions() async {
+    var res = new Result(false);
+
+    try {
+      var permissionsGranted = await channel.invokeMethod('hasPermissions');
+
+      res.isSuccess = true;
+      res.data = permissionsGranted;
+    } on PlatformException catch (e) {
+      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
+      print(e);
+    }
+
+    return res;
   }
 
   /// Retrieves all of the device defined calendars
@@ -84,8 +106,8 @@ class DeviceCalendarPlugin {
   /// Creates or updates an event
   ///
   /// returns: event ID
-  Future<BaseResult<String>> createOrUpdateEvent(Event event) async {
-    var res = new BaseResult<String>(null);
+  Future<Result<String>> createOrUpdateEvent(Event event) async {
+    var res = new Result<String>(null);
     if ((event.calendarId?.isEmpty ?? true) ||
         (event?.title?.isEmpty ?? false) ||
         event.start == null ||
@@ -114,5 +136,15 @@ class DeviceCalendarPlugin {
     }
 
     return res;
+  }
+
+  void _parsePlatformExceptionAndUpdateResult<T>(
+      PlatformException exception, Result<T> result) {
+    if (exception == null || result == null) {
+      return;
+    }
+
+    result.errorMessages.add(
+        "Device calendar plugin ran into an issue. Platform specific exception [${exception.code}], with message :\"${exception.message}\", has been thrown.");
   }
 }

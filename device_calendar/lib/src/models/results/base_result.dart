@@ -1,9 +1,9 @@
 part of device_calendar;
 
-class BaseResult<T> {
+class Result<T> {
   bool isSuccess = false;
   T data;
   List<String> errorMessages = new List<String>();
 
-  BaseResult([this.data]);
+  Result([this.data]);
 }
