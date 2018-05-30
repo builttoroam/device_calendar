@@ -1,9 +1,14 @@
 part of device_calendar;
 
+/// A calendar on the user's device
 class Calendar {
+  /// The unique identifier for this calendar
   String id;
+
+  /// The name of this calendar
   String name;
 
+  /// If the calendar is read-only
   bool isReadyOnly;
 
   Calendar({this.id, this.name, this.isReadyOnly});

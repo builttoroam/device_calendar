@@ -1,10 +1,30 @@
-# device_calendar
+# Device Calendar Plugin
 
-A new flutter plugin project.
+[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar)
 
-## Getting Started
+A cross platform plugin for displaying local notifications. 
 
-For help getting started with Flutter, view our online
-[documentation](https://flutter.io/).
+## Features
+* Ability to request permissions to modify calendars on the user's device
+* Ability to check if permissions to modify the calendars on the user's device have been granted
+* Retrieve calendars on the user's device
+* Retrieve events associated with a calendar
+* Ability to add, update or delete events from a calendar
 
-For help on editing plugin code, view the [documentation](https://flutter.io/platform-plugins/#edit-code).
+## Android Integration
+
+The following will need to be added to the manifest file for your application to indicate permissions to modify calendars a needed
+
+```xml
+<uses-permission android:name="android.permission.READ_CALENDAR" />
+<uses-permission android:name="android.permission.WRITE_CALENDAR" />
+```
+
+## iOS Integration
+
+For iOS 10 support, you'll need to modify the Info.plist to add the following key/value pair
+
+```xml
+<key>NSCalendarsUsageDescription</key>
+<string>INSERT_REASON_HERE</string>
+```
