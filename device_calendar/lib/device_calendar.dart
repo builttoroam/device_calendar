@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'src/common/constants.dart';
 
 part 'src/models/attendee.dart';
-part 'src/models/location.dart';
 part 'src/models/calendar.dart';
 part 'src/models/results/base_result.dart';
 part 'src/models/event.dart';

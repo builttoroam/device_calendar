@@ -18,7 +18,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let end: Int
         let allDay: Bool
         let attendees: [Attendee]
-        let location: Location?
+        let location: String?
     }
     
     struct Attendee: Codable {
@@ -122,14 +122,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                     
                 }
                 
-                var location: Location?
-                location = nil
-                if #available(iOS 9.0, *) {
-                    if(ekEvent.structuredLocation?.geoLocation != nil) {
-                        location = Location(latitude: (ekEvent.structuredLocation?.geoLocation?.coordinate.latitude)!, longitude: (ekEvent.structuredLocation?.geoLocation?.coordinate.longitude)!)
-                    }
-                }
-                let event = Event(eventId: ekEvent.eventIdentifier, calendarId: calendarId, title: ekEvent.title, description: ekEvent.notes, start: Int(ekEvent.startDate.timeIntervalSince1970) * 1000, end: Int(ekEvent.endDate.timeIntervalSince1970) * 1000, allDay: ekEvent.isAllDay, attendees: attendees, location: location)
+                let event = Event(eventId: ekEvent.eventIdentifier, calendarId: calendarId, title: ekEvent.title, description: ekEvent.notes, start: Int(ekEvent.startDate.timeIntervalSince1970) * 1000, end: Int(ekEvent.endDate.timeIntervalSince1970) * 1000, allDay: ekEvent.isAllDay, attendees: attendees, location: ekEvent.location)
                 events.append(event)
             }
             
