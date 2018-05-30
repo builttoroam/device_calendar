@@ -46,12 +46,19 @@ class _CalendarsPageState extends State<CalendarsPage> {
                         }));
                       },
                       child: new Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: new Text(
-                          _calendars[index].name,
-                          style: new TextStyle(fontSize: 25.0),
-                        ),
-                      ));
+                          padding: const EdgeInsets.all(10.0),
+                          child: new Row(
+                            children: <Widget>[
+                              new Expanded(
+                                flex: 1,
+                                child: new Text(
+                                  _calendars[index].name,
+                                  style: new TextStyle(fontSize: 25.0),
+                                ),
+                              ),
+                              new Icon(_calendars[index].isReadyOnly ? Icons.lock : Icons.lock_open)
+                            ],
+                          )));
                 },
               ),
             )
