@@ -50,7 +50,6 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
                           itemCount: _calendarEvents?.length ?? 0,
                           itemBuilder: (BuildContext context, int index) {
                             return new EventItem(
-                                _calendar,
                                 _calendarEvents[index],
                                 _deviceCalendarPlugin,
                                 _onLoading,
