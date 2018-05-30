@@ -35,10 +35,14 @@ class Event {
       end = new DateTime.fromMillisecondsSinceEpoch(endMillisecondsSinceEpoch);
     }
     allDay = json['allDay'];
-    location = new Location.fromJson(json['location']);
-    attendees = json['attendees'].map<Attendee>((decodedAttendee) {
-      return new Attendee.fromJson(decodedAttendee);
-    }).toList();
+    if (json['location'] != null) {
+      location = new Location.fromJson(json['location']);
+    }
+    if (json['attendees'] != null) {
+      attendees = json['attendees'].map<Attendee>((decodedAttendee) {
+        return new Attendee.fromJson(decodedAttendee);
+      }).toList();
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -50,13 +54,16 @@ class Event {
     data['start'] = this.start.millisecondsSinceEpoch;
     data['end'] = this.end.millisecondsSinceEpoch;
     data['allDay'] = this.allDay;
-    data['location'] = this.location.toJson();
-    List<Map<String, dynamic>> attendeesJson = new List();
+    if (this.location != null) {
+      data['location'] = this.location.toJson();
+    }
     if (attendees != null) {
+      List<Map<String, dynamic>> attendeesJson = new List();
       for (var attendee in attendees) {
         var attendeeJson = attendee.toJson();
         attendeesJson.add(attendeeJson);
       }
+      data['attendees'] = attendeesJson;
     }
     return data;
   }
