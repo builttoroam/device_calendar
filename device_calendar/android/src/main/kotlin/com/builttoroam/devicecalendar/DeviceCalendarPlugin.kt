@@ -24,6 +24,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private lateinit var _calendarDelegate: CalendarDelegate
 
     // Methods
+    val REQUEST_PERMISSIONS_METHOD = "requestPermissions"
+    val HAS_PERMISSIONS_METHOD = "hasPermissions"
     val RETRIEVE_CALENDARS_METHOD = "retrieveCalendars"
     val RETRIEVE_EVENTS_METHOD = "retrieveEvents"
     val DELETE_EVENT_METHOD = "deleteEvent"
@@ -65,6 +67,12 @@ class DeviceCalendarPlugin() : MethodCallHandler {
 
     override fun onMethodCall(call: MethodCall, result: Result): Unit {
         when (call.method) {
+            REQUEST_PERMISSIONS_METHOD -> {
+                _calendarDelegate.requestPermissions(result)
+            }
+            HAS_PERMISSIONS_METHOD -> {
+                _calendarDelegate.hasPermissions(result)
+            }
             RETRIEVE_CALENDARS_METHOD -> {
                 _calendarDelegate.retrieveCalendars(result)
             }
