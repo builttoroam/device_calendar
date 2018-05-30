@@ -5,9 +5,7 @@ import android.annotation.SuppressLint
 import io.flutter.plugin.common.PluginRegistry
 import android.content.pm.PackageManager
 import android.app.Activity
-import android.content.ContentResolver
-import android.content.ContentUris
-import android.content.Context
+import android.content.*
 import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
@@ -31,8 +29,8 @@ import com.builttoroam.devicecalendar.models.Event
 import io.flutter.plugin.common.MethodChannel
 import com.google.gson.Gson
 import android.provider.CalendarContract.Events
-import android.content.ContentValues
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EMAIL_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EVENT_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
@@ -283,16 +281,14 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                         events.add(event)
 
                     } while (eventsCursor?.moveToNext() ?: false)
+
+                    updateEventAttendees(events, contentResolver, pendingChannelResult)
                 }
             } catch (e: Exception) {
                 finishWithError(EXCEPTION, e.message, pendingChannelResult)
                 println(e.message)
             } finally {
                 eventsCursor?.close()
-            }
-
-            for (event in events) {
-                event.attendees = retrieveEventAttendee(event.eventId?.toLongOrNull(), contentResolver, pendingChannelResult)
             }
 
             finishWithSuccess(_gson?.toJson(events), pendingChannelResult)
@@ -457,12 +453,14 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         }
 
         val id = cursor.getLong(ATTENDEE_ID_INDEX)
+        val eventId = cursor.getLong(ATTENDEE_EVENT_ID_INDEX)
         val name = cursor.getString(ATTENDEE_NAME_INDEX)
         val email = cursor.getString(ATTENDEE_EMAIL_INDEX)
         val type = cursor.getInt(ATTENDEE_TYPE_INDEX)
 
         val attendee = Attendee(name)
         attendee.id = id
+        attendee.eventId = eventId
         attendee.email = email
         attendee.attendanceRequired = type == CalendarContract.Attendees.TYPE_REQUIRED
 
@@ -512,18 +510,19 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         return isRecurring
     }
 
-    @Synchronized
-    private fun retrieveEventAttendee(eventId: Long?, contentResolver: ContentResolver?, pendingChannelResult: MethodChannel.Result): MutableList<Attendee> {
+    @SuppressLint("MissingPermission")
+    private fun updateEventAttendees(events: MutableList<Event>, contentResolver: ContentResolver?, pendingChannelResult: MethodChannel.Result) {
 
-        val attendees: MutableList<Attendee> = mutableListOf()
-        var attendeesCursor: Cursor? = null
-
-        if (eventId == null) {
-            return attendees;
+        if (events == null) {
+            return
         }
 
+        val eventsMapById = events.associateBy { it.eventId }
+        val attendeesQueryEventIds = eventsMapById.values.map { "(${CalendarContract.Attendees.EVENT_ID} = ${it.eventId})" }
+        val attendeesQuery = attendeesQueryEventIds.joinToString(" OR ")
+        val attendeesCursor = contentResolver?.query(CalendarContract.Attendees.CONTENT_URI, ATTENDEE_PROJECTION, attendeesQuery, null, null);
+
         try {
-            attendeesCursor = CalendarContract.Attendees.query(contentResolver, eventId, ATTENDEE_PROJECTION)
             if (attendeesCursor?.moveToFirst() ?: false) {
                 do {
                     val attendee = parseAttendee(attendeesCursor)
@@ -531,9 +530,12 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                         continue
                     }
 
-                    attendees.add(attendee)
-                } while (attendeesCursor?.moveToNext() ?: false)
+                    if (eventsMapById.containsKey(attendee.eventId.toString())) {
+                        val attendeeEvent = eventsMapById[attendee.eventId.toString()]
+                        attendeeEvent?.attendees?.add(attendee)
+                    }
 
+                } while (attendeesCursor?.moveToNext() ?: false)
             }
         } catch (e: Exception) {
             finishWithError(EXCEPTION, e.message, pendingChannelResult)
@@ -542,7 +544,6 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             attendeesCursor?.close();
         }
 
-        return attendees;
     }
 
     @Synchronized
