@@ -15,5 +15,3 @@ pubspec.lock
 doc/api/
 
 ios/.generated/
-
-device_calendar.code-workspace
