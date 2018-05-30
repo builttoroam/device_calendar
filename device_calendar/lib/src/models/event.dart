@@ -8,9 +8,11 @@ class Event {
 
   DateTime start;
   DateTime end;
-  
+
   bool allDay;
-  String location;
+  Location location;
+
+  List<Attendee> attendees;
 
   Event(this.calendarId, {this.title, this.start, this.end});
 
@@ -33,7 +35,10 @@ class Event {
       end = new DateTime.fromMillisecondsSinceEpoch(endMillisecondsSinceEpoch);
     }
     allDay = json['allDay'];
-    location = json['location'];
+    location = new Location.fromJson(json['location']);
+    attendees = json['attendees'].map<Attendee>((decodedAttendee) {
+      return new Attendee.fromJson(decodedAttendee);
+    }).toList();
   }
 
   Map<String, dynamic> toJson() {
@@ -45,8 +50,14 @@ class Event {
     data['start'] = this.start.millisecondsSinceEpoch;
     data['end'] = this.end.millisecondsSinceEpoch;
     data['allDay'] = this.allDay;
-    data['location'] = this.location;
-
+    data['location'] = this.location.toJson();
+    List<Map<String, dynamic>> attendeesJson = new List();
+    if (attendees != null) {
+      for (var attendee in attendees) {
+        var attendeeJson = attendee.toJson();
+        attendeesJson.add(attendeeJson);
+      }
+    }
     return data;
   }
 }
