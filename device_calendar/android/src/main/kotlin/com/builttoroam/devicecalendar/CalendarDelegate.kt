@@ -106,7 +106,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             }
             RETRIEVE_EVENTS_METHOD_CODE -> {
                 if (permissionGranted) {
-                    retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.pendingChannelResult)
+                    retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.calendarEventsIds, cachedValues.pendingChannelResult)
                 } else {
                     finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
                 }
@@ -242,7 +242,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     }
 
     @SuppressLint("MissingPermission")
-    public fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, pendingChannelResult: MethodChannel.Result) {
+    public fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, eventIds: List<String>, pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             val calendar = retrieveCalendar(calendarId, pendingChannelResult, true)
             if (calendar == null) {
@@ -257,8 +257,15 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             ContentUris.appendId(eventsUriBuilder, endDate)
 
             val eventsUri = eventsUriBuilder.build()
-            val eventsSelectionQuery = "(${CalendarContract.Events.CALENDAR_ID} = ${calendarId}) AND" +
-                    "(${CalendarContract.Events.DELETED} != 1)"
+            val eventsCalendarQuery = "(${CalendarContract.Events.CALENDAR_ID} = ${calendarId})"
+            val eventsNotDeletedQuery = "(${CalendarContract.Events.DELETED} != 1)"
+            val eventsIdsQueryElements = eventIds.map { "(${CalendarContract.Instances.EVENT_ID} = ${it})" }
+            val eventsIdsQuery = eventsIdsQueryElements.joinToString(" OR ")
+
+            var eventsSelectionQuery = "$eventsCalendarQuery AND $eventsNotDeletedQuery"
+            if(!eventsIdsQuery.isNullOrEmpty()) {
+                eventsSelectionQuery += " AND ($eventsIdsQuery)"
+            }
             val eventsSortOrder = CalendarContract.Events.DTSTART + " ASC"
             val eventsCursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, eventsSortOrder)
 
