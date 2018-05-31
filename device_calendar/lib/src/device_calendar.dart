@@ -64,9 +64,9 @@ class DeviceCalendarPlugin {
     return res;
   }
 
-  /// Retrieves the events from the specified calendar that fall within a certain date/time range
+  /// Retrieves the events from the specified calendar
   Future<Result<List<Event>>> retrieveEvents(
-      String calendarId, DateTime startDate, DateTime endDate) async {
+      String calendarId, RetrieveEventsParams retrieveEventsParams) async {
     final res = new Result(new List<Event>());
 
     if ((calendarId?.isEmpty ?? true)) {
@@ -75,12 +75,14 @@ class DeviceCalendarPlugin {
       return res;
     }
 
+    // TODO: validate the params
     try {
       var eventsJson =
           await channel.invokeMethod('retrieveEvents', <String, Object>{
         'calendarId': calendarId,
-        'startDate': startDate.millisecondsSinceEpoch,
-        'endDate': endDate.millisecondsSinceEpoch
+        'startDate': retrieveEventsParams.startDate?.millisecondsSinceEpoch,
+        'endDate': retrieveEventsParams.endDate?.millisecondsSinceEpoch,
+        'eventIds': retrieveEventsParams.eventIds
       });
 
       res.data = json.decode(eventsJson).map<Event>((decodedEvent) {
