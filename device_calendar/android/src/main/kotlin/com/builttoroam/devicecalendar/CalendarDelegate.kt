@@ -20,7 +20,6 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTIO
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_FOUND
-import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EXCEPTION
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
 import com.builttoroam.devicecalendar.models.Calendar
 import com.builttoroam.devicecalendar.models.Event
@@ -187,7 +186,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
                 finishWithSuccess(_gson?.toJson(calendars), pendingChannelResult)
             } catch (e: Exception) {
-                finishWithError(EXCEPTION, e.message, pendingChannelResult)
+                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
                 println(e.message)
             } finally {
                 cursor?.close()
@@ -278,7 +277,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                     updateEventAttendees(events, contentResolver, pendingChannelResult)
                 }
             } catch (e: Exception) {
-                finishWithError(EXCEPTION, e.message, pendingChannelResult)
+                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
                 println(e.message)
             } finally {
                 eventsCursor?.close()
@@ -326,7 +325,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
                 finishWithSuccess(eventId.toString(), pendingChannelResult)
             } catch (e: Exception) {
-                finishWithError(EXCEPTION, e.message, pendingChannelResult)
+                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
                 println(e.message)
             } finally {
             }
@@ -531,7 +530,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                 } while (attendeesCursor?.moveToNext() ?: false)
             }
         } catch (e: Exception) {
-            finishWithError(EXCEPTION, e.message, pendingChannelResult)
+            finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
             println(e.message)
         } finally {
             attendeesCursor?.close();
