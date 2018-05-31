@@ -56,7 +56,9 @@ class _CalendarsPageState extends State<CalendarsPage> {
                                   style: new TextStyle(fontSize: 25.0),
                                 ),
                               ),
-                              new Icon(_calendars[index].isReadyOnly ? Icons.lock : Icons.lock_open)
+                              new Icon(_calendars[index].isReadyOnly
+                                  ? Icons.lock
+                                  : Icons.lock_open)
                             ],
                           )));
                 },
@@ -69,17 +71,16 @@ class _CalendarsPageState extends State<CalendarsPage> {
   void _retrieveCalendars() async {
     try {
       var permissionsGranted = await _deviceCalendarPlugin.hasPermissions();
-      if (!permissionsGranted) {
-        var permissionsGranted =
-            await _deviceCalendarPlugin.requestPermissions();
-        if (!permissionsGranted) {
+      if (permissionsGranted.isSuccess && !permissionsGranted.data) {
+        permissionsGranted = await _deviceCalendarPlugin.requestPermissions();
+        if (permissionsGranted.isSuccess && !permissionsGranted.data) {
           return;
         }
       }
 
-      final calendars = await _deviceCalendarPlugin.retrieveCalendars();
+      final calendarsResult = await _deviceCalendarPlugin.retrieveCalendars();
       setState(() {
-        _calendars = calendars;
+        _calendars = calendarsResult?.data;
       });
     } on PlatformException catch (e) {
       print(e);

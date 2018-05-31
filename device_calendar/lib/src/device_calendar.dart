@@ -15,38 +15,66 @@ class DeviceCalendarPlugin {
   DeviceCalendarPlugin._createInstance();
 
   /// Requests permissions to modify the calendars on the device
-  Future<bool> requestPermissions() async {
-    var permissionsGranted = await channel.invokeMethod('requestPermissions');
-    return permissionsGranted;
-  }
+  Future<Result<bool>> requestPermissions() async {
+    final res = new Result(false);
 
-  /// Checks if permissions for modifying the device calendars have been granted
-  Future<bool> hasPermissions() async {
-    var permissionsGranted = await channel.invokeMethod('hasPermissions');
-    return permissionsGranted;
-  }
-
-  /// Retrieves all of the device defined calendars
-  Future<List<Calendar>> retrieveCalendars() async {
     try {
-      var calendarsJson = await channel.invokeMethod('retrieveCalendars');
-
-      final List<Calendar> calendars =
-          json.decode(calendarsJson).map<Calendar>((decodedCalendar) {
-        return new Calendar.fromJson(decodedCalendar);
-      }).toList();
-
-      return calendars;
-    } catch (e) {
+      res.data = await channel.invokeMethod('requestPermissions');
+      res.isSuccess = true;
+    } on PlatformException catch (e) {
+      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
       print(e);
     }
 
-    return new List<Calendar>();
+    return res;
+  }
+
+  /// Checks if permissions for modifying the device calendars have been granted
+  Future<Result<bool>> hasPermissions() async {
+    final res = new Result(false);
+
+    try {
+      res.data = await channel.invokeMethod('hasPermissions');
+      res.isSuccess = true;
+    } on PlatformException catch (e) {
+      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
+      print(e);
+    }
+
+    return res;
+  }
+
+  /// Retrieves all of the device defined calendars
+  Future<Result<List<Calendar>>> retrieveCalendars() async {
+    final res = new Result(new List<Calendar>());
+
+    try {
+      var calendarsJson = await channel.invokeMethod('retrieveCalendars');
+
+      res.data = json.decode(calendarsJson).map<Calendar>((decodedCalendar) {
+        return new Calendar.fromJson(decodedCalendar);
+      }).toList();
+
+      res.isSuccess = true;
+    } on PlatformException catch (e) {
+      _parsePlatformExceptionAndUpdateResult<List<Calendar>>(e, res);
+      print(e);
+    }
+
+    return res;
   }
 
   /// Retrieves the events from the specified calendar that fall within a certain date/time range
-  Future<List<Event>> retrieveEvents(
+  Future<Result<List<Event>>> retrieveEvents(
       String calendarId, DateTime startDate, DateTime endDate) async {
+    final res = new Result(new List<Event>());
+
+    if ((calendarId?.isEmpty ?? true)) {
+      res.errorMessages.add(
+          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.retrieveEventsInvalidArgumentsMessage}");
+      return res;
+    }
+
     try {
       var eventsJson =
           await channel.invokeMethod('retrieveEvents', <String, Object>{
@@ -55,45 +83,53 @@ class DeviceCalendarPlugin {
         'endDate': endDate.millisecondsSinceEpoch
       });
 
-      final List<Event> events =
-          json.decode(eventsJson).map<Event>((decodedEvent) {
+      res.data = json.decode(eventsJson).map<Event>((decodedEvent) {
         return new Event.fromJson(decodedEvent);
       }).toList();
-
-      return events;
-    } catch (e) {
+      res.isSuccess = true;
+    } on PlatformException catch (e) {
+      _parsePlatformExceptionAndUpdateResult<List<Event>>(e, res);
       print(e);
     }
 
-    return new List<Event>();
+    return res;
   }
 
   /// Deletes an event from a calendar
-  Future<bool> deleteEvent(String calendarId, String eventId) async {
+  Future<Result<bool>> deleteEvent(String calendarId, String eventId) async {
+    final res = new Result(false);
+
+    if ((calendarId?.isEmpty ?? true) || (eventId?.isEmpty ?? true)) {
+      res.errorMessages.add(
+          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.deleteEventInvalidArgumentsMessage}");
+      return res;
+    }
+
     try {
-      var succeeded = await channel.invokeMethod('deleteEvent',
+      res.data = await channel.invokeMethod('deleteEvent',
           <String, Object>{'calendarId': calendarId, 'eventId': eventId});
-      return succeeded;
-    } catch (e) {
+      res.isSuccess = true;
+    } on PlatformException catch (e) {
+      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
       print(e);
     }
 
-    return false;
+    return res;
   }
 
   /// Creates or updates an event
   ///
   /// returns: event ID
-  Future<BaseResult<String>> createOrUpdateEvent(Event event) async {
-    var res = new BaseResult<String>(null);
-    if ((event.calendarId?.isEmpty ?? true) ||
-        (event?.title?.isEmpty ?? false) ||
+  Future<Result<String>> createOrUpdateEvent(Event event) async {
+    final res = new Result<String>(null);
+
+    if ((event?.calendarId?.isEmpty ?? true) ||
+        (event?.title?.isEmpty ?? true) ||
         event.start == null ||
         event.end == null ||
         event.start.isAfter(event.end)) {
-      res.errorMessages.add(Constants.invalidArgument);
-      res.errorMessages.add(Constants.createOrUpdateEventArgumentRequirements);
-
+      res.errorMessages.add(
+          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}");
       return res;
     }
 
@@ -108,11 +144,21 @@ class DeviceCalendarPlugin {
         'eventEndDate': event.end.millisecondsSinceEpoch,
       });
       res.isSuccess = res.data?.isNotEmpty;
-    } catch (e) {
-      res.errorMessages.add(e.toString());
+    } on PlatformException catch (e) {
+      _parsePlatformExceptionAndUpdateResult<String>(e, res);
       print(e);
     }
 
     return res;
+  }
+
+  void _parsePlatformExceptionAndUpdateResult<T>(
+      PlatformException exception, Result<T> result) {
+    if (exception == null || result == null) {
+      return;
+    }
+
+    result.errorMessages.add(
+        "Device calendar plugin ran into an issue. Platform specific exception [${exception.code}], with message :\"${exception.message}\", has been thrown.");
   }
 }

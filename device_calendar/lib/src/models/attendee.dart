@@ -9,7 +9,7 @@ class Attendee {
 
   Attendee.fromJson(Map<String, dynamic> json) {
     if (json == null) {
-      throw new ArgumentError(Constants.fromJsonMapIsNull);
+      throw new ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
 
     name = json['name'];

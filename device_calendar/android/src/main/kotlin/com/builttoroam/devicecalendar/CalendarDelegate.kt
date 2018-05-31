@@ -19,11 +19,8 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJEC
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
-import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.CALENDAR_IS_READ_ONLY
-import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.CALENDAR_RETRIEVAL_FAILURE
-import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EXCEPTION
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_FOUND
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
-import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE
 import com.builttoroam.devicecalendar.models.Calendar
 import com.builttoroam.devicecalendar.models.Event
 import io.flutter.plugin.common.MethodChannel
@@ -42,12 +39,11 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTIO
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_EVENT_LOCATION_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_DATE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
-import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.DELETING_RECURRING_EVENT_NOT_SUPPORTED
-import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EVENTS_RETRIEVAL_FAILURE
-import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.EVENT_CREATION_FAILURE
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.GENERIC_ERROR
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_ALLOWED
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE
-import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.EVENTS_START_DATE_LARGER_THAN_END_DATE_MESSAGE
 import com.builttoroam.devicecalendar.models.Attendee
 import com.builttoroam.devicecalendar.models.CalendarMethodsParametersCacheModel
 import java.util.*
@@ -190,7 +186,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
                 finishWithSuccess(_gson?.toJson(calendars), pendingChannelResult)
             } catch (e: Exception) {
-                finishWithError(EXCEPTION, e.message, pendingChannelResult)
+                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
                 println(e.message)
             } finally {
                 cursor?.close()
@@ -227,7 +223,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                     }
                 } else {
                     if (!isInternalCall) {
-                        finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}", pendingChannelResult)
+                        finishWithError(NOT_FOUND, "Couldn't retrieve the Calendar with ID ${calendarId}", pendingChannelResult)
                     }
                 }
             } catch (e: Exception) {
@@ -248,11 +244,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         if (arePermissionsGranted()) {
             val calendar = retrieveCalendar(calendarId, pendingChannelResult, true)
             if (calendar == null) {
-                finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}", pendingChannelResult)
-                return
-            }
-            if (startDate > endDate) {
-                finishWithError(EVENTS_RETRIEVAL_FAILURE, EVENTS_START_DATE_LARGER_THAN_END_DATE_MESSAGE, pendingChannelResult)
+                finishWithError(NOT_FOUND, "Couldn't retrieve the Calendar with ID ${calendarId}", pendingChannelResult)
                 return
             }
 
@@ -285,7 +277,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                     updateEventAttendees(events, contentResolver, pendingChannelResult)
                 }
             } catch (e: Exception) {
-                finishWithError(EXCEPTION, e.message, pendingChannelResult)
+                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
                 println(e.message)
             } finally {
                 eventsCursor?.close()
@@ -304,7 +296,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     public fun createOrUpdateEvent(calendarId: String, event: Event?, pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             if (event == null) {
-                finishWithError(EVENT_CREATION_FAILURE, CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE, pendingChannelResult)
+                finishWithError(GENERIC_ERROR, CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE, pendingChannelResult)
                 return
             }
 
@@ -333,7 +325,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
                 finishWithSuccess(eventId.toString(), pendingChannelResult)
             } catch (e: Exception) {
-                finishWithError(EXCEPTION, e.message, pendingChannelResult)
+                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
                 println(e.message)
             } finally {
             }
@@ -348,12 +340,12 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         if (arePermissionsGranted()) {
             var existingCal = retrieveCalendar(calendarId, pendingChannelResult, true)
             if (existingCal == null) {
-                finishWithError(CALENDAR_RETRIEVAL_FAILURE, "Couldn't retrieve the Calendar with ID ${calendarId}", pendingChannelResult)
+                finishWithError(NOT_FOUND, "Couldn't retrieve the Calendar with ID ${calendarId}", pendingChannelResult)
                 return
             }
 
             if (existingCal.isReadyOnly) {
-                finishWithError(CALENDAR_IS_READ_ONLY, "Calendar with ID ${calendarId} is read only", pendingChannelResult)
+                finishWithError(NOT_ALLOWED, "Calendar with ID ${calendarId} is read only", pendingChannelResult)
                 return
             }
 
@@ -365,7 +357,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
             val contentResolver: ContentResolver? = _context?.getContentResolver()
             if (isRecurringEvent(eventIdNumber, contentResolver)) {
-                finishWithError(DELETING_RECURRING_EVENT_NOT_SUPPORTED, DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE, pendingChannelResult)
+                finishWithError(NOT_ALLOWED, DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE, pendingChannelResult)
                 return
             }
 
@@ -538,7 +530,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                 } while (attendeesCursor?.moveToNext() ?: false)
             }
         } catch (e: Exception) {
-            finishWithError(EXCEPTION, e.message, pendingChannelResult)
+            finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
             println(e.message)
         } finally {
             attendeesCursor?.close();
