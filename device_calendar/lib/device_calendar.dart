@@ -11,4 +11,5 @@ part 'src/models/attendee.dart';
 part 'src/models/calendar.dart';
 part 'src/models/result.dart';
 part 'src/models/event.dart';
+part 'src/models/retrieve_events_params.dart';
 part 'src/device_calendar.dart';
