@@ -19,6 +19,7 @@ class CalendarEventsPage extends StatefulWidget {
 
 class _CalendarEventsPageState extends State<CalendarEventsPage> {
   final Calendar _calendar;
+  BuildContext _scaffoldContext;
 
   DeviceCalendarPlugin _deviceCalendarPlugin;
   List<Event> _calendarEvents;
@@ -37,38 +38,42 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   @override
   Widget build(BuildContext context) {
     final hasAnyEvents = _calendarEvents?.isNotEmpty ?? false;
+    Widget body = hasAnyEvents
+        ? new Stack(
+            children: <Widget>[
+              new Column(
+                children: <Widget>[
+                  new Expanded(
+                      flex: 1,
+                      child: new ListView.builder(
+                        itemCount: _calendarEvents?.length ?? 0,
+                        itemBuilder: (BuildContext context, int index) {
+                          return new EventItem(
+                              _calendarEvents[index],
+                              _deviceCalendarPlugin,
+                              _onLoading,
+                              _onDeletedFinished,
+                              _onTapped);
+                        },
+                      ))
+                ],
+              ),
+              new Offstage(
+                  offstage: !_isLoading,
+                  child: new Container(
+                      decoration: new BoxDecoration(
+                          color: new Color.fromARGB(155, 192, 192, 192)),
+                      child:
+                          new Center(child: new CircularProgressIndicator())))
+            ],
+          )
+        : new Center(child: new Text('No events found'));
     return new Scaffold(
       appBar: new AppBar(title: new Text('${_calendar.name} events')),
-      body: hasAnyEvents
-          ? new Stack(
-              children: <Widget>[
-                new Column(
-                  children: <Widget>[
-                    new Expanded(
-                        flex: 1,
-                        child: new ListView.builder(
-                          itemCount: _calendarEvents?.length ?? 0,
-                          itemBuilder: (BuildContext context, int index) {
-                            return new EventItem(
-                                _calendarEvents[index],
-                                _deviceCalendarPlugin,
-                                _onLoading,
-                                _onDeletedFinished,
-                                _onTapped);
-                          },
-                        ))
-                  ],
-                ),
-                new Offstage(
-                    offstage: !_isLoading,
-                    child: new Container(
-                        decoration: new BoxDecoration(
-                            color: new Color.fromARGB(155, 192, 192, 192)),
-                        child:
-                            new Center(child: new CircularProgressIndicator())))
-              ],
-            )
-          : new Center(child: new Text('No events found')),
+      body: new Builder(builder: (BuildContext context) {
+        _scaffoldContext = context;
+        return body;
+      }),
       floatingActionButton: new FloatingActionButton(
         onPressed: () async {
           final refreshEvents = await Navigator.push(context,
@@ -90,11 +95,11 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
     });
   }
 
-  Future _onDeletedFinished(deleteSuceedeed) async {
-    if (deleteSuceedeed) {
+  Future _onDeletedFinished(bool deleteSucceeded) async {
+    if (deleteSucceeded) {
       await _retrieveCalendarEvents();
     } else {
-      Scaffold.of(context).showSnackBar(new SnackBar(
+      Scaffold.of(_scaffoldContext).showSnackBar(new SnackBar(
             content: new Text('Oops, we ran into an issue deleting the event'),
             backgroundColor: Colors.red,
             duration: new Duration(seconds: 5),
