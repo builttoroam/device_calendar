@@ -16,13 +16,11 @@ class DeviceCalendarPlugin {
 
   /// Requests permissions to modify the calendars on the device
   Future<Result<bool>> requestPermissions() async {
-    var res = new Result(false);
-    
-    try {
-      var permissionsGranted = await channel.invokeMethod('requestPermissions');
+    final res = new Result(false);
 
+    try {
+      res.data = await channel.invokeMethod('requestPermissions');
       res.isSuccess = true;
-      res.data = permissionsGranted;
     } on PlatformException catch (e) {
       _parsePlatformExceptionAndUpdateResult<bool>(e, res);
       print(e);
@@ -33,13 +31,11 @@ class DeviceCalendarPlugin {
 
   /// Checks if permissions for modifying the device calendars have been granted
   Future<Result<bool>> hasPermissions() async {
-    var res = new Result(false);
+    final res = new Result(false);
 
     try {
-      var permissionsGranted = await channel.invokeMethod('hasPermissions');
-
+      res.data = await channel.invokeMethod('hasPermissions');
       res.isSuccess = true;
-      res.data = permissionsGranted;
     } on PlatformException catch (e) {
       _parsePlatformExceptionAndUpdateResult<bool>(e, res);
       print(e);
@@ -49,26 +45,30 @@ class DeviceCalendarPlugin {
   }
 
   /// Retrieves all of the device defined calendars
-  Future<List<Calendar>> retrieveCalendars() async {
+  Future<Result<List<Calendar>>> retrieveCalendars() async {
+    final res = new Result(new List<Calendar>());
+
     try {
       var calendarsJson = await channel.invokeMethod('retrieveCalendars');
 
-      final List<Calendar> calendars =
-          json.decode(calendarsJson).map<Calendar>((decodedCalendar) {
+      res.data = json.decode(calendarsJson).map<Calendar>((decodedCalendar) {
         return new Calendar.fromJson(decodedCalendar);
       }).toList();
 
-      return calendars;
-    } catch (e) {
+      res.isSuccess = true;
+    } on PlatformException catch (e) {
+      _parsePlatformExceptionAndUpdateResult<List<Calendar>>(e, res);
       print(e);
     }
 
-    return new List<Calendar>();
+    return res;
   }
 
   /// Retrieves the events from the specified calendar that fall within a certain date/time range
-  Future<List<Event>> retrieveEvents(
+  Future<Result<List<Event>>> retrieveEvents(
       String calendarId, DateTime startDate, DateTime endDate) async {
+    final res = new Result(new List<Event>());
+
     try {
       var eventsJson =
           await channel.invokeMethod('retrieveEvents', <String, Object>{
@@ -77,37 +77,40 @@ class DeviceCalendarPlugin {
         'endDate': endDate.millisecondsSinceEpoch
       });
 
-      final List<Event> events =
-          json.decode(eventsJson).map<Event>((decodedEvent) {
+      res.data = json.decode(eventsJson).map<Event>((decodedEvent) {
         return new Event.fromJson(decodedEvent);
       }).toList();
-
-      return events;
-    } catch (e) {
+      res.isSuccess = true;
+    } on PlatformException catch (e) {
+      _parsePlatformExceptionAndUpdateResult<List<Event>>(e, res);
       print(e);
     }
 
-    return new List<Event>();
+    return res;
   }
 
   /// Deletes an event from a calendar
-  Future<bool> deleteEvent(String calendarId, String eventId) async {
+  Future<Result<bool>> deleteEvent(String calendarId, String eventId) async {
+    final res = new Result(false);
+
     try {
-      var succeeded = await channel.invokeMethod('deleteEvent',
+      res.data = await channel.invokeMethod('deleteEvent',
           <String, Object>{'calendarId': calendarId, 'eventId': eventId});
-      return succeeded;
-    } catch (e) {
+      res.isSuccess = true;
+    } on PlatformException catch (e) {
+      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
       print(e);
     }
 
-    return false;
+    return res;
   }
 
   /// Creates or updates an event
   ///
   /// returns: event ID
   Future<Result<String>> createOrUpdateEvent(Event event) async {
-    var res = new Result<String>(null);
+    final res = new Result<String>(null);
+
     if ((event.calendarId?.isEmpty ?? true) ||
         (event?.title?.isEmpty ?? false) ||
         event.start == null ||
@@ -130,8 +133,8 @@ class DeviceCalendarPlugin {
         'eventEndDate': event.end.millisecondsSinceEpoch,
       });
       res.isSuccess = res.data?.isNotEmpty;
-    } catch (e) {
-      res.errorMessages.add(e.toString());
+    } on PlatformException catch (e) {
+      _parsePlatformExceptionAndUpdateResult<String>(e, res);
       print(e);
     }
 

@@ -78,9 +78,9 @@ class _CalendarsPageState extends State<CalendarsPage> {
         }
       }
 
-      final calendars = await _deviceCalendarPlugin.retrieveCalendars();
+      final calendarsResult = await _deviceCalendarPlugin.retrieveCalendars();
       setState(() {
-        _calendars = calendars;
+        _calendars = calendarsResult?.data;
       });
     } on PlatformException catch (e) {
       print(e);

@@ -161,11 +161,11 @@ class EventItem extends StatelessWidget {
                                 onPressed: () async {
                                   Navigator.of(context).pop();
                                   _onLoadingStarted();
-                                  final deleteSucceeded =
+                                  final deleteResult =
                                       await _deviceCalendarPlugin.deleteEvent(
                                           _calendarEvent.calendarId,
                                           _calendarEvent.eventId);
-                                  _onDeleteFinished(deleteSucceeded);
+                                  _onDeleteFinished(deleteResult.isSuccess && deleteResult.data);
                                 },
                                 child: new Text('Ok'),
                               ),
