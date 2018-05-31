@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar)
 
-A cross platform plugin for displaying local notifications. 
+A cross platform plugin for modifying calendars on the user's device. 
 
 ## Features
 * Ability to request permissions to modify calendars on the user's device
