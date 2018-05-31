@@ -33,7 +33,7 @@ class Event {
 
   Event.fromJson(Map<String, dynamic> json) {
     if (json == null) {
-      throw new ArgumentError(Constants.fromJsonMapIsNull);
+      throw new ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
 
     eventId = json['eventId'];
