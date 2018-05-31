@@ -41,9 +41,11 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTIO
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.GENERIC_ERROR
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_ALLOWED
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_AUTHORIZED
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.NOT_AUTHORIZED_MESSAGE
 import com.builttoroam.devicecalendar.models.Attendee
 import com.builttoroam.devicecalendar.models.CalendarMethodsParametersCacheModel
 import java.util.*
@@ -95,7 +97,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                 if (permissionGranted) {
                     retrieveCalendars(cachedValues.pendingChannelResult)
                 } else {
-                    finishWithSuccess(null, cachedValues.pendingChannelResult)
+                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
                 }
 
                 _cachedParametersMap.remove(requestCode)
@@ -106,7 +108,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                 if (permissionGranted) {
                     retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.pendingChannelResult)
                 } else {
-                    finishWithSuccess(null, cachedValues.pendingChannelResult)
+                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
                 }
 
                 _cachedParametersMap.remove(requestCode)
@@ -117,7 +119,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                 if (permissionGranted) {
                     retrieveCalendar(cachedValues.calendarId, cachedValues.pendingChannelResult)
                 } else {
-                    finishWithSuccess(null, cachedValues.pendingChannelResult)
+                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
                 }
 
                 _cachedParametersMap.remove(requestCode)
@@ -128,7 +130,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                 if (permissionGranted) {
                     createOrUpdateEvent(cachedValues.calendarId, cachedValues.event, cachedValues.pendingChannelResult)
                 } else {
-                    finishWithSuccess(null, cachedValues.pendingChannelResult)
+                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
                 }
 
                 _cachedParametersMap.remove(requestCode)
@@ -139,7 +141,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                 if (permissionGranted) {
                     deleteEvent(cachedValues.eventId, cachedValues.calendarId, cachedValues.pendingChannelResult)
                 } else {
-                    finishWithSuccess(null, cachedValues.pendingChannelResult)
+                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
                 }
 
                 _cachedParametersMap.remove(requestCode)
