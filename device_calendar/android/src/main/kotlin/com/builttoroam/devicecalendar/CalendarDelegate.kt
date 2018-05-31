@@ -225,7 +225,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                     }
                 } else {
                     if (!isInternalCall) {
-                        finishWithError(NOT_FOUND, "Couldn't retrieve the Calendar with ID ${calendarId}", pendingChannelResult)
+                        finishWithError(NOT_FOUND, "The calendar with the ID ${calendarId} could not be found", pendingChannelResult)
                     }
                 }
             } catch (e: Exception) {
@@ -342,7 +342,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         if (arePermissionsGranted()) {
             var existingCal = retrieveCalendar(calendarId, pendingChannelResult, true)
             if (existingCal == null) {
-                finishWithError(NOT_FOUND, "Couldn't retrieve the Calendar with ID ${calendarId}", pendingChannelResult)
+                finishWithError(NOT_FOUND, "The calendar with the ID ${calendarId} could not be found", pendingChannelResult)
                 return
             }
 
