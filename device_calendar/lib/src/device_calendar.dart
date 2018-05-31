@@ -69,6 +69,12 @@ class DeviceCalendarPlugin {
       String calendarId, DateTime startDate, DateTime endDate) async {
     final res = new Result(new List<Event>());
 
+    if ((calendarId?.isEmpty ?? true)) {
+      res.errorMessages.add(
+          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.retrieveEventsInvalidArgumentsMessage}");
+      return res;
+    }
+
     try {
       var eventsJson =
           await channel.invokeMethod('retrieveEvents', <String, Object>{
@@ -93,6 +99,12 @@ class DeviceCalendarPlugin {
   Future<Result<bool>> deleteEvent(String calendarId, String eventId) async {
     final res = new Result(false);
 
+    if ((calendarId?.isEmpty ?? true) || (eventId?.isEmpty ?? true)) {
+      res.errorMessages.add(
+          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.deleteEventInvalidArgumentsMessage}");
+      return res;
+    }
+
     try {
       res.data = await channel.invokeMethod('deleteEvent',
           <String, Object>{'calendarId': calendarId, 'eventId': eventId});
@@ -111,14 +123,13 @@ class DeviceCalendarPlugin {
   Future<Result<String>> createOrUpdateEvent(Event event) async {
     final res = new Result<String>(null);
 
-    if ((event.calendarId?.isEmpty ?? true) ||
-        (event?.title?.isEmpty ?? false) ||
+    if ((event?.calendarId?.isEmpty ?? true) ||
+        (event?.title?.isEmpty ?? true) ||
         event.start == null ||
         event.end == null ||
         event.start.isAfter(event.end)) {
-      res.errorMessages.add(Constants.invalidArgument);
-      res.errorMessages.add(Constants.createOrUpdateEventArgumentRequirements);
-
+      res.errorMessages.add(
+          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}");
       return res;
     }
 

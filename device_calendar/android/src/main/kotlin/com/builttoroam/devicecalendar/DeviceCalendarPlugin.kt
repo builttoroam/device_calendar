@@ -2,10 +2,6 @@ package com.builttoroam.devicecalendar
 
 import android.app.Activity
 import android.content.Context
-import com.builttoroam.devicecalendar.common.ErrorCodes
-import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE
-import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
-import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.EVENT_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE
 import com.builttoroam.devicecalendar.models.Event
 
 import io.flutter.plugin.common.MethodChannel
@@ -80,11 +76,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
                 val startDate = call.argument<Long>(CALENDAR_EVENTS_START_DATE_ARGUMENT)
                 val endDate = call.argument<Long>(CALENDAR_EVENTS_END_DATE_ARGUMENT)
-                if (calendarId == null || calendarId.isEmpty()) {
-                    result.error(ErrorCodes.INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE, null)
-                } else {
-                    _calendarDelegate.retrieveEvents(calendarId, startDate, endDate, result)
-                }
+
+                _calendarDelegate.retrieveEvents(calendarId, startDate, endDate, result)
             }
             CREATE_OR_UPDATE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
@@ -93,11 +86,6 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val eventDescription = call.argument<String>(EVENT_DESCRIPTION_ARGUMENT)
                 val eventStart = call.argument<Long>(EVENT_START_DATE_ARGUMENT)
                 val eventEnd = call.argument<Long>(EVENT_END_DATE_ARGUMENT)
-
-                if (calendarId == null || calendarId.isEmpty() || eventTitle == null || eventTitle.isEmpty()) {
-                    result.error(ErrorCodes.INVALID_ARGUMENT, CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE, null)
-                    return
-                }
 
                 val event = Event(eventTitle)
                 event.calendarId = calendarId
@@ -111,14 +99,6 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             DELETE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
                 val eventId = call.argument<String>(EVENT_ID_ARGUMENT)
-                if (calendarId == null || calendarId.isEmpty()) {
-                    result.error(ErrorCodes.INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE, null)
-                    return
-                }
-                if (eventId == null || eventId.isEmpty()) {
-                    result.error(ErrorCodes.INVALID_ARGUMENT, EVENT_ID_INVALID_ARGUMENT_NOT_SPECIFIED_MESSAGE, null)
-                    return
-                }
 
                 _calendarDelegate.deleteEvent(calendarId, eventId, result)
             }
