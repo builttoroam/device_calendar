@@ -121,8 +121,8 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   }
 
   Future _retrieveCalendarEvents() async {
-    var startDate = new DateTime.now().add(new Duration(days: -30));
-    var endDate = new DateTime.now().add(new Duration(days: 30));
+    final startDate = new DateTime.now().add(new Duration(days: -30));
+    final endDate = new DateTime.now().add(new Duration(days: 30));
     var calendarEventsResult = await _deviceCalendarPlugin.retrieveEvents(
         _calendar.id,
         new RetrieveEventsParams(startDate: startDate, endDate: endDate));
