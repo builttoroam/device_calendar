@@ -31,13 +31,14 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
-    // Note: this is placeholder error codes and messages until they have been finalised across both platforms
     let notFoundErrorCode = "404";
+    let notAllowed = "405";
     let genericError = "500"
     let unauthorizedErrorCode = "401"
-    let unauthorizedErrorMessage = "The user has not allowed this application to modify their calendar"
-    let calendarNotFoundErrorMessage = "The calendar with the specified id could not be found"
-    let eventNotFoundErrorMessage = "The event with the specified id could not be found"
+    let unauthorizedErrorMessage = "The user has not allowed this application to modify their calendar(s)"
+    let calendarNotFoundErrorMessageFormat = "The calendar with the ID %@ could not be found"
+    let calendarReadOnlyErrorMessageFormat = "Calendar with ID %@ is read-only"
+    let eventNotFoundErrorMessageFormat = "The event with the ID %@ could not be found"
     let eventStore = EKEventStore()
     let requestPermissionsMethod = "requestPermissions"
     let hasPermissionsMethod = "hasPermissions";
@@ -143,7 +144,12 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let description = arguments[self.eventDescriptionArgument] as! String
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
-                self.finishWithCalendarNotFoundError(result: result)
+                self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
+                return
+            }
+            
+            if (!(ekCalendar!.allowsContentModifications)) {
+                self.finishWithCalendarReadOnlyError(result: result, calendarId: calendarId)
                 return
             }
             
@@ -153,7 +159,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             } else {
                 ekEvent = self.eventStore.event(withIdentifier: eventId!)
                 if(ekEvent == nil) {
-                    self.finishWithEventNotFoundError(result: result)
+                    self.finishWithEventNotFoundError(result: result, eventId: eventId!)
                     return
                 }
             }
@@ -180,12 +186,18 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let eventId = arguments[self.eventIdArgument] as! String
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
-                self.finishWithCalendarNotFoundError(result: result)
-                return;
+                self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
+                return
             }
+            
+            if (!(ekCalendar!.allowsContentModifications)) {
+                self.finishWithCalendarReadOnlyError(result: result, calendarId: calendarId)
+                return
+            }
+            
             let ekEvent = self.eventStore.event(withIdentifier: eventId)
             if (ekEvent == nil) {
-                self.finishWithEventNotFoundError(result: result)
+                self.finishWithEventNotFoundError(result: result, eventId: eventId)
                 return
             }
             
@@ -203,13 +215,21 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         result(FlutterError(code:self.unauthorizedErrorCode, message: self.unauthorizedErrorMessage, details: nil))
     }
     
-    private func finishWithCalendarNotFoundError(result: @escaping FlutterResult) {
-        result(FlutterError(code:self.notFoundErrorCode, message: self.calendarNotFoundErrorMessage, details: nil))
+    private func finishWithCalendarNotFoundError(result: @escaping FlutterResult, calendarId: String) {
+        let errorMessage = String(format: self.calendarNotFoundErrorMessageFormat, calendarId)
+        result(FlutterError(code:self.notFoundErrorCode, message: errorMessage, details: nil))
     }
     
-    private func finishWithEventNotFoundError(result: @escaping FlutterResult) {
-        result(FlutterError(code:self.notFoundErrorCode, message: self.eventNotFoundErrorMessage, details: nil))
+    private func finishWithCalendarReadOnlyError(result: @escaping FlutterResult, calendarId: String) {
+        let errorMessage = String(format: self.calendarReadOnlyErrorMessageFormat, calendarId)
+        result(FlutterError(code:self.notAllowed, message: errorMessage, details: nil))
     }
+    
+    private func finishWithEventNotFoundError(result: @escaping FlutterResult, eventId: String) {
+        let errorMessage = String(format: self.eventNotFoundErrorMessageFormat, eventId)
+        result(FlutterError(code:self.notFoundErrorCode, message: errorMessage, details: nil))
+    }
+    
     
     private func encodeJsonAndFinish<T: Codable>(codable: T, result: @escaping FlutterResult) {
         do {

@@ -9,21 +9,21 @@ class Calendar {
   String name;
 
   /// If the calendar is read-only
-  bool isReadyOnly;
+  bool isReadOnly;
 
-  Calendar({this.id, this.name, this.isReadyOnly});
+  Calendar({this.id, this.name, this.isReadOnly});
 
   Calendar.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
-    isReadyOnly = json['isReadyOnly'];
+    isReadOnly = json['isReadOnly'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['id'] = this.id;
     data['name'] = this.name;
-    data['isReadyOnly'] = this.isReadyOnly;
+    data['isReadOnly'] = this.isReadOnly;
     return data;
   }
 }
