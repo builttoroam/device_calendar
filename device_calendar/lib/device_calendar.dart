@@ -3,6 +3,7 @@ library device_calendar;
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:meta/meta.dart';
 
 import 'src/common/error_messages.dart';
 import 'src/common/error_codes.dart';
