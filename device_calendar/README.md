@@ -1,6 +1,6 @@
 # Device Calendar Plugin
 
-[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar)
+[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) [![Build Status](https://travis-ci.org/builttoroam/FlutterDeviceCalendar.svg?branch=develop)](https://travis-ci.org/builttoroam/FlutterDeviceCalendar)
 
 A cross platform plugin for modifying calendars on the user's device. 
 
