@@ -12,6 +12,7 @@ class DeviceCalendarPlugin {
     return _instance;
   }
 
+  @visibleForTesting
   DeviceCalendarPlugin._createInstance();
 
   /// Requests permissions to modify the calendars on the device
