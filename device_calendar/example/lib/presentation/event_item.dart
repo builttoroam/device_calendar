@@ -122,7 +122,11 @@ class EventItem extends StatelessWidget {
                         ),
                         new Expanded(
                           child: new Text(
-                            _calendarEvent?.attendees?.where((a) => a.name?.isNotEmpty ?? false)?.map((a) => a.name)?.join(', ') ?? '',
+                            _calendarEvent?.attendees
+                                    ?.where((a) => a.name?.isNotEmpty ?? false)
+                                    ?.map((a) => a.name)
+                                    ?.join(', ') ??
+                                '',
                             overflow: TextOverflow.ellipsis,
                           ),
                         )
@@ -165,7 +169,8 @@ class EventItem extends StatelessWidget {
                                       await _deviceCalendarPlugin.deleteEvent(
                                           _calendarEvent.calendarId,
                                           _calendarEvent.eventId);
-                                  _onDeleteFinished(deleteResult.isSuccess && deleteResult.data);
+                                  _onDeleteFinished(deleteResult.isSuccess &&
+                                      deleteResult.data);
                                 },
                                 child: new Text('Ok'),
                               ),
