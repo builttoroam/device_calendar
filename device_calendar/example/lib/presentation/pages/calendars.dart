@@ -56,7 +56,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
                                   style: new TextStyle(fontSize: 25.0),
                                 ),
                               ),
-                              new Icon(_calendars[index].isReadyOnly
+                              new Icon(_calendars[index].isReadOnly
                                   ? Icons.lock
                                   : Icons.lock_open)
                             ],
@@ -73,7 +73,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
       var permissionsGranted = await _deviceCalendarPlugin.hasPermissions();
       if (permissionsGranted.isSuccess && !permissionsGranted.data) {
         permissionsGranted = await _deviceCalendarPlugin.requestPermissions();
-        if (permissionsGranted.isSuccess && !permissionsGranted.data) {
+        if (!permissionsGranted.isSuccess || !permissionsGranted.data) {
           return;
         }
       }
