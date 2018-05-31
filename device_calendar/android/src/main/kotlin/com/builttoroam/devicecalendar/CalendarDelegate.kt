@@ -346,8 +346,8 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                 return
             }
 
-            if (existingCal.isReadyOnly) {
-                finishWithError(NOT_ALLOWED, "Calendar with ID ${calendarId} is read only", pendingChannelResult)
+            if (existingCal.isReadOnly) {
+                finishWithError(NOT_ALLOWED, "Calendar with ID ${calendarId} is read-only", pendingChannelResult)
                 return
             }
 
@@ -408,7 +408,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         val ownerName = cursor.getString(CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX)
 
         val calendar = Calendar(calId.toString(), displayName)
-        calendar.isReadyOnly = isCalendarReadOnly(accessLevel)
+        calendar.isReadOnly = isCalendarReadOnly(accessLevel)
 
         return calendar
     }
