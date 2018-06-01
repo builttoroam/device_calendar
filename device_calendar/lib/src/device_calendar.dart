@@ -72,7 +72,20 @@ class DeviceCalendarPlugin {
 
     if ((calendarId?.isEmpty ?? true)) {
       res.errorMessages.add(
-          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.retrieveEventsInvalidArgumentsMessage}");
+          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidMissingCalendarId}");
+    }
+    if ((retrieveEventsParams?.eventIds?.isEmpty ?? true) &&
+        ((retrieveEventsParams?.startDate == null ||
+                retrieveEventsParams?.endDate == null) ||
+            (retrieveEventsParams.startDate != null &&
+                retrieveEventsParams.endDate != null &&
+                retrieveEventsParams.startDate
+                    .isAfter(retrieveEventsParams.endDate)))) {
+      res.errorMessages.add(
+          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidRetrieveEventsParams}");
+    }
+
+    if (res.errorMessages.isNotEmpty) {
       return res;
     }
 
