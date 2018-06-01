@@ -1,8 +1,11 @@
 class ErrorMessages {
   static const String fromJsonMapIsNull = "The json object is null";
 
-  static const String retrieveEventsInvalidArgumentsMessage =
-      "Calendar ID argument have not been specified or is invalid";
+  static const String invalidMissingCalendarId =
+      "Calendar ID is missing or invalid";
+
+  static const String invalidRetrieveEventsParams =
+      "A valid instance of the RetrieveEventsParams class is required. Must the event ids to filter by or the start and end date to filter by or a combination of these";
   static const String deleteEventInvalidArgumentsMessage =
       "Calendar ID and/or Event ID argument(s) have not been specified or are invalid";
   static const String createOrUpdateEventInvalidArgumentsMessage =

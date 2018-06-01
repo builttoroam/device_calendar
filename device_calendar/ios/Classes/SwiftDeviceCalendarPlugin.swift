@@ -50,8 +50,9 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let startDateArgument = "startDate"
     let endDateArgument = "endDate"
     let eventIdArgument = "eventId"
+    let eventIdsArgument = "eventIds"
     let eventTitleArgument = "eventTitle"
-    let eventDescriptionArgument = "eventDescription";
+    let eventDescriptionArgument = "eventDescription"
     let eventStartDateArgument =  "eventStartDate"
     let eventEndDateArgument = "eventEndDate"
     
@@ -102,33 +103,64 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         checkPermissionsThenExecute(permissionsGrantedAction: {
             let arguments = call.arguments as! Dictionary<String, AnyObject>
             let calendarId = arguments[self.calendarIdArgument] as! String
-            let startDateMillisecondsSinceEpoch = arguments[self.startDateArgument] as! NSNumber
-            let endDateDateMillisecondsSinceEpoch = arguments[self.endDateArgument] as! NSNumber
-            let startDate = Date (timeIntervalSince1970: startDateMillisecondsSinceEpoch.doubleValue / 1000.0)
-            let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch.doubleValue / 1000.0)
-            let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
-            let predicate = self.eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: [ekCalendar!])
-            let ekEvents = self.eventStore.events(matching: predicate)
+            let startDateMillisecondsSinceEpoch = arguments[self.startDateArgument] as? NSNumber
+            let endDateDateMillisecondsSinceEpoch = arguments[self.endDateArgument] as? NSNumber
+            let eventIds = arguments[self.eventIdsArgument] as? [String]
             var events = [Event]()
-            for ekEvent in ekEvents {
-                var attendees = [Attendee]()
-                if (ekEvent.attendees != nil) {
-                    for ekParticipant in ekEvent.attendees! {
-                        if(ekParticipant.name == nil) {
-                            continue
-                        }
-                        let attendee = Attendee(name: ekParticipant.name!)
-                        attendees.append(attendee)
-                    }
-                    
+            let specifiedStartEndDates = startDateMillisecondsSinceEpoch != nil && endDateDateMillisecondsSinceEpoch != nil
+            if (specifiedStartEndDates) {
+                let startDate = Date (timeIntervalSince1970: startDateMillisecondsSinceEpoch!.doubleValue / 1000.0)
+                let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch!.doubleValue / 1000.0)
+                let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
+                let predicate = self.eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: [ekCalendar!])
+                let ekEvents = self.eventStore.events(matching: predicate)
+                for ekEvent in ekEvents {
+                    let event = createEventFromEkEvent(calendarId: calendarId, ekEvent: ekEvent)
+                    events.append(event)
                 }
+            }
+            
+            if (eventIds == nil) {
+                self.encodeJsonAndFinish(codable: events, result: result)
+                return
+            }
+            
+            if (specifiedStartEndDates) {
+                events = events.filter({ (e) -> Bool in
+                    e.calendarId == calendarId && eventIds!.contains(e.eventId)
+                })
                 
-                let event = Event(eventId: ekEvent.eventIdentifier, calendarId: calendarId, title: ekEvent.title, description: ekEvent.notes, start: Int(ekEvent.startDate.timeIntervalSince1970) * 1000, end: Int(ekEvent.endDate.timeIntervalSince1970) * 1000, allDay: ekEvent.isAllDay, attendees: attendees, location: ekEvent.location)
+                self.encodeJsonAndFinish(codable: events, result: result)
+                return
+            }
+            
+            for eventId in eventIds! {
+                let ekEvent = self.eventStore.event(withIdentifier: eventId)
+                if(ekEvent == nil) {
+                    continue
+                }
+                let event = createEventFromEkEvent(calendarId: calendarId, ekEvent: ekEvent!)
                 events.append(event)
             }
             
             self.encodeJsonAndFinish(codable: events, result: result)
         }, result: result)
+    }
+    
+    private func createEventFromEkEvent(calendarId: String, ekEvent: EKEvent) -> Event {
+        var attendees = [Attendee]()
+        if (ekEvent.attendees != nil) {
+            for ekParticipant in ekEvent.attendees! {
+                if(ekParticipant.name == nil) {
+                    continue
+                }
+                let attendee = Attendee(name: ekParticipant.name!)
+                attendees.append(attendee)
+            }
+            
+        }
+        let event = Event(eventId: ekEvent.eventIdentifier, calendarId: calendarId, title: ekEvent.title, description: ekEvent.notes, start: Int(ekEvent.startDate.timeIntervalSince1970) * 1000, end: Int(ekEvent.endDate.timeIntervalSince1970) * 1000, allDay: ekEvent.isAllDay, attendees: attendees, location: ekEvent.location)
+        return event
     }
     
     private func createOrUpdateEvent(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
@@ -168,7 +200,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.notes = description
             ekEvent!.startDate = startDate
             ekEvent!.endDate = endDate
-            ekEvent!.calendar = ekCalendar
+            ekEvent!.calendar = ekCalendar!
             do {
                 try self.eventStore.save(ekEvent!, span: EKSpan.futureEvents)
                 result(ekEvent!.eventIdentifier)
