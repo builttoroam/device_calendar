@@ -16,14 +16,18 @@ class DeviceCalendarPlugin {
   DeviceCalendarPlugin._createInstance();
 
   /// Requests permissions to modify the calendars on the device
+  /// TODO: add comment about return value
   Future<Result<bool>> requestPermissions() async {
     final res = new Result(false);
 
     try {
       res.data = await channel.invokeMethod('requestPermissions');
+      // TODO: Remove calls to set isSuccess to true
       res.isSuccess = true;
-    } on PlatformException catch (e) {
+    } on PlatformException catch (e) { 
+      // TODO: Change parse method to return a new Result that can be returned immediately     
       _parsePlatformExceptionAndUpdateResult<bool>(e, res);
+      // TODO: Move print into the parse method
       print(e);
     }
 
@@ -31,6 +35,7 @@ class DeviceCalendarPlugin {
   }
 
   /// Checks if permissions for modifying the device calendars have been granted
+  /// TODO: add comment about return value
   Future<Result<bool>> hasPermissions() async {
     final res = new Result(false);
 
@@ -46,7 +51,8 @@ class DeviceCalendarPlugin {
   }
 
   /// Retrieves all of the device defined calendars
-  Future<Result<List<Calendar>>> retrieveCalendars() async {
+  /// TODO: add comment about return value
+ Future<Result<List<Calendar>>> retrieveCalendars() async {
     final res = new Result(new List<Calendar>());
 
     try {
@@ -66,6 +72,7 @@ class DeviceCalendarPlugin {
   }
 
   /// Retrieves the events from the specified calendar
+  /// TODO: add comment about input values and return value
   Future<Result<List<Event>>> retrieveEvents(
       String calendarId, RetrieveEventsParams retrieveEventsParams) async {
     final res = new Result(new List<Event>());
@@ -74,6 +81,8 @@ class DeviceCalendarPlugin {
       res.errorMessages.add(
           "[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidMissingCalendarId}");
     }
+
+    // TODO: Extend capability to handle null start or null end (eg all events after a certain date (null end date) or all events prior to a certain date (null start date))
     if ((retrieveEventsParams?.eventIds?.isEmpty ?? true) &&
         ((retrieveEventsParams?.startDate == null ||
                 retrieveEventsParams?.endDate == null) ||
@@ -85,6 +94,7 @@ class DeviceCalendarPlugin {
           "[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidRetrieveEventsParams}");
     }
 
+    // TODO: Change this to check Success
     if (res.errorMessages.isNotEmpty) {
       return res;
     }
@@ -112,6 +122,7 @@ class DeviceCalendarPlugin {
   }
 
   /// Deletes an event from a calendar
+  /// TODO: add comment about input values and return value
   Future<Result<bool>> deleteEvent(String calendarId, String eventId) async {
     final res = new Result(false);
 
@@ -136,6 +147,7 @@ class DeviceCalendarPlugin {
   /// Creates or updates an event
   ///
   /// returns: event ID
+  /// TODO: add comment about input values
   Future<Result<String>> createOrUpdateEvent(Event event) async {
     final res = new Result<String>(null);
 
@@ -168,9 +180,11 @@ class DeviceCalendarPlugin {
     return res;
   }
 
+  // TODO: Change this to return a new Result based on the parsed exception
   void _parsePlatformExceptionAndUpdateResult<T>(
       PlatformException exception, Result<T> result) {
     if (exception == null || result == null) {
+      // TODO: Change to return generic error (ie exception wasn't returned so no additional information)
       return;
     }
 
