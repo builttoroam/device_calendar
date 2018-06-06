@@ -24,7 +24,7 @@ class DeviceCalendarPlugin {
 
     try {
       res.data = await channel.invokeMethod('requestPermissions');
-    } on PlatformException catch (e) {
+    } catch (e) {
       _parsePlatformExceptionAndUpdateResult<bool>(e, res);
     }
 
@@ -33,7 +33,7 @@ class DeviceCalendarPlugin {
 
   /// Checks if permissions for modifying the device calendars have been granted
   ///
-  /// Returns a [Result] indicating if calendar READ and WRITE permissions 
+  /// Returns a [Result] indicating if calendar READ and WRITE permissions
   /// have (true) or have not (false) been granted
   Future<Result<bool>> hasPermissions() async {
     final res = new Result<bool>();
@@ -118,7 +118,7 @@ class DeviceCalendarPlugin {
   }
 
   /// Deletes an event from a calendar
-  /// 
+  ///
   /// The `calendarId` paramter is the id of the calendar that plugin will try to delete the event from
   /// The `eventId` parameter is the id of the event that plugin will try to delete
   ///
@@ -143,9 +143,9 @@ class DeviceCalendarPlugin {
   }
 
   /// Creates or updates an event
-  /// 
+  ///
   /// The `event` paramter specifies how event data should be saved into the calendar
-  /// Always specify the [Event.calendarId], to inform the plugin in which calendar 
+  /// Always specify the [Event.calendarId], to inform the plugin in which calendar
   /// it should create or update the event.
   ///
   /// Returns a [Result] with the newly created or updated [Event.eventId]
