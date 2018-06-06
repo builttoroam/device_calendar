@@ -18,17 +18,12 @@ class DeviceCalendarPlugin {
   /// Requests permissions to modify the calendars on the device
   /// TODO: add comment about return value
   Future<Result<bool>> requestPermissions() async {
-    final res = new Result(false);
+    final res = new Result();
 
     try {
       res.data = await channel.invokeMethod('requestPermissions');
-      // TODO: Remove calls to set isSuccess to true
-      res.isSuccess = true;
-    } on PlatformException catch (e) { 
-      // TODO: Change parse method to return a new Result that can be returned immediately     
+    } on PlatformException catch (e) {
       _parsePlatformExceptionAndUpdateResult<bool>(e, res);
-      // TODO: Move print into the parse method
-      print(e);
     }
 
     return res;
@@ -37,14 +32,12 @@ class DeviceCalendarPlugin {
   /// Checks if permissions for modifying the device calendars have been granted
   /// TODO: add comment about return value
   Future<Result<bool>> hasPermissions() async {
-    final res = new Result(false);
+    final res = new Result<bool>();
 
     try {
       res.data = await channel.invokeMethod('hasPermissions');
-      res.isSuccess = true;
-    } on PlatformException catch (e) {
+    } catch (e) {
       _parsePlatformExceptionAndUpdateResult<bool>(e, res);
-      print(e);
     }
 
     return res;
@@ -52,8 +45,8 @@ class DeviceCalendarPlugin {
 
   /// Retrieves all of the device defined calendars
   /// TODO: add comment about return value
- Future<Result<List<Calendar>>> retrieveCalendars() async {
-    final res = new Result(new List<Calendar>());
+  Future<Result<List<Calendar>>> retrieveCalendars() async {
+    final res = new Result<List<Calendar>>();
 
     try {
       var calendarsJson = await channel.invokeMethod('retrieveCalendars');
@@ -61,11 +54,8 @@ class DeviceCalendarPlugin {
       res.data = json.decode(calendarsJson).map<Calendar>((decodedCalendar) {
         return new Calendar.fromJson(decodedCalendar);
       }).toList();
-
-      res.isSuccess = true;
-    } on PlatformException catch (e) {
+    } catch (e) {
       _parsePlatformExceptionAndUpdateResult<List<Calendar>>(e, res);
-      print(e);
     }
 
     return res;
@@ -75,7 +65,7 @@ class DeviceCalendarPlugin {
   /// TODO: add comment about input values and return value
   Future<Result<List<Event>>> retrieveEvents(
       String calendarId, RetrieveEventsParams retrieveEventsParams) async {
-    final res = new Result(new List<Event>());
+    final res = new Result<List<Event>>();
 
     if ((calendarId?.isEmpty ?? true)) {
       res.errorMessages.add(
@@ -94,28 +84,22 @@ class DeviceCalendarPlugin {
           "[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidRetrieveEventsParams}");
     }
 
-    // TODO: Change this to check Success
-    if (res.errorMessages.isNotEmpty) {
-      return res;
-    }
+    if (res.isSuccess) {
+      try {
+        var eventsJson =
+            await channel.invokeMethod('retrieveEvents', <String, Object>{
+          'calendarId': calendarId,
+          'startDate': retrieveEventsParams.startDate?.millisecondsSinceEpoch,
+          'endDate': retrieveEventsParams.endDate?.millisecondsSinceEpoch,
+          'eventIds': retrieveEventsParams.eventIds
+        });
 
-    // TODO: validate the params
-    try {
-      var eventsJson =
-          await channel.invokeMethod('retrieveEvents', <String, Object>{
-        'calendarId': calendarId,
-        'startDate': retrieveEventsParams.startDate?.millisecondsSinceEpoch,
-        'endDate': retrieveEventsParams.endDate?.millisecondsSinceEpoch,
-        'eventIds': retrieveEventsParams.eventIds
-      });
-
-      res.data = json.decode(eventsJson).map<Event>((decodedEvent) {
-        return new Event.fromJson(decodedEvent);
-      }).toList();
-      res.isSuccess = true;
-    } on PlatformException catch (e) {
-      _parsePlatformExceptionAndUpdateResult<List<Event>>(e, res);
-      print(e);
+        res.data = json.decode(eventsJson).map<Event>((decodedEvent) {
+          return new Event.fromJson(decodedEvent);
+        }).toList();
+      } catch (e) {
+        _parsePlatformExceptionAndUpdateResult<List<Event>>(e, res);
+      }
     }
 
     return res;
@@ -124,7 +108,7 @@ class DeviceCalendarPlugin {
   /// Deletes an event from a calendar
   /// TODO: add comment about input values and return value
   Future<Result<bool>> deleteEvent(String calendarId, String eventId) async {
-    final res = new Result(false);
+    final res = new Result<bool>();
 
     if ((calendarId?.isEmpty ?? true) || (eventId?.isEmpty ?? true)) {
       res.errorMessages.add(
@@ -135,10 +119,8 @@ class DeviceCalendarPlugin {
     try {
       res.data = await channel.invokeMethod('deleteEvent',
           <String, Object>{'calendarId': calendarId, 'eventId': eventId});
-      res.isSuccess = true;
-    } on PlatformException catch (e) {
+    } catch (e) {
       _parsePlatformExceptionAndUpdateResult<bool>(e, res);
-      print(e);
     }
 
     return res;
@@ -149,7 +131,7 @@ class DeviceCalendarPlugin {
   /// returns: event ID
   /// TODO: add comment about input values
   Future<Result<String>> createOrUpdateEvent(Event event) async {
-    final res = new Result<String>(null);
+    final res = new Result<String>();
 
     if ((event?.calendarId?.isEmpty ?? true) ||
         (event?.title?.isEmpty ?? true) ||
@@ -171,24 +153,29 @@ class DeviceCalendarPlugin {
         'eventStartDate': event.start.millisecondsSinceEpoch,
         'eventEndDate': event.end.millisecondsSinceEpoch,
       });
-      res.isSuccess = res.data?.isNotEmpty;
-    } on PlatformException catch (e) {
+    } catch (e) {
       _parsePlatformExceptionAndUpdateResult<String>(e, res);
-      print(e);
     }
 
     return res;
   }
 
-  // TODO: Change this to return a new Result based on the parsed exception
   void _parsePlatformExceptionAndUpdateResult<T>(
-      PlatformException exception, Result<T> result) {
-    if (exception == null || result == null) {
-      // TODO: Change to return generic error (ie exception wasn't returned so no additional information)
+      Exception exception, Result<T> result) {
+    if (exception == null) {
+      result.errorMessages.add(
+          "[${ErrorCodes.unknown}] Device calendar plugin ran into an unknown issue");
       return;
     }
 
-    result.errorMessages.add(
-        "Device calendar plugin ran into an issue. Platform specific exception [${exception.code}], with message :\"${exception.message}\", has been thrown.");
+    print(exception);
+
+    if (exception is PlatformException) {
+      result.errorMessages.add(
+          "[${ErrorCodes.platformSpecific}] Device calendar plugin ran into an issue. Platform specific exception [${exception.code}], with message :\"${exception.message}\", has been thrown.");
+    } else {
+      result.errorMessages.add(
+          "[${ErrorCodes.generic}] Device calendar plugin ran into an issue, with message \"${exception.toString()}\"");
+    }
   }
 }
