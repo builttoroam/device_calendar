@@ -158,8 +158,12 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     }
 
     public fun requestPermissions(pendingChannelResult: MethodChannel.Result) {
-        val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, REQUEST_PERMISSIONS_METHOD_CODE)
-        requestPermissions(parameters)
+        if (arePermissionsGranted()) {
+            finishWithSuccess(true, pendingChannelResult)
+        } else {
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, REQUEST_PERMISSIONS_METHOD_CODE)
+            requestPermissions(parameters)
+        }
     }
 
     public fun hasPermissions(pendingChannelResult: MethodChannel.Result) {
@@ -263,7 +267,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             val eventsIdsQuery = eventsIdsQueryElements.joinToString(" OR ")
 
             var eventsSelectionQuery = "$eventsCalendarQuery AND $eventsNotDeletedQuery"
-            if(!eventsIdsQuery.isNullOrEmpty()) {
+            if (!eventsIdsQuery.isNullOrEmpty()) {
                 eventsSelectionQuery += " AND ($eventsIdsQuery)"
             }
             val eventsSortOrder = CalendarContract.Events.DTSTART + " ASC"
