@@ -17,7 +17,8 @@ class DeviceCalendarPlugin {
 
   /// Requests permissions to modify the calendars on the device
   ///
-  /// Returns a [Result] indicating if permissions have (true) or have not (false) been granted
+  /// Returns a [Result] indicating if calendar READ and WRITE permissions
+  /// have (true) or have not (false) been granted
   Future<Result<bool>> requestPermissions() async {
     final res = new Result();
 
@@ -32,7 +33,8 @@ class DeviceCalendarPlugin {
 
   /// Checks if permissions for modifying the device calendars have been granted
   ///
-  /// Returns a [Result] indicating if calendar permissions have (true) or have not (false) been granted
+  /// Returns a [Result] indicating if calendar READ and WRITE permissions 
+  /// have (true) or have not (false) been granted
   Future<Result<bool>> hasPermissions() async {
     final res = new Result<bool>();
 
