@@ -16,7 +16,8 @@ class DeviceCalendarPlugin {
   DeviceCalendarPlugin._createInstance();
 
   /// Requests permissions to modify the calendars on the device
-  /// TODO: add comment about return value
+  ///
+  /// Returns a [Result] indicating if permissions have (true) or have not (false) been granted
   Future<Result<bool>> requestPermissions() async {
     final res = new Result();
 
@@ -30,7 +31,8 @@ class DeviceCalendarPlugin {
   }
 
   /// Checks if permissions for modifying the device calendars have been granted
-  /// TODO: add comment about return value
+  ///
+  /// Returns a [Result] indicating if calendar permissions have (true) or have not (false) been granted
   Future<Result<bool>> hasPermissions() async {
     final res = new Result<bool>();
 
@@ -44,7 +46,8 @@ class DeviceCalendarPlugin {
   }
 
   /// Retrieves all of the device defined calendars
-  /// TODO: add comment about return value
+  ///
+  /// Returns a [Result] containing a list of device [Calendar]
   Future<Result<List<Calendar>>> retrieveCalendars() async {
     final res = new Result<List<Calendar>>();
 
@@ -62,7 +65,14 @@ class DeviceCalendarPlugin {
   }
 
   /// Retrieves the events from the specified calendar
-  /// TODO: add comment about input values and return value
+  ///
+  /// The `calendarId` paramter is the id of the calendar that plugin will return events for
+  /// The `retrieveEventsParams` parameter combines multiple properties that
+  /// specifies conditions of the events retrieval. For instance, defining [RetrieveEventsParams.startDate]
+  /// and [RetrieveEventsParams.endDate] will return events only happening in that time range
+  ///
+  /// Returns a [Result] containing a list [Event], that fall
+  /// into the specified parameters
   Future<Result<List<Event>>> retrieveEvents(
       String calendarId, RetrieveEventsParams retrieveEventsParams) async {
     final res = new Result<List<Event>>();
@@ -106,7 +116,11 @@ class DeviceCalendarPlugin {
   }
 
   /// Deletes an event from a calendar
-  /// TODO: add comment about input values and return value
+  /// 
+  /// The `calendarId` paramter is the id of the calendar that plugin will try to delete the event from
+  /// The `eventId` parameter is the id of the event that plugin will try to delete
+  ///
+  /// Returns a [Result] indicating if the event has (true) or has not (false) been deleted from the calendar
   Future<Result<bool>> deleteEvent(String calendarId, String eventId) async {
     final res = new Result<bool>();
 
@@ -127,9 +141,12 @@ class DeviceCalendarPlugin {
   }
 
   /// Creates or updates an event
+  /// 
+  /// The `event` paramter specifies how event data should be saved into the calendar
+  /// Always specify the [Event.calendarId], to inform the plugin in which calendar 
+  /// it should create or update the event.
   ///
-  /// returns: event ID
-  /// TODO: add comment about input values
+  /// Returns a [Result] with the newly created or updated [Event.eventId]
   Future<Result<String>> createOrUpdateEvent(Event event) async {
     final res = new Result<String>();
 
