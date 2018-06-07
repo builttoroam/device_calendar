@@ -20,7 +20,7 @@ class DeviceCalendarPlugin {
   /// Returns a [Result] indicating if calendar READ and WRITE permissions
   /// have (true) or have not (false) been granted
   Future<Result<bool>> requestPermissions() async {
-    final res = new Result();
+    final res = new Result<bool>();
 
     try {
       res.data = await channel.invokeMethod('requestPermissions');
