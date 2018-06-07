@@ -29,7 +29,7 @@ class Event {
   /// A list of attendees for this event
   List<Attendee> attendees;
 
-  Event(this.calendarId, {this.title, this.start, this.end});
+  Event(this.calendarId, {this.eventId, this.title, this.start, this.end});
 
   Event.fromJson(Map<String, dynamic> json) {
     if (json == null) {
