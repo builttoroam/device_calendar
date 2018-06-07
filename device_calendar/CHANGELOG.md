@@ -1,3 +1,8 @@
-## [0.0.1] - TODO: Add release date.
+## 0.0.1 - 7th June 2018
 
-* TODO: Describe initial release.
+* Ability to retrieve device calendars
+* CRUD operations on calendar events
+
+## 0.0.2 - 0.0.3 - 7th June 2018
+
+* Fixing incorrect Travis build links
