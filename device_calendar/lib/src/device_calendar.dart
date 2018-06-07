@@ -96,7 +96,7 @@ class DeviceCalendarPlugin {
           "[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidRetrieveEventsParams}");
     }
 
-    if (res.isSuccess) {
+    if (res.errorMessages.length == 0) {
       try {
         var eventsJson =
             await channel.invokeMethod('retrieveEvents', <String, Object>{
