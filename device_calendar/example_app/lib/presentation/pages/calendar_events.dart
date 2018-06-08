@@ -44,18 +44,19 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
               new Column(
                 children: <Widget>[
                   new Expanded(
-                      flex: 1,
-                      child: new ListView.builder(
-                        itemCount: _calendarEvents?.length ?? 0,
-                        itemBuilder: (BuildContext context, int index) {
-                          return new EventItem(
-                              _calendarEvents[index],
-                              _deviceCalendarPlugin,
-                              _onLoading,
-                              _onDeletedFinished,
-                              _onTapped);
-                        },
-                      ))
+                    flex: 1,
+                    child: new ListView.builder(
+                      itemCount: _calendarEvents?.length ?? 0,
+                      itemBuilder: (BuildContext context, int index) {
+                        return new EventItem(
+                            _calendarEvents[index],
+                            _deviceCalendarPlugin,
+                            _onLoading,
+                            _onDeletedFinished,
+                            _onTapped);
+                      },
+                    ),
+                  )
                 ],
               ),
               new Offstage(
