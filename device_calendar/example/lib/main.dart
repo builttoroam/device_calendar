@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'common/app_routes.dart';
-import 'presentation/pages/calendars.dart';
-
 void main() => runApp(new MyApp());
 
 class MyApp extends StatefulWidget {
@@ -13,10 +10,16 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(routes: {
-      AppRoutes.calendars: (context) {
-        return new CalendarsPage();
-      }
-    });
+    return new MaterialApp(
+      title: 'Device Calendar Example',
+      home: new Scaffold(
+        appBar: new AppBar(
+          title: new Text('Welcome to Device Calendar Example'),
+        ),
+        body: new Center(
+          child: new Text('Hello World'),
+        ),
+      ),
+    );
   }
 }
