@@ -2,7 +2,7 @@
 
 * Reordering changelog
 * Creating new example for the Pub Dart Example tab
-* Moving existing example to a example_app GitHub folder
+* Moving existing example to the example_app GitHub folder
 
 ## 0.0.2 - 0.0.3 - 7th June 2018
 
