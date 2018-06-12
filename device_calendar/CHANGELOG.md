@@ -1,4 +1,4 @@
-## 0.0.4 - 8th June 2018
+## 0.0.4 - 12th June 2018
 
 * Reordering changelog
 * Creating new example for the Pub Dart Example tab
