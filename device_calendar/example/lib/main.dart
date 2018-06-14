@@ -101,7 +101,7 @@ class MyHomePageState extends State<MyHomePage> {
       floatingActionButton: !(_selectedCalendar?.isReadOnly ?? true)
           ? new FloatingActionButton(
               onPressed: () async {
-                final now = DateTime.now();
+                final now = new DateTime.now();
                 final eventToCreate = new Event(_selectedCalendar.id);
                 eventToCreate.title =
                     "Event created with Device Calendar Plugin";
@@ -141,7 +141,7 @@ class MyHomePageState extends State<MyHomePage> {
 
   Future _retrieveCalendarEvents(String calendarId) async {
     try {
-      final startDate = DateTime.now().add(new Duration(days: -30));
+      final startDate = new DateTime.now().add(new Duration(days: -30));
       final endDate = new DateTime.now().add(new Duration(days: 30));
       final retrieveEventsParams =
           new RetrieveEventsParams(startDate: startDate, endDate: endDate);
