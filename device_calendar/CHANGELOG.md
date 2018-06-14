@@ -1,6 +1,6 @@
 ## 0.0.5 - 14th June 2018
 
-* [Android] Fixing an issue with retrieval events by id
+* [Android] Fixed an issue with retrieving events by id only
 
 ## 0.0.4 - 12th June 2018
 
