@@ -42,6 +42,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTIO
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.GENERIC_ERROR
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_ALLOWED
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_AUTHORIZED
+import com.builttoroam.devicecalendar.common.ErrorMessages
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE
@@ -229,7 +230,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                     }
                 } else {
                     if (!isInternalCall) {
-                        finishWithError(NOT_FOUND, "The calendar with the ID ${calendarId} could not be found", pendingChannelResult)
+                        finishWithError(NOT_FOUND, "The calendar with the ID $calendarId could not be found", pendingChannelResult)
                     }
                 }
             } catch (e: Exception) {
@@ -246,24 +247,29 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     }
 
     @SuppressLint("MissingPermission")
-    public fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, eventIds: List<String>, pendingChannelResult: MethodChannel.Result) {
+    public fun retrieveEvents(calendarId: String, startDate: Long?, endDate: Long?, eventIds: List<String>, pendingChannelResult: MethodChannel.Result) {
+        if (startDate == null && endDate == null && eventIds.isEmpty()) {
+            finishWithError(INVALID_ARGUMENT, ErrorMessages.RETRIEVE_EVENTS_ARGUMENTS_NOT_VALID_MESSAGE, pendingChannelResult)
+            return
+        }
+
         if (arePermissionsGranted()) {
             val calendar = retrieveCalendar(calendarId, pendingChannelResult, true)
             if (calendar == null) {
-                finishWithError(NOT_FOUND, "Couldn't retrieve the Calendar with ID ${calendarId}", pendingChannelResult)
+                finishWithError(NOT_FOUND, "Couldn't retrieve the Calendar with ID $calendarId", pendingChannelResult)
                 return
             }
 
             val contentResolver: ContentResolver? = _context?.getContentResolver()
 
             val eventsUriBuilder = CalendarContract.Instances.CONTENT_URI.buildUpon()
-            ContentUris.appendId(eventsUriBuilder, startDate)
-            ContentUris.appendId(eventsUriBuilder, endDate)
+            ContentUris.appendId(eventsUriBuilder, startDate ?: Date(0).time)
+            ContentUris.appendId(eventsUriBuilder, endDate ?: Date(Long.MAX_VALUE).time)
 
             val eventsUri = eventsUriBuilder.build()
-            val eventsCalendarQuery = "(${CalendarContract.Events.CALENDAR_ID} = ${calendarId})"
+            val eventsCalendarQuery = "(${CalendarContract.Events.CALENDAR_ID} = $calendarId)"
             val eventsNotDeletedQuery = "(${CalendarContract.Events.DELETED} != 1)"
-            val eventsIdsQueryElements = eventIds.map { "(${CalendarContract.Instances.EVENT_ID} = ${it})" }
+            val eventsIdsQueryElements = eventIds.map { "(${CalendarContract.Instances.EVENT_ID} = $it)" }
             val eventsIdsQuery = eventsIdsQueryElements.joinToString(" OR ")
 
             var eventsSelectionQuery = "$eventsCalendarQuery AND $eventsNotDeletedQuery"
@@ -353,12 +359,12 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         if (arePermissionsGranted()) {
             var existingCal = retrieveCalendar(calendarId, pendingChannelResult, true)
             if (existingCal == null) {
-                finishWithError(NOT_FOUND, "The calendar with the ID ${calendarId} could not be found", pendingChannelResult)
+                finishWithError(NOT_FOUND, "The calendar with the ID $calendarId could not be found", pendingChannelResult)
                 return
             }
 
             if (existingCal.isReadOnly) {
-                finishWithError(NOT_ALLOWED, "Calendar with ID ${calendarId} is read-only", pendingChannelResult)
+                finishWithError(NOT_ALLOWED, "Calendar with ID $calendarId is read-only", pendingChannelResult)
                 return
             }
 
