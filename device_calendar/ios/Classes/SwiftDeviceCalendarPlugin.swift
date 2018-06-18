@@ -173,7 +173,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let startDate = Date (timeIntervalSince1970: startDateMillisecondsSinceEpoch.doubleValue / 1000.0)
             let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch.doubleValue / 1000.0)
             let title = arguments[self.eventTitleArgument] as! String
-            let description = arguments[self.eventDescriptionArgument] as! String
+            let description = arguments[self.eventDescriptionArgument] as? String
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
