@@ -1,3 +1,6 @@
+## 0.0.6 - 18th June 2018
+* [iOS] Fix an issue when adding/updating an event with a null description
+
 ## 0.0.5 - 14th June 2018
 
 * [Android] Fixed an issue with retrieving events by id only
