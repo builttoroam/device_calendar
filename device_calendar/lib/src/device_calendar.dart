@@ -169,6 +169,7 @@ class DeviceCalendarPlugin {
         'eventId': event.eventId,
         'eventTitle': event.title,
         'eventDescription': event.description,
+        'eventLocation': event.location,
         'eventStartDate': event.start.millisecondsSinceEpoch,
         'eventEndDate': event.end.millisecondsSinceEpoch,
       });
