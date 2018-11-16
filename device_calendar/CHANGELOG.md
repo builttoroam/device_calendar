@@ -1,3 +1,6 @@
+## 0.0.7 - 16th November 2018
+* Fixes issue [#67](https://github.com/builttoroam/flutter_plugins/issues/67) and [#68](https://github.com/builttoroam/flutter_plugins/issues/68). Thanks to PR submitted by huzhiren.
+
 ## 0.0.6 - 18th June 2018
 * [iOS] Fix an issue when adding/updating an event with a null description
 
