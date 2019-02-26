@@ -5,7 +5,7 @@
 
 ## 0.0.8 - 26th February 2019
 
-* This was a breaking change that should've been incremented as major version update instead of a minor one. See changelog for 0.1.0 for the details
+* This was a breaking change that should've been incremented as minor version update instead of a patch version update. See changelog for 0.1.0 for the details of this update
 
 ## 0.0.7 - 16th November 2018
 * Fixes issue [#67](https://github.com/builttoroam/flutter_plugins/issues/67) and [#68](https://github.com/builttoroam/flutter_plugins/issues/68). Thanks to PR submitted by huzhiren.
