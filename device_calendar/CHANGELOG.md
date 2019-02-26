@@ -3,6 +3,10 @@
 * **BREAKING CHANGE** Updated Kotlin to version 1.3.21
 * **BREAKING CHANGE** Updated Gradle plugin to 3.3.1 and distribution to 4.10.2
 
+## 0.0.8 - 26th February 2019
+
+* This was a breaking change that should've been incremented as major version update instead of a minor one. See changelog for 0.1.0 for the details
+
 ## 0.0.7 - 16th November 2018
 * Fixes issue [#67](https://github.com/builttoroam/flutter_plugins/issues/67) and [#68](https://github.com/builttoroam/flutter_plugins/issues/68). Thanks to PR submitted by huzhiren.
 
