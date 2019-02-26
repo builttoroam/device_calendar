@@ -20,6 +20,8 @@ The following will need to be added to the manifest file for your application to
 <uses-permission android:name="android.permission.WRITE_CALENDAR" />
 ```
 
+**IMPORTANT**: Since version 0.1.0, this version has migrated to use AndroidX instead of the deprecated Android support libraries. When using version 0.10.0 and onwards for this plugin, please ensure your application has been migrated following the guide [here](https://developer.android.com/jetpack/androidx/migrate)
+
 ## iOS Integration
 
 For iOS 10 support, you'll need to modify the Info.plist to add the following key/value pair
