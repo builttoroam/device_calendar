@@ -90,7 +90,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             // No exceptions, this should not happen, ever
             //
             // There's nothing that can be done at this stage, besides finishing gracefully
-            return true
+            return false
         }
 
         when (cachedValues.calendarDelegateMethodCode) {
