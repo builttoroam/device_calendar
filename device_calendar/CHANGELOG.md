@@ -1,3 +1,6 @@
+## 0.1.1 - 1st March 2019
+* Fixed issue [79](https://github.com/builttoroam/flutter_plugins/issues/79) where on Android, the plugin was indicating that it was handling permissions that it shouldn't have
+
 ## 0.1.0 - 26th February 2019
 * **BREAKING CHANGE** Migrated to the plugin to use AndroidX instead of the deprecated Android support libraries. Please ensure you have migrated your application following the guide [here](https://developer.android.com/jetpack/androidx/migrate)
 * **BREAKING CHANGE** Updated Kotlin to version 1.3.21
