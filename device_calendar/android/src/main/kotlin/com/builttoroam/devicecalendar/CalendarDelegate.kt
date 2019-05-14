@@ -81,7 +81,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             // However, we can potentially run into this situation if plugin user is requesting other permissions (e.g. image picking) in his app
             //
             // There's nothing that can be done at this stage, besides finishing gracefully
-            return true
+            return false
         }
 
         val cachedValues: CalendarMethodsParametersCacheModel? = _cachedParametersMap[requestCode]
