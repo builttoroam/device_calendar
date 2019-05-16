@@ -346,7 +346,6 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             } catch (e: Exception) {
                 finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
                 println(e.message)
-            } finally {
             }
         } else {
             val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, CREATE_OR_UPDATE_EVENT_METHOD_CODE, calendarId)
@@ -509,8 +508,6 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             cursor = contentResolver?.query(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), eventProjection, null, null, null)
             if (cursor != null && cursor.moveToFirst()) {
                 isRecurring = !(cursor.getString(0)?.isNullOrEmpty() ?: true)
-            } else {
-
             }
         } catch (e: Exception) {
             println(e)
