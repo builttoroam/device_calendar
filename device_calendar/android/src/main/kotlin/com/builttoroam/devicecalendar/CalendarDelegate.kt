@@ -77,19 +77,14 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         val permissionGranted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
 
         if (!_cachedParametersMap.containsKey(requestCode)) {
-            // We ran into a situation which theoretically should never happen.
-            // However, we can potentially run into this situation if plugin user is requesting other permissions (e.g. image picking) in his app
-            //
-            // There's nothing that can be done at this stage, besides finishing gracefully
+            // this plugin doesn't handle this request code
             return false
         }
 
         val cachedValues: CalendarMethodsParametersCacheModel? = _cachedParametersMap[requestCode]
         if (cachedValues == null) {
-            // Another situation that theoretically should never happen.
-            // No exceptions, this should not happen, ever
-            //
-            // There's nothing that can be done at this stage, besides finishing gracefully
+            // unlikely scenario where another plugin is potentially using the same request code but it's not one we are tracking so return to
+            // indicator we're not handling the request
             return false
         }
 
