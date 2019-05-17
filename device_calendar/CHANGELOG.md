@@ -1,5 +1,8 @@
-# 0.1.2 - 16th May 2019
-* An updated fix to address issue [79](https://github.com/builttoroam/flutter_plugins/issues/79), thanks to the PR submitted by [Gerry High](https://github.com/gerryhigh)
+## 0.1.2+1 17th May 2019
+* Non-functional. Fixed formatting in changelog and comment
+
+## 0.1.2 - 16th May 2019
+* [Android] An updated fix to address issue [79](https://github.com/builttoroam/flutter_plugins/issues/79), thanks to the PR submitted by [Gerry High](https://github.com/gerryhigh)
 
 ## 0.1.1 - 1st March 2019
 * Fixed issue [79](https://github.com/builttoroam/flutter_plugins/issues/79) where on Android, the plugin was indicating that it was handling permissions that it shouldn't have

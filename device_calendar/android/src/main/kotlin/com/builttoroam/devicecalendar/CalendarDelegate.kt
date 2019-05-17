@@ -84,7 +84,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         val cachedValues: CalendarMethodsParametersCacheModel? = _cachedParametersMap[requestCode]
         if (cachedValues == null) {
             // unlikely scenario where another plugin is potentially using the same request code but it's not one we are tracking so return to
-            // indicator we're not handling the request
+            // indicate we're not handling the request
             return false
         }
 
