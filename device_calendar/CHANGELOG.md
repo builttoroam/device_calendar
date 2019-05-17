@@ -1,5 +1,6 @@
 ## 0.1.2+1 17th May 2019
-* Non-functional. Fixed formatting in changelog and comment
+* Non-functional. Fixed formatting in changelog and code comments
+* Added more info about potential issues in consuming the plugin within an Objective-C project
 
 ## 0.1.2 - 16th May 2019
 * [Android] An updated fix to address issue [79](https://github.com/builttoroam/flutter_plugins/issues/79), thanks to the PR submitted by [Gerry High](https://github.com/gerryhigh)
