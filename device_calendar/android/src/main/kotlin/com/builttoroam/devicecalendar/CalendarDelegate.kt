@@ -90,67 +90,91 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
         when (cachedValues.calendarDelegateMethodCode) {
             RETRIEVE_CALENDARS_METHOD_CODE -> {
-                if (permissionGranted) {
-                    retrieveCalendars(cachedValues.pendingChannelResult)
-                } else {
-                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-                }
-
-                _cachedParametersMap.remove(requestCode)
-
-                return true
+                return handleRetrieveCalendarsRequest(permissionGranted, cachedValues, requestCode)
             }
             RETRIEVE_EVENTS_METHOD_CODE -> {
-                if (permissionGranted) {
-                    retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.calendarEventsIds, cachedValues.pendingChannelResult)
-                } else {
-                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-                }
-
-                _cachedParametersMap.remove(requestCode)
-
-                return true
+                return handleRetrieveEventsRequest(permissionGranted, cachedValues, requestCode)
             }
             RETRIEVE_CALENDAR_METHOD_CODE -> {
-                if (permissionGranted) {
-                    retrieveCalendar(cachedValues.calendarId, cachedValues.pendingChannelResult)
-                } else {
-                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-                }
-
-                _cachedParametersMap.remove(requestCode)
-
-                return true
+                return handleRetrieveCalendarRequest(permissionGranted, cachedValues, requestCode)
             }
             CREATE_OR_UPDATE_EVENT_METHOD_CODE -> {
-                if (permissionGranted) {
-                    createOrUpdateEvent(cachedValues.calendarId, cachedValues.event, cachedValues.pendingChannelResult)
-                } else {
-                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-                }
-
-                _cachedParametersMap.remove(requestCode)
-
-                return true
+                return handleCreateOrUpdateEventRequest(permissionGranted, cachedValues, requestCode)
             }
             DELETE_EVENT_METHOD_CODE -> {
-                if (permissionGranted) {
-                    deleteEvent(cachedValues.eventId, cachedValues.calendarId, cachedValues.pendingChannelResult)
-                } else {
-                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-                }
-
-                _cachedParametersMap.remove(requestCode)
-
-                return true
+                return handleDeleteEventRequest(permissionGranted, cachedValues, requestCode)
             }
             REQUEST_PERMISSIONS_METHOD_CODE -> {
-                finishWithSuccess(permissionGranted, cachedValues.pendingChannelResult)
-                return true
+                return handlePermissionsRequest(permissionGranted, cachedValues)
             }
         }
 
         return false
+    }
+
+    private fun handlePermissionsRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel): Boolean {
+        finishWithSuccess(permissionGranted, cachedValues.pendingChannelResult)
+        return true
+    }
+
+    private fun handleDeleteEventRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
+        if (permissionGranted) {
+            deleteEvent(cachedValues.eventId, cachedValues.calendarId, cachedValues.pendingChannelResult)
+        } else {
+            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+        }
+
+        _cachedParametersMap.remove(requestCode)
+
+        return true
+    }
+
+    private fun handleCreateOrUpdateEventRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
+        if (permissionGranted) {
+            createOrUpdateEvent(cachedValues.calendarId, cachedValues.event, cachedValues.pendingChannelResult)
+        } else {
+            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+        }
+
+        _cachedParametersMap.remove(requestCode)
+
+        return true
+    }
+
+    private fun handleRetrieveCalendarRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
+        if (permissionGranted) {
+            retrieveCalendar(cachedValues.calendarId, cachedValues.pendingChannelResult)
+        } else {
+            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+        }
+
+        _cachedParametersMap.remove(requestCode)
+
+        return true
+    }
+
+    private fun handleRetrieveEventsRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
+        if (permissionGranted) {
+            retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.calendarEventsIds, cachedValues.pendingChannelResult)
+        } else {
+            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+        }
+
+        _cachedParametersMap.remove(requestCode)
+
+        return true
+    }
+
+    private fun handleRetrieveCalendarsRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
+        if (permissionGranted) {
+            retrieveCalendars(cachedValues.pendingChannelResult)
+        } else {
+            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+        }
+
+        _cachedParametersMap.remove(requestCode)
+
+        return true
     }
 
     public fun requestPermissions(pendingChannelResult: MethodChannel.Result) {
