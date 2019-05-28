@@ -1,3 +1,13 @@
+# 0.1.2+2 28th May 2019
+* Non-functional release. Minor refactoring in Android code to address issues found in Codefactor and fix build status badge in README
+
+## 0.1.2+1 17th May 2019
+* Non-functional release. Fixed formatting in changelog and code comments
+* Added more info about potential issues in consuming the plugin within an Objective-C project
+
+## 0.1.2 - 16th May 2019
+* [Android] An updated fix to address issue [79](https://github.com/builttoroam/flutter_plugins/issues/79), thanks to the PR submitted by [Gerry High](https://github.com/gerryhigh)
+
 ## 0.1.1 - 1st March 2019
 * Fixed issue [79](https://github.com/builttoroam/flutter_plugins/issues/79) where on Android, the plugin was indicating that it was handling permissions that it shouldn't have
 
