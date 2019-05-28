@@ -1,4 +1,3 @@
-
 # 0.1.2+2 28th May 2019
 * Non-functional release. Minor refactoring in Android code to address issues found in Codefactor and fix build status badge in README
 
