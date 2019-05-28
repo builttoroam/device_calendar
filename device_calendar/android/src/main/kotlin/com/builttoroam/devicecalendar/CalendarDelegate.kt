@@ -77,85 +77,104 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         val permissionGranted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
 
         if (!_cachedParametersMap.containsKey(requestCode)) {
-            // We ran into a situation which theoretically should never happen.
-            // However, we can potentially run into this situation if plugin user is requesting other permissions (e.g. image picking) in his app
-            //
-            // There's nothing that can be done at this stage, besides finishing gracefully
-            return true
+            // this plugin doesn't handle this request code
+            return false
         }
 
         val cachedValues: CalendarMethodsParametersCacheModel? = _cachedParametersMap[requestCode]
         if (cachedValues == null) {
-            // Another situation that theoretically should never happen.
-            // No exceptions, this should not happen, ever
-            //
-            // There's nothing that can be done at this stage, besides finishing gracefully
+            // unlikely scenario where another plugin is potentially using the same request code but it's not one we are tracking so return to
+            // indicate we're not handling the request
             return false
         }
 
         when (cachedValues.calendarDelegateMethodCode) {
             RETRIEVE_CALENDARS_METHOD_CODE -> {
-                if (permissionGranted) {
-                    retrieveCalendars(cachedValues.pendingChannelResult)
-                } else {
-                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-                }
-
-                _cachedParametersMap.remove(requestCode)
-
-                return true
+                return handleRetrieveCalendarsRequest(permissionGranted, cachedValues, requestCode)
             }
             RETRIEVE_EVENTS_METHOD_CODE -> {
-                if (permissionGranted) {
-                    retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.calendarEventsIds, cachedValues.pendingChannelResult)
-                } else {
-                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-                }
-
-                _cachedParametersMap.remove(requestCode)
-
-                return true
+                return handleRetrieveEventsRequest(permissionGranted, cachedValues, requestCode)
             }
             RETRIEVE_CALENDAR_METHOD_CODE -> {
-                if (permissionGranted) {
-                    retrieveCalendar(cachedValues.calendarId, cachedValues.pendingChannelResult)
-                } else {
-                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-                }
-
-                _cachedParametersMap.remove(requestCode)
-
-                return true
+                return handleRetrieveCalendarRequest(permissionGranted, cachedValues, requestCode)
             }
             CREATE_OR_UPDATE_EVENT_METHOD_CODE -> {
-                if (permissionGranted) {
-                    createOrUpdateEvent(cachedValues.calendarId, cachedValues.event, cachedValues.pendingChannelResult)
-                } else {
-                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-                }
-
-                _cachedParametersMap.remove(requestCode)
-
-                return true
+                return handleCreateOrUpdateEventRequest(permissionGranted, cachedValues, requestCode)
             }
             DELETE_EVENT_METHOD_CODE -> {
-                if (permissionGranted) {
-                    deleteEvent(cachedValues.eventId, cachedValues.calendarId, cachedValues.pendingChannelResult)
-                } else {
-                    finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-                }
-
-                _cachedParametersMap.remove(requestCode)
-
-                return true
+                return handleDeleteEventRequest(permissionGranted, cachedValues, requestCode)
             }
             REQUEST_PERMISSIONS_METHOD_CODE -> {
-                finishWithSuccess(permissionGranted, cachedValues.pendingChannelResult)
-                return true
+                return handlePermissionsRequest(permissionGranted, cachedValues)
             }
         }
 
         return false
+    }
+
+    private fun handlePermissionsRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel): Boolean {
+        finishWithSuccess(permissionGranted, cachedValues.pendingChannelResult)
+        return true
+    }
+
+    private fun handleDeleteEventRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
+        if (permissionGranted) {
+            deleteEvent(cachedValues.eventId, cachedValues.calendarId, cachedValues.pendingChannelResult)
+        } else {
+            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+        }
+
+        _cachedParametersMap.remove(requestCode)
+
+        return true
+    }
+
+    private fun handleCreateOrUpdateEventRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
+        if (permissionGranted) {
+            createOrUpdateEvent(cachedValues.calendarId, cachedValues.event, cachedValues.pendingChannelResult)
+        } else {
+            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+        }
+
+        _cachedParametersMap.remove(requestCode)
+
+        return true
+    }
+
+    private fun handleRetrieveCalendarRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
+        if (permissionGranted) {
+            retrieveCalendar(cachedValues.calendarId, cachedValues.pendingChannelResult)
+        } else {
+            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+        }
+
+        _cachedParametersMap.remove(requestCode)
+
+        return true
+    }
+
+    private fun handleRetrieveEventsRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
+        if (permissionGranted) {
+            retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.calendarEventsIds, cachedValues.pendingChannelResult)
+        } else {
+            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+        }
+
+        _cachedParametersMap.remove(requestCode)
+
+        return true
+    }
+
+    private fun handleRetrieveCalendarsRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
+        if (permissionGranted) {
+            retrieveCalendars(cachedValues.pendingChannelResult)
+        } else {
+            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+        }
+
+        _cachedParametersMap.remove(requestCode)
+
+        return true
     }
 
     public fun requestPermissions(pendingChannelResult: MethodChannel.Result) {
@@ -346,7 +365,6 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             } catch (e: Exception) {
                 finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
                 println(e.message)
-            } finally {
             }
         } else {
             val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, CREATE_OR_UPDATE_EVENT_METHOD_CODE, calendarId)
@@ -509,8 +527,6 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             cursor = contentResolver?.query(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), eventProjection, null, null, null)
             if (cursor != null && cursor.moveToFirst()) {
                 isRecurring = !(cursor.getString(0)?.isNullOrEmpty() ?: true)
-            } else {
-
             }
         } catch (e: Exception) {
             println(e)

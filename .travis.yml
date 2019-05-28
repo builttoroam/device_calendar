@@ -26,6 +26,7 @@ matrix:
             - libstdc++6
             - fonts-droid
       before_install:
+        - yes | sdkmanager "platforms;android-28"
         - nvm install $NODE_VERSION
       install:
         - export ANDROID_HOME=$HOME/android-sdk
