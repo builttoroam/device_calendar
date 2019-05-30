@@ -29,8 +29,15 @@ class Event {
   /// A list of attendees for this event
   List<Attendee> attendees;
 
+  RecurrenceRule recurrenceRule;
+
   Event(this.calendarId,
-      {this.eventId, this.title, this.start, this.end, this.description});
+      {this.eventId,
+      this.title,
+      this.start,
+      this.end,
+      this.description,
+      this.recurrenceRule});
 
   Event.fromJson(Map<String, dynamic> json) {
     if (json == null) {
