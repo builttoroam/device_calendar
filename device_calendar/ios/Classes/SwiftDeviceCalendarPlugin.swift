@@ -14,8 +14,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let calendarId: String
         let title: String
         let description: String?
-        let start: Int
-        let end: Int
+        let start: Int64
+        let end: Int64
         let allDay: Bool
         let attendees: [Attendee]
         let location: String?
@@ -111,7 +111,14 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             if (specifiedStartEndDates) {
                 let startDate = Date (timeIntervalSince1970: startDateMillisecondsSinceEpoch!.doubleValue / 1000.0)
                 let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch!.doubleValue / 1000.0)
-                let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
+                var ekCalendar: EKCalendar!
+                if #available(iOS 9.0, *) {
+                    ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
+                } else {
+                    ekCalendar = eventStore
+                        .calendars(for: .event)
+                        .first(where: { $0.calendarIdentifier == calendarId })
+                }
                 let predicate = self.eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: [ekCalendar!])
                 let ekEvents = self.eventStore.events(matching: predicate)
                 for ekEvent in ekEvents {
@@ -159,7 +166,17 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             }
             
         }
-        let event = Event(eventId: ekEvent.eventIdentifier, calendarId: calendarId, title: ekEvent.title, description: ekEvent.notes, start: Int(ekEvent.startDate.timeIntervalSince1970) * 1000, end: Int(ekEvent.endDate.timeIntervalSince1970) * 1000, allDay: ekEvent.isAllDay, attendees: attendees, location: ekEvent.location)
+        let event = Event(
+            eventId: ekEvent.eventIdentifier,
+            calendarId: calendarId,
+            title: ekEvent.title,
+            description: ekEvent.notes,
+            start: Int64(ekEvent.startDate.timeIntervalSince1970) * 1000,
+            end: Int64(ekEvent.endDate.timeIntervalSince1970) * 1000,
+            allDay: ekEvent.isAllDay,
+            attendees: attendees,
+            location: ekEvent.location
+        )
         return event
     }
     
