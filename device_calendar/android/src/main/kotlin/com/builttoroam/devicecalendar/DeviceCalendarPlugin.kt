@@ -2,7 +2,9 @@ package com.builttoroam.devicecalendar
 
 import android.app.Activity
 import android.content.Context
+import com.builttoroam.devicecalendar.common.RecurrenceFrequency
 import com.builttoroam.devicecalendar.models.Event
+import com.builttoroam.devicecalendar.models.RecurrenceRule
 
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -102,7 +104,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 event.start = eventStart!!
                 event.end = eventEnd!!
 
-                /*if(call.hasArgument(RECURRENCE_RULE_ARGUMENT)) {
+                if(call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
                     val recurrenceRuleArgs = call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT)!!
                     val recurrenceFrequencyIndex = recurrenceRuleArgs[RECURRENCE_FREQUENCY_ARGUMENT] as Int
                     val recurrenceRule = RecurrenceRule(RecurrenceFrequency.values()[recurrenceFrequencyIndex])
@@ -116,7 +118,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                         recurrenceRule.endDate = recurrenceRuleArgs[END_DATE_ARGUMENT] as Long
                     }
                     event.recurrenceRule = recurrenceRule
-                }*/
+                }
 
                 _calendarDelegate.createOrUpdateEvent(calendarId!!, event, result)
             }

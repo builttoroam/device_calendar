@@ -1,4 +1,14 @@
-part of device_calendar;
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
+import 'package:meta/meta.dart';
+
+import 'common/error_codes.dart';
+import 'common/error_messages.dart';
+import 'models/calendar.dart';
+import 'models/event.dart';
+import 'models/result.dart';
+import 'models/retrieve_events_params.dart';
 
 /// Provides functionality for working with device calendar(s)
 class DeviceCalendarPlugin {
@@ -171,6 +181,7 @@ class DeviceCalendarPlugin {
         'eventDescription': event.description,
         'eventStartDate': event.start.millisecondsSinceEpoch,
         'eventEndDate': event.end.millisecondsSinceEpoch,
+        'recurrenceRule': event.recurrenceRule?.toJson()
       });
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult<String>(e, res);

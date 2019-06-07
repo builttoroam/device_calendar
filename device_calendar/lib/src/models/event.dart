@@ -1,4 +1,6 @@
-part of device_calendar;
+import '../common/error_messages.dart';
+import 'attendee.dart';
+import 'recurrence_rule.dart';
 
 /// An event associated with a calendar
 class Event {
@@ -29,6 +31,7 @@ class Event {
   /// A list of attendees for this event
   List<Attendee> attendees;
 
+  /// The recurrence rule for this event
   RecurrenceRule recurrenceRule;
 
   Event(this.calendarId,

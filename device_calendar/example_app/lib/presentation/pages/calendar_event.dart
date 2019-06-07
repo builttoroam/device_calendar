@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 
 import '../date_time_picker.dart';
 
+enum RecurrenceRuleEndType { MaxOccurrences, SpecifiedEndDate }
+
 class CalendarEventPage extends StatefulWidget {
   final Calendar _calendar;
   final Event _event;
@@ -12,13 +14,13 @@ class CalendarEventPage extends StatefulWidget {
 
   @override
   _CalendarEventPageState createState() {
-    return new _CalendarEventPageState(_calendar, _event);
+    return _CalendarEventPageState(_calendar, _event);
   }
 }
 
 class _CalendarEventPageState extends State<CalendarEventPage> {
-  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final Calendar _calendar;
 
   Event _event;
@@ -31,136 +33,234 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   TimeOfDay _endTime;
 
   bool _autovalidate = false;
+  bool _isRecurringEvent = false;
+  RecurrenceRuleEndType _recurrenceRuleEndType;
+
+  int _totalOccurrences;
+  int _interval;
+  DateTime _recurrenceEndDate;
+  TimeOfDay _recurrenceEndTime;
+
+  RecurrenceFrequency _recurrenceFrequency = RecurrenceFrequency.Daily;
 
   _CalendarEventPageState(this._calendar, this._event) {
-    _deviceCalendarPlugin = new DeviceCalendarPlugin();
+    _deviceCalendarPlugin = DeviceCalendarPlugin();
     if (this._event == null) {
-      _startDate = new DateTime.now();
-      _endDate = new DateTime.now().add(new Duration(hours: 1));
-      _event = new Event(this._calendar.id, start: _startDate, end: _endDate);
+      _startDate = DateTime.now();
+      _endDate = DateTime.now().add(Duration(hours: 1));
+      _event = Event(this._calendar.id, start: _startDate, end: _endDate);
+      _recurrenceEndDate = _endDate;
     } else {
       _startDate = _event.start;
       _endDate = _event.end;
     }
 
-    _startTime =
-        new TimeOfDay(hour: _startDate.hour, minute: _startDate.minute);
-    _endTime = new TimeOfDay(hour: _endDate.hour, minute: _endDate.minute);
+    _startTime = TimeOfDay(hour: _startDate.hour, minute: _startDate.minute);
+    _endTime = TimeOfDay(hour: _endDate.hour, minute: _endDate.minute);
+    _recurrenceEndTime = TimeOfDay(
+        hour: _recurrenceEndDate.hour, minute: _recurrenceEndDate.minute);
   }
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
+    return Scaffold(
         key: _scaffoldKey,
-        appBar: new AppBar(
-          title: new Text(_event.eventId?.isEmpty ?? true
+        appBar: AppBar(
+          title: Text(_event.eventId?.isEmpty ?? true
               ? 'Create new event'
               : 'Edit event ${_event.title}'),
         ),
-        body: new SingleChildScrollView(
-          child: new Column(
+        body: SingleChildScrollView(
+          child: Column(
             children: <Widget>[
-              new Form(
+              Form(
                 autovalidate: _autovalidate,
                 key: _formKey,
-                child: new Column(
+                child: Column(
                   children: <Widget>[
-                    new Row(
-                      children: <Widget>[
-                        new Expanded(
-                            flex: 1,
-                            child: new Padding(
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: TextFormField(
+                        initialValue: _event.title,
+                        decoration: const InputDecoration(
+                            labelText: 'Title',
+                            hintText: 'Meeting with Gloria...'),
+                        validator: _validateTitle,
+                        onSaved: (String value) {
+                          _event.title = value;
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: TextFormField(
+                        initialValue: _event.description,
+                        decoration: const InputDecoration(
+                            labelText: 'Description',
+                            hintText: 'Remember to buy flowers...'),
+                        onSaved: (String value) {
+                          _event.description = value;
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: DateTimePicker(
+                        labelText: 'From',
+                        selectedDate: _startDate,
+                        selectedTime: _startTime,
+                        selectDate: (DateTime date) {
+                          setState(() {
+                            _startDate = date;
+                            _event.start =
+                                _combineDateWithTime(_startDate, _startTime);
+                          });
+                        },
+                        selectTime: (TimeOfDay time) {
+                          setState(
+                            () {
+                              _startTime = time;
+                              _event.start =
+                                  _combineDateWithTime(_startDate, _startTime);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: DateTimePicker(
+                        labelText: 'To',
+                        selectedDate: _endDate,
+                        selectedTime: _endTime,
+                        selectDate: (DateTime date) {
+                          setState(
+                            () {
+                              _endDate = date;
+                              _event.end =
+                                  _combineDateWithTime(_endDate, _endTime);
+                            },
+                          );
+                        },
+                        selectTime: (TimeOfDay time) {
+                          setState(
+                            () {
+                              _endTime = time;
+                              _event.end =
+                                  _combineDateWithTime(_endDate, _endTime);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    CheckboxListTile(
+                      value: _isRecurringEvent,
+                      title: Text('Is recurring'),
+                      onChanged: (isChecked) {
+                        setState(() {
+                          _isRecurringEvent = isChecked;
+                        });
+                      },
+                    ),
+                    if (_isRecurringEvent)
+                      Column(
+                        children: [
+                          ListTile(
+                            leading: Text('Frequency'),
+                            trailing: DropdownButton<RecurrenceFrequency>(
+                              onChanged: (selectedFrequency) {
+                                setState(() {
+                                  _recurrenceFrequency = selectedFrequency;
+                                });
+                              },
+                              value: _recurrenceFrequency,
+                              items: RecurrenceFrequency.values
+                                  .map(
+                                    (f) => DropdownMenuItem(
+                                          value: f,
+                                          child: _recurrenceFrequencyToText(f),
+                                        ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: TextFormField(
+                              decoration: const InputDecoration(
+                                  labelText: 'Interval between events',
+                                  hintText: '1'),
+                              keyboardType: TextInputType.number,
+                              validator: _validateInterval,
+                              onSaved: (String value) {
+                                _interval = int.tryParse(value);
+                              },
+                            ),
+                          ),
+                          ListTile(
+                            leading: Text('Event ends'),
+                            trailing: DropdownButton<RecurrenceRuleEndType>(
+                              onChanged: (value) {
+                                setState(() {
+                                  _recurrenceRuleEndType = value;
+                                });
+                              },
+                              value: _recurrenceRuleEndType,
+                              items: RecurrenceRuleEndType.values
+                                  .map(
+                                    (f) => DropdownMenuItem(
+                                          value: f,
+                                          child:
+                                              _recurrenceRuleEndTypeToText(f),
+                                        ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                          if (_recurrenceRuleEndType ==
+                              RecurrenceRuleEndType.MaxOccurrences)
+                            Padding(
                               padding: const EdgeInsets.all(10.0),
-                              child: new TextFormField(
-                                initialValue: _event.title,
+                              child: TextFormField(
                                 decoration: const InputDecoration(
-                                    labelText: 'Title',
-                                    hintText: 'Meeting with Gloria...'),
-                                validator: _validateTitle,
+                                    labelText: 'Max occurrences',
+                                    hintText: '1'),
+                                keyboardType: TextInputType.number,
+                                validator: _validateTotalOccurrences,
                                 onSaved: (String value) {
-                                  _event.title = value;
+                                  _totalOccurrences = int.tryParse(value);
                                 },
                               ),
-                            )),
-                      ],
-                    ),
-                    new Row(
-                      children: <Widget>[
-                        new Expanded(
-                            flex: 1,
-                            child: new Padding(
+                            ),
+                          if (_recurrenceRuleEndType ==
+                              RecurrenceRuleEndType.SpecifiedEndDate)
+                            Padding(
                               padding: const EdgeInsets.all(10.0),
-                              child: new TextFormField(
-                                initialValue: _event.description,
-                                decoration: const InputDecoration(
-                                    labelText: 'Description',
-                                    hintText: 'Remember to buy flowers...'),
-                                onSaved: (String value) {
-                                  _event.description = value;
+                              child: DateTimePicker(
+                                labelText: 'Date',
+                                selectedDate: _recurrenceEndDate,
+                                selectedTime: _recurrenceEndTime,
+                                selectDate: (DateTime date) {
+                                  setState(() {
+                                    _recurrenceEndDate = date;
+                                  });
+                                },
+                                selectTime: (TimeOfDay time) {
+                                  setState(() {
+                                    _recurrenceEndTime = time;
+                                  });
                                 },
                               ),
-                            )),
-                      ],
-                    ),
-                    new Row(
-                      children: <Widget>[
-                        new Expanded(
-                            flex: 1,
-                            child: new Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: new DateTimePicker(
-                                    labelText: 'From',
-                                    selectedDate: _startDate,
-                                    selectedTime: _startTime,
-                                    selectDate: (DateTime date) {
-                                      setState(() {
-                                        _startDate = date;
-                                        _event.start = _combineDateWithTime(
-                                            _startDate, _startTime);
-                                      });
-                                    },
-                                    selectTime: (TimeOfDay time) {
-                                      setState(() {
-                                        _startTime = time;
-                                        _event.start = _combineDateWithTime(
-                                            _startDate, _startTime);
-                                      });
-                                    })))
-                      ],
-                    ),
-                    new Row(
-                      children: <Widget>[
-                        new Expanded(
-                            flex: 1,
-                            child: new Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: new DateTimePicker(
-                                    labelText: 'To',
-                                    selectedDate: _endDate,
-                                    selectedTime: _endTime,
-                                    selectDate: (DateTime date) {
-                                      setState(() {
-                                        _endDate = date;
-                                        _event.end = _combineDateWithTime(
-                                            _endDate, _endTime);
-                                      });
-                                    },
-                                    selectTime: (TimeOfDay time) {
-                                      setState(() {
-                                        _endTime = time;
-                                        _event.end = _combineDateWithTime(
-                                            _endDate, _endTime);
-                                      });
-                                    })))
-                      ],
-                    ),
+                            ),
+                        ],
+                      )
                   ],
                 ),
               )
             ],
           ),
         ),
-        floatingActionButton: new FloatingActionButton(
+        floatingActionButton: FloatingActionButton(
           onPressed: () async {
             final FormState form = _formKey.currentState;
             if (!form.validate()) {
@@ -168,6 +268,13 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
               showInSnackBar('Please fix the errors in red before submitting.');
             } else {
               form.save();
+              if (_isRecurringEvent) {
+                _event.recurrenceRule = RecurrenceRule(_recurrenceFrequency,
+                    interval: _interval,
+                    totalOccurrences: _totalOccurrences,
+                    endDate: RecurrenceRuleEndType == RecurrenceRuleEndType.SpecifiedEndDate ? _combineDateWithTime(
+                        _recurrenceEndDate, _recurrenceEndTime) : null);
+              }
               var createEventResult =
                   await _deviceCalendarPlugin.createOrUpdateEvent(_event);
               if (createEventResult.isSuccess) {
@@ -177,8 +284,48 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
               }
             }
           },
-          child: new Icon(Icons.check),
+          child: Icon(Icons.check),
         ));
+  }
+
+  Text _recurrenceFrequencyToText(RecurrenceFrequency recurrenceFrequency) {
+    switch (recurrenceFrequency) {
+      case RecurrenceFrequency.Daily:
+        return Text('Daily');
+      case RecurrenceFrequency.Weekly:
+        return Text('Weekly');
+      case RecurrenceFrequency.Monthly:
+        return Text('Monthly');
+      case RecurrenceFrequency.Yearly:
+        return Text('Yearly');
+      default:
+        return Text('');
+    }
+  }
+
+  Text _recurrenceRuleEndTypeToText(RecurrenceRuleEndType endType) {
+    switch (endType) {
+      case RecurrenceRuleEndType.MaxOccurrences:
+        return Text('After a set number of times');
+      case RecurrenceRuleEndType.SpecifiedEndDate:
+        return Text('Continues until a specified date');
+      default:
+        return Text('');
+    }
+  }
+
+  String _validateTotalOccurrences(String value) {
+    if (!value.isEmpty && int.tryParse(value) == null) {
+      return 'Total occurrences needs to be a valid number';
+    }
+    return null;
+  }
+
+  String _validateInterval(String value) {
+    if (!value.isEmpty && int.tryParse(value) == null) {
+      return 'Interval needs to be a valid number';
+    }
+    return null;
   }
 
   String _validateTitle(String value) {
@@ -190,14 +337,16 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   }
 
   DateTime _combineDateWithTime(DateTime date, TimeOfDay time) {
+    if (date == null && time == null) {
+      return null;
+    }
     final dateWithoutTime =
-        DateTime.parse(new DateFormat("y-MM-dd 00:00:00").format(_startDate));
+        DateTime.parse(DateFormat("y-MM-dd 00:00:00").format(date));
     return dateWithoutTime
-        .add(new Duration(hours: time.hour, minutes: time.minute));
+        .add(Duration(hours: time.hour, minutes: time.minute));
   }
 
   void showInSnackBar(String value) {
-    _scaffoldKey.currentState
-        .showSnackBar(new SnackBar(content: new Text(value)));
+    _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(value)));
   }
 }
