@@ -9,4 +9,5 @@ class Event(val title: String) {
     var allDay: Boolean = false
     var location: String? = null
     var attendees: MutableList<Attendee> = mutableListOf()
+    var recurrenceRule: RecurrenceRule? = null
 }
