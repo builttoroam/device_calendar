@@ -67,7 +67,7 @@ class Event {
         return new Attendee.fromJson(decodedAttendee);
       }).toList();
     }
-    if (json['recurrencRule'] != null) {
+    if (json['recurrenceRule'] != null) {
       recurrenceRule = RecurrenceRule.fromJson(json['recurrenceRule']);
     }
   }

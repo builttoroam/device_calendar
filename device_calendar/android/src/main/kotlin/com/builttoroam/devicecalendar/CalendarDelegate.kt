@@ -48,6 +48,10 @@ import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.NOT_AUTHORI
 import com.builttoroam.devicecalendar.common.RecurrenceFrequency
 import com.builttoroam.devicecalendar.models.*
 import com.builttoroam.devicecalendar.models.Calendar
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
+import org.dmfs.rfc5545.DateTime
+import org.dmfs.rfc5545.recur.Freq
 import java.lang.StringBuilder
 import java.text.SimpleDateFormat
 import java.util.*
@@ -71,7 +75,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     constructor(activity: Activity, context: Context) {
         _activity = activity
         _context = context
-        _gson = Gson()
+        var gsonBuilder = GsonBuilder()
+        gsonBuilder.registerTypeAdapter(RecurrenceFrequency::class.java, RecurrenceFrequencySerializer())
+        _gson = gsonBuilder.create()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
@@ -476,8 +482,33 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         event.end = end
         event.allDay = allDay
         event.location = location
-
+        event.recurrenceRule = parseRecurrenceRuleString(recurringRule)
         return event
+    }
+
+    private fun parseRecurrenceRuleString(recurrenceRuleString: String?): RecurrenceRule? {
+        if(recurrenceRuleString == null) {
+            return null
+        }
+        var rfcRecurrenceRule = org.dmfs.rfc5545.recur.RecurrenceRule(recurrenceRuleString!!)
+        var frequency = when(rfcRecurrenceRule.freq) {
+            Freq.YEARLY -> RecurrenceFrequency.YEARLY
+            Freq.MONTHLY -> RecurrenceFrequency.MONTHLY
+            Freq.WEEKLY -> RecurrenceFrequency.WEEKLY
+            Freq.DAILY -> RecurrenceFrequency.DAILY
+            else -> null
+        }
+        var recurrenceRule = RecurrenceRule(frequency!!)
+        if(rfcRecurrenceRule.count != null) {
+            recurrenceRule.totalOccurrences = rfcRecurrenceRule.count
+        }
+        if(rfcRecurrenceRule.interval != null) {
+            recurrenceRule.interval = rfcRecurrenceRule.interval
+        }
+        if(rfcRecurrenceRule.until != null) {
+            recurrenceRule.endDate = rfcRecurrenceRule.until.timestamp
+        }
+        return recurrenceRule
     }
 
     private fun parseAttendee(cursor: Cursor?): Attendee? {
@@ -498,12 +529,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         attendee.attendanceRequired = type == CalendarContract.Attendees.TYPE_REQUIRED
 
         return attendee
-    }
-
-    private fun parseRecurrenceRule(recurrenceRuleParams: String?) : RecurrenceRule? {
-        if(recurrenceRuleParams == null) {
-            return null;
-        }
     }
 
     private fun isCalendarReadOnly(accessLevel: Int): Boolean {
@@ -617,37 +642,25 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     }
 
     private fun buildRecurrenceRuleParams(recurrenceRule: RecurrenceRule) : String {
-        val recurrenceRuleBuilder = StringBuilder()
         val frequencyParam = when(recurrenceRule.recurrenceFrequency) {
-            RecurrenceFrequency.DAILY -> "FREQ=DAILY"
-            RecurrenceFrequency.WEEKLY -> "FREQ=WEEKLY"
-            RecurrenceFrequency.MONTHLY -> "FREQ=MONTHLY"
-            RecurrenceFrequency.YEARLY -> "FREQ=YEARLY"
+            RecurrenceFrequency.DAILY -> Freq.DAILY
+            RecurrenceFrequency.WEEKLY -> Freq.WEEKLY
+            RecurrenceFrequency.MONTHLY -> Freq.MONTHLY
+            RecurrenceFrequency.YEARLY -> Freq.YEARLY
         }
-        if(frequencyParam == "") {
-            return recurrenceRuleBuilder.toString()
-        }
-
-
-        recurrenceRuleBuilder.append(frequencyParam)
+        val rr = org.dmfs.rfc5545.recur.RecurrenceRule(frequencyParam)
         if(recurrenceRule.interval != null) {
-            recurrenceRuleBuilder.append(";INTERVAL=")
-            recurrenceRuleBuilder.append(recurrenceRule.interval!!)
+            rr.interval = recurrenceRule.interval!!
         }
-
-        // not allowed to set both in Android
         if(recurrenceRule.totalOccurrences != null) {
-            recurrenceRuleBuilder.append(";COUNT=")
-            recurrenceRuleBuilder.append(recurrenceRule.totalOccurrences!!)
+            rr.count = recurrenceRule.totalOccurrences!!
         } else if(recurrenceRule.endDate != null) {
             val calendar = java.util.Calendar.getInstance();
             calendar.timeInMillis = recurrenceRule.endDate!!
             val dateFormat = SimpleDateFormat("yyyyMMdd")
             dateFormat.timeZone = calendar.timeZone
-            recurrenceRuleBuilder.append(";UNTIL=")
-            recurrenceRuleBuilder.append(dateFormat.format(calendar.time))
+            rr.until = DateTime(calendar.timeZone, recurrenceRule.endDate!!)
         }
-
-        return recurrenceRuleBuilder.toString()
+        return rr.toString()
     }
 }
