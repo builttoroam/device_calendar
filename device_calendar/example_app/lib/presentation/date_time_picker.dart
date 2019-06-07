@@ -46,7 +46,7 @@ class DateTimePicker extends StatelessWidget {
           flex: 4,
           child: new InputDropdown(
             labelText: labelText,
-            valueText: new DateFormat.yMMMd().format(selectedDate),
+            valueText: selectedDate == null ? '': new DateFormat.yMMMd().format(selectedDate),
             valueStyle: valueStyle,
             onPressed: () {
               _selectDate(context);
@@ -57,7 +57,7 @@ class DateTimePicker extends StatelessWidget {
         new Expanded(
           flex: 3,
           child: new InputDropdown(
-            valueText: selectedTime.format(context),
+            valueText: selectedTime?.format(context) ?? '',
             valueStyle: valueStyle,
             onPressed: () {
               _selectTime(context);

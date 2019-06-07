@@ -1,5 +1,3 @@
-part of device_calendar;
-
 /// A calendar on the user's device
 class Calendar {
   /// The unique identifier for this calendar

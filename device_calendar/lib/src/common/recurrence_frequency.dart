@@ -1,1 +1,1 @@
-enum RecurrencyFrequency { Daily, Weekly, Monthly, Yearly }
+enum RecurrenceFrequency { Daily, Weekly, Monthly, Yearly }

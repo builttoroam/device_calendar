@@ -1,10 +1,11 @@
-part of device_calendar;
+import '../common/error_messages.dart';
+import '../common/recurrence_frequency.dart';
 
 class RecurrenceRule {
   int totalOccurrences;
   int interval;
   DateTime endDate;
-  RecurrencyFrequency recurrenceFrequency;
+  RecurrenceFrequency recurrenceFrequency;
   final String _totalOccurrencesKey = 'totalOccurrences';
   final String _recurrenceFrequencyKey = 'recurrenceFrequency';
   final String _intervalKey = 'interval';
@@ -15,7 +16,7 @@ class RecurrenceRule {
     this.totalOccurrences,
     this.interval,
     this.endDate,
-  });
+  }) : assert(!(endDate != null && totalOccurrences != null), 'Cannot specify both an end date and total occurrences for a recurring event');
 
   RecurrenceRule.fromJson(Map<String, dynamic> json) {
     if (json == null) {
@@ -23,11 +24,11 @@ class RecurrenceRule {
     }
     int recurrenceFrequencyIndex = json[_recurrenceFrequencyKey];
     if (recurrenceFrequencyIndex == null &&
-        recurrenceFrequencyIndex >= RecurrencyFrequency.values.length) {
+        recurrenceFrequencyIndex >= RecurrenceFrequency.values.length) {
       throw new ArgumentError(ErrorMessages.invalidRecurrencyFrequency);
     }
 
-    recurrenceFrequency = RecurrencyFrequency.values[recurrenceFrequencyIndex];
+    recurrenceFrequency = RecurrenceFrequency.values[recurrenceFrequencyIndex];
     totalOccurrences = json[_totalOccurrencesKey];
     interval = json[_intervalKey];
     int endDateMillisecondsSinceEpoch = json[_endDateKey];
@@ -40,9 +41,15 @@ class RecurrenceRule {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data[_recurrenceFrequencyKey] = recurrenceFrequency.index;
-    data[_intervalKey] = interval;
-    data[_totalOccurrencesKey] = totalOccurrences;
-    data[_endDateKey] = endDate.millisecondsSinceEpoch;
+    if (interval != null) {
+      data[_intervalKey] = interval;
+    }
+    if (totalOccurrences != null) {
+      data[_totalOccurrencesKey] = totalOccurrences;
+    }
+    if (endDate != null) {
+      data[_endDateKey] = endDate?.millisecondsSinceEpoch;
+    }
     return data;
   }
 }

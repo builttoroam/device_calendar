@@ -500,6 +500,12 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         return attendee
     }
 
+    private fun parseRecurrenceRule(recurrenceRuleParams: String?) : RecurrenceRule? {
+        if(recurrenceRuleParams == null) {
+            return null;
+        }
+    }
+
     private fun isCalendarReadOnly(accessLevel: Int): Boolean {
         return when (accessLevel) {
             Events.CAL_ACCESS_CONTRIBUTOR,
@@ -621,6 +627,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if(frequencyParam == "") {
             return recurrenceRuleBuilder.toString()
         }
+
+
+        recurrenceRuleBuilder.append(frequencyParam)
         if(recurrenceRule.interval != null) {
             recurrenceRuleBuilder.append(";INTERVAL=")
             recurrenceRuleBuilder.append(recurrenceRule.interval!!)
@@ -628,13 +637,14 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         // not allowed to set both in Android
         if(recurrenceRule.totalOccurrences != null) {
-            recurrenceRuleBuilder.append(";COUNT=");
+            recurrenceRuleBuilder.append(";COUNT=")
             recurrenceRuleBuilder.append(recurrenceRule.totalOccurrences!!)
         } else if(recurrenceRule.endDate != null) {
             val calendar = java.util.Calendar.getInstance();
             calendar.timeInMillis = recurrenceRule.endDate!!
             val dateFormat = SimpleDateFormat("yyyyMMdd")
             dateFormat.timeZone = calendar.timeZone
+            recurrenceRuleBuilder.append(";UNTIL=")
             recurrenceRuleBuilder.append(dateFormat.format(calendar.time))
         }
 
