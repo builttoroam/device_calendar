@@ -53,12 +53,19 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     } else {
       _startDate = _event.start;
       _endDate = _event.end;
+      _isRecurringEvent = _event.recurrenceRule != null;
+      if(_isRecurringEvent) {
+        _totalOccurrences = _event.recurrenceRule.totalOccurrences;
+        _interval = _event.recurrenceRule.interval;
+      }
     }
 
     _startTime = TimeOfDay(hour: _startDate.hour, minute: _startDate.minute);
     _endTime = TimeOfDay(hour: _endDate.hour, minute: _endDate.minute);
+    if(_recurrenceEndDate != null) {
     _recurrenceEndTime = TimeOfDay(
         hour: _recurrenceEndDate.hour, minute: _recurrenceEndDate.minute);
+    }
   }
 
   @override
@@ -272,7 +279,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                 _event.recurrenceRule = RecurrenceRule(_recurrenceFrequency,
                     interval: _interval,
                     totalOccurrences: _totalOccurrences,
-                    endDate: RecurrenceRuleEndType == RecurrenceRuleEndType.SpecifiedEndDate ? _combineDateWithTime(
+                    endDate: _recurrenceRuleEndType == RecurrenceRuleEndType.SpecifiedEndDate ? _combineDateWithTime(
                         _recurrenceEndDate, _recurrenceEndTime) : null);
               }
               var createEventResult =
