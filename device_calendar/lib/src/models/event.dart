@@ -64,6 +64,9 @@ class Event {
         return new Attendee.fromJson(decodedAttendee);
       }).toList();
     }
+    if (json['recurrencRule'] != null) {
+      recurrenceRule = RecurrenceRule.fromJson(json['recurrenceRule']);
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -83,6 +86,9 @@ class Event {
         attendeesJson.add(attendeeJson);
       }
       data['attendees'] = attendeesJson;
+    }
+    if (recurrenceRule != null) {
+      data['recurrenceRule'] = recurrenceRule.toJson();
     }
     return data;
   }

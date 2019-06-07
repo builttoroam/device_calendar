@@ -21,8 +21,6 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTIO
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_FOUND
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
-import com.builttoroam.devicecalendar.models.Calendar
-import com.builttoroam.devicecalendar.models.Event
 import io.flutter.plugin.common.MethodChannel
 import com.google.gson.Gson
 import android.provider.CalendarContract.Events
@@ -47,12 +45,15 @@ import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.NOT_AUTHORIZED_MESSAGE
-import com.builttoroam.devicecalendar.models.Attendee
-import com.builttoroam.devicecalendar.models.CalendarMethodsParametersCacheModel
+import com.builttoroam.devicecalendar.common.RecurrenceFrequency
+import com.builttoroam.devicecalendar.models.*
+import com.builttoroam.devicecalendar.models.Calendar
+import java.lang.StringBuilder
+import java.text.SimpleDateFormat
 import java.util.*
 
 
-public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
+class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
     private val RETRIEVE_CALENDARS_METHOD_CODE = 0
     private val RETRIEVE_EVENTS_METHOD_CODE = RETRIEVE_CALENDARS_METHOD_CODE + 1
@@ -67,13 +68,13 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     private var _context: Context? = null
     private var _gson: Gson? = null
 
-    public constructor(activity: Activity, context: Context) {
+    constructor(activity: Activity, context: Context) {
         _activity = activity
         _context = context
         _gson = Gson()
     }
 
-    public override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
         val permissionGranted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
 
         if (!_cachedParametersMap.containsKey(requestCode)) {
@@ -177,7 +178,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         return true
     }
 
-    public fun requestPermissions(pendingChannelResult: MethodChannel.Result) {
+    fun requestPermissions(pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             finishWithSuccess(true, pendingChannelResult)
         } else {
@@ -186,12 +187,12 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         }
     }
 
-    public fun hasPermissions(pendingChannelResult: MethodChannel.Result) {
+    fun hasPermissions(pendingChannelResult: MethodChannel.Result) {
         finishWithSuccess(arePermissionsGranted(), pendingChannelResult)
     }
 
     @SuppressLint("MissingPermission")
-    public fun retrieveCalendars(pendingChannelResult: MethodChannel.Result) {
+    fun retrieveCalendars(pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
 
             val contentResolver: ContentResolver? = _context?.getContentResolver()
@@ -225,7 +226,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         return
     }
 
-    public fun retrieveCalendar(calendarId: String, pendingChannelResult: MethodChannel.Result, isInternalCall: Boolean = false): Calendar? {
+    fun retrieveCalendar(calendarId: String, pendingChannelResult: MethodChannel.Result, isInternalCall: Boolean = false): Calendar? {
         if (isInternalCall || arePermissionsGranted()) {
             val calendarIdNumber = calendarId.toLongOrNull()
             if (calendarIdNumber == null) {
@@ -266,7 +267,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     }
 
     @SuppressLint("MissingPermission")
-    public fun retrieveEvents(calendarId: String, startDate: Long?, endDate: Long?, eventIds: List<String>, pendingChannelResult: MethodChannel.Result) {
+    fun retrieveEvents(calendarId: String, startDate: Long?, endDate: Long?, eventIds: List<String>, pendingChannelResult: MethodChannel.Result) {
         if (startDate == null && endDate == null && eventIds.isEmpty()) {
             finishWithError(INVALID_ARGUMENT, ErrorMessages.RETRIEVE_EVENTS_ARGUMENTS_NOT_VALID_MESSAGE, pendingChannelResult)
             return
@@ -286,8 +287,8 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             ContentUris.appendId(eventsUriBuilder, endDate ?: Date(Long.MAX_VALUE).time)
 
             val eventsUri = eventsUriBuilder.build()
-            val eventsCalendarQuery = "(${CalendarContract.Events.CALENDAR_ID} = $calendarId)"
-            val eventsNotDeletedQuery = "(${CalendarContract.Events.DELETED} != 1)"
+            val eventsCalendarQuery = "(${Events.CALENDAR_ID} = $calendarId)"
+            val eventsNotDeletedQuery = "(${Events.DELETED} != 1)"
             val eventsIdsQueryElements = eventIds.map { "(${CalendarContract.Instances.EVENT_ID} = $it)" }
             val eventsIdsQuery = eventsIdsQueryElements.joinToString(" OR ")
 
@@ -295,7 +296,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             if (!eventsIdsQuery.isNullOrEmpty()) {
                 eventsSelectionQuery += " AND ($eventsIdsQuery)"
             }
-            val eventsSortOrder = CalendarContract.Events.DTSTART + " ASC"
+            val eventsSortOrder = Events.DTSTART + " ASC"
             val eventsCursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, eventsSortOrder)
 
             val events: MutableList<Event> = mutableListOf()
@@ -331,7 +332,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     }
 
     @SuppressLint("MissingPermission")
-    public fun createOrUpdateEvent(calendarId: String, event: Event?, pendingChannelResult: MethodChannel.Result) {
+    fun createOrUpdateEvent(calendarId: String, event: Event?, pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             if (event == null) {
                 finishWithError(GENERIC_ERROR, CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE, pendingChannelResult)
@@ -350,15 +351,18 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             val calendar: java.util.Calendar = java.util.Calendar.getInstance()
             val currentTimeZone: TimeZone = calendar.timeZone
             values.put(Events.EVENT_TIMEZONE, currentTimeZone.displayName)
-
+            if(event.recurrenceRule != null) {
+                val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
+                values.put(Events.RRULE, recurrenceRuleParams)
+            }
             try {
                 var eventId: Long? = event.eventId?.toLongOrNull()
                 if (eventId == null) {
-                    val uri = contentResolver?.insert(CalendarContract.Events.CONTENT_URI, values)
+                    val uri = contentResolver?.insert(Events.CONTENT_URI, values)
                     // get the event ID that is the last element in the Uri
                     eventId = java.lang.Long.parseLong(uri?.getLastPathSegment())
                 } else {
-                    contentResolver?.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), values, null, null)
+                    contentResolver?.update(ContentUris.withAppendedId(Events.CONTENT_URI, eventId), values, null, null)
                 }
 
                 finishWithSuccess(eventId.toString(), pendingChannelResult)
@@ -373,7 +377,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         }
     }
 
-    public fun deleteEvent(calendarId: String, eventId: String, pendingChannelResult: MethodChannel.Result) {
+    fun deleteEvent(calendarId: String, eventId: String, pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             var existingCal = retrieveCalendar(calendarId, pendingChannelResult, true)
             if (existingCal == null) {
@@ -398,7 +402,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                 return
             }
 
-            val eventsUriWithId = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventIdNumber)
+            val eventsUriWithId = ContentUris.withAppendedId(Events.CONTENT_URI, eventIdNumber)
             val deleteSucceeded = contentResolver?.delete(eventsUriWithId, null, null) ?: 0
 
             finishWithSuccess(deleteSucceeded > 0, pendingChannelResult)
@@ -498,10 +502,10 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
     private fun isCalendarReadOnly(accessLevel: Int): Boolean {
         return when (accessLevel) {
-            CalendarContract.Events.CAL_ACCESS_CONTRIBUTOR,
-            CalendarContract.Events.CAL_ACCESS_ROOT,
-            CalendarContract.Events.CAL_ACCESS_OWNER,
-            CalendarContract.Events.CAL_ACCESS_EDITOR
+            Events.CAL_ACCESS_CONTRIBUTOR,
+            Events.CAL_ACCESS_ROOT,
+            Events.CAL_ACCESS_OWNER,
+            Events.CAL_ACCESS_EDITOR
             -> false
             else -> true
         }
@@ -517,14 +521,14 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
                 // event. Thus, it seems reasonable to trust that DURATION will
                 // only be present if the event is recurring.
                 //
-                CalendarContract.Events.DURATION
+                Events.DURATION
         )
 
         var isRecurring = false
         var cursor: Cursor? = null
 
         try {
-            cursor = contentResolver?.query(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), eventProjection, null, null, null)
+            cursor = contentResolver?.query(ContentUris.withAppendedId(Events.CONTENT_URI, eventId), eventProjection, null, null, null)
             if (cursor != null && cursor.moveToFirst()) {
                 isRecurring = !(cursor.getString(0)?.isNullOrEmpty() ?: true)
             }
@@ -604,5 +608,36 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
     private fun atLeastAPI(api: Int): Boolean {
         return api <= android.os.Build.VERSION.SDK_INT
+    }
+
+    private fun buildRecurrenceRuleParams(recurrenceRule: RecurrenceRule) : String {
+        val recurrenceRuleBuilder = StringBuilder()
+        val frequencyParam = when(recurrenceRule.recurrenceFrequency) {
+            RecurrenceFrequency.DAILY -> "FREQ=DAILY"
+            RecurrenceFrequency.WEEKLY -> "FREQ=WEEKLY"
+            RecurrenceFrequency.MONTHLY -> "FREQ=MONTHLY"
+            RecurrenceFrequency.YEARLY -> "FREQ=YEARLY"
+        }
+        if(frequencyParam == "") {
+            return recurrenceRuleBuilder.toString()
+        }
+        if(recurrenceRule.interval != null) {
+            recurrenceRuleBuilder.append(";INTERVAL=")
+            recurrenceRuleBuilder.append(recurrenceRule.interval!!)
+        }
+
+        // not allowed to set both in Android
+        if(recurrenceRule.totalOccurrences != null) {
+            recurrenceRuleBuilder.append(";COUNT=");
+            recurrenceRuleBuilder.append(recurrenceRule.totalOccurrences!!)
+        } else if(recurrenceRule.endDate != null) {
+            val calendar = java.util.Calendar.getInstance();
+            calendar.timeInMillis = recurrenceRule.endDate!!
+            val dateFormat = SimpleDateFormat("yyyyMMdd")
+            dateFormat.timeZone = calendar.timeZone
+            recurrenceRuleBuilder.append(dateFormat.format(calendar.time))
+        }
+
+        return recurrenceRuleBuilder.toString()
     }
 }
