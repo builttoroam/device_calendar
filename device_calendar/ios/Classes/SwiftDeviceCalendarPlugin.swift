@@ -14,8 +14,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let calendarId: String
         let title: String
         let description: String?
-        let start: Int
-        let end: Int
+        let start: Int64
+        let end: Int64
         let allDay: Bool
         let attendees: [Attendee]
         let location: String?
@@ -159,7 +159,17 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             }
             
         }
-        let event = Event(eventId: ekEvent.eventIdentifier, calendarId: calendarId, title: ekEvent.title, description: ekEvent.notes, start: Int(ekEvent.startDate.timeIntervalSince1970) * 1000, end: Int(ekEvent.endDate.timeIntervalSince1970) * 1000, allDay: ekEvent.isAllDay, attendees: attendees, location: ekEvent.location)
+        let event = Event(
+            eventId: ekEvent.eventIdentifier,
+            calendarId: calendarId,
+            title: ekEvent.title,
+            description: ekEvent.notes,
+            start: Int64(ekEvent.startDate.timeIntervalSince1970) * 1000,
+            end: Int64(ekEvent.endDate.timeIntervalSince1970) * 1000,
+            allDay: ekEvent.isAllDay,
+            attendees: attendees,
+            location: ekEvent.location
+        )
         return event
     }
     
