@@ -55,6 +55,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let eventDescriptionArgument = "eventDescription"
     let eventStartDateArgument =  "eventStartDate"
     let eventEndDateArgument = "eventEndDate"
+    let recurrenceRuleArgument = "recurrenceRule"
+    let recurrenceFrequencyArgument = "recurrenceFrequency"
+    let totalOccurrencesArgument = "totalOccurrences"
+    let intervalArgument = "interval"
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
@@ -102,10 +106,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     private func retrieveEvents(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         checkPermissionsThenExecute(permissionsGrantedAction: {
             let arguments = call.arguments as! Dictionary<String, AnyObject>
-            let calendarId = arguments[self.calendarIdArgument] as! String
-            let startDateMillisecondsSinceEpoch = arguments[self.startDateArgument] as? NSNumber
-            let endDateDateMillisecondsSinceEpoch = arguments[self.endDateArgument] as? NSNumber
-            let eventIds = arguments[self.eventIdsArgument] as? [String]
+            let calendarId = arguments[calendarIdArgument] as! String
+            let startDateMillisecondsSinceEpoch = arguments[startDateArgument] as? NSNumber
+            let endDateDateMillisecondsSinceEpoch = arguments[endDateArgument] as? NSNumber
+            let eventIds = arguments[eventIdsArgument] as? [String]
             var events = [Event]()
             let specifiedStartEndDates = startDateMillisecondsSinceEpoch != nil && endDateDateMillisecondsSinceEpoch != nil
             if (specifiedStartEndDates) {
@@ -176,14 +180,14 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     private func createOrUpdateEvent(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         checkPermissionsThenExecute(permissionsGrantedAction: {
             let arguments = call.arguments as! Dictionary<String, AnyObject>
-            let calendarId = arguments[self.calendarIdArgument] as! String
-            let eventId = arguments[self.eventIdArgument] as? String
-            let startDateMillisecondsSinceEpoch = arguments[self.eventStartDateArgument] as! NSNumber
-            let endDateDateMillisecondsSinceEpoch = arguments[self.eventEndDateArgument] as! NSNumber
+            let calendarId = arguments[calendarIdArgument] as! String
+            let eventId = arguments[eventIdArgument] as? String
+            let startDateMillisecondsSinceEpoch = arguments[eventStartDateArgument] as! NSNumber
+            let endDateDateMillisecondsSinceEpoch = arguments[eventEndDateArgument] as! NSNumber
             let startDate = Date (timeIntervalSince1970: startDateMillisecondsSinceEpoch.doubleValue / 1000.0)
             let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch.doubleValue / 1000.0)
-            let title = arguments[self.eventTitleArgument] as! String
-            let description = arguments[self.eventDescriptionArgument] as? String
+            let title = arguments[eventTitleArgument] as! String
+            let description = arguments[eventDescriptionArgument] as? String
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
@@ -211,6 +215,30 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.startDate = startDate
             ekEvent!.endDate = endDate
             ekEvent!.calendar = ekCalendar!
+            
+            let recurrenceRuleArguments = arguments[recurrenceRuleArgument] as? Dictionary<String, AnyObject>
+            if (recurrenceRuleArguments != nil) {
+                let recurrenceFrequencyIndex = recurrenceRuleArguments![recurrenceFrequencyArgument] as? NSInteger
+                let totalOccurrences = recurrenceRuleArguments![totalOccurrencesArgument] as? NSInteger
+                let interval = recurrenceRuleArguments![intervalArgument] as? NSInteger
+                var recurrenceInterval = 1
+                let endDate = recurrenceRuleArguments![endDateArgument] as? NSNumber
+                let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
+                let namedFrequency = validFrequencyTypes[recurrenceFrequencyIndex!]
+                
+                var recurrenceEnd:EKRecurrenceEnd?
+                if(endDate != nil) {
+                    recurrenceEnd = EKRecurrenceEnd(end: Date.init(timeIntervalSince1970: endDate!.doubleValue / 1000))
+                } else if(totalOccurrences != nil && totalOccurrences! > 0) {
+                    recurrenceEnd = EKRecurrenceEnd(occurrenceCount: totalOccurrences!)
+                }
+                
+                if(interval != nil && interval! > 1) {
+                    recurrenceInterval = interval!
+                }
+                ekEvent!.addRecurrenceRule(EKRecurrenceRule(recurrenceWith: namedFrequency, interval: recurrenceInterval, end: recurrenceEnd))
+            }
+            
             do {
                 try self.eventStore.save(ekEvent!, span: EKSpan.futureEvents)
                 result(ekEvent!.eventIdentifier)
@@ -224,8 +252,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     private func deleteEvent(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         checkPermissionsThenExecute(permissionsGrantedAction: {
             let arguments = call.arguments as! Dictionary<String, AnyObject>
-            let calendarId = arguments[self.calendarIdArgument] as! String
-            let eventId = arguments[self.eventIdArgument] as! String
+            let calendarId = arguments[calendarIdArgument] as! String
+            let eventId = arguments[eventIdArgument] as! String
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
