@@ -127,7 +127,7 @@ class DeviceCalendarPlugin {
     return res;
   }
 
-  /// Deletes an event from a calendar
+  /// Deletes an event from a calendar. For a recurring event, this will delete all instances of it
   ///
   /// The `calendarId` paramter is the id of the calendar that plugin will try to delete the event from
   /// The `eventId` parameter is the id of the event that plugin will try to delete

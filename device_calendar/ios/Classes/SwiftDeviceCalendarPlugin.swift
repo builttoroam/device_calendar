@@ -240,7 +240,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             }
             
             do {
-                try self.eventStore.save(ekEvent!, span: EKSpan.futureEvents)
+                try self.eventStore.save(ekEvent!, span: .futureEvents)
                 result(ekEvent!.eventIdentifier)
             } catch {
                 self.eventStore.reset()
@@ -272,7 +272,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             }
             
             do {
-                try self.eventStore.remove(ekEvent!, span: .thisEvent)
+                try self.eventStore.remove(ekEvent!, span: .futureEvents)
                 result(true)
             } catch {
                 self.eventStore.reset()
