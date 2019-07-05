@@ -403,10 +403,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             }
 
             val contentResolver: ContentResolver? = _context?.getContentResolver()
-            if (isRecurringEvent(eventIdNumber, contentResolver)) {
-                finishWithError(NOT_ALLOWED, DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE, pendingChannelResult)
-                return
-            }
 
             val eventsUriWithId = ContentUris.withAppendedId(Events.CONTENT_URI, eventIdNumber)
             val deleteSucceeded = contentResolver?.delete(eventsUriWithId, null, null) ?: 0
