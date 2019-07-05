@@ -205,7 +205,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
             val cursor: Cursor? = contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
 
-            val calendars: MutableList<Calendar> = mutableListOf<Calendar>()
+            val calendars: MutableList<Calendar> = mutableListOf()
 
             try {
                 while (cursor?.moveToNext() ?: false) {
@@ -536,36 +536,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             -> false
             else -> true
         }
-    }
-
-    private fun isRecurringEvent(eventId: Long, contentResolver: ContentResolver?): Boolean {
-        val eventProjection: Array<String> = arrayOf(
-                // There are a number of properties related to recurrence that
-                // we could check. The Android docs state: "For non-recurring events,
-                // you must include DTEND. For recurring events, you must include a
-                // DURATION in addition to RRULE or RDATE." The API will also throw
-                // an exception if you try to set both DTEND and DURATION on an
-                // event. Thus, it seems reasonable to trust that DURATION will
-                // only be present if the event is recurring.
-                //
-                Events.DURATION
-        )
-
-        var isRecurring = false
-        var cursor: Cursor? = null
-
-        try {
-            cursor = contentResolver?.query(ContentUris.withAppendedId(Events.CONTENT_URI, eventId), eventProjection, null, null, null)
-            if (cursor != null && cursor.moveToFirst()) {
-                isRecurring = !(cursor.getString(0)?.isNullOrEmpty() ?: true)
-            }
-        } catch (e: Exception) {
-            println(e)
-        } finally {
-            cursor?.close()
-        }
-
-        return isRecurring
     }
 
     @SuppressLint("MissingPermission")

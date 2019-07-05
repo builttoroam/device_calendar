@@ -55,8 +55,17 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _endDate = _event.end;
       _isRecurringEvent = _event.recurrenceRule != null;
       if(_isRecurringEvent) {
-        _totalOccurrences = _event.recurrenceRule.totalOccurrences;
         _interval = _event.recurrenceRule.interval;
+        _totalOccurrences = _event.recurrenceRule.totalOccurrences;
+        if(_totalOccurrences != null) {
+          _recurrenceRuleEndType = RecurrenceRuleEndType.MaxOccurrences;
+        }
+        if (_event.recurrenceRule.endDate != null) {
+          _recurrenceRuleEndType = RecurrenceRuleEndType.SpecifiedEndDate;
+          _recurrenceEndDate = _event.recurrenceRule.endDate;
+          _recurrenceEndTime = TimeOfDay.fromDateTime(_recurrenceEndDate);
+        }
+
       }
     }
 
@@ -229,6 +238,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             Padding(
                               padding: const EdgeInsets.all(10.0),
                               child: TextFormField(
+                                initialValue: _totalOccurrences?.toString(),
                                 decoration: const InputDecoration(
                                     labelText: 'Max occurrences',
                                     hintText: '1'),
