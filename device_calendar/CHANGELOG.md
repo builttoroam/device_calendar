@@ -1,3 +1,6 @@
+# 0.1.3 5th July 2019
+* [iOS] Fixes issue [94](https://github.com/builttoroam/flutter_plugins/issues/94) that occurred on 32-bit iOS devices around date of events. Thanks to the PR submitted by [duzenko](https://github.com/duzenko)
+
 # 0.1.2+2 28th May 2019
 * Non-functional release. Minor refactoring in Android code to address issues found in Codefactor and fix build status badge in README
 
