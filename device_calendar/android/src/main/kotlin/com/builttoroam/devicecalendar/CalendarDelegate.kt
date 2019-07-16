@@ -2,27 +2,15 @@ package com.builttoroam.devicecalendar
 
 import android.Manifest
 import android.annotation.SuppressLint
-import io.flutter.plugin.common.PluginRegistry
-import android.content.pm.PackageManager
 import android.app.Activity
-import android.content.*
+import android.content.ContentResolver
+import android.content.ContentUris
+import android.content.ContentValues
+import android.content.Context
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
-import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_FOUND
-import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
-import io.flutter.plugin.common.MethodChannel
-import com.google.gson.Gson
 import android.provider.CalendarContract.Events
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EMAIL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EVENT_ID_INDEX
@@ -30,29 +18,39 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_ID_IND
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ALL_DAY_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_BEGIN_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DURATION_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_END_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_EVENT_LOCATION_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_DATE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.GENERIC_ERROR
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_ALLOWED
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_AUTHORIZED
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_FOUND
 import com.builttoroam.devicecalendar.common.ErrorMessages
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
-import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.NOT_AUTHORIZED_MESSAGE
 import com.builttoroam.devicecalendar.common.RecurrenceFrequency
 import com.builttoroam.devicecalendar.models.*
 import com.builttoroam.devicecalendar.models.Calendar
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.PluginRegistry
 import org.dmfs.rfc5545.DateTime
 import org.dmfs.rfc5545.recur.Freq
-import java.lang.StringBuilder
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -347,11 +345,13 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             val contentResolver: ContentResolver? = _context?.getContentResolver()
             val values = ContentValues()
+            val duration: String? = null
             values.put(Events.DTSTART, event.start)
             values.put(Events.DTEND, event.end)
             values.put(Events.TITLE, event.title)
             values.put(Events.DESCRIPTION, event.description)
             values.put(Events.CALENDAR_ID, calendarId)
+            values.put(Events.DURATION, duration)
 
             // MK using current device time zone
             val calendar: java.util.Calendar = java.util.Calendar.getInstance()
@@ -464,8 +464,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val description = cursor.getString(EVENT_PROJECTION_DESCRIPTION_INDEX)
         val begin = cursor.getLong(EVENT_PROJECTION_BEGIN_INDEX)
         val end = cursor.getLong(EVENT_PROJECTION_END_INDEX)
-        val duration = cursor.getLong(EVENT_PROJECTION_DURATION_INDEX)
-        val recurringDate = cursor.getString(EVENT_PROJECTION_RECURRING_DATE_INDEX)
         val recurringRule = cursor.getString(EVENT_PROJECTION_RECURRING_RULE_INDEX)
         val allDay = cursor.getInt(EVENT_PROJECTION_ALL_DAY_INDEX) > 0
         val location = cursor.getString(EVENT_PROJECTION_EVENT_LOCATION_INDEX)
