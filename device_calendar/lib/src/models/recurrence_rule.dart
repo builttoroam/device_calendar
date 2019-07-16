@@ -3,8 +3,14 @@ import '../common/recurrence_frequency.dart';
 
 class RecurrenceRule {
   int totalOccurrences;
+
+  /// The interval between instances of a recurring event
   int interval;
+
+  /// The date a series of recurring events should end
   DateTime endDate;
+
+  /// The frequency of recurring events
   RecurrenceFrequency recurrenceFrequency;
   final String _totalOccurrencesKey = 'totalOccurrences';
   final String _recurrenceFrequencyKey = 'recurrenceFrequency';
