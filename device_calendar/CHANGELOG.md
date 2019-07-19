@@ -1,5 +1,5 @@
-# 0.2.0 19th July 2019
-* Add initial support for recurring events. Note that currently deleting a recurring event will delete all instances of it
+# 0.2.0 TBD
+* Add initial support for recurring events. Note that currently editing or deleting a recurring event will affect all instances of it
 * **BREAKING CHANGE** [Android] Updated to use Gradle plugin 3.4.2, Kotlin version to 1.3.41 and bumped Android dependencies
 
 # 0.1.3 5th July 2019
