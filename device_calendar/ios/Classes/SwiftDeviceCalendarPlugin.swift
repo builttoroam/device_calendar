@@ -55,6 +55,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let eventDescriptionArgument = "eventDescription"
     let eventStartDateArgument =  "eventStartDate"
     let eventEndDateArgument = "eventEndDate"
+    let eventLocation = "eventLocation"
+    let eventLocationCoordinate = "eventLocationCoordinate"
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
@@ -184,6 +186,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch.doubleValue / 1000.0)
             let title = arguments[self.eventTitleArgument] as! String
             let description = arguments[self.eventDescriptionArgument] as? String
+            var location = arguments[self.eventLocation] as? String;
+            
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
@@ -211,6 +215,24 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.startDate = startDate
             ekEvent!.endDate = endDate
             ekEvent!.calendar = ekCalendar!
+            if((location) != nil) {
+                ekEvent!.location = location
+            }
+        
+            let locationCoordinates = arguments[self.eventLocationCoordinate] as? String
+            let locationCoordinatesSplitted = locationCoordinates?.split(separator: ",");
+
+            if(locationCoordinatesSplitted?.count == 2) {
+                let clLocation = CLLocation(latitude: Double(locationCoordinatesSplitted![0].trimmingCharacters(in: .whitespacesAndNewlines)) as! CLLocationDegrees, longitude: Double(locationCoordinatesSplitted![1].trimmingCharacters(in: .whitespacesAndNewlines)) as! CLLocationDegrees)
+                let structuredLocation = EKStructuredLocation(title: location ?? "");
+                structuredLocation.geoLocation = clLocation;
+                if #available(iOS 9.0, *) {
+                    ekEvent!.structuredLocation = structuredLocation
+                } else {
+                    print("structuredLocation is only available >= iOS 9.0");
+                }
+            }
+
             do {
                 try self.eventStore.save(ekEvent!, span: EKSpan.futureEvents)
                 result(ekEvent!.eventIdentifier)
