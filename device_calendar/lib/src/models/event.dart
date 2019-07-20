@@ -26,6 +26,10 @@ class Event {
   /// The location of this event
   String location;
 
+  /// Coordinates separated by `,` to show a map inside the iOS Calendar.
+  /// E.g. `"52.5162778,13.3755154"`
+  String locationCoordinates;
+
   /// A list of attendees for this event
   List<Attendee> attendees;
 
