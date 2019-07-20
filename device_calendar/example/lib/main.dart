@@ -107,6 +107,8 @@ class MyHomePageState extends State<MyHomePage> {
                     "Event created with Device Calendar Plugin";
                 eventToCreate.start = now;
                 eventToCreate.end = now.add(new Duration(hours: 1));
+                eventToCreate.location = "Brandenburger Tor, Pariser Platz, Berlin";
+                eventToCreate.locationCoordinates = "52.5162778,13.3755154";
                 final createEventResult = await _deviceCalendarPlugin
                     .createOrUpdateEvent(eventToCreate);
                 if (createEventResult.isSuccess &&
