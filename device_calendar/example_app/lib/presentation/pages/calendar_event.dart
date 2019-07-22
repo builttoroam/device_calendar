@@ -203,6 +203,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           Padding(
                             padding: const EdgeInsets.all(10.0),
                             child: TextFormField(
+                              initialValue: _interval?.toString(),
                               decoration: const InputDecoration(
                                   labelText: 'Interval between events',
                                   hintText: '1'),
