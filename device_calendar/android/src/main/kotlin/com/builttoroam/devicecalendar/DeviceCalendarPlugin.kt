@@ -111,12 +111,15 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                     if(recurrenceRuleArgs.containsKey(TOTAL_OCCURRENCES_ARGUMENT)) {
                         recurrenceRule.totalOccurrences = recurrenceRuleArgs[TOTAL_OCCURRENCES_ARGUMENT] as Int
                     }
+
                     if(recurrenceRuleArgs.containsKey(INTERVAL_ARGUMENT)) {
                         recurrenceRule.interval = recurrenceRuleArgs[INTERVAL_ARGUMENT] as Int
                     }
+
                     if (recurrenceRuleArgs.containsKey(END_DATE_ARGUMENT)) {
                         recurrenceRule.endDate = recurrenceRuleArgs[END_DATE_ARGUMENT] as Long
                     }
+
                     event.recurrenceRule = recurrenceRule
                 }
 
