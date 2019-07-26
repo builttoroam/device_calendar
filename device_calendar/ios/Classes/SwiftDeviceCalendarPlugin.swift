@@ -28,7 +28,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     struct RecurrenceRule: Codable {
-        let recurrenceFrequency: Int64
+        let recurrenceFrequency: Int
         let totalOccurrences: Int?
         let interval: Int
         let endDate: Int64?
@@ -72,6 +72,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let recurrenceFrequencyArgument = "recurrenceFrequency"
     let totalOccurrencesArgument = "totalOccurrences"
     let intervalArgument = "interval"
+    let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
+
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
@@ -181,7 +183,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         var recurrenceRule: RecurrenceRule?
         if(ekEvent.hasRecurrenceRules) {
             let ekRecurrenceRule = ekEvent.recurrenceRules![0]
-            var frequency: Int64
+            var frequency: Int
             switch ekRecurrenceRule.frequency {
             case EKRecurrenceFrequency.daily:
                 frequency = 0
@@ -189,6 +191,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 frequency = 1
             case EKRecurrenceFrequency.monthly:
                 frequency = 2
+            case EKRecurrenceFrequency.yearly:
+                frequency = 3
             default:
                 frequency = 0
             }
@@ -268,7 +272,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 let interval = recurrenceRuleArguments![intervalArgument] as? NSInteger
                 var recurrenceInterval = 1
                 let endDate = recurrenceRuleArguments![endDateArgument] as? NSNumber
-                let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
                 let namedFrequency = validFrequencyTypes[recurrenceFrequencyIndex!]
                 
                 var recurrenceEnd:EKRecurrenceEnd?
