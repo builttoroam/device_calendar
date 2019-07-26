@@ -2,7 +2,12 @@ import Flutter
 import UIKit
 import EventKit
 
+extension Date {
+    var millisecondsSinceEpoch: Double { return self.timeIntervalSince1970 * 1000.0 }
+}
+
 public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
+    
     struct Calendar: Codable {
         let id: String
         let name: String
@@ -151,6 +156,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 if(ekEvent == nil) {
                     continue
                 }
+                
                 let event = createEventFromEkEvent(calendarId: calendarId, ekEvent: ekEvent!)
                 events.append(event)
             }
@@ -166,6 +172,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 if(ekParticipant.name == nil) {
                     continue
                 }
+                
                 let attendee = Attendee(name: ekParticipant.name!)
                 attendees.append(attendee)
             }
@@ -188,23 +195,25 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             
             var totalOccurrences: Int? = nil
             var endDate: Int64? = nil
-            if((ekRecurrenceRule.recurrenceEnd?.occurrenceCount) != nil) {
+            if(ekRecurrenceRule.recurrenceEnd?.occurrenceCount != nil) {
                 totalOccurrences = ekRecurrenceRule.recurrenceEnd?.occurrenceCount
             }
-            if((ekRecurrenceRule.recurrenceEnd?.endDate) != nil) {
-                let endDateMs = (ekRecurrenceRule.recurrenceEnd?.endDate?.timeIntervalSince1970)! * 1000
-                endDate = Int64(exactly: endDateMs)
+            
+            let endDateMs = ekRecurrenceRule.recurrenceEnd?.endDate?.millisecondsSinceEpoch
+            if(endDateMs != nil) {
+                endDate = Int64(exactly: endDateMs!)
             }
             
             recurrenceRule = RecurrenceRule(recurrenceFrequency: frequency, totalOccurrences: totalOccurrences, interval: ekRecurrenceRule.interval, endDate: endDate)
         }
+        
         let event = Event(
             eventId: ekEvent.eventIdentifier,
             calendarId: calendarId,
             title: ekEvent.title,
             description: ekEvent.notes,
-            start: Int64(ekEvent.startDate.timeIntervalSince1970) * 1000,
-            end: Int64(ekEvent.endDate.timeIntervalSince1970) * 1000,
+            start: Int64(ekEvent.startDate.millisecondsSinceEpoch),
+            end: Int64(ekEvent.endDate.millisecondsSinceEpoch),
             allDay: ekEvent.isAllDay,
             attendees: attendees,
             location: ekEvent.location,
@@ -272,6 +281,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 if(interval != nil && interval! > 1) {
                     recurrenceInterval = interval!
                 }
+                
                 ekEvent!.recurrenceRules = [EKRecurrenceRule(recurrenceWith: namedFrequency, interval: recurrenceInterval, end: recurrenceEnd)]
             } else {
                 ekEvent!.recurrenceRules = nil
