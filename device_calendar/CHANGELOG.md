@@ -1,6 +1,7 @@
-# 0.2.0 TBD
+# 0.2.0 30th July 2019
 * Add initial support for recurring events. Note that currently editing or deleting a recurring event will affect all instances of it
-* **BREAKING CHANGE** [Android] Updated to use Gradle plugin 3.4.2, Kotlin version to 1.3.41 and bumped Android dependencies
+* **BREAKING CHANGE** [Android] Updated to use Gradle plugin to 3.4.2, Gradle wrapper to 5.1.1, Kotlin version to 1.3.41 and bumped Android dependencies
+* Remove old example app to avoid confusion
 
 # 0.1.3 5th July 2019
 * [iOS] Fixes issue [94](https://github.com/builttoroam/flutter_plugins/issues/94) that occurred on 32-bit iOS devices around date of events. Thanks to the PR submitted by [duzenko](https://github.com/duzenko)
