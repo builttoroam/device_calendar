@@ -1,4 +1,7 @@
-# 0.2.1 30th July 2019
+# 0.2.1+1 5th August 2019
+* Fixing date in changelog for version 0.2.1
+
+# 0.2.1 5th August 2019
 * [Android] Fixes issue [101](https://github.com/builttoroam/flutter_plugins/issues/101) where plugin results in a crash with headless execution
 
 # 0.2.0 30th July 2019
