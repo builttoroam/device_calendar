@@ -55,7 +55,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         @JvmStatic
         fun registerWith(registrar: Registrar): Unit {
             val context: Context = registrar.context()
-            val activity: Activity = registrar.activity()
+            val activity: Activity? = registrar.activity()
 
             val calendarDelegate = CalendarDelegate(activity, context)
             val instance = DeviceCalendarPlugin(registrar, calendarDelegate)
