@@ -70,7 +70,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private var _context: Context? = null
     private var _gson: Gson? = null
 
-    constructor(activity: Activity, context: Context) {
+    constructor(activity: Activity?, context: Context) {
         _activity = activity
         _context = context
         var gsonBuilder = GsonBuilder()
