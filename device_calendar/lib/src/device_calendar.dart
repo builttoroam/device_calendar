@@ -163,7 +163,6 @@ class DeviceCalendarPlugin {
     final res = new Result<String>();
 
     if ((event?.calendarId?.isEmpty ?? true) ||
-        (event?.title?.isEmpty ?? true) ||
         event.start == null ||
         event.end == null ||
         event.start.isAfter(event.end)) {
