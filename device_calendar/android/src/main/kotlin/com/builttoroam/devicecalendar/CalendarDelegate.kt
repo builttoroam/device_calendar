@@ -385,7 +385,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
     fun deleteEvent(calendarId: String, eventId: String, pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
-            var existingCal = retrieveCalendar(calendarId, pendingChannelResult, true)
+            val existingCal = retrieveCalendar(calendarId, pendingChannelResult, true)
             if (existingCal == null) {
                 finishWithError(NOT_FOUND, "The calendar with the ID $calendarId could not be found", pendingChannelResult)
                 return
@@ -445,8 +445,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val calId = cursor.getLong(CALENDAR_PROJECTION_ID_INDEX)
         val displayName = cursor.getString(CALENDAR_PROJECTION_DISPLAY_NAME_INDEX)
         val accessLevel = cursor.getInt(CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX)
-        val accountName = cursor.getString(CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX)
-        val ownerName = cursor.getString(CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX)
 
         val calendar = Calendar(calId.toString(), displayName)
         calendar.isReadOnly = isCalendarReadOnly(accessLevel)
@@ -468,7 +466,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val allDay = cursor.getInt(EVENT_PROJECTION_ALL_DAY_INDEX) > 0
         val location = cursor.getString(EVENT_PROJECTION_EVENT_LOCATION_INDEX)
 
-        val event = Event(title)
+        val event = Event()
+        event.title = title
         event.eventId = eventId.toString()
         event.calendarId = calendarId
         event.description = description
@@ -484,15 +483,15 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if(recurrenceRuleString == null) {
             return null
         }
-        var rfcRecurrenceRule = org.dmfs.rfc5545.recur.RecurrenceRule(recurrenceRuleString!!)
-        var frequency = when(rfcRecurrenceRule.freq) {
+        val rfcRecurrenceRule = org.dmfs.rfc5545.recur.RecurrenceRule(recurrenceRuleString!!)
+        val frequency = when(rfcRecurrenceRule.freq) {
             Freq.YEARLY -> RecurrenceFrequency.YEARLY
             Freq.MONTHLY -> RecurrenceFrequency.MONTHLY
             Freq.WEEKLY -> RecurrenceFrequency.WEEKLY
             Freq.DAILY -> RecurrenceFrequency.DAILY
             else -> null
         }
-        var recurrenceRule = RecurrenceRule(frequency!!)
+        val recurrenceRule = RecurrenceRule(frequency!!)
         if(rfcRecurrenceRule.count != null) {
             recurrenceRule.totalOccurrences = rfcRecurrenceRule.count
         }

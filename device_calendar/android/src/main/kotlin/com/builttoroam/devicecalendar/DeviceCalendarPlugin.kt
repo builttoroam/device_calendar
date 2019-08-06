@@ -97,7 +97,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val eventStart = call.argument<Long>(EVENT_START_DATE_ARGUMENT)
                 val eventEnd = call.argument<Long>(EVENT_END_DATE_ARGUMENT)
 
-                val event = Event(eventTitle!!)
+                val event = Event()
+                event.title = eventTitle
                 event.calendarId = calendarId
                 event.eventId = eventId
                 event.description = eventDescription
