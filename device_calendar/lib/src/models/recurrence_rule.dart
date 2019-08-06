@@ -22,16 +22,17 @@ class RecurrenceRule {
     this.totalOccurrences,
     this.interval,
     this.endDate,
-  }) : assert(!(endDate != null && totalOccurrences != null), 'Cannot specify both an end date and total occurrences for a recurring event');
+  }) : assert(!(endDate != null && totalOccurrences != null),
+            'Cannot specify both an end date and total occurrences for a recurring event');
 
   RecurrenceRule.fromJson(Map<String, dynamic> json) {
     if (json == null) {
-      throw new ArgumentError(ErrorMessages.fromJsonMapIsNull);
+      throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
     int recurrenceFrequencyIndex = json[_recurrenceFrequencyKey];
     if (recurrenceFrequencyIndex == null &&
         recurrenceFrequencyIndex >= RecurrenceFrequency.values.length) {
-      throw new ArgumentError(ErrorMessages.invalidRecurrencyFrequency);
+      throw ArgumentError(ErrorMessages.invalidRecurrencyFrequency);
     }
 
     recurrenceFrequency = RecurrenceFrequency.values[recurrenceFrequencyIndex];
@@ -45,7 +46,7 @@ class RecurrenceRule {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     data[_recurrenceFrequencyKey] = recurrenceFrequency.index;
     if (interval != null) {
       data[_intervalKey] = interval;

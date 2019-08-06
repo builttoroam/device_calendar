@@ -9,14 +9,14 @@ class Attendee {
 
   Attendee.fromJson(Map<String, dynamic> json) {
     if (json == null) {
-      throw new ArgumentError(ErrorMessages.fromJsonMapIsNull);
+      throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
 
     name = json['name'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     data['name'] = this.name;
     return data;
   }

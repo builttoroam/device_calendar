@@ -16,7 +16,7 @@ class DeviceCalendarPlugin {
       const MethodChannel('plugins.builttoroam.com/device_calendar');
 
   static final DeviceCalendarPlugin _instance =
-      new DeviceCalendarPlugin._createInstance();
+      DeviceCalendarPlugin._createInstance();
 
   factory DeviceCalendarPlugin() {
     return _instance;
@@ -30,7 +30,7 @@ class DeviceCalendarPlugin {
   /// Returns a [Result] indicating if calendar READ and WRITE permissions
   /// have (true) or have not (false) been granted
   Future<Result<bool>> requestPermissions() async {
-    final res = new Result<bool>();
+    final res = Result<bool>();
 
     try {
       res.data = await channel.invokeMethod('requestPermissions');
@@ -46,7 +46,7 @@ class DeviceCalendarPlugin {
   /// Returns a [Result] indicating if calendar READ and WRITE permissions
   /// have (true) or have not (false) been granted
   Future<Result<bool>> hasPermissions() async {
-    final res = new Result<bool>();
+    final res = Result<bool>();
 
     try {
       res.data = await channel.invokeMethod('hasPermissions');
@@ -61,13 +61,13 @@ class DeviceCalendarPlugin {
   ///
   /// Returns a [Result] containing a list of device [Calendar]
   Future<Result<List<Calendar>>> retrieveCalendars() async {
-    final res = new Result<List<Calendar>>();
+    final res = Result<List<Calendar>>();
 
     try {
       var calendarsJson = await channel.invokeMethod('retrieveCalendars');
 
       res.data = json.decode(calendarsJson).map<Calendar>((decodedCalendar) {
-        return new Calendar.fromJson(decodedCalendar);
+        return Calendar.fromJson(decodedCalendar);
       }).toList();
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult<List<Calendar>>(e, res);
@@ -87,7 +87,7 @@ class DeviceCalendarPlugin {
   /// into the specified parameters
   Future<Result<List<Event>>> retrieveEvents(
       String calendarId, RetrieveEventsParams retrieveEventsParams) async {
-    final res = new Result<List<Event>>();
+    final res = Result<List<Event>>();
 
     if ((calendarId?.isEmpty ?? true)) {
       res.errorMessages.add(
@@ -117,7 +117,7 @@ class DeviceCalendarPlugin {
         });
 
         res.data = json.decode(eventsJson).map<Event>((decodedEvent) {
-          return new Event.fromJson(decodedEvent);
+          return Event.fromJson(decodedEvent);
         }).toList();
       } catch (e) {
         _parsePlatformExceptionAndUpdateResult<List<Event>>(e, res);
@@ -134,7 +134,7 @@ class DeviceCalendarPlugin {
   ///
   /// Returns a [Result] indicating if the event has (true) or has not (false) been deleted from the calendar
   Future<Result<bool>> deleteEvent(String calendarId, String eventId) async {
-    final res = new Result<bool>();
+    final res = Result<bool>();
 
     if ((calendarId?.isEmpty ?? true) || (eventId?.isEmpty ?? true)) {
       res.errorMessages.add(
@@ -160,7 +160,7 @@ class DeviceCalendarPlugin {
   ///
   /// Returns a [Result] with the newly created or updated [Event.eventId]
   Future<Result<String>> createOrUpdateEvent(Event event) async {
-    final res = new Result<String>();
+    final res = Result<String>();
 
     if ((event?.calendarId?.isEmpty ?? true) ||
         event.start == null ||

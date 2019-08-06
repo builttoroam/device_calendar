@@ -13,7 +13,7 @@ class CalendarEventsPage extends StatefulWidget {
 
   @override
   _CalendarEventsPageState createState() {
-    return new _CalendarEventsPageState(_calendar);
+    return _CalendarEventsPageState(_calendar);
   }
 }
 
@@ -26,7 +26,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   bool _isLoading = true;
 
   _CalendarEventsPageState(this._calendar) {
-    _deviceCalendarPlugin = new DeviceCalendarPlugin();
+    _deviceCalendarPlugin = DeviceCalendarPlugin();
   }
 
   @override
@@ -39,16 +39,16 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   Widget build(BuildContext context) {
     final hasAnyEvents = _calendarEvents?.isNotEmpty ?? false;
     Widget body = hasAnyEvents
-        ? new Stack(
+        ? Stack(
             children: <Widget>[
-              new Column(
+              Column(
                 children: <Widget>[
-                  new Expanded(
+                  Expanded(
                     flex: 1,
-                    child: new ListView.builder(
+                    child: ListView.builder(
                       itemCount: _calendarEvents?.length ?? 0,
                       itemBuilder: (BuildContext context, int index) {
-                        return new EventItem(
+                        return EventItem(
                             _calendarEvents[index],
                             _deviceCalendarPlugin,
                             _onLoading,
@@ -59,33 +59,32 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
                   )
                 ],
               ),
-              new Offstage(
+              Offstage(
                   offstage: !_isLoading,
-                  child: new Container(
-                      decoration: new BoxDecoration(
-                          color: new Color.fromARGB(155, 192, 192, 192)),
-                      child:
-                          new Center(child: new CircularProgressIndicator())))
+                  child: Container(
+                      decoration: BoxDecoration(
+                          color: Color.fromARGB(155, 192, 192, 192)),
+                      child: Center(child: CircularProgressIndicator())))
             ],
           )
-        : new Center(child: new Text('No events found'));
-    return new Scaffold(
-      appBar: new AppBar(title: new Text('${_calendar.name} events')),
-      body: new Builder(builder: (BuildContext context) {
+        : Center(child: Text('No events found'));
+    return Scaffold(
+      appBar: AppBar(title: Text('${_calendar.name} events')),
+      body: Builder(builder: (BuildContext context) {
         _scaffoldContext = context;
         return body;
       }),
-      floatingActionButton: new FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final refreshEvents = await Navigator.push(context,
-              new MaterialPageRoute(builder: (BuildContext context) {
-            return new CalendarEventPage(_calendar);
+              MaterialPageRoute(builder: (BuildContext context) {
+            return CalendarEventPage(_calendar);
           }));
           if (refreshEvents == true) {
             _retrieveCalendarEvents();
           }
         },
-        child: new Icon(Icons.add),
+        child: Icon(Icons.add),
       ),
     );
   }
@@ -100,11 +99,11 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
     if (deleteSucceeded) {
       await _retrieveCalendarEvents();
     } else {
-      Scaffold.of(_scaffoldContext).showSnackBar(new SnackBar(
-            content: new Text('Oops, we ran into an issue deleting the event'),
-            backgroundColor: Colors.red,
-            duration: new Duration(seconds: 5),
-          ));
+      Scaffold.of(_scaffoldContext).showSnackBar(SnackBar(
+        content: Text('Oops, we ran into an issue deleting the event'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 5),
+      ));
       setState(() {
         _isLoading = false;
       });
@@ -113,8 +112,8 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
 
   Future _onTapped(Event event) async {
     final refreshEvents = await Navigator.push(context,
-        new MaterialPageRoute(builder: (BuildContext context) {
-      return new CalendarEventPage(_calendar, event);
+        MaterialPageRoute(builder: (BuildContext context) {
+      return CalendarEventPage(_calendar, event);
     }));
     if (refreshEvents != null && refreshEvents) {
       _retrieveCalendarEvents();
@@ -122,11 +121,11 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   }
 
   Future _retrieveCalendarEvents() async {
-    final startDate = new DateTime.now().add(new Duration(days: -30));
-    final endDate = new DateTime.now().add(new Duration(days: 30));
+    final startDate = DateTime.now().add(Duration(days: -30));
+    final endDate = DateTime.now().add(Duration(days: 30));
     var calendarEventsResult = await _deviceCalendarPlugin.retrieveEvents(
         _calendar.id,
-        new RetrieveEventsParams(startDate: startDate, endDate: endDate));
+        RetrieveEventsParams(startDate: startDate, endDate: endDate));
     setState(() {
       _calendarEvents = calendarEventsResult?.data;
       _isLoading = false;
