@@ -20,10 +20,8 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJEC
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ALL_DAY_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_BEGIN_INDEX
@@ -33,6 +31,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTIO
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
+import com.builttoroam.devicecalendar.common.DayOfWeek
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.GENERIC_ERROR
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_ALLOWED
@@ -50,6 +49,7 @@ import com.google.gson.GsonBuilder
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.PluginRegistry
 import org.dmfs.rfc5545.DateTime
+import org.dmfs.rfc5545.Weekday
 import org.dmfs.rfc5545.recur.Freq
 import java.text.SimpleDateFormat
 import java.util.*
@@ -480,11 +480,11 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     }
 
     private fun parseRecurrenceRuleString(recurrenceRuleString: String?): RecurrenceRule? {
-        if(recurrenceRuleString == null) {
+        if (recurrenceRuleString == null) {
             return null
         }
         val rfcRecurrenceRule = org.dmfs.rfc5545.recur.RecurrenceRule(recurrenceRuleString!!)
-        val frequency = when(rfcRecurrenceRule.freq) {
+        val frequency = when (rfcRecurrenceRule.freq) {
             Freq.YEARLY -> RecurrenceFrequency.YEARLY
             Freq.MONTHLY -> RecurrenceFrequency.MONTHLY
             Freq.WEEKLY -> RecurrenceFrequency.WEEKLY
@@ -492,14 +492,19 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             else -> null
         }
         val recurrenceRule = RecurrenceRule(frequency!!)
-        if(rfcRecurrenceRule.count != null) {
+        if (rfcRecurrenceRule.count != null) {
             recurrenceRule.totalOccurrences = rfcRecurrenceRule.count
         }
-        if(rfcRecurrenceRule.interval != null) {
-            recurrenceRule.interval = rfcRecurrenceRule.interval
-        }
-        if(rfcRecurrenceRule.until != null) {
+        recurrenceRule.interval = rfcRecurrenceRule.interval
+        if (rfcRecurrenceRule.until != null) {
             recurrenceRule.endDate = rfcRecurrenceRule.until.timestamp
+        }
+
+        rfcRecurrenceRule.byDayPart?.forEach { weekdayNum ->
+            val dayOfWeek = DayOfWeek.values().find { dayOfWeek ->  dayOfWeek.ordinal == weekdayNum.weekday.ordinal }
+            if(dayOfWeek != null) {
+                recurrenceRule.daysOfWeek.add(dayOfWeek)
+            }
         }
         return recurrenceRule
     }
@@ -615,6 +620,18 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if(recurrenceRule.interval != null) {
             rr.interval = recurrenceRule.interval!!
         }
+
+        if (recurrenceRule.daysOfWeek.isNotEmpty()) {
+            rr.byDayPart = mutableListOf()
+            for (dayOfWeek in recurrenceRule.daysOfWeek) {
+                val dayOfWeekCode = Weekday.values().find {
+                    it.ordinal == dayOfWeek.ordinal
+                } ?: continue
+
+                rr.byDayPart.add(org.dmfs.rfc5545.recur.RecurrenceRule.WeekdayNum(0, dayOfWeekCode))
+            }
+        }
+
         if(recurrenceRule.totalOccurrences != null) {
             rr.count = recurrenceRule.totalOccurrences!!
         } else if(recurrenceRule.endDate != null) {

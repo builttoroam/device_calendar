@@ -1,5 +1,6 @@
 library device_calendar;
 
+export 'src/common/day_of_week.dart';
 export 'src/common/recurrence_frequency.dart';
 export 'src/models/attendee.dart';
 export 'src/models/calendar.dart';
