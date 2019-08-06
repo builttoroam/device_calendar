@@ -54,11 +54,11 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _startDate = _event.start;
       _endDate = _event.end;
       _isRecurringEvent = _event.recurrenceRule != null;
-      if(_isRecurringEvent) {
+      if (_isRecurringEvent) {
         _interval = _event.recurrenceRule.interval;
         _totalOccurrences = _event.recurrenceRule.totalOccurrences;
         _recurrenceFrequency = _event.recurrenceRule.recurrenceFrequency;
-        if(_totalOccurrences != null) {
+        if (_totalOccurrences != null) {
           _recurrenceRuleEndType = RecurrenceRuleEndType.MaxOccurrences;
         }
         if (_event.recurrenceRule.endDate != null) {
@@ -66,15 +66,14 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           _recurrenceEndDate = _event.recurrenceRule.endDate;
           _recurrenceEndTime = TimeOfDay.fromDateTime(_recurrenceEndDate);
         }
-
       }
     }
 
     _startTime = TimeOfDay(hour: _startDate.hour, minute: _startDate.minute);
     _endTime = TimeOfDay(hour: _endDate.hour, minute: _endDate.minute);
-    if(_recurrenceEndDate != null) {
-    _recurrenceEndTime = TimeOfDay(
-        hour: _recurrenceEndDate.hour, minute: _recurrenceEndDate.minute);
+    if (_recurrenceEndDate != null) {
+      _recurrenceEndTime = TimeOfDay(
+          hour: _recurrenceEndDate.hour, minute: _recurrenceEndDate.minute);
     }
   }
 
@@ -84,7 +83,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         key: _scaffoldKey,
         appBar: AppBar(
           title: Text(_event.eventId?.isEmpty ?? true
-              ? 'Create new event'
+              ? 'Create  event'
               : 'Edit event ${_event.title}'),
         ),
         body: SingleChildScrollView(
@@ -194,9 +193,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               items: RecurrenceFrequency.values
                                   .map(
                                     (f) => DropdownMenuItem(
-                                          value: f,
-                                          child: _recurrenceFrequencyToText(f),
-                                        ),
+                                      value: f,
+                                      child: _recurrenceFrequencyToText(f),
+                                    ),
                                   )
                                   .toList(),
                             ),
@@ -227,10 +226,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               items: RecurrenceRuleEndType.values
                                   .map(
                                     (f) => DropdownMenuItem(
-                                          value: f,
-                                          child:
-                                              _recurrenceRuleEndTypeToText(f),
-                                        ),
+                                      value: f,
+                                      child: _recurrenceRuleEndTypeToText(f),
+                                    ),
                                   )
                                   .toList(),
                             ),
@@ -291,8 +289,11 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                 _event.recurrenceRule = RecurrenceRule(_recurrenceFrequency,
                     interval: _interval,
                     totalOccurrences: _totalOccurrences,
-                    endDate: _recurrenceRuleEndType == RecurrenceRuleEndType.SpecifiedEndDate ? _combineDateWithTime(
-                        _recurrenceEndDate, _recurrenceEndTime) : null);
+                    endDate: _recurrenceRuleEndType ==
+                            RecurrenceRuleEndType.SpecifiedEndDate
+                        ? _combineDateWithTime(
+                            _recurrenceEndDate, _recurrenceEndTime)
+                        : null);
               }
               var createEventResult =
                   await _deviceCalendarPlugin.createOrUpdateEvent(_event);

@@ -17,91 +17,91 @@ class EventItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
+    return GestureDetector(
       onTap: () {
         _onTapped(_calendarEvent);
       },
-      child: new Card(
-        child: new Column(
+      child: Card(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            new Padding(
+            Padding(
               padding: const EdgeInsets.symmetric(vertical: 10.0),
-              child: new FlutterLogo(),
+              child: FlutterLogo(),
             ),
-            new ListTile(
-                title: new Text(_calendarEvent.title ?? ''),
-                subtitle: new Text(_calendarEvent.description ?? '')),
-            new Container(
-              padding: new EdgeInsets.symmetric(horizontal: 16.0),
-              child: new Column(
+            ListTile(
+                title: Text(_calendarEvent.title ?? ''),
+                subtitle: Text(_calendarEvent.description ?? '')),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
                 children: <Widget>[
-                  new Align(
+                  Align(
                     alignment: Alignment.topLeft,
-                    child: new Row(
+                    child: Row(
                       children: <Widget>[
-                        new Container(
+                        Container(
                           width: _eventFieldNameWidth,
-                          child: new Text('Starts'),
+                          child: Text('Starts'),
                         ),
-                        new Text(_calendarEvent == null
+                        Text(_calendarEvent == null
                             ? ''
-                            : new DateFormat.yMd()
+                            : DateFormat.yMd()
                                 .add_jm()
                                 .format(_calendarEvent.start)),
                       ],
                     ),
                   ),
-                  new Padding(
-                    padding: new EdgeInsets.symmetric(vertical: 5.0),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 5.0),
                   ),
-                  new Align(
+                  Align(
                     alignment: Alignment.topLeft,
-                    child: new Row(
+                    child: Row(
                       children: <Widget>[
-                        new Container(
+                        Container(
                           width: _eventFieldNameWidth,
-                          child: new Text('Ends'),
+                          child: Text('Ends'),
                         ),
-                        new Text(_calendarEvent.end == null
+                        Text(_calendarEvent.end == null
                             ? ''
-                            : new DateFormat.yMd()
+                            : DateFormat.yMd()
                                 .add_jm()
                                 .format(_calendarEvent.end)),
                       ],
                     ),
                   ),
-                  new SizedBox(
+                  SizedBox(
                     height: 10.0,
                   ),
-                  new Align(
+                  Align(
                     alignment: Alignment.topLeft,
-                    child: new Row(
+                    child: Row(
                       children: <Widget>[
-                        new Container(
+                        Container(
                           width: _eventFieldNameWidth,
-                          child: new Text('All day?'),
+                          child: Text('All day?'),
                         ),
-                        new Text(_calendarEvent.allDay != null &&
+                        Text(_calendarEvent.allDay != null &&
                                 _calendarEvent.allDay
                             ? 'Yes'
                             : 'No')
                       ],
                     ),
                   ),
-                  new SizedBox(
+                  SizedBox(
                     height: 10.0,
                   ),
-                  new Align(
+                  Align(
                     alignment: Alignment.topLeft,
-                    child: new Row(
+                    child: Row(
                       children: <Widget>[
-                        new Container(
+                        Container(
                           width: _eventFieldNameWidth,
-                          child: new Text('Location'),
+                          child: Text('Location'),
                         ),
-                        new Expanded(
-                          child: new Text(
+                        Expanded(
+                          child: Text(
                             _calendarEvent?.location ?? '',
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -109,19 +109,19 @@ class EventItem extends StatelessWidget {
                       ],
                     ),
                   ),
-                  new SizedBox(
+                  SizedBox(
                     height: 10.0,
                   ),
-                  new Align(
+                  Align(
                     alignment: Alignment.topLeft,
-                    child: new Row(
+                    child: Row(
                       children: <Widget>[
-                        new Container(
+                        Container(
                           width: _eventFieldNameWidth,
-                          child: new Text('Attendees'),
+                          child: Text('Attendees'),
                         ),
-                        new Expanded(
-                          child: new Text(
+                        Expanded(
+                          child: Text(
                             _calendarEvent?.attendees
                                     ?.where((a) => a.name?.isNotEmpty ?? false)
                                     ?.map((a) => a.name)
@@ -136,32 +136,32 @@ class EventItem extends StatelessWidget {
                 ],
               ),
             ),
-            new ButtonTheme.bar(
-                child: new ButtonBar(
+            ButtonTheme.bar(
+                child: ButtonBar(
               children: <Widget>[
-                new IconButton(
+                IconButton(
                   onPressed: () {
                     _onTapped(_calendarEvent);
                   },
-                  icon: new Icon(Icons.edit),
+                  icon: Icon(Icons.edit),
                 ),
-                new IconButton(
+                IconButton(
                   onPressed: () async {
                     await showDialog<Null>(
                         context: context,
                         barrierDismissible: false,
                         builder: (BuildContext context) {
-                          return new AlertDialog(
-                            title: new Text(
+                          return AlertDialog(
+                            title: Text(
                                 'Are you sure you want to delete this event?'),
                             actions: <Widget>[
-                              new FlatButton(
+                              FlatButton(
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
-                                child: new Text('Cancel'),
+                                child: Text('Cancel'),
                               ),
-                              new FlatButton(
+                              FlatButton(
                                 onPressed: () async {
                                   Navigator.of(context).pop();
                                   _onLoadingStarted();
@@ -172,13 +172,13 @@ class EventItem extends StatelessWidget {
                                   _onDeleteFinished(deleteResult.isSuccess &&
                                       deleteResult.data);
                                 },
-                                child: new Text('Ok'),
+                                child: Text('Ok'),
                               ),
                             ],
                           );
                         });
                   },
-                  icon: new Icon(Icons.delete),
+                  icon: Icon(Icons.delete),
                 ),
               ],
             ))

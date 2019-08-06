@@ -25,8 +25,8 @@ class DateTimePicker extends StatelessWidget {
     final DateTime picked = await showDatePicker(
         context: context,
         initialDate: selectedDate,
-        firstDate: new DateTime(2015, 8),
-        lastDate: new DateTime(2101));
+        firstDate: DateTime(2015, 8),
+        lastDate: DateTime(2101));
     if (picked != null && picked != selectedDate) selectDate(picked);
   }
 
@@ -39,14 +39,16 @@ class DateTimePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextStyle valueStyle = Theme.of(context).textTheme.title;
-    return new Row(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
-        new Expanded(
+        Expanded(
           flex: 4,
-          child: new InputDropdown(
+          child: InputDropdown(
             labelText: labelText,
-            valueText: selectedDate == null ? '': new DateFormat.yMMMd().format(selectedDate),
+            valueText: selectedDate == null
+                ? ''
+                : DateFormat.yMMMd().format(selectedDate),
             valueStyle: valueStyle,
             onPressed: () {
               _selectDate(context);
@@ -54,9 +56,9 @@ class DateTimePicker extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12.0),
-        new Expanded(
+        Expanded(
           flex: 3,
-          child: new InputDropdown(
+          child: InputDropdown(
             valueText: selectedTime?.format(context) ?? '',
             valueStyle: valueStyle,
             onPressed: () {

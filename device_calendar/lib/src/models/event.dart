@@ -44,7 +44,7 @@ class Event {
 
   Event.fromJson(Map<String, dynamic> json) {
     if (json == null) {
-      throw new ArgumentError(ErrorMessages.fromJsonMapIsNull);
+      throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
 
     eventId = json['eventId'];
@@ -53,18 +53,17 @@ class Event {
     description = json['description'];
     int startMillisecondsSinceEpoch = json['start'];
     if (startMillisecondsSinceEpoch != null) {
-      start =
-          new DateTime.fromMillisecondsSinceEpoch(startMillisecondsSinceEpoch);
+      start = DateTime.fromMillisecondsSinceEpoch(startMillisecondsSinceEpoch);
     }
     int endMillisecondsSinceEpoch = json['end'];
     if (endMillisecondsSinceEpoch != null) {
-      end = new DateTime.fromMillisecondsSinceEpoch(endMillisecondsSinceEpoch);
+      end = DateTime.fromMillisecondsSinceEpoch(endMillisecondsSinceEpoch);
     }
     allDay = json['allDay'];
     location = json['location'];
     if (json['attendees'] != null) {
       attendees = json['attendees'].map<Attendee>((decodedAttendee) {
-        return new Attendee.fromJson(decodedAttendee);
+        return Attendee.fromJson(decodedAttendee);
       }).toList();
     }
     if (json['recurrenceRule'] != null) {
@@ -73,7 +72,7 @@ class Event {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     data['eventId'] = this.eventId;
     data['calendarId'] = this.calendarId;
     data['title'] = this.title;
@@ -83,7 +82,7 @@ class Event {
     data['allDay'] = this.allDay;
     data['location'] = this.location;
     if (attendees != null) {
-      List<Map<String, dynamic>> attendeesJson = new List();
+      List<Map<String, dynamic>> attendeesJson = List();
       for (var attendee in attendees) {
         var attendeeJson = attendee.toJson();
         attendeesJson.add(attendeeJson);

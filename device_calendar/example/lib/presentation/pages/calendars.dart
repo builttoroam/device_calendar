@@ -7,7 +7,7 @@ import 'calendar_events.dart';
 class CalendarsPage extends StatefulWidget {
   @override
   _CalendarsPageState createState() {
-    return new _CalendarsPageState();
+    return _CalendarsPageState();
   }
 }
 
@@ -16,7 +16,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
   List<Calendar> _calendars;
 
   _CalendarsPageState() {
-    _deviceCalendarPlugin = new DeviceCalendarPlugin();
+    _deviceCalendarPlugin = DeviceCalendarPlugin();
   }
 
   @override
@@ -27,36 +27,36 @@ class _CalendarsPageState extends State<CalendarsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text('Calendars'),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Calendars'),
       ),
-      body: new Column(
+      body: Column(
         children: <Widget>[
-          new Expanded(
+          Expanded(
             flex: 1,
-            child: new ListView.builder(
+            child: ListView.builder(
               itemCount: _calendars?.length ?? 0,
               itemBuilder: (BuildContext context, int index) {
-                return new GestureDetector(
+                return GestureDetector(
                     onTap: () async {
-                      await Navigator.push(context, new MaterialPageRoute(
-                          builder: (BuildContext context) {
-                        return new CalendarEventsPage(_calendars[index]);
+                      await Navigator.push(context,
+                          MaterialPageRoute(builder: (BuildContext context) {
+                        return CalendarEventsPage(_calendars[index]);
                       }));
                     },
-                    child: new Padding(
+                    child: Padding(
                         padding: const EdgeInsets.all(10.0),
-                        child: new Row(
+                        child: Row(
                           children: <Widget>[
-                            new Expanded(
+                            Expanded(
                               flex: 1,
-                              child: new Text(
+                              child: Text(
                                 _calendars[index].name,
-                                style: new TextStyle(fontSize: 25.0),
+                                style: TextStyle(fontSize: 25.0),
                               ),
                             ),
-                            new Icon(_calendars[index].isReadOnly
+                            Icon(_calendars[index].isReadOnly
                                 ? Icons.lock
                                 : Icons.lock_open)
                           ],
