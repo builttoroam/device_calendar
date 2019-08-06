@@ -1,3 +1,5 @@
+import 'package:device_calendar/src/common/day_of_week.dart';
+
 import '../common/error_messages.dart';
 import '../common/recurrence_frequency.dart';
 
@@ -12,16 +14,21 @@ class RecurrenceRule {
 
   /// The frequency of recurring events
   RecurrenceFrequency recurrenceFrequency;
+
+  List<DayOfWeek> daysOfWeek;
+
   final String _totalOccurrencesKey = 'totalOccurrences';
   final String _recurrenceFrequencyKey = 'recurrenceFrequency';
   final String _intervalKey = 'interval';
   final String _endDateKey = 'endDate';
+  final String _daysOfWeekKey = 'daysOfWeek';
 
   RecurrenceRule(
     this.recurrenceFrequency, {
     this.totalOccurrences,
     this.interval,
     this.endDate,
+    this.daysOfWeek,
   }) : assert(!(endDate != null && totalOccurrences != null),
             'Cannot specify both an end date and total occurrences for a recurring event');
 
@@ -43,6 +50,11 @@ class RecurrenceRule {
       endDate =
           DateTime.fromMillisecondsSinceEpoch(endDateMillisecondsSinceEpoch);
     }
+    /*List<int> daysOfWeekIndices = json[_daysOfWeekKey];
+    if (daysOfWeekIndices != null) {
+      daysOfWeek =
+          daysOfWeekIndices.map((index) => DayOfWeek.values[index]).toList();
+    }*/
   }
 
   Map<String, dynamic> toJson() {
@@ -55,7 +67,10 @@ class RecurrenceRule {
       data[_totalOccurrencesKey] = totalOccurrences;
     }
     if (endDate != null) {
-      data[_endDateKey] = endDate?.millisecondsSinceEpoch;
+      data[_endDateKey] = endDate.millisecondsSinceEpoch;
+    }
+    if (daysOfWeek != null) {
+      data[_daysOfWeekKey] = daysOfWeek.map((d) => d.index).toList();
     }
     return data;
   }

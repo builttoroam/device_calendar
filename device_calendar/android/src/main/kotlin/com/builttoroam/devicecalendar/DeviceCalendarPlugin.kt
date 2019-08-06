@@ -2,6 +2,7 @@ package com.builttoroam.devicecalendar
 
 import android.app.Activity
 import android.content.Context
+import com.builttoroam.devicecalendar.common.DayOfWeek
 import com.builttoroam.devicecalendar.common.RecurrenceFrequency
 import com.builttoroam.devicecalendar.models.Event
 import com.builttoroam.devicecalendar.models.RecurrenceRule
@@ -44,6 +45,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val TOTAL_OCCURRENCES_ARGUMENT = "totalOccurrences"
     private val INTERVAL_ARGUMENT = "interval"
     private val END_DATE_ARGUMENT = "endDate"
+    private val DAYS_OF_WEEK_ARGUMENT = "daysOfWeek"
 
 
     private constructor(registrar: Registrar, calendarDelegate: CalendarDelegate) : this() {
@@ -70,7 +72,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         }
     }
 
-    override fun onMethodCall(call: MethodCall, result: Result): Unit {
+    override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             REQUEST_PERMISSIONS_METHOD -> {
                 _calendarDelegate.requestPermissions(result)
@@ -119,6 +121,13 @@ class DeviceCalendarPlugin() : MethodCallHandler {
 
                     if (recurrenceRuleArgs.containsKey(END_DATE_ARGUMENT)) {
                         recurrenceRule.endDate = recurrenceRuleArgs[END_DATE_ARGUMENT] as Long
+                    }
+
+                    if (recurrenceRuleArgs.containsKey(DAYS_OF_WEEK_ARGUMENT)) {
+                        val daysOfWeek = recurrenceRuleArgs[DAYS_OF_WEEK_ARGUMENT] as List<Int>
+                        for (dayOfWeek in daysOfWeek) {
+                            recurrenceRule.daysOfWeek.add(DayOfWeek.values()[dayOfWeek])
+                        }
                     }
 
                     event.recurrenceRule = recurrenceRule
