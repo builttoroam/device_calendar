@@ -289,7 +289,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                 _recurrenceFrequency,
                 interval: _interval,
                 totalOccurrences: _totalOccurrences,
-                daysOfWeek: [DayOfWeek.Monday],
                 endDate: _recurrenceRuleEndType ==
                         RecurrenceRuleEndType.SpecifiedEndDate
                     ? _combineDateWithTime(
