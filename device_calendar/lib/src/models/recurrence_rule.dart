@@ -50,11 +50,13 @@ class RecurrenceRule {
       endDate =
           DateTime.fromMillisecondsSinceEpoch(endDateMillisecondsSinceEpoch);
     }
-    /*List<int> daysOfWeekIndices = json[_daysOfWeekKey];
-    if (daysOfWeekIndices != null) {
-      daysOfWeek =
-          daysOfWeekIndices.map((index) => DayOfWeek.values[index]).toList();
-    }*/
+    List<Object> daysOfWeekIndices = json[_daysOfWeekKey];
+    if (daysOfWeekIndices != null && daysOfWeekIndices is! List<int>) {
+      daysOfWeek = daysOfWeekIndices
+          .cast<int>()
+          .map((index) => DayOfWeek.values[index])
+          .toList();
+    }
   }
 
   Map<String, dynamic> toJson() {

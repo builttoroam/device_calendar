@@ -73,8 +73,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     constructor(activity: Activity?, context: Context) {
         _activity = activity
         _context = context
-        var gsonBuilder = GsonBuilder()
+        val gsonBuilder = GsonBuilder()
         gsonBuilder.registerTypeAdapter(RecurrenceFrequency::class.java, RecurrenceFrequencySerializer())
+        gsonBuilder.registerTypeAdapter(DayOfWeek::class.java, DayOfWeekSerializer())
         _gson = gsonBuilder.create()
     }
 
