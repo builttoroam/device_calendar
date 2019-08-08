@@ -337,14 +337,14 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   }
 
   String _validateTotalOccurrences(String value) {
-    if (!value.isEmpty && int.tryParse(value) == null) {
+    if (value.isNotEmpty && int.tryParse(value) == null) {
       return 'Total occurrences needs to be a valid number';
     }
     return null;
   }
 
   String _validateInterval(String value) {
-    if (!value.isEmpty && int.tryParse(value) == null) {
+    if (value.isNotEmpty && int.tryParse(value) == null) {
       return 'Interval needs to be a valid number';
     }
     return null;
