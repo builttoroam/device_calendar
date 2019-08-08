@@ -36,6 +36,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   bool _isRecurringEvent = false;
   RecurrenceRuleEndType _recurrenceRuleEndType;
 
+  List<DayOfWeek> _daysOfWeek = List<DayOfWeek>();
+
   int _totalOccurrences;
   int _interval;
   DateTime _recurrenceEndDate;
@@ -66,6 +68,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           _recurrenceEndDate = _event.recurrenceRule.endDate;
           _recurrenceEndTime = TimeOfDay.fromDateTime(_recurrenceEndDate);
         }
+        _daysOfWeek = _event.recurrenceRule.daysOfWeek;
       }
     }
 
@@ -83,7 +86,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(_event.eventId?.isEmpty ?? true
-            ? 'Create  event'
+            ? 'Create event'
             : 'Edit event ${_event.title}'),
       ),
       body: SingleChildScrollView(
@@ -233,6 +236,28 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 .toList(),
                           ),
                         ),
+                        ListTile(
+                          leading: Text('Days of week'),
+                        ),
+                        ...DayOfWeek.values.map(
+                          (d) {
+                            return CheckboxListTile(
+                              title: _dayOfWeekToText(d),
+                              value: _daysOfWeek?.any((dow) => dow == d),
+                              onChanged: (selected) {
+                                setState(
+                                  () {
+                                    if (selected) {
+                                      _daysOfWeek.add(d);
+                                    } else {
+                                      _daysOfWeek.remove(d);
+                                    }
+                                  },
+                                );
+                              },
+                            );
+                          },
+                        ),
                         if (_recurrenceRuleEndType ==
                             RecurrenceRuleEndType.MaxOccurrences)
                           Padding(
@@ -294,6 +319,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     ? _combineDateWithTime(
                         _recurrenceEndDate, _recurrenceEndTime)
                     : null,
+                daysOfWeek: _daysOfWeek,
               );
             }
             var createEventResult =
@@ -308,6 +334,25 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         child: Icon(Icons.check),
       ),
     );
+  }
+
+  Text _dayOfWeekToText(DayOfWeek dayOfWeek) {
+    switch (dayOfWeek) {
+      case DayOfWeek.Sunday:
+        return Text('Sunday');
+      case DayOfWeek.Monday:
+        return Text('Monday');
+      case DayOfWeek.Tuesday:
+        return Text('Tuesday');
+      case DayOfWeek.Wednesday:
+        return Text('Wednesday');
+      case DayOfWeek.Thursday:
+        return Text('Thursday');
+      case DayOfWeek.Friday:
+        return Text('Friday');
+      default:
+        return Text('');
+    }
   }
 
   Text _recurrenceFrequencyToText(RecurrenceFrequency recurrenceFrequency) {
