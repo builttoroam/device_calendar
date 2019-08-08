@@ -32,6 +32,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let totalOccurrences: Int?
         let interval: Int
         let endDate: Int64?
+        let daysOfWeek: [Int]?
     }
     
     struct Attendee: Codable {
@@ -72,6 +73,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let recurrenceFrequencyArgument = "recurrenceFrequency"
     let totalOccurrencesArgument = "totalOccurrences"
     let intervalArgument = "interval"
+    let daysOfWeekArgument = "daysOfWeek"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
 
     
@@ -178,8 +180,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 let attendee = Attendee(name: ekParticipant.name!)
                 attendees.append(attendee)
             }
-            
         }
+        
         var recurrenceRule: RecurrenceRule?
         if(ekEvent.hasRecurrenceRules) {
             let ekRecurrenceRule = ekEvent.recurrenceRules![0]
@@ -208,7 +210,14 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 endDate = Int64(exactly: endDateMs!)
             }
             
-            recurrenceRule = RecurrenceRule(recurrenceFrequency: frequency, totalOccurrences: totalOccurrences, interval: ekRecurrenceRule.interval, endDate: endDate)
+            var daysOfWeek: [Int]? = nil
+            if(ekRecurrenceRule.daysOfTheWeek != nil) {
+                daysOfWeek = []
+                for dayOfWeek in ekRecurrenceRule.daysOfTheWeek! {
+                    daysOfWeek!.append(dayOfWeek.dayOfTheWeek.rawValue - 1)
+                }
+            }
+            recurrenceRule = RecurrenceRule(recurrenceFrequency: frequency, totalOccurrences: totalOccurrences, interval: ekRecurrenceRule.interval, endDate: endDate, daysOfWeek: daysOfWeek)
         }
         
         let event = Event(
@@ -224,6 +233,44 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             recurrenceRule: recurrenceRule
         )
         return event
+    }
+    
+    private func createRecurrenceRule(_ arguments: [String : AnyObject], _ ekEvent: EKEvent?) {
+        let recurrenceRuleArguments = arguments[recurrenceRuleArgument] as? Dictionary<String, AnyObject>
+        if (recurrenceRuleArguments != nil) {
+            let recurrenceFrequencyIndex = recurrenceRuleArguments![recurrenceFrequencyArgument] as? NSInteger
+            let totalOccurrences = recurrenceRuleArguments![totalOccurrencesArgument] as? NSInteger
+            let interval = recurrenceRuleArguments![intervalArgument] as? NSInteger
+            var recurrenceInterval = 1
+            let endDate = recurrenceRuleArguments![endDateArgument] as? NSNumber
+            let namedFrequency = validFrequencyTypes[recurrenceFrequencyIndex!]
+            
+            var recurrenceEnd:EKRecurrenceEnd?
+            if(endDate != nil) {
+                recurrenceEnd = EKRecurrenceEnd(end: Date.init(timeIntervalSince1970: endDate!.doubleValue / 1000))
+            } else if(totalOccurrences != nil && totalOccurrences! > 0) {
+                recurrenceEnd = EKRecurrenceEnd(occurrenceCount: totalOccurrences!)
+            }
+            
+            if(interval != nil && interval! > 1) {
+                recurrenceInterval = interval!
+            }
+            
+            let daysOfWeekIndices = recurrenceRuleArguments![daysOfWeekArgument] as? Array<Int>
+            var daysOfWeek : [EKRecurrenceDayOfWeek]? = nil
+            
+            if(daysOfWeekIndices != nil) {
+                daysOfWeek = []
+                for dayOfWeekIndex in daysOfWeekIndices! {
+                    daysOfWeek!.append(EKRecurrenceDayOfWeek.init(EKWeekday.init(rawValue: dayOfWeekIndex + 1)!))
+                }
+            }
+            
+           ekEvent!.recurrenceRules = [EKRecurrenceRule(recurrenceWith: namedFrequency, interval: recurrenceInterval, daysOfTheWeek: daysOfWeek, daysOfTheMonth: nil, monthsOfTheYear: nil, weeksOfTheYear: nil, daysOfTheYear: nil, setPositions: nil, end: recurrenceEnd)]
+            //ekEvent!.recurrenceRules = [EKRecurrenceRule(recurrenceWith: namedFrequency, interval: recurrenceInterval, end: recurrenceEnd)]
+        } else {
+            ekEvent!.recurrenceRules = nil
+        }
     }
     
     private func createOrUpdateEvent(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
@@ -265,30 +312,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.endDate = endDate
             ekEvent!.calendar = ekCalendar!
             
-            let recurrenceRuleArguments = arguments[recurrenceRuleArgument] as? Dictionary<String, AnyObject>
-            if (recurrenceRuleArguments != nil) {
-                let recurrenceFrequencyIndex = recurrenceRuleArguments![recurrenceFrequencyArgument] as? NSInteger
-                let totalOccurrences = recurrenceRuleArguments![totalOccurrencesArgument] as? NSInteger
-                let interval = recurrenceRuleArguments![intervalArgument] as? NSInteger
-                var recurrenceInterval = 1
-                let endDate = recurrenceRuleArguments![endDateArgument] as? NSNumber
-                let namedFrequency = validFrequencyTypes[recurrenceFrequencyIndex!]
-                
-                var recurrenceEnd:EKRecurrenceEnd?
-                if(endDate != nil) {
-                    recurrenceEnd = EKRecurrenceEnd(end: Date.init(timeIntervalSince1970: endDate!.doubleValue / 1000))
-                } else if(totalOccurrences != nil && totalOccurrences! > 0) {
-                    recurrenceEnd = EKRecurrenceEnd(occurrenceCount: totalOccurrences!)
-                }
-                
-                if(interval != nil && interval! > 1) {
-                    recurrenceInterval = interval!
-                }
-                
-                ekEvent!.recurrenceRules = [EKRecurrenceRule(recurrenceWith: namedFrequency, interval: recurrenceInterval, end: recurrenceEnd)]
-            } else {
-                ekEvent!.recurrenceRules = nil
-            }
+            createRecurrenceRule(arguments, ekEvent)
             
             do {
                 try self.eventStore.save(ekEvent!, span: .futureEvents)

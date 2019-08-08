@@ -94,7 +94,7 @@ class DeviceCalendarPlugin {
           "[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidMissingCalendarId}");
     }
 
-    // TODO: Extend capability to handle null start or null end (eg all events after a certain date (null end date) or all events prior to a certain date (null start date))
+    // TODO: Extend capability to handle null start or null end (e.g. all events after a certain date (null end date) or all events prior to a certain date (null start date))
     if ((retrieveEventsParams?.eventIds?.isEmpty ?? true) &&
         ((retrieveEventsParams?.startDate == null ||
                 retrieveEventsParams?.endDate == null) ||
