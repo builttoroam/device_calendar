@@ -32,7 +32,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let totalOccurrences: Int?
         let interval: Int
         let endDate: Int64?
-        let daysOfWeek: [Int]?
+        let daysOfTheWeek: [Int]?
     }
     
     struct Attendee: Codable {
@@ -73,7 +73,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let recurrenceFrequencyArgument = "recurrenceFrequency"
     let totalOccurrencesArgument = "totalOccurrences"
     let intervalArgument = "interval"
-    let daysOfWeekArgument = "daysOfWeek"
+    let daysOfTheWeekArgument = "daysOfTheWeek"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
 
     
@@ -234,7 +234,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                     daysOfWeek!.append(dayOfWeek.dayOfTheWeek.rawValue - 1)
                 }
             }
-            recurrenceRule = RecurrenceRule(recurrenceFrequency: frequency, totalOccurrences: totalOccurrences, interval: ekRecurrenceRule.interval, endDate: endDate, daysOfWeek: daysOfWeek)
+            recurrenceRule = RecurrenceRule(recurrenceFrequency: frequency, totalOccurrences: totalOccurrences, interval: ekRecurrenceRule.interval, endDate: endDate, daysOfTheWeek: daysOfWeek)
         }
         return recurrenceRule
     }
@@ -263,7 +263,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             recurrenceInterval = interval!
         }
         
-        let daysOfWeekIndices = recurrenceRuleArguments![daysOfWeekArgument] as? Array<Int>
+        let daysOfWeekIndices = recurrenceRuleArguments![daysOfTheWeekArgument] as? Array<Int>
         var daysOfWeek : [EKRecurrenceDayOfWeek]? = nil
         
         if(daysOfWeekIndices != nil) {

@@ -45,7 +45,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val TOTAL_OCCURRENCES_ARGUMENT = "totalOccurrences"
     private val INTERVAL_ARGUMENT = "interval"
     private val END_DATE_ARGUMENT = "endDate"
-    private val DAYS_OF_WEEK_ARGUMENT = "daysOfWeek"
+    private val DAYS_OF_THE_WEEK_ARGUMENT = "daysOfTheWeek"
 
 
     private constructor(registrar: Registrar, calendarDelegate: CalendarDelegate) : this() {
@@ -55,7 +55,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
 
     companion object {
         @JvmStatic
-        fun registerWith(registrar: Registrar): Unit {
+        fun registerWith(registrar: Registrar) {
             val context: Context = registrar.context()
             val activity: Activity? = registrar.activity()
 
@@ -123,10 +123,10 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                         recurrenceRule.endDate = recurrenceRuleArgs[END_DATE_ARGUMENT] as Long
                     }
 
-                    if (recurrenceRuleArgs.containsKey(DAYS_OF_WEEK_ARGUMENT)) {
-                        val daysOfWeek = recurrenceRuleArgs[DAYS_OF_WEEK_ARGUMENT] as List<Int>
+                    if (recurrenceRuleArgs.containsKey(DAYS_OF_THE_WEEK_ARGUMENT)) {
+                        val daysOfWeek = recurrenceRuleArgs[DAYS_OF_THE_WEEK_ARGUMENT] as List<Int>
                         for (dayOfWeek in daysOfWeek) {
-                            recurrenceRule.daysOfWeek.add(DayOfWeek.values()[dayOfWeek])
+                            recurrenceRule.daysOfTheWeek.add(DayOfWeek.values()[dayOfWeek])
                         }
                     }
 

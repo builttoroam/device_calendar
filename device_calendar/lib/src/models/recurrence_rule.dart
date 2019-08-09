@@ -15,20 +15,20 @@ class RecurrenceRule {
   /// The frequency of recurring events
   RecurrenceFrequency recurrenceFrequency;
 
-  List<DayOfWeek> daysOfWeek;
+  List<DayOfWeek> daysOfTheWeek;
 
   final String _totalOccurrencesKey = 'totalOccurrences';
   final String _recurrenceFrequencyKey = 'recurrenceFrequency';
   final String _intervalKey = 'interval';
   final String _endDateKey = 'endDate';
-  final String _daysOfWeekKey = 'daysOfWeek';
+  final String _daysOfTheWeekKey = 'daysOfTheWeek';
 
   RecurrenceRule(
     this.recurrenceFrequency, {
     this.totalOccurrences,
     this.interval,
     this.endDate,
-    this.daysOfWeek,
+    this.daysOfTheWeek,
   }) : assert(!(endDate != null && totalOccurrences != null),
             'Cannot specify both an end date and total occurrences for a recurring event');
 
@@ -50,9 +50,9 @@ class RecurrenceRule {
       endDate =
           DateTime.fromMillisecondsSinceEpoch(endDateMillisecondsSinceEpoch);
     }
-    List<Object> daysOfWeekIndices = json[_daysOfWeekKey];
+    List<Object> daysOfWeekIndices = json[_daysOfTheWeekKey];
     if (daysOfWeekIndices != null && daysOfWeekIndices is! List<int>) {
-      daysOfWeek = daysOfWeekIndices
+      daysOfTheWeek = daysOfWeekIndices
           .cast<int>()
           .map((index) => DayOfWeek.values[index])
           .toList();
@@ -71,8 +71,8 @@ class RecurrenceRule {
     if (endDate != null) {
       data[_endDateKey] = endDate.millisecondsSinceEpoch;
     }
-    if (daysOfWeek != null) {
-      data[_daysOfWeekKey] = daysOfWeek.map((d) => d.index).toList();
+    if (daysOfTheWeek != null) {
+      data[_daysOfTheWeekKey] = daysOfTheWeek.map((d) => d.index).toList();
     }
     return data;
   }
