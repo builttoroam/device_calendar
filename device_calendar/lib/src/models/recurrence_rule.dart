@@ -15,29 +15,42 @@ class RecurrenceRule {
   /// The frequency of recurring events
   RecurrenceFrequency recurrenceFrequency;
 
-  /// The days of the week associated with the recurring event should
+  /// The days of the week that this event occurs on. Only applicable to rules with a weekly, monthly or yearly frequency
   List<DayOfWeek> daysOfTheWeek;
+
+  /// The days of the month that this event occurs on. Only applicable to recurrence rules with a monthly frequency
+  List<int> daysOfTheMonth;
 
   final String _totalOccurrencesKey = 'totalOccurrences';
   final String _recurrenceFrequencyKey = 'recurrenceFrequency';
   final String _intervalKey = 'interval';
   final String _endDateKey = 'endDate';
   final String _daysOfTheWeekKey = 'daysOfTheWeek';
+  final String _daysOfTheMonthKey = 'daysOfTheMonth';
 
-  RecurrenceRule(
-    this.recurrenceFrequency, {
-    this.totalOccurrences,
-    this.interval,
-    this.endDate,
-    this.daysOfTheWeek,
-  })  : assert(!(endDate != null && totalOccurrences != null),
+  RecurrenceRule(this.recurrenceFrequency,
+      {this.totalOccurrences,
+      this.interval,
+      this.endDate,
+      this.daysOfTheWeek,
+      this.daysOfTheMonth})
+      : assert(!(endDate != null && totalOccurrences != null),
             'Cannot specify both an end date and total occurrences for a recurring event'),
         assert(
-            daysOfTheWeek.isNotEmpty &&
-                (recurrenceFrequency == RecurrenceFrequency.Weekly ||
-                    recurrenceFrequency == RecurrenceFrequency.Monthly &&
-                        recurrenceFrequency == RecurrenceFrequency.Yearly),
-            'Days of the week can only be specified for recurrence rules with a weekly, monthly or yearly frequency');
+            (daysOfTheWeek?.isEmpty ?? true) ||
+                ((daysOfTheWeek?.isNotEmpty ?? false) &&
+                    (recurrenceFrequency == RecurrenceFrequency.Daily)),
+            'Days of the week can only be specified for recurrence rules with a weekly, monthly or yearly frequency'),
+        assert(
+            (daysOfTheMonth?.isEmpty ?? true) ||
+                ((daysOfTheMonth?.isNotEmpty ?? false) &&
+                    recurrenceFrequency == RecurrenceFrequency.Monthly),
+            'Days of the month can only be specified for recurrence rules with a monthly frequency'),
+        assert(
+            (daysOfTheMonth?.isEmpty ?? true) ||
+                ((daysOfTheMonth?.isNotEmpty ?? false) &&
+                    daysOfTheMonth.any((d) => d >= 1 || d <= 31)),
+            'Days of the month must be between 1 and 31 inclusive');
 
   RecurrenceRule.fromJson(Map<String, dynamic> json) {
     if (json == null) {
@@ -57,12 +70,16 @@ class RecurrenceRule {
       endDate =
           DateTime.fromMillisecondsSinceEpoch(endDateMillisecondsSinceEpoch);
     }
-    List<Object> daysOfWeekIndices = json[_daysOfTheWeekKey];
-    if (daysOfWeekIndices != null && daysOfWeekIndices is! List<int>) {
-      daysOfTheWeek = daysOfWeekIndices
+    List<Object> daysOfTheWeekIndices = json[_daysOfTheWeekKey];
+    if (daysOfTheWeekIndices != null && daysOfTheWeekIndices is! List<int>) {
+      daysOfTheWeek = daysOfTheWeekIndices
           .cast<int>()
           .map((index) => DayOfWeek.values[index])
           .toList();
+    }
+    List<Object> daysOfTheMonthObj = json[_daysOfTheMonthKey];
+    if (daysOfTheMonthObj != null && daysOfTheMonthObj is! List<int>) {
+      daysOfTheMonth = daysOfTheMonthObj.cast<int>().toList();
     }
   }
 
@@ -80,6 +97,9 @@ class RecurrenceRule {
     }
     if (daysOfTheWeek != null) {
       data[_daysOfTheWeekKey] = daysOfTheWeek.map((d) => d.index).toList();
+    }
+    if (daysOfTheMonth != null) {
+      data[_daysOfTheMonthKey] = daysOfTheMonth;
     }
     return data;
   }
