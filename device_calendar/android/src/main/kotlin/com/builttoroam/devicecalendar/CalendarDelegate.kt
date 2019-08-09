@@ -504,7 +504,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         rfcRecurrenceRule.byDayPart?.forEach { weekdayNum ->
             val dayOfWeek = DayOfWeek.values().find { dayOfWeek ->  dayOfWeek.ordinal == weekdayNum.weekday.ordinal }
             if(dayOfWeek != null) {
-                recurrenceRule.daysOfWeek.add(dayOfWeek)
+                recurrenceRule.daysOfTheWeek.add(dayOfWeek)
             }
         }
         return recurrenceRule
@@ -622,9 +622,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             rr.interval = recurrenceRule.interval!!
         }
 
-        if (recurrenceRule.daysOfWeek.isNotEmpty()) {
+        if (recurrenceRule.daysOfTheWeek.isNotEmpty()) {
             rr.byDayPart = mutableListOf()
-            for (dayOfWeek in recurrenceRule.daysOfWeek) {
+            for (dayOfWeek in recurrenceRule.daysOfTheWeek) {
                 val dayOfWeekCode = Weekday.values().find {
                     it.ordinal == dayOfWeek.ordinal
                 } ?: continue

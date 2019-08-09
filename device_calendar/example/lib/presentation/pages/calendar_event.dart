@@ -36,7 +36,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   bool _isRecurringEvent = false;
   RecurrenceRuleEndType _recurrenceRuleEndType;
 
-  List<DayOfWeek> _daysOfWeek = List<DayOfWeek>();
+  List<DayOfWeek> _daysOfTheWeek = List<DayOfWeek>();
 
   int _totalOccurrences;
   int _interval;
@@ -68,7 +68,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           _recurrenceEndDate = _event.recurrenceRule.endDate;
           _recurrenceEndTime = TimeOfDay.fromDateTime(_recurrenceEndDate);
         }
-        _daysOfWeek = _event.recurrenceRule.daysOfWeek;
+        _daysOfTheWeek = _event.recurrenceRule.daysOfTheWeek;
       }
     }
 
@@ -243,14 +243,15 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           (d) {
                             return CheckboxListTile(
                               title: _dayOfWeekToText(d),
-                              value: _daysOfWeek?.any((dow) => dow == d),
+                              value: _daysOfTheWeek?.any((dow) => dow == d) ??
+                                  false,
                               onChanged: (selected) {
                                 setState(
                                   () {
                                     if (selected) {
-                                      _daysOfWeek.add(d);
+                                      _daysOfTheWeek.add(d);
                                     } else {
-                                      _daysOfWeek.remove(d);
+                                      _daysOfTheWeek.remove(d);
                                     }
                                   },
                                 );
@@ -319,7 +320,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     ? _combineDateWithTime(
                         _recurrenceEndDate, _recurrenceEndTime)
                     : null,
-                daysOfWeek: _daysOfWeek,
+                daysOfTheWeek: _daysOfTheWeek,
               );
             }
             var createEventResult =
