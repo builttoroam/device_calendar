@@ -15,6 +15,7 @@ class RecurrenceRule {
   /// The frequency of recurring events
   RecurrenceFrequency recurrenceFrequency;
 
+  /// The days of the week associated with the recurring event should
   List<DayOfWeek> daysOfTheWeek;
 
   final String _totalOccurrencesKey = 'totalOccurrences';
@@ -29,8 +30,14 @@ class RecurrenceRule {
     this.interval,
     this.endDate,
     this.daysOfTheWeek,
-  }) : assert(!(endDate != null && totalOccurrences != null),
-            'Cannot specify both an end date and total occurrences for a recurring event');
+  })  : assert(!(endDate != null && totalOccurrences != null),
+            'Cannot specify both an end date and total occurrences for a recurring event'),
+        assert(
+            daysOfTheWeek.isNotEmpty &&
+                (recurrenceFrequency == RecurrenceFrequency.Weekly ||
+                    recurrenceFrequency == RecurrenceFrequency.Monthly &&
+                        recurrenceFrequency == RecurrenceFrequency.Yearly),
+            'Days of the week can only be specified for recurrence rules with a weekly, monthly or yearly frequency');
 
   RecurrenceRule.fromJson(Map<String, dynamic> json) {
     if (json == null) {
