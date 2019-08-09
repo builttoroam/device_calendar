@@ -218,25 +218,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           ),
                         ),
                         ListTile(
-                          leading: Text('Event ends'),
-                          trailing: DropdownButton<RecurrenceRuleEndType>(
-                            onChanged: (value) {
-                              setState(() {
-                                _recurrenceRuleEndType = value;
-                              });
-                            },
-                            value: _recurrenceRuleEndType,
-                            items: RecurrenceRuleEndType.values
-                                .map(
-                                  (f) => DropdownMenuItem(
-                                    value: f,
-                                    child: _recurrenceRuleEndTypeToText(f),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ),
-                        ListTile(
                           leading: Text('Days of week'),
                         ),
                         ...DayOfWeek.values.map(
@@ -258,6 +239,25 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               },
                             );
                           },
+                        ),
+                        ListTile(
+                          leading: Text('Event ends'),
+                          trailing: DropdownButton<RecurrenceRuleEndType>(
+                            onChanged: (value) {
+                              setState(() {
+                                _recurrenceRuleEndType = value;
+                              });
+                            },
+                            value: _recurrenceRuleEndType,
+                            items: RecurrenceRuleEndType.values
+                                .map(
+                                  (f) => DropdownMenuItem(
+                                    value: f,
+                                    child: _recurrenceRuleEndTypeToText(f),
+                                  ),
+                                )
+                                .toList(),
+                          ),
                         ),
                         if (_recurrenceRuleEndType ==
                             RecurrenceRuleEndType.MaxOccurrences)
