@@ -40,6 +40,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   List<DayOfTheWeek> _daysOfTheWeek = List<DayOfTheWeek>();
   List<int> _daysOfTheMonth = List<int>();
   List<int> _validDaysOfTheMonth = List<int>();
+  List<int> _monthsOfTheYear = List<int>();
+  List<int> _validMonthsOfTheYear = List<int>();
   int _totalOccurrences;
   int _interval;
   DateTime _recurrenceEndDate;
@@ -51,6 +53,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
     for (var i = 1; i <= 31; i++) {
       _validDaysOfTheMonth.add(i);
+    }
+    for (var i = 1; i <= 12; i++) {
+      _validMonthsOfTheYear.add(i);
     }
     if (this._event == null) {
       _startDate = DateTime.now();
@@ -75,6 +80,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         }
         _daysOfTheWeek = _event.recurrenceRule.daysOfTheWeek;
         _daysOfTheMonth = _event.recurrenceRule.daysOfTheMonth;
+        _monthsOfTheYear = _event.recurrenceRule.monthsOfTheYear;
       }
     }
 
@@ -246,6 +252,35 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                       : _daysOfTheMonth[0],
                                   items: _validDaysOfTheMonth
                                       .map(
+                                        (d) => DropdownMenuItem(
+                                          value: d,
+                                          child: Text(
+                                            d.toString(),
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        if (_recurrenceFrequency == RecurrenceFrequency.Yearly)
+                          Column(
+                            children: [
+                              ListTile(
+                                leading: Text('Months of the year'),
+                                trailing: DropdownButton<int>(
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _monthsOfTheYear.clear();
+                                      _monthsOfTheYear.add(value);
+                                    });
+                                  },
+                                  value: _monthsOfTheYear.isEmpty
+                                      ? null
+                                      : _monthsOfTheYear[0],
+                                  items: _validMonthsOfTheYear
+                                      .map(
                                         (m) => DropdownMenuItem(
                                           value: m,
                                           child: Text(
@@ -338,7 +373,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           _recurrenceEndDate, _recurrenceEndTime)
                       : null,
                   daysOfTheWeek: _daysOfTheWeek,
-                  daysOfTheMonth: _daysOfTheMonth);
+                  daysOfTheMonth: _daysOfTheMonth,
+                  monthsOfTheYear: _monthsOfTheYear);
             }
             var createEventResult =
                 await _deviceCalendarPlugin.createOrUpdateEvent(_event);
