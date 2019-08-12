@@ -1,4 +1,5 @@
 import 'package:device_calendar/device_calendar.dart';
+import 'package:device_calendar_example/presentation/widgets/days_of_the_week_form_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -36,8 +37,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   bool _isRecurringEvent = false;
   RecurrenceRuleEndType _recurrenceRuleEndType;
 
-  List<DayOfWeek> _daysOfTheWeek = List<DayOfWeek>();
-
+  List<DayOfTheWeek> _daysOfTheWeek = List<DayOfTheWeek>();
+  List<int> _daysOfTheMonth = List<int>();
+  List<int> _validDaysOfTheMonth = List<int>();
   int _totalOccurrences;
   int _interval;
   DateTime _recurrenceEndDate;
@@ -47,6 +49,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   _CalendarEventPageState(this._calendar, this._event) {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
+    for (var i = 1; i <= 31; i++) {
+      _validDaysOfTheMonth.add(i);
+    }
     if (this._event == null) {
       _startDate = DateTime.now();
       _endDate = DateTime.now().add(Duration(hours: 1));
@@ -69,6 +74,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           _recurrenceEndTime = TimeOfDay.fromDateTime(_recurrenceEndDate);
         }
         _daysOfTheWeek = _event.recurrenceRule.daysOfTheWeek;
+        _daysOfTheMonth = _event.recurrenceRule.daysOfTheMonth;
       }
     }
 
@@ -217,29 +223,41 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             },
                           ),
                         ),
-                        ListTile(
-                          leading: Text('Days of week'),
-                        ),
-                        ...DayOfWeek.values.map(
-                          (d) {
-                            return CheckboxListTile(
-                              title: _dayOfWeekToText(d),
-                              value: _daysOfTheWeek?.any((dow) => dow == d) ??
-                                  false,
-                              onChanged: (selected) {
-                                setState(
-                                  () {
-                                    if (selected) {
-                                      _daysOfTheWeek.add(d);
-                                    } else {
-                                      _daysOfTheWeek.remove(d);
-                                    }
+                        if (_recurrenceFrequency ==
+                                RecurrenceFrequency.Weekly ||
+                            _recurrenceFrequency ==
+                                RecurrenceFrequency.Monthly ||
+                            _recurrenceFrequency == RecurrenceFrequency.Yearly)
+                          DaysOfTheWeekFormEntry(daysOfTheWeek: _daysOfTheWeek),
+                        if (_recurrenceFrequency == RecurrenceFrequency.Monthly)
+                          Column(
+                            children: [
+                              ListTile(
+                                leading: Text('Days of the month'),
+                                trailing: DropdownButton<int>(
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _daysOfTheMonth.clear();
+                                      _daysOfTheMonth.add(value);
+                                    });
                                   },
-                                );
-                              },
-                            );
-                          },
-                        ),
+                                  value: _daysOfTheMonth.isEmpty
+                                      ? null
+                                      : _daysOfTheMonth[0],
+                                  items: _validDaysOfTheMonth
+                                      .map(
+                                        (m) => DropdownMenuItem(
+                                          value: m,
+                                          child: Text(
+                                            m.toString(),
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
+                              ),
+                            ],
+                          ),
                         ListTile(
                           leading: Text('Event ends'),
                           trailing: DropdownButton<RecurrenceRuleEndType>(
@@ -311,17 +329,16 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           } else {
             form.save();
             if (_isRecurringEvent) {
-              _event.recurrenceRule = RecurrenceRule(
-                _recurrenceFrequency,
-                interval: _interval,
-                totalOccurrences: _totalOccurrences,
-                endDate: _recurrenceRuleEndType ==
-                        RecurrenceRuleEndType.SpecifiedEndDate
-                    ? _combineDateWithTime(
-                        _recurrenceEndDate, _recurrenceEndTime)
-                    : null,
-                daysOfTheWeek: _daysOfTheWeek,
-              );
+              _event.recurrenceRule = RecurrenceRule(_recurrenceFrequency,
+                  interval: _interval,
+                  totalOccurrences: _totalOccurrences,
+                  endDate: _recurrenceRuleEndType ==
+                          RecurrenceRuleEndType.SpecifiedEndDate
+                      ? _combineDateWithTime(
+                          _recurrenceEndDate, _recurrenceEndTime)
+                      : null,
+                  daysOfTheWeek: _daysOfTheWeek,
+                  daysOfTheMonth: _daysOfTheMonth);
             }
             var createEventResult =
                 await _deviceCalendarPlugin.createOrUpdateEvent(_event);
@@ -335,25 +352,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         child: Icon(Icons.check),
       ),
     );
-  }
-
-  Text _dayOfWeekToText(DayOfWeek dayOfWeek) {
-    switch (dayOfWeek) {
-      case DayOfWeek.Sunday:
-        return Text('Sunday');
-      case DayOfWeek.Monday:
-        return Text('Monday');
-      case DayOfWeek.Tuesday:
-        return Text('Tuesday');
-      case DayOfWeek.Wednesday:
-        return Text('Wednesday');
-      case DayOfWeek.Thursday:
-        return Text('Thursday');
-      case DayOfWeek.Friday:
-        return Text('Friday');
-      default:
-        return Text('');
-    }
   }
 
   Text _recurrenceFrequencyToText(RecurrenceFrequency recurrenceFrequency) {

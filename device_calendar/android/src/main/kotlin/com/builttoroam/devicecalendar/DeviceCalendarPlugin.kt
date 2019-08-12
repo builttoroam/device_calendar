@@ -46,6 +46,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val INTERVAL_ARGUMENT = "interval"
     private val END_DATE_ARGUMENT = "endDate"
     private val DAYS_OF_THE_WEEK_ARGUMENT = "daysOfTheWeek"
+    private val DAYS_OF_THE_MONTH_ARGUMENT = "daysOfTheMonth"
 
 
     private constructor(registrar: Registrar, calendarDelegate: CalendarDelegate) : this() {
@@ -128,6 +129,10 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                         for (dayOfWeek in daysOfWeek) {
                             recurrenceRule.daysOfTheWeek.add(DayOfWeek.values()[dayOfWeek])
                         }
+                    }
+
+                    if(recurrenceRuleArgs.containsKey(DAYS_OF_THE_MONTH_ARGUMENT)) {
+                        recurrenceRule.daysOfTheMonth.addAll(recurrenceRuleArgs[DAYS_OF_THE_MONTH_ARGUMENT] as List<Int>)
                     }
 
                     event.recurrenceRule = recurrenceRule
