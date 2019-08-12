@@ -9,6 +9,6 @@ class DayOfWeekSerializer: JsonSerializer<DayOfWeek> {
         if(src != null) {
             return JsonPrimitive(src.ordinal)
         }
-        return JsonObject()//To change body of created functions use File | Settings | File Templates.
+        return JsonObject()
     }
 }

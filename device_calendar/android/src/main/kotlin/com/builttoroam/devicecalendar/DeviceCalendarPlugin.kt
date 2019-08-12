@@ -47,6 +47,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val END_DATE_ARGUMENT = "endDate"
     private val DAYS_OF_THE_WEEK_ARGUMENT = "daysOfTheWeek"
     private val DAYS_OF_THE_MONTH_ARGUMENT = "daysOfTheMonth"
+    private val MONTHS_OF_THE_YEAR_ARGUMENT = "monthsOfTheYear"
 
 
     private constructor(registrar: Registrar, calendarDelegate: CalendarDelegate) : this() {
@@ -73,6 +74,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         }
     }
 
+
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             REQUEST_PERMISSIONS_METHOD -> {
@@ -94,49 +96,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             }
             CREATE_OR_UPDATE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
-                val eventId = call.argument<String>(EVENT_ID_ARGUMENT)
-                val eventTitle = call.argument<String>(EVENT_TITLE_ARGUMENT)
-                val eventDescription = call.argument<String>(EVENT_DESCRIPTION_ARGUMENT)
-                val eventStart = call.argument<Long>(EVENT_START_DATE_ARGUMENT)
-                val eventEnd = call.argument<Long>(EVENT_END_DATE_ARGUMENT)
-
-                val event = Event()
-                event.title = eventTitle
-                event.calendarId = calendarId
-                event.eventId = eventId
-                event.description = eventDescription
-                event.start = eventStart!!
-                event.end = eventEnd!!
-
-                if(call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
-                    val recurrenceRuleArgs = call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT)!!
-                    val recurrenceFrequencyIndex = recurrenceRuleArgs[RECURRENCE_FREQUENCY_ARGUMENT] as Int
-                    val recurrenceRule = RecurrenceRule(RecurrenceFrequency.values()[recurrenceFrequencyIndex])
-                    if(recurrenceRuleArgs.containsKey(TOTAL_OCCURRENCES_ARGUMENT)) {
-                        recurrenceRule.totalOccurrences = recurrenceRuleArgs[TOTAL_OCCURRENCES_ARGUMENT] as Int
-                    }
-
-                    if(recurrenceRuleArgs.containsKey(INTERVAL_ARGUMENT)) {
-                        recurrenceRule.interval = recurrenceRuleArgs[INTERVAL_ARGUMENT] as Int
-                    }
-
-                    if (recurrenceRuleArgs.containsKey(END_DATE_ARGUMENT)) {
-                        recurrenceRule.endDate = recurrenceRuleArgs[END_DATE_ARGUMENT] as Long
-                    }
-
-                    if (recurrenceRuleArgs.containsKey(DAYS_OF_THE_WEEK_ARGUMENT)) {
-                        val daysOfWeek = recurrenceRuleArgs[DAYS_OF_THE_WEEK_ARGUMENT] as List<Int>
-                        for (dayOfWeek in daysOfWeek) {
-                            recurrenceRule.daysOfTheWeek.add(DayOfWeek.values()[dayOfWeek])
-                        }
-                    }
-
-                    if(recurrenceRuleArgs.containsKey(DAYS_OF_THE_MONTH_ARGUMENT)) {
-                        recurrenceRule.daysOfTheMonth.addAll(recurrenceRuleArgs[DAYS_OF_THE_MONTH_ARGUMENT] as List<Int>)
-                    }
-
-                    event.recurrenceRule = recurrenceRule
-                }
+                val event = parseEventArgs(call, calendarId)
 
                 _calendarDelegate.createOrUpdateEvent(calendarId!!, event, result)
             }
@@ -150,5 +110,66 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 result.notImplemented()
             }
         }
+    }
+
+    private fun parseEventArgs(call: MethodCall, calendarId: String?): Event {
+        val eventId = call.argument<String>(EVENT_ID_ARGUMENT)
+        val eventTitle = call.argument<String>(EVENT_TITLE_ARGUMENT)
+        val eventDescription = call.argument<String>(EVENT_DESCRIPTION_ARGUMENT)
+        val eventStart = call.argument<Long>(EVENT_START_DATE_ARGUMENT)
+        val eventEnd = call.argument<Long>(EVENT_END_DATE_ARGUMENT)
+
+        val event = Event()
+        event.title = eventTitle
+        event.calendarId = calendarId
+        event.eventId = eventId
+        event.description = eventDescription
+        event.start = eventStart!!
+        event.end = eventEnd!!
+
+        if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
+            val recurrenceRule = parseRecurrenceRuleArgs(call)
+
+            event.recurrenceRule = recurrenceRule
+        }
+        return event
+    }
+
+    private fun parseRecurrenceRuleArgs(call: MethodCall): RecurrenceRule {
+        val recurrenceRuleArgs = call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT)!!
+        val recurrenceFrequencyIndex = recurrenceRuleArgs[RECURRENCE_FREQUENCY_ARGUMENT] as Int
+        val recurrenceRule = RecurrenceRule(RecurrenceFrequency.values()[recurrenceFrequencyIndex])
+        if (recurrenceRuleArgs.containsKey(TOTAL_OCCURRENCES_ARGUMENT)) {
+            recurrenceRule.totalOccurrences = recurrenceRuleArgs[TOTAL_OCCURRENCES_ARGUMENT] as Int
+        }
+
+        if (recurrenceRuleArgs.containsKey(INTERVAL_ARGUMENT)) {
+            recurrenceRule.interval = recurrenceRuleArgs[INTERVAL_ARGUMENT] as Int
+        }
+
+        if (recurrenceRuleArgs.containsKey(END_DATE_ARGUMENT)) {
+            recurrenceRule.endDate = recurrenceRuleArgs[END_DATE_ARGUMENT] as Long
+        }
+
+        if (recurrenceRuleArgs.containsKey(DAYS_OF_THE_WEEK_ARGUMENT)) {
+            recurrenceRule.daysOfTheWeek = recurrenceRuleArgs[DAYS_OF_THE_WEEK_ARGUMENT].toListOf<Int>()?.map { DayOfWeek.values()[it] }?.toMutableList()
+        }
+
+        if (recurrenceRuleArgs.containsKey(DAYS_OF_THE_MONTH_ARGUMENT)) {
+            recurrenceRule.daysOfTheMonth = recurrenceRuleArgs[DAYS_OF_THE_MONTH_ARGUMENT].toMutableListOf()
+        }
+
+        if (recurrenceRuleArgs.containsKey(MONTHS_OF_THE_YEAR_ARGUMENT)) {
+            recurrenceRule.monthsOfTheYear = recurrenceRuleArgs[MONTHS_OF_THE_YEAR_ARGUMENT].toMutableListOf()
+        }
+        return recurrenceRule
+    }
+
+    private inline fun <reified T:Any> Any?.toListOf(): List<T>? {
+        return (this as List<*>?)?.filterIsInstance<T>()?.toList()
+    }
+
+    private inline fun <reified T:Any> Any?.toMutableListOf(): MutableList<T>? {
+        return this?.toListOf<T>()?.toMutableList()
     }
 }
