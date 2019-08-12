@@ -16,7 +16,7 @@ class RecurrenceRule {
   RecurrenceFrequency recurrenceFrequency;
 
   /// The days of the week that this event occurs on. Only applicable to rules with a weekly, monthly or yearly frequency
-  List<DayOfWeek> daysOfTheWeek;
+  List<DayOfTheWeek> daysOfTheWeek;
 
   /// The days of the month that this event occurs on. Only applicable to recurrence rules with a monthly frequency
   List<int> daysOfTheMonth;
@@ -39,7 +39,9 @@ class RecurrenceRule {
         assert(
             (daysOfTheWeek?.isEmpty ?? true) ||
                 ((daysOfTheWeek?.isNotEmpty ?? false) &&
-                    (recurrenceFrequency == RecurrenceFrequency.Daily)),
+                    (recurrenceFrequency == RecurrenceFrequency.Weekly ||
+                        recurrenceFrequency == RecurrenceFrequency.Monthly ||
+                        recurrenceFrequency == RecurrenceFrequency.Yearly)),
             'Days of the week can only be specified for recurrence rules with a weekly, monthly or yearly frequency'),
         assert(
             (daysOfTheMonth?.isEmpty ?? true) ||
@@ -49,8 +51,9 @@ class RecurrenceRule {
         assert(
             (daysOfTheMonth?.isEmpty ?? true) ||
                 ((daysOfTheMonth?.isNotEmpty ?? false) &&
-                    daysOfTheMonth.any((d) => d >= 1 || d <= 31)),
-            'Days of the month must be between 1 and 31 inclusive');
+                    (daysOfTheMonth.any((d) => d >= 1 || d <= 31) ||
+                        (daysOfTheMonth.any((d) => d >= -31 && d <= -1)))),
+            'Days of the month must be between 1 and 31 or -1 and -31 inclusive');
 
   RecurrenceRule.fromJson(Map<String, dynamic> json) {
     if (json == null) {
@@ -74,7 +77,7 @@ class RecurrenceRule {
     if (daysOfTheWeekIndices != null && daysOfTheWeekIndices is! List<int>) {
       daysOfTheWeek = daysOfTheWeekIndices
           .cast<int>()
-          .map((index) => DayOfWeek.values[index])
+          .map((index) => DayOfTheWeek.values[index])
           .toList();
     }
     List<Object> daysOfTheMonthObj = json[_daysOfTheMonthKey];
