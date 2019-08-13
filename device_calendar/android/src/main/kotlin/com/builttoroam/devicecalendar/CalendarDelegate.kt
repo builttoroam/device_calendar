@@ -57,17 +57,17 @@ import java.util.*
 
 class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
-    private val RETRIEVE_CALENDARS_METHOD_CODE = 0
-    private val RETRIEVE_EVENTS_METHOD_CODE = RETRIEVE_CALENDARS_METHOD_CODE + 1
-    private val RETRIEVE_CALENDAR_METHOD_CODE = RETRIEVE_EVENTS_METHOD_CODE + 1
-    private val CREATE_OR_UPDATE_EVENT_METHOD_CODE = RETRIEVE_CALENDAR_METHOD_CODE + 1
-    private val DELETE_EVENT_METHOD_CODE = CREATE_OR_UPDATE_EVENT_METHOD_CODE + 1
-    private val REQUEST_PERMISSIONS_METHOD_CODE = DELETE_EVENT_METHOD_CODE + 1
-    private val PART_TEMPLATE = ";%s="
-    private val BYMONTHDAY_PART = "BYMONTHDAY"
-    private val BYMONTH_PART = "BYMONTH"
-    private val BYWEEKNO_PART = "BYWEEKNO"
-    private val BYSETPOS_PART = "BYSETPOS"
+    private val retrieveCalendarsMethodCode = 0
+    private val retrieveEventsMethodCode = retrieveCalendarsMethodCode + 1
+    private val retrieveCalendarMethodCode = retrieveEventsMethodCode + 1
+    private val createOrUpdateMethodCode = retrieveCalendarMethodCode + 1
+    private val deleteEventMethodCode = createOrUpdateMethodCode + 1
+    private val requestPermissionsMethodCode = deleteEventMethodCode + 1
+    private val partTemplate = ";%s="
+    private val byMonthDayPart = "BYMONTHDAY"
+    private val byMonthPart = "BYMONTH"
+    private val byWeekNoPart = "BYWEEKNO"
+    private val bySetPosPart = "BYSETPOS"
 
     private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> = mutableMapOf()
 
@@ -100,22 +100,22 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
         when (cachedValues.calendarDelegateMethodCode) {
-            RETRIEVE_CALENDARS_METHOD_CODE -> {
+            retrieveCalendarsMethodCode -> {
                 return handleRetrieveCalendarsRequest(permissionGranted, cachedValues, requestCode)
             }
-            RETRIEVE_EVENTS_METHOD_CODE -> {
+            retrieveEventsMethodCode -> {
                 return handleRetrieveEventsRequest(permissionGranted, cachedValues, requestCode)
             }
-            RETRIEVE_CALENDAR_METHOD_CODE -> {
+            retrieveCalendarMethodCode -> {
                 return handleRetrieveCalendarRequest(permissionGranted, cachedValues, requestCode)
             }
-            CREATE_OR_UPDATE_EVENT_METHOD_CODE -> {
+            createOrUpdateMethodCode -> {
                 return handleCreateOrUpdateEventRequest(permissionGranted, cachedValues, requestCode)
             }
-            DELETE_EVENT_METHOD_CODE -> {
+            deleteEventMethodCode -> {
                 return handleDeleteEventRequest(permissionGranted, cachedValues, requestCode)
             }
-            REQUEST_PERMISSIONS_METHOD_CODE -> {
+            requestPermissionsMethodCode -> {
                 return handlePermissionsRequest(permissionGranted, cachedValues)
             }
         }
@@ -192,7 +192,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if (arePermissionsGranted()) {
             finishWithSuccess(true, pendingChannelResult)
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, REQUEST_PERMISSIONS_METHOD_CODE)
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, requestPermissionsMethodCode)
             requestPermissions(parameters)
         }
     }
@@ -228,7 +228,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 cursor?.close()
             }
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_CALENDARS_METHOD_CODE)
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, retrieveCalendarsMethodCode)
             requestPermissions(parameters)
         }
     }
@@ -266,7 +266,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 cursor?.close()
             }
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_CALENDAR_METHOD_CODE, calendarId)
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, retrieveCalendarMethodCode, calendarId)
             requestPermissions(parameters)
         }
 
@@ -330,7 +330,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             finishWithSuccess(_gson?.toJson(events), pendingChannelResult)
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_EVENTS_METHOD_CODE, calendarId, startDate, endDate)
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, retrieveEventsMethodCode, calendarId, startDate, endDate)
             requestPermissions(parameters)
         }
 
@@ -379,7 +379,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 println(e.message)
             }
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, CREATE_OR_UPDATE_EVENT_METHOD_CODE, calendarId)
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, createOrUpdateMethodCode, calendarId)
             parameters.event = event
             requestPermissions(parameters)
         }
@@ -411,7 +411,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             finishWithSuccess(deleteSucceeded > 0, pendingChannelResult)
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, DELETE_EVENT_METHOD_CODE, calendarId)
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, deleteEventMethodCode, calendarId)
             parameters.eventId = eventId
             requestPermissions(parameters)
         }
@@ -512,15 +512,15 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         val rfcRecurrenceRuleString = rfcRecurrenceRule.toString()
         if (rfcRecurrenceRule.freq == Freq.MONTHLY) {
-            recurrenceRule.daysOfTheMonth = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTHDAY_PART)
+            recurrenceRule.daysOfTheMonth = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, byMonthDayPart)
         }
 
         if (rfcRecurrenceRule.freq == Freq.YEARLY) {
-            recurrenceRule.monthsOfTheYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTH_PART)
-            recurrenceRule.weeksOfTheYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYWEEKNO_PART)
+            recurrenceRule.monthsOfTheYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, byMonthPart)
+            recurrenceRule.weeksOfTheYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, byWeekNoPart)
         }
 
-        recurrenceRule.setPositions = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYSETPOS_PART)
+        recurrenceRule.setPositions = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, bySetPosPart)
         return recurrenceRule
     }
 
@@ -676,27 +676,27 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         var rrString = rr.toString()
         if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY && recurrenceRule.daysOfTheMonth != null && recurrenceRule.daysOfTheMonth!!.isNotEmpty()) {
-            rrString = rrString.addPartWithValues(BYMONTHDAY_PART, recurrenceRule.daysOfTheMonth)
+            rrString = rrString.addPartWithValues(byMonthDayPart, recurrenceRule.daysOfTheMonth)
         }
 
         if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY) {
             if (recurrenceRule.monthsOfTheYear != null && recurrenceRule.monthsOfTheYear!!.isNotEmpty()) {
-                rrString = rrString.addPartWithValues(BYMONTH_PART, recurrenceRule.monthsOfTheYear)
+                rrString = rrString.addPartWithValues(byMonthPart, recurrenceRule.monthsOfTheYear)
             }
 
             if (recurrenceRule.weeksOfTheYear != null && recurrenceRule.weeksOfTheYear!!.isNotEmpty()) {
-                rrString = rrString.addPartWithValues(BYWEEKNO_PART, recurrenceRule.weeksOfTheYear)
+                rrString = rrString.addPartWithValues(byWeekNoPart, recurrenceRule.weeksOfTheYear)
             }
         }
 
-        rrString = rrString.addPartWithValues(BYSETPOS_PART, recurrenceRule.setPositions)
+        rrString = rrString.addPartWithValues(bySetPosPart, recurrenceRule.setPositions)
         return rrString
     }
 
 
     private fun String.addPartWithValues(partName: String, values: List<Int>?): String {
         if (values != null && values.isNotEmpty()) {
-            return this + PART_TEMPLATE.format(partName) + values.joinToString(",")
+            return this + partTemplate.format(partName) + values.joinToString(",")
         }
 
         return this
