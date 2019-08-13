@@ -83,7 +83,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let weeksOfTheYearArgument = "weeksOfTheYear"
     let setPositionsArgument = "setPositions"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
-
+    
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
@@ -243,47 +243,29 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 }
             }
             
-            var daysOfTheMonth: [Int]?
-            if(ekRecurrenceRule.daysOfTheMonth != nil && !ekRecurrenceRule.daysOfTheMonth!.isEmpty) {
-                daysOfTheMonth = []
-                for dayOfTheMonth in ekRecurrenceRule.daysOfTheMonth! {
-                    daysOfTheMonth!.append(dayOfTheMonth.intValue)
-                }
-            }
-            
-            var monthsOfTheYear: [Int]?
-            if(ekRecurrenceRule.monthsOfTheYear != nil && !ekRecurrenceRule.monthsOfTheYear!.isEmpty) {
-                monthsOfTheYear = []
-                for monthOfTheYear in ekRecurrenceRule.monthsOfTheYear! {
-                    monthsOfTheYear!.append(monthOfTheYear.intValue)
-                }
-            }
-            
-            var weeksOfTheYear: [Int]?
-            if(ekRecurrenceRule.weeksOfTheYear != nil && !ekRecurrenceRule.weeksOfTheYear!.isEmpty) {
-                weeksOfTheYear = []
-                for weekOfTheYear in ekRecurrenceRule.weeksOfTheYear! {
-                    weeksOfTheYear!.append(weekOfTheYear.intValue)
-                }
-            }
-            
-            var setPositions: [Int]?
-            if(ekRecurrenceRule.setPositions != nil && !ekRecurrenceRule.setPositions!.isEmpty) {
-                setPositions = []
-                for setPosition in ekRecurrenceRule.setPositions! {
-                    setPositions!.append(setPosition.intValue)
-                }
-            }
-            
-            recurrenceRule = RecurrenceRule(recurrenceFrequency: frequency, totalOccurrences: totalOccurrences, interval: ekRecurrenceRule.interval, endDate: endDate, daysOfTheWeek: daysOfTheWeek, daysOfTheMonth: daysOfTheMonth, monthsOfTheYear: monthsOfTheYear, weeksOfTheYear: weeksOfTheYear, setPositions: setPositions)
+            recurrenceRule = RecurrenceRule(recurrenceFrequency: frequency, totalOccurrences: totalOccurrences, interval: ekRecurrenceRule.interval, endDate: endDate, daysOfTheWeek: daysOfTheWeek, daysOfTheMonth: convertToIntArray(ekRecurrenceRule.daysOfTheMonth), monthsOfTheYear: convertToIntArray(ekRecurrenceRule.monthsOfTheYear), weeksOfTheYear: convertToIntArray(ekRecurrenceRule.weeksOfTheYear), setPositions: convertToIntArray(ekRecurrenceRule.setPositions))
         }
+        
         return recurrenceRule
+    }
+    
+    private func convertToIntArray(_ arguments: [NSNumber]?) -> [Int]? {
+        if(arguments?.isEmpty ?? true) {
+            return nil
+        }
+        
+        var result: [Int] = []
+        for element in arguments! {
+            result.append(element.intValue)
+        }
+        
+        return result
     }
     
     private func createEKRecurrenceRules(_ arguments: [String : AnyObject]) -> [EKRecurrenceRule]?{
         let recurrenceRuleArguments = arguments[recurrenceRuleArgument] as? Dictionary<String, AnyObject>
         if (recurrenceRuleArguments == nil) {
-            return nil;
+            return nil
         }
         
         let recurrenceFrequencyIndex = recurrenceRuleArguments![recurrenceFrequencyArgument] as? NSInteger
