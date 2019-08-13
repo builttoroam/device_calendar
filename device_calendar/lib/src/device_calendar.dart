@@ -15,15 +15,14 @@ class DeviceCalendarPlugin {
   static const MethodChannel channel =
       const MethodChannel('plugins.builttoroam.com/device_calendar');
 
-  static final DeviceCalendarPlugin _instance =
-      DeviceCalendarPlugin._createInstance();
+  static final DeviceCalendarPlugin _instance = DeviceCalendarPlugin.private();
 
   factory DeviceCalendarPlugin() {
     return _instance;
   }
 
   @visibleForTesting
-  DeviceCalendarPlugin._createInstance();
+  DeviceCalendarPlugin.private();
 
   /// Requests permissions to modify the calendars on the device
   ///
