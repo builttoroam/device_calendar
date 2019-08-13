@@ -48,6 +48,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val DAYS_OF_THE_WEEK_ARGUMENT = "daysOfTheWeek"
     private val DAYS_OF_THE_MONTH_ARGUMENT = "daysOfTheMonth"
     private val MONTHS_OF_THE_YEAR_ARGUMENT = "monthsOfTheYear"
+    private val WEEKS_OF_THE_YEAR_ARGUMENT = "weeksOfTheYear"
+    private val SET_POSITIONS_ARGUMENT = "setPositions"
 
 
     private constructor(registrar: Registrar, calendarDelegate: CalendarDelegate) : this() {
@@ -129,9 +131,9 @@ class DeviceCalendarPlugin() : MethodCallHandler {
 
         if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)
-
             event.recurrenceRule = recurrenceRule
         }
+
         return event
     }
 
@@ -162,6 +164,15 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         if (recurrenceRuleArgs.containsKey(MONTHS_OF_THE_YEAR_ARGUMENT)) {
             recurrenceRule.monthsOfTheYear = recurrenceRuleArgs[MONTHS_OF_THE_YEAR_ARGUMENT].toMutableListOf()
         }
+
+        if(recurrenceRuleArgs.containsKey(WEEKS_OF_THE_YEAR_ARGUMENT)) {
+            recurrenceRule.weeksOfTheYear = recurrenceRuleArgs[WEEKS_OF_THE_YEAR_ARGUMENT].toMutableListOf()
+        }
+
+        if(recurrenceRuleArgs.containsKey(SET_POSITIONS_ARGUMENT)) {
+            recurrenceRule.setPositions = recurrenceRuleArgs[SET_POSITIONS_ARGUMENT].toMutableListOf()
+        }
+
         return recurrenceRule
     }
 

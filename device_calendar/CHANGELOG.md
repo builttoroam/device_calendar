@@ -1,3 +1,6 @@
+# 1.0.0 TBD
+* Support for more advanced recurrence rules
+
 # 0.2.1+1 5th August 2019
 * Fixing date in changelog for version 0.2.1
 

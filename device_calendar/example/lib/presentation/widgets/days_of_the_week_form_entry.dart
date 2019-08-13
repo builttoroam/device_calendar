@@ -25,6 +25,8 @@ class _DaysOfTheWeekFormEntryState extends State<DaysOfTheWeekFormEntry> {
         return Text('Thursday');
       case DayOfTheWeek.Friday:
         return Text('Friday');
+      case DayOfTheWeek.Saturday:
+        return Text('Saturday');
       default:
         return Text('');
     }
