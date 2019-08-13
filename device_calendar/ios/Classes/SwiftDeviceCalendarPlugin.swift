@@ -224,8 +224,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 frequency = 0
             }
             
-            var totalOccurrences: Int? = nil
-            var endDate: Int64? = nil
+            var totalOccurrences: Int?
+            var endDate: Int64?
             if(ekRecurrenceRule.recurrenceEnd?.occurrenceCount != nil) {
                 totalOccurrences = ekRecurrenceRule.recurrenceEnd?.occurrenceCount
             }
@@ -235,7 +235,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 endDate = Int64(exactly: endDateMs!)
             }
             
-            var daysOfTheWeek: [Int]? = nil
+            var daysOfTheWeek: [Int]?
             if(ekRecurrenceRule.daysOfTheWeek != nil && !ekRecurrenceRule.daysOfTheWeek!.isEmpty) {
                 daysOfTheWeek = []
                 for dayOfTheWeek in ekRecurrenceRule.daysOfTheWeek! {
@@ -243,7 +243,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 }
             }
             
-            var daysOfTheMonth: [Int]? = nil
+            var daysOfTheMonth: [Int]?
             if(ekRecurrenceRule.daysOfTheMonth != nil && !ekRecurrenceRule.daysOfTheMonth!.isEmpty) {
                 daysOfTheMonth = []
                 for dayOfTheMonth in ekRecurrenceRule.daysOfTheMonth! {
@@ -251,7 +251,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 }
             }
             
-            var monthsOfTheYear: [Int]? = nil
+            var monthsOfTheYear: [Int]?
             if(ekRecurrenceRule.monthsOfTheYear != nil && !ekRecurrenceRule.monthsOfTheYear!.isEmpty) {
                 monthsOfTheYear = []
                 for monthOfTheYear in ekRecurrenceRule.monthsOfTheYear! {
@@ -259,7 +259,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 }
             }
             
-            var weeksOfTheYear: [Int]? = nil
+            var weeksOfTheYear: [Int]?
             if(ekRecurrenceRule.weeksOfTheYear != nil && !ekRecurrenceRule.weeksOfTheYear!.isEmpty) {
                 weeksOfTheYear = []
                 for weekOfTheYear in ekRecurrenceRule.weeksOfTheYear! {
@@ -267,7 +267,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 }
             }
             
-            var setPositions: [Int]? = nil
+            var setPositions: [Int]?
             if(ekRecurrenceRule.setPositions != nil && !ekRecurrenceRule.setPositions!.isEmpty) {
                 setPositions = []
                 for setPosition in ekRecurrenceRule.setPositions! {
@@ -305,7 +305,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         }
         
         let daysOfTheWeekIndices = recurrenceRuleArguments![daysOfTheWeekArgument] as? [Int]
-        var daysOfTheWeek : [EKRecurrenceDayOfWeek]? = nil
+        var daysOfTheWeek : [EKRecurrenceDayOfWeek]?
         
         if(daysOfTheWeekIndices != nil && !daysOfTheWeekIndices!.isEmpty) {
             daysOfTheWeek = []
