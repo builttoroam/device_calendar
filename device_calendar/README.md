@@ -12,6 +12,8 @@ A cross platform plugin for modifying calendars on the user's device.
 * Ability to add, update or delete events from a calendar
 * Ability to set up recurring events (NOTE: deleting a recurring event will currently delete all instances of it)
 
+**NOTE**: there is a known issue where it looks as though specifying `weeksOfTheYear` and `setPositions` for recurrence rules doesn't appear to have an effect
+
 ## Android Integration
 
 The following will need to be added to the manifest file for your application to indicate permissions to modify calendars a needed

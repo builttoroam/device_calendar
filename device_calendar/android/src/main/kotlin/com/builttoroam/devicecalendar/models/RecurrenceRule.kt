@@ -11,4 +11,6 @@ class RecurrenceRule(val recurrenceFrequency : RecurrenceFrequency) {
     var daysOfTheWeek: MutableList<DayOfWeek>? = null
     var daysOfTheMonth: MutableList<Int>? = null
     var monthsOfTheYear: MutableList<Int>? = null
+    var weeksOfTheYear: MutableList<Int>? = null
+    var setPositions: MutableList<Int>? = null
 }

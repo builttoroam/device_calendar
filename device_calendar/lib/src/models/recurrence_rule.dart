@@ -24,6 +24,12 @@ class RecurrenceRule {
   /// The months of the year that the event occurs on. Only applicable to recurrence rules with a yearly frequency
   List<int> monthsOfTheYear;
 
+  /// The weeks of the year that the event occurs on. Only applicable to recurrence rules with a yearly frequency
+  List<int> weeksOfTheYear;
+
+  /// Filters which recurrences to include in the recurrence rule’s frequency. Only applicable when either [daysOfTheWeek], [daysOfTheMonth], [weeksOfTheYear] or [monthsOfTheYear] are specified
+  List<int> setPositions;
+
   final String _totalOccurrencesKey = 'totalOccurrences';
   final String _recurrenceFrequencyKey = 'recurrenceFrequency';
   final String _intervalKey = 'interval';
@@ -31,6 +37,8 @@ class RecurrenceRule {
   final String _daysOfTheWeekKey = 'daysOfTheWeek';
   final String _daysOfTheMonthKey = 'daysOfTheMonth';
   final String _monthsOfTheYearKey = 'monthsOfTheYear';
+  final String _weeksOfTheYearKey = 'weeksOfTheYear';
+  final String _setPositionsKey = 'setPositions';
 
   RecurrenceRule(this.recurrenceFrequency,
       {this.totalOccurrences,
@@ -38,7 +46,9 @@ class RecurrenceRule {
       this.endDate,
       this.daysOfTheWeek,
       this.daysOfTheMonth,
-      this.monthsOfTheYear})
+      this.monthsOfTheYear,
+      this.weeksOfTheYear,
+      this.setPositions})
       : assert(!(endDate != null && totalOccurrences != null),
             'Cannot specify both an end date and total occurrences for a recurring event'),
         assert(
@@ -52,15 +62,29 @@ class RecurrenceRule {
             (daysOfTheMonth?.isEmpty ?? true) ||
                 ((daysOfTheMonth?.isNotEmpty ?? false) &&
                     recurrenceFrequency == RecurrenceFrequency.Monthly &&
-                    (daysOfTheMonth.any((d) => d >= 1 || d <= 31) ||
-                        (daysOfTheMonth.any((d) => d >= -31 && d <= -1)))),
+                    (daysOfTheMonth.every(
+                        (d) => (d >= 1 && d <= 31) || (d >= -31 && d <= -1)))),
             'Days of the month must be between 1 and 31 or -1 and -31 inclusive and can only be specified for recurrence rules with a monthly frequency'),
         assert(
             (monthsOfTheYear?.isEmpty ?? true) ||
                 ((monthsOfTheYear?.isNotEmpty ?? false) &&
                     recurrenceFrequency == RecurrenceFrequency.Yearly &&
-                    monthsOfTheYear.any((d) => d >= 1 || d <= 12)),
-            'Months of the year must be between 1 and 12 inclusive and can only be specified for recurrence rules with a yearly frequency');
+                    monthsOfTheYear.every((d) => d >= 1 && d <= 12)),
+            'Months of the year must be between 1 and 12 inclusive and can only be specified for recurrence rules with a yearly frequency'),
+        assert(
+            (weeksOfTheYear?.isEmpty ?? true) ||
+                ((weeksOfTheYear?.isNotEmpty ?? false) &&
+                    recurrenceFrequency == RecurrenceFrequency.Yearly &&
+                    weeksOfTheYear.every(
+                        (d) => (d >= 1 && d <= 53) || (d >= -53 || d <= -1))),
+            'Weeks of the year must be between 1 and 53 or between -1 and -53 inclusive, and can only be specified for recurrence rules with a yearly frequency'),
+        assert(
+            (setPositions.isEmpty ?? true) ||
+                ((setPositions?.isNotEmpty ?? false) &&
+                    ((daysOfTheMonth?.isNotEmpty ?? false) ||
+                        (monthsOfTheYear?.isNotEmpty ?? false) ||
+                        (weeksOfTheYear?.isNotEmpty ?? false))),
+            'Set positions can only be specified along with either days of the week, days of the month, weeks of the year or months of the year');
 
   RecurrenceRule.fromJson(Map<String, dynamic> json) {
     if (json == null) {
@@ -87,14 +111,17 @@ class RecurrenceRule {
           .map((index) => DayOfTheWeek.values[index])
           .toList();
     }
-    List<Object> daysOfTheMonthObj = json[_daysOfTheMonthKey];
-    if (daysOfTheMonthObj != null && daysOfTheMonthObj is! List<int>) {
-      daysOfTheMonth = daysOfTheMonthObj.cast<int>().toList();
+    daysOfTheMonth = convertToIntList(json[_daysOfTheMonthKey]);
+    monthsOfTheYear = convertToIntList(json[_monthsOfTheYearKey]);
+    weeksOfTheYear = convertToIntList(json[_weeksOfTheYearKey]);
+    setPositions = convertToIntList(json[_setPositionsKey]);
+  }
+
+  List<int> convertToIntList(List<Object> objList) {
+    if (objList != null && objList is! List<int>) {
+      return objList.cast<int>().toList();
     }
-    List<Object> monthsOfTheYearObj = json[_monthsOfTheYearKey];
-    if (monthsOfTheYearObj != null && monthsOfTheYearObj is! List<int>) {
-      monthsOfTheYear = monthsOfTheYearObj.cast<int>().toList();
-    }
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -117,6 +144,12 @@ class RecurrenceRule {
     }
     if (monthsOfTheYear != null) {
       data[_monthsOfTheYearKey] = monthsOfTheYear;
+    }
+    if (weeksOfTheYear != null) {
+      data[_weeksOfTheYearKey] = weeksOfTheYear;
+    }
+    if (setPositions != null) {
+      data[_setPositionsKey] = setPositions;
     }
     return data;
   }

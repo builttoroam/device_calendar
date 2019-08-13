@@ -39,9 +39,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   List<DayOfTheWeek> _daysOfTheWeek = List<DayOfTheWeek>();
   List<int> _daysOfTheMonth = List<int>();
-  List<int> _validDaysOfTheMonth = List<int>();
   List<int> _monthsOfTheYear = List<int>();
+  List<int> _weeksOfTheYear = List<int>();
+  List<int> _setPositions = List<int>();
+  List<int> _validDaysOfTheMonth = List<int>();
   List<int> _validMonthsOfTheYear = List<int>();
+  List<int> _validWeeksOfTheYear = List<int>();
   int _totalOccurrences;
   int _interval;
   DateTime _recurrenceEndDate;
@@ -51,11 +54,20 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   _CalendarEventPageState(this._calendar, this._event) {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
+    for (var i = -31; i <= -1; i++) {
+      _validDaysOfTheMonth.add(i);
+    }
     for (var i = 1; i <= 31; i++) {
       _validDaysOfTheMonth.add(i);
     }
     for (var i = 1; i <= 12; i++) {
       _validMonthsOfTheYear.add(i);
+    }
+    for (var i = -53; i <= -1; i++) {
+      _validWeeksOfTheYear.add(i);
+    }
+    for (var i = 1; i <= 53; i++) {
+      _validWeeksOfTheYear.add(i);
     }
     if (this._event == null) {
       _startDate = DateTime.now();
@@ -78,9 +90,15 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           _recurrenceEndDate = _event.recurrenceRule.endDate;
           _recurrenceEndTime = TimeOfDay.fromDateTime(_recurrenceEndDate);
         }
-        _daysOfTheWeek = _event.recurrenceRule.daysOfTheWeek;
-        _daysOfTheMonth = _event.recurrenceRule.daysOfTheMonth;
-        _monthsOfTheYear = _event.recurrenceRule.monthsOfTheYear;
+        _daysOfTheWeek =
+            _event.recurrenceRule.daysOfTheWeek ?? new List<DayOfTheWeek>();
+        _daysOfTheMonth =
+            _event.recurrenceRule.daysOfTheMonth ?? new List<int>();
+        _monthsOfTheYear =
+            _event.recurrenceRule.monthsOfTheYear ?? new List<int>();
+        _weeksOfTheYear =
+            _event.recurrenceRule.weeksOfTheYear ?? new List<int>();
+        _setPositions = _event.recurrenceRule.setPositions ?? new List<int>();
       }
     }
 
@@ -193,162 +211,185 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       });
                     },
                   ),
-                  if (_isRecurringEvent)
-                    Column(
-                      children: [
-                        ListTile(
-                          leading: Text('Frequency'),
-                          trailing: DropdownButton<RecurrenceFrequency>(
-                            onChanged: (selectedFrequency) {
-                              setState(() {
-                                _recurrenceFrequency = selectedFrequency;
-                              });
-                            },
-                            value: _recurrenceFrequency,
-                            items: RecurrenceFrequency.values
-                                .map(
-                                  (f) => DropdownMenuItem(
-                                    value: f,
-                                    child: _recurrenceFrequencyToText(f),
-                                  ),
-                                )
-                                .toList(),
-                          ),
+                  if (_isRecurringEvent) ...[
+                    ListTile(
+                      leading: Text('Frequency'),
+                      trailing: DropdownButton<RecurrenceFrequency>(
+                        onChanged: (selectedFrequency) {
+                          setState(() {
+                            _recurrenceFrequency = selectedFrequency;
+                          });
+                        },
+                        value: _recurrenceFrequency,
+                        items: RecurrenceFrequency.values
+                            .map((f) => DropdownMenuItem(
+                                  value: f,
+                                  child: _recurrenceFrequencyToText(f),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: TextFormField(
+                        initialValue: _interval?.toString(),
+                        decoration: const InputDecoration(
+                            labelText: 'Interval between events',
+                            hintText: '1'),
+                        keyboardType: TextInputType.number,
+                        validator: _validateInterval,
+                        onSaved: (String value) {
+                          _interval = int.tryParse(value);
+                        },
+                      ),
+                    ),
+                    if (_recurrenceFrequency == RecurrenceFrequency.Weekly ||
+                        _recurrenceFrequency == RecurrenceFrequency.Monthly ||
+                        _recurrenceFrequency == RecurrenceFrequency.Yearly)
+                      DaysOfTheWeekFormEntry(daysOfTheWeek: _daysOfTheWeek),
+                    if (_recurrenceFrequency ==
+                        RecurrenceFrequency.Monthly) ...[
+                      ListTile(
+                        leading: Text('Days of the month'),
+                        trailing: DropdownButton<int>(
+                          onChanged: (value) {
+                            setState(() {
+                              _daysOfTheMonth.clear();
+                              _daysOfTheMonth.add(value);
+                            });
+                          },
+                          value: _daysOfTheMonth.isEmpty
+                              ? null
+                              : _daysOfTheMonth[0],
+                          items: _validDaysOfTheMonth
+                              .map((d) => DropdownMenuItem(
+                                    value: d,
+                                    child: Text(
+                                      d.toString(),
+                                    ),
+                                  ))
+                              .toList(),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: TextFormField(
-                            initialValue: _interval?.toString(),
-                            decoration: const InputDecoration(
-                                labelText: 'Interval between events',
-                                hintText: '1'),
-                            keyboardType: TextInputType.number,
-                            validator: _validateInterval,
-                            onSaved: (String value) {
-                              _interval = int.tryParse(value);
-                            },
-                          ),
+                      ),
+                    ],
+                    if (_recurrenceFrequency == RecurrenceFrequency.Yearly) ...[
+                      ListTile(
+                        leading: Text('Weeks of the year'),
+                        trailing: DropdownButton<int>(
+                          onChanged: (value) {
+                            setState(() {
+                              _weeksOfTheYear.clear();
+                              _weeksOfTheYear.add(value);
+                            });
+                          },
+                          value: _weeksOfTheYear.isEmpty
+                              ? null
+                              : _weeksOfTheYear[0],
+                          items: _validWeeksOfTheYear
+                              .map((w) => DropdownMenuItem(
+                                    value: w,
+                                    child: Text(
+                                      w.toString(),
+                                    ),
+                                  ))
+                              .toList(),
                         ),
-                        if (_recurrenceFrequency ==
-                                RecurrenceFrequency.Weekly ||
-                            _recurrenceFrequency ==
-                                RecurrenceFrequency.Monthly ||
-                            _recurrenceFrequency == RecurrenceFrequency.Yearly)
-                          DaysOfTheWeekFormEntry(daysOfTheWeek: _daysOfTheWeek),
-                        if (_recurrenceFrequency == RecurrenceFrequency.Monthly)
-                          Column(
-                            children: [
-                              ListTile(
-                                leading: Text('Days of the month'),
-                                trailing: DropdownButton<int>(
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _daysOfTheMonth.clear();
-                                      _daysOfTheMonth.add(value);
-                                    });
-                                  },
-                                  value: _daysOfTheMonth.isEmpty
-                                      ? null
-                                      : _daysOfTheMonth[0],
-                                  items: _validDaysOfTheMonth
-                                      .map(
-                                        (d) => DropdownMenuItem(
-                                          value: d,
-                                          child: Text(
-                                            d.toString(),
-                                          ),
-                                        ),
-                                      )
-                                      .toList(),
-                                ),
-                              ),
-                            ],
-                          ),
-                        if (_recurrenceFrequency == RecurrenceFrequency.Yearly)
-                          Column(
-                            children: [
-                              ListTile(
-                                leading: Text('Months of the year'),
-                                trailing: DropdownButton<int>(
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _monthsOfTheYear.clear();
-                                      _monthsOfTheYear.add(value);
-                                    });
-                                  },
-                                  value: _monthsOfTheYear.isEmpty
-                                      ? null
-                                      : _monthsOfTheYear[0],
-                                  items: _validMonthsOfTheYear
-                                      .map(
-                                        (m) => DropdownMenuItem(
-                                          value: m,
-                                          child: Text(
-                                            m.toString(),
-                                          ),
-                                        ),
-                                      )
-                                      .toList(),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ListTile(
-                          leading: Text('Event ends'),
-                          trailing: DropdownButton<RecurrenceRuleEndType>(
-                            onChanged: (value) {
-                              setState(() {
-                                _recurrenceRuleEndType = value;
-                              });
-                            },
-                            value: _recurrenceRuleEndType,
-                            items: RecurrenceRuleEndType.values
-                                .map(
-                                  (f) => DropdownMenuItem(
-                                    value: f,
-                                    child: _recurrenceRuleEndTypeToText(f),
-                                  ),
-                                )
-                                .toList(),
-                          ),
+                      ),
+                      ListTile(
+                        leading: Text('Months of the year'),
+                        trailing: DropdownButton<int>(
+                          onChanged: (value) {
+                            setState(() {
+                              _monthsOfTheYear.clear();
+                              _monthsOfTheYear.add(value);
+                            });
+                          },
+                          value: _monthsOfTheYear.isEmpty
+                              ? null
+                              : _monthsOfTheYear[0],
+                          items: _validMonthsOfTheYear
+                              .map((m) => DropdownMenuItem(
+                                    value: m,
+                                    child: Text(
+                                      m.toString(),
+                                    ),
+                                  ))
+                              .toList(),
                         ),
-                        if (_recurrenceRuleEndType ==
-                            RecurrenceRuleEndType.MaxOccurrences)
-                          Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: TextFormField(
-                              initialValue: _totalOccurrences?.toString(),
-                              decoration: const InputDecoration(
-                                  labelText: 'Max occurrences', hintText: '1'),
-                              keyboardType: TextInputType.number,
-                              validator: _validateTotalOccurrences,
-                              onSaved: (String value) {
-                                _totalOccurrences = int.tryParse(value);
-                              },
-                            ),
-                          ),
-                        if (_recurrenceRuleEndType ==
-                            RecurrenceRuleEndType.SpecifiedEndDate)
-                          Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: DateTimePicker(
-                              labelText: 'Date',
-                              selectedDate: _recurrenceEndDate,
-                              selectedTime: _recurrenceEndTime,
-                              selectDate: (DateTime date) {
-                                setState(() {
-                                  _recurrenceEndDate = date;
-                                });
-                              },
-                              selectTime: (TimeOfDay time) {
-                                setState(() {
-                                  _recurrenceEndTime = time;
-                                });
-                              },
-                            ),
-                          ),
-                      ],
-                    )
+                      ),
+                    ],
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: TextFormField(
+                        initialValue: _setPositions.isEmpty
+                            ? null
+                            : _setPositions.first.toString(),
+                        decoration:
+                            const InputDecoration(labelText: 'Set positions'),
+                        keyboardType: TextInputType.number,
+                        validator: _validateSetPositions,
+                        onSaved: (String value) {
+                          _setPositions.clear();
+                          if (value == null || value.isEmpty) {
+                            return;
+                          }
+                          _setPositions.add(int.parse(value));
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      leading: Text('Event ends'),
+                      trailing: DropdownButton<RecurrenceRuleEndType>(
+                        onChanged: (value) {
+                          setState(() {
+                            _recurrenceRuleEndType = value;
+                          });
+                        },
+                        value: _recurrenceRuleEndType,
+                        items: RecurrenceRuleEndType.values
+                            .map((f) => DropdownMenuItem(
+                                  value: f,
+                                  child: _recurrenceRuleEndTypeToText(f),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                    if (_recurrenceRuleEndType ==
+                        RecurrenceRuleEndType.MaxOccurrences)
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: TextFormField(
+                          initialValue: _totalOccurrences?.toString(),
+                          decoration: const InputDecoration(
+                              labelText: 'Max occurrences', hintText: '1'),
+                          keyboardType: TextInputType.number,
+                          validator: _validateTotalOccurrences,
+                          onSaved: (String value) {
+                            _totalOccurrences = int.tryParse(value);
+                          },
+                        ),
+                      ),
+                    if (_recurrenceRuleEndType ==
+                        RecurrenceRuleEndType.SpecifiedEndDate)
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: DateTimePicker(
+                          labelText: 'Date',
+                          selectedDate: _recurrenceEndDate,
+                          selectedTime: _recurrenceEndTime,
+                          selectDate: (DateTime date) {
+                            setState(() {
+                              _recurrenceEndDate = date;
+                            });
+                          },
+                          selectTime: (TimeOfDay time) {
+                            setState(() {
+                              _recurrenceEndTime = time;
+                            });
+                          },
+                        ),
+                      ),
+                  ],
                 ],
               ),
             )
@@ -374,7 +415,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       : null,
                   daysOfTheWeek: _daysOfTheWeek,
                   daysOfTheMonth: _daysOfTheMonth,
-                  monthsOfTheYear: _monthsOfTheYear);
+                  monthsOfTheYear: _monthsOfTheYear,
+                  weeksOfTheYear: _weeksOfTheYear,
+                  setPositions: _setPositions);
             }
             var createEventResult =
                 await _deviceCalendarPlugin.createOrUpdateEvent(_event);
@@ -419,6 +462,13 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   String _validateTotalOccurrences(String value) {
     if (value.isNotEmpty && int.tryParse(value) == null) {
       return 'Total occurrences needs to be a valid number';
+    }
+    return null;
+  }
+
+  String _validateSetPositions(String value) {
+    if (value.isNotEmpty && int.tryParse(value) == null) {
+      return 'Set position needs to be a valid number';
     }
     return null;
   }

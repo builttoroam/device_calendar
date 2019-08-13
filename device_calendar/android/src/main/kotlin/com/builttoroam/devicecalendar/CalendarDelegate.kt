@@ -66,6 +66,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val PART_TEMPLATE = ";%s="
     private val BYMONTHDAY_PART = "BYMONTHDAY"
     private val BYMONTH_PART = "BYMONTH"
+    private val BYWEEKNO_PART = "BYWEEKNO"
+    private val BYSETPOS_PART = "BYSETPOS"
 
     private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> = mutableMapOf()
 
@@ -202,7 +204,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     @SuppressLint("MissingPermission")
     fun retrieveCalendars(pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
-
             val contentResolver: ContentResolver? = _context?.getContentResolver()
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
             val cursor: Cursor? = contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
@@ -230,8 +231,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_CALENDARS_METHOD_CODE)
             requestPermissions(parameters)
         }
-
-        return
     }
 
     fun retrieveCalendar(calendarId: String, pendingChannelResult: MethodChannel.Result, isInternalCall: Boolean = false): Calendar? {
@@ -289,7 +288,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             }
 
             val contentResolver: ContentResolver? = _context?.getContentResolver()
-
             val eventsUriBuilder = CalendarContract.Instances.CONTENT_URI.buildUpon()
             ContentUris.appendId(eventsUriBuilder, startDate ?: Date(0).time)
             ContentUris.appendId(eventsUriBuilder, endDate ?: Date(Long.MAX_VALUE).time)
@@ -519,8 +517,10 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         if (rfcRecurrenceRule.freq == Freq.YEARLY) {
             recurrenceRule.monthsOfTheYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTH_PART)
+            recurrenceRule.weeksOfTheYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYWEEKNO_PART)
         }
 
+        recurrenceRule.setPositions = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYSETPOS_PART)
         return recurrenceRule
     }
 
@@ -650,7 +650,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         when (recurrenceRule.recurrenceFrequency) {
             RecurrenceFrequency.WEEKLY, RecurrenceFrequency.MONTHLY, RecurrenceFrequency.YEARLY -> {
-                if(recurrenceRule.daysOfTheWeek?.isEmpty() == true) {
+                if (recurrenceRule.daysOfTheWeek?.isEmpty() == true) {
                     rr.byDayPart = null
                 } else {
                     rr.byDayPart = recurrenceRule.daysOfTheWeek?.mapNotNull { dayOfWeek ->
@@ -674,18 +674,31 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             rr.until = DateTime(calendar.timeZone, recurrenceRule.endDate!!)
         }
 
-
         var rrString = rr.toString()
-
         if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY && recurrenceRule.daysOfTheMonth != null && recurrenceRule.daysOfTheMonth!!.isNotEmpty()) {
-            rrString += PART_TEMPLATE.format(BYMONTHDAY_PART) + recurrenceRule.daysOfTheMonth!!.joinToString(separator = ",")
+            rrString = rrString.addPartWithValues(BYMONTHDAY_PART, recurrenceRule.daysOfTheMonth)
         }
 
-        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY && recurrenceRule.monthsOfTheYear != null && recurrenceRule.monthsOfTheYear!!.isNotEmpty()) {
-            rrString += PART_TEMPLATE.format(BYMONTH_PART) + recurrenceRule.monthsOfTheYear!!.joinToString(separator = ",")
+        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY) {
+            if (recurrenceRule.monthsOfTheYear != null && recurrenceRule.monthsOfTheYear!!.isNotEmpty()) {
+                rrString = rrString.addPartWithValues(BYMONTH_PART, recurrenceRule.monthsOfTheYear)
+            }
+
+            if (recurrenceRule.weeksOfTheYear != null && recurrenceRule.weeksOfTheYear!!.isNotEmpty()) {
+                rrString = rrString.addPartWithValues(BYWEEKNO_PART, recurrenceRule.weeksOfTheYear)
+            }
         }
 
-
+        rrString = rrString.addPartWithValues(BYSETPOS_PART, recurrenceRule.setPositions)
         return rrString
+    }
+
+
+    private fun String.addPartWithValues(partName: String, values: List<Int>?): String {
+        if (values != null && values.isNotEmpty()) {
+            return this + PART_TEMPLATE.format(partName) + values.joinToString(",")
+        }
+
+        return this
     }
 }
