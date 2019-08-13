@@ -23,6 +23,12 @@ The following will need to be added to the manifest file for your application to
 <uses-permission android:name="android.permission.WRITE_CALENDAR" />
 ```
 
+If you have Proguard enabled, you may need to add the following to your configuration (thanks to [Britannio Jarrett](https://github.com/britannio) who posted about it [here](https://github.com/builttoroam/flutter_plugins/issues/99))
+
+```
+-keep class com.builttoroam.devicecalendar.** { *; }
+```
+
 **IMPORTANT**: Since version 0.1.0, this version has migrated to use AndroidX instead of the deprecated Android support libraries. When using version 0.10.0 and onwards for this plugin, please ensure your application has been migrated following the guide [here](https://developer.android.com/jetpack/androidx/migrate)
 
 ## iOS Integration
