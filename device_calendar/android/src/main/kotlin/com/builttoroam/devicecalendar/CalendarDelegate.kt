@@ -233,7 +233,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
     }
 
-    fun retrieveCalendar(calendarId: String, pendingChannelResult: MethodChannel.Result, isInternalCall: Boolean = false): Calendar? {
+    private fun retrieveCalendar(calendarId: String, pendingChannelResult: MethodChannel.Result, isInternalCall: Boolean = false): Calendar? {
         if (isInternalCall || arePermissionsGranted()) {
             val calendarIdNumber = calendarId.toLongOrNull()
             if (calendarIdNumber == null) {
@@ -504,9 +504,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         when (rfcRecurrenceRule.freq) {
             Freq.WEEKLY, Freq.MONTHLY, Freq.YEARLY -> {
-                recurrenceRule.daysOfTheWeek = (rfcRecurrenceRule.byDayPart?.map {
+                recurrenceRule.daysOfTheWeek = rfcRecurrenceRule.byDayPart?.map {
                     DayOfWeek.values().find { dayOfWeek -> dayOfWeek.ordinal == it.weekday.ordinal }
-                })?.filterNotNull()?.toMutableList()
+                }?.filterNotNull()?.toMutableList()
             }
         }
 
@@ -530,9 +530,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             return null
         }
 
-        return (rfcRecurrenceRuleString.substring(partIndex).split(";").firstOrNull()?.split("=")?.lastOrNull()?.split(",")?.map {
+        return rfcRecurrenceRuleString.substring(partIndex).split(";").firstOrNull()?.split("=")?.lastOrNull()?.split(",")?.map {
             it.toInt()
-        })?.toMutableList()
+        }?.toMutableList()
     }
 
     private fun parseAttendee(cursor: Cursor?): Attendee? {
@@ -568,11 +568,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
     @SuppressLint("MissingPermission")
     private fun updateEventAttendees(events: MutableList<Event>, contentResolver: ContentResolver?, pendingChannelResult: MethodChannel.Result) {
-
-        if (events == null) {
-            return
-        }
-
         val eventsMapById = events.associateBy { it.eventId }
         val attendeesQueryEventIds = eventsMapById.values.map { "(${CalendarContract.Attendees.EVENT_ID} = ${it.eventId})" }
         val attendeesQuery = attendeesQueryEventIds.joinToString(" OR ")
@@ -597,7 +592,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
             println(e.message)
         } finally {
-            attendeesCursor?.close();
+            attendeesCursor?.close()
         }
 
     }
@@ -605,7 +600,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     @Synchronized
     private fun generateUniqueRequestCodeAndCacheParameters(parameters: CalendarMethodsParametersCacheModel): Int {
         // TODO we can ran out of Int's at some point so this probably should re-use some of the freed ones
-        val uniqueRequestCode: Int = (_cachedParametersMap.keys?.max() ?: 0) + 1
+        val uniqueRequestCode: Int = (_cachedParametersMap.keys.max() ?: 0) + 1
         parameters.ownCacheKey = uniqueRequestCode
         _cachedParametersMap[uniqueRequestCode] = parameters
 
@@ -648,26 +643,14 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
 
-        when (recurrenceRule.recurrenceFrequency) {
-            RecurrenceFrequency.WEEKLY, RecurrenceFrequency.MONTHLY, RecurrenceFrequency.YEARLY -> {
-                if (recurrenceRule.daysOfTheWeek?.isEmpty() == true) {
-                    rr.byDayPart = null
-                } else {
-                    rr.byDayPart = recurrenceRule.daysOfTheWeek?.mapNotNull { dayOfWeek ->
-                        Weekday.values().firstOrNull {
-                            it.ordinal == dayOfWeek.ordinal
-                        }
-                    }?.map {
-                        org.dmfs.rfc5545.recur.RecurrenceRule.WeekdayNum(0, it)
-                    }
-                }
-            }
+        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.WEEKLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY) {
+            rr.byDayPart = buildByDayPart(recurrenceRule)
         }
 
         if (recurrenceRule.totalOccurrences != null) {
             rr.count = recurrenceRule.totalOccurrences!!
         } else if (recurrenceRule.endDate != null) {
-            val calendar = java.util.Calendar.getInstance();
+            val calendar = java.util.Calendar.getInstance()
             calendar.timeInMillis = recurrenceRule.endDate!!
             val dateFormat = SimpleDateFormat("yyyyMMdd")
             dateFormat.timeZone = calendar.timeZone
@@ -691,6 +674,20 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         rrString = rrString.addPartWithValues(bySetPosPart, recurrenceRule.setPositions)
         return rrString
+    }
+
+    private fun buildByDayPart(recurrenceRule: RecurrenceRule): List<org.dmfs.rfc5545.recur.RecurrenceRule.WeekdayNum>? {
+        if (recurrenceRule.daysOfTheWeek?.isEmpty() == true) {
+            return null
+        }
+
+        return recurrenceRule.daysOfTheWeek?.mapNotNull { dayOfWeek ->
+            Weekday.values().firstOrNull {
+                it.ordinal == dayOfWeek.ordinal
+            }
+        }?.map {
+            org.dmfs.rfc5545.recur.RecurrenceRule.WeekdayNum(0, it)
+        }
     }
 
 
