@@ -1,5 +1,6 @@
 # 1.0.0 TBD
 * Support for more advanced recurrence rules
+* **BREAKING CHANGE** `retrieveCalendars` and `retrieveEvents` now return lists that cannot be modified
 
 # 0.2.1+1 5th August 2019
 * Fixing date in changelog for version 0.2.1
