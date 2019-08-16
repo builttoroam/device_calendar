@@ -67,7 +67,7 @@ class DeviceCalendarPlugin {
 
       res.data = json.decode(calendarsJson).map<Calendar>((decodedCalendar) {
         return Calendar.fromJson(decodedCalendar);
-      }).toList();
+      }).toList(growable: false);
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult<List<Calendar>>(e, res);
     }
@@ -117,7 +117,7 @@ class DeviceCalendarPlugin {
 
         res.data = json.decode(eventsJson).map<Event>((decodedEvent) {
           return Event.fromJson(decodedEvent);
-        }).toList();
+        }).toList(growable: false);
       } catch (e) {
         _parsePlatformExceptionAndUpdateResult<List<Event>>(e, res);
       }
