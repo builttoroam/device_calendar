@@ -2,7 +2,12 @@ import Flutter
 import UIKit
 import EventKit
 
+extension Date {
+    var millisecondsSinceEpoch: Double { return self.timeIntervalSince1970 * 1000.0 }
+}
+
 public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
+    
     struct Calendar: Codable {
         let id: String
         let name: String
@@ -19,15 +24,18 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let allDay: Bool
         let attendees: [Attendee]
         let location: String?
+        let recurrenceRule: RecurrenceRule?
+    }
+    
+    struct RecurrenceRule: Codable {
+        let recurrenceFrequency: Int
+        let totalOccurrences: Int?
+        let interval: Int
+        let endDate: Int64?
     }
     
     struct Attendee: Codable {
         let name: String
-    }
-    
-    struct Location: Codable {
-        let latitude: Double
-        let longitude: Double
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
@@ -55,8 +63,12 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let eventDescriptionArgument = "eventDescription"
     let eventStartDateArgument =  "eventStartDate"
     let eventEndDateArgument = "eventEndDate"
-    let eventLocation = "eventLocation"
-    let eventLocationCoordinate = "eventLocationCoordinate"
+    let eventLocationArgument = "eventLocation"
+    let recurrenceRuleArgument = "recurrenceRule"
+    let recurrenceFrequencyArgument = "recurrenceFrequency"
+    let totalOccurrencesArgument = "totalOccurrences"
+    let intervalArgument = "interval"
+    let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
@@ -104,10 +116,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     private func retrieveEvents(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         checkPermissionsThenExecute(permissionsGrantedAction: {
             let arguments = call.arguments as! Dictionary<String, AnyObject>
-            let calendarId = arguments[self.calendarIdArgument] as! String
-            let startDateMillisecondsSinceEpoch = arguments[self.startDateArgument] as? NSNumber
-            let endDateDateMillisecondsSinceEpoch = arguments[self.endDateArgument] as? NSNumber
-            let eventIds = arguments[self.eventIdsArgument] as? [String]
+            let calendarId = arguments[calendarIdArgument] as! String
+            let startDateMillisecondsSinceEpoch = arguments[startDateArgument] as? NSNumber
+            let endDateDateMillisecondsSinceEpoch = arguments[endDateArgument] as? NSNumber
+            let eventIds = arguments[eventIdsArgument] as? [String]
             var events = [Event]()
             let specifiedStartEndDates = startDateMillisecondsSinceEpoch != nil && endDateDateMillisecondsSinceEpoch != nil
             if (specifiedStartEndDates) {
@@ -141,6 +153,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 if(ekEvent == nil) {
                     continue
                 }
+                
                 let event = createEventFromEkEvent(calendarId: calendarId, ekEvent: ekEvent!)
                 events.append(event)
             }
@@ -156,21 +169,54 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 if(ekParticipant.name == nil) {
                     continue
                 }
+                
                 let attendee = Attendee(name: ekParticipant.name!)
                 attendees.append(attendee)
             }
             
         }
+        var recurrenceRule: RecurrenceRule?
+        if(ekEvent.hasRecurrenceRules) {
+            let ekRecurrenceRule = ekEvent.recurrenceRules![0]
+            var frequency: Int
+            switch ekRecurrenceRule.frequency {
+            case EKRecurrenceFrequency.daily:
+                frequency = 0
+            case EKRecurrenceFrequency.weekly:
+                frequency = 1
+            case EKRecurrenceFrequency.monthly:
+                frequency = 2
+            case EKRecurrenceFrequency.yearly:
+                frequency = 3
+            default:
+                frequency = 0
+            }
+            
+            var totalOccurrences: Int? = nil
+            var endDate: Int64? = nil
+            if(ekRecurrenceRule.recurrenceEnd?.occurrenceCount != nil) {
+                totalOccurrences = ekRecurrenceRule.recurrenceEnd?.occurrenceCount
+            }
+            
+            let endDateMs = ekRecurrenceRule.recurrenceEnd?.endDate?.millisecondsSinceEpoch
+            if(endDateMs != nil) {
+                endDate = Int64(exactly: endDateMs!)
+            }
+            
+            recurrenceRule = RecurrenceRule(recurrenceFrequency: frequency, totalOccurrences: totalOccurrences, interval: ekRecurrenceRule.interval, endDate: endDate)
+        }
+        
         let event = Event(
             eventId: ekEvent.eventIdentifier,
             calendarId: calendarId,
             title: ekEvent.title,
             description: ekEvent.notes,
-            start: Int64(ekEvent.startDate.timeIntervalSince1970) * 1000,
-            end: Int64(ekEvent.endDate.timeIntervalSince1970) * 1000,
+            start: Int64(ekEvent.startDate.millisecondsSinceEpoch),
+            end: Int64(ekEvent.endDate.millisecondsSinceEpoch),
             allDay: ekEvent.isAllDay,
             attendees: attendees,
-            location: ekEvent.location
+            location: ekEvent.location,
+            recurrenceRule: recurrenceRule
         )
         return event
     }
@@ -178,16 +224,15 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     private func createOrUpdateEvent(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         checkPermissionsThenExecute(permissionsGrantedAction: {
             let arguments = call.arguments as! Dictionary<String, AnyObject>
-            let calendarId = arguments[self.calendarIdArgument] as! String
-            let eventId = arguments[self.eventIdArgument] as? String
-            let startDateMillisecondsSinceEpoch = arguments[self.eventStartDateArgument] as! NSNumber
-            let endDateDateMillisecondsSinceEpoch = arguments[self.eventEndDateArgument] as! NSNumber
+            let calendarId = arguments[calendarIdArgument] as! String
+            let eventId = arguments[eventIdArgument] as? String
+            let startDateMillisecondsSinceEpoch = arguments[eventStartDateArgument] as! NSNumber
+            let endDateDateMillisecondsSinceEpoch = arguments[eventEndDateArgument] as! NSNumber
             let startDate = Date (timeIntervalSince1970: startDateMillisecondsSinceEpoch.doubleValue / 1000.0)
             let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch.doubleValue / 1000.0)
             let title = arguments[self.eventTitleArgument] as! String
             let description = arguments[self.eventDescriptionArgument] as? String
-            var location = arguments[self.eventLocation] as? String;
-            
+            let location = arguments[self.eventLocationArgument] as? String;
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
@@ -215,26 +260,35 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.startDate = startDate
             ekEvent!.endDate = endDate
             ekEvent!.calendar = ekCalendar!
-            if((location) != nil) {
-                ekEvent!.location = location
-            }
-        
-            let locationCoordinates = arguments[self.eventLocationCoordinate] as? String
-            let locationCoordinatesSplitted = locationCoordinates?.split(separator: ",");
-
-            if(locationCoordinatesSplitted?.count == 2) {
-                let clLocation = CLLocation(latitude: Double(locationCoordinatesSplitted![0].trimmingCharacters(in: .whitespacesAndNewlines)) as! CLLocationDegrees, longitude: Double(locationCoordinatesSplitted![1].trimmingCharacters(in: .whitespacesAndNewlines)) as! CLLocationDegrees)
-                let structuredLocation = EKStructuredLocation(title: location ?? "");
-                structuredLocation.geoLocation = clLocation;
-                if #available(iOS 9.0, *) {
-                    ekEvent!.structuredLocation = structuredLocation
-                } else {
-                    print("structuredLocation is only available >= iOS 9.0");
+            ekEvent!.location = location
+            
+            let recurrenceRuleArguments = arguments[recurrenceRuleArgument] as? Dictionary<String, AnyObject>
+            if (recurrenceRuleArguments != nil) {
+                let recurrenceFrequencyIndex = recurrenceRuleArguments![recurrenceFrequencyArgument] as? NSInteger
+                let totalOccurrences = recurrenceRuleArguments![totalOccurrencesArgument] as? NSInteger
+                let interval = recurrenceRuleArguments![intervalArgument] as? NSInteger
+                var recurrenceInterval = 1
+                let endDate = recurrenceRuleArguments![endDateArgument] as? NSNumber
+                let namedFrequency = validFrequencyTypes[recurrenceFrequencyIndex!]
+                
+                var recurrenceEnd:EKRecurrenceEnd?
+                if(endDate != nil) {
+                    recurrenceEnd = EKRecurrenceEnd(end: Date.init(timeIntervalSince1970: endDate!.doubleValue / 1000))
+                } else if(totalOccurrences != nil && totalOccurrences! > 0) {
+                    recurrenceEnd = EKRecurrenceEnd(occurrenceCount: totalOccurrences!)
                 }
+                
+                if(interval != nil && interval! > 1) {
+                    recurrenceInterval = interval!
+                }
+                
+                ekEvent!.recurrenceRules = [EKRecurrenceRule(recurrenceWith: namedFrequency, interval: recurrenceInterval, end: recurrenceEnd)]
+            } else {
+                ekEvent!.recurrenceRules = nil
             }
-
+            
             do {
-                try self.eventStore.save(ekEvent!, span: EKSpan.futureEvents)
+                try self.eventStore.save(ekEvent!, span: .futureEvents)
                 result(ekEvent!.eventIdentifier)
             } catch {
                 self.eventStore.reset()
@@ -246,8 +300,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     private func deleteEvent(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         checkPermissionsThenExecute(permissionsGrantedAction: {
             let arguments = call.arguments as! Dictionary<String, AnyObject>
-            let calendarId = arguments[self.calendarIdArgument] as! String
-            let eventId = arguments[self.eventIdArgument] as! String
+            let calendarId = arguments[calendarIdArgument] as! String
+            let eventId = arguments[eventIdArgument] as! String
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
@@ -266,7 +320,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             }
             
             do {
-                try self.eventStore.remove(ekEvent!, span: .thisEvent)
+                try self.eventStore.remove(ekEvent!, span: .futureEvents)
                 result(true)
             } catch {
                 self.eventStore.reset()

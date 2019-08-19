@@ -1,4 +1,6 @@
-part of device_calendar;
+import '../common/error_messages.dart';
+import 'attendee.dart';
+import 'recurrence_rule.dart';
 
 /// An event associated with a calendar
 class Event {
@@ -33,8 +35,16 @@ class Event {
   /// A list of attendees for this event
   List<Attendee> attendees;
 
+  /// The recurrence rule for this event
+  RecurrenceRule recurrenceRule;
+
   Event(this.calendarId,
-      {this.eventId, this.title, this.start, this.end, this.description});
+      {this.eventId,
+      this.title,
+      this.start,
+      this.end,
+      this.description,
+      this.recurrenceRule});
 
   Event.fromJson(Map<String, dynamic> json) {
     if (json == null) {
@@ -61,6 +71,9 @@ class Event {
         return new Attendee.fromJson(decodedAttendee);
       }).toList();
     }
+    if (json['recurrenceRule'] != null) {
+      recurrenceRule = RecurrenceRule.fromJson(json['recurrenceRule']);
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -80,6 +93,9 @@ class Event {
         attendeesJson.add(attendeeJson);
       }
       data['attendees'] = attendeesJson;
+    }
+    if (recurrenceRule != null) {
+      data['recurrenceRule'] = recurrenceRule.toJson();
     }
     return data;
   }

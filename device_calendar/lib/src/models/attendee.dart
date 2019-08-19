@@ -1,4 +1,4 @@
-part of device_calendar;
+import '../common/error_messages.dart';
 
 /// A person attending an event
 class Attendee {
