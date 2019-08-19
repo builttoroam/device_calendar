@@ -1,5 +1,3 @@
-part of device_calendar;
-
 class Result<T> {
   /// Indicates if the request was successfull or not
   ///

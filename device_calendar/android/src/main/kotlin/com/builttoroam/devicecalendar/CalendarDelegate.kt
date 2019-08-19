@@ -2,29 +2,15 @@ package com.builttoroam.devicecalendar
 
 import android.Manifest
 import android.annotation.SuppressLint
-import io.flutter.plugin.common.PluginRegistry
-import android.content.pm.PackageManager
 import android.app.Activity
-import android.content.*
+import android.content.ContentResolver
+import android.content.ContentUris
+import android.content.ContentValues
+import android.content.Context
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
-import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_FOUND
-import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
-import com.builttoroam.devicecalendar.models.Calendar
-import com.builttoroam.devicecalendar.models.Event
-import io.flutter.plugin.common.MethodChannel
-import com.google.gson.Gson
 import android.provider.CalendarContract.Events
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EMAIL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EVENT_ID_INDEX
@@ -32,27 +18,44 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_ID_IND
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ALL_DAY_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_BEGIN_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DURATION_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_END_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_EVENT_LOCATION_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_DATE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.GENERIC_ERROR
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_ALLOWED
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_AUTHORIZED
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_FOUND
 import com.builttoroam.devicecalendar.common.ErrorMessages
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
-import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.NOT_AUTHORIZED_MESSAGE
-import com.builttoroam.devicecalendar.models.Attendee
-import com.builttoroam.devicecalendar.models.CalendarMethodsParametersCacheModel
+import com.builttoroam.devicecalendar.common.RecurrenceFrequency
+import com.builttoroam.devicecalendar.models.*
+import com.builttoroam.devicecalendar.models.Calendar
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.PluginRegistry
+import org.dmfs.rfc5545.DateTime
+import org.dmfs.rfc5545.recur.Freq
+import java.text.SimpleDateFormat
 import java.util.*
 
 
-public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
+class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
     private val RETRIEVE_CALENDARS_METHOD_CODE = 0
     private val RETRIEVE_EVENTS_METHOD_CODE = RETRIEVE_CALENDARS_METHOD_CODE + 1
@@ -67,13 +70,15 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     private var _context: Context? = null
     private var _gson: Gson? = null
 
-    public constructor(activity: Activity, context: Context) {
+    constructor(activity: Activity?, context: Context) {
         _activity = activity
         _context = context
-        _gson = Gson()
+        var gsonBuilder = GsonBuilder()
+        gsonBuilder.registerTypeAdapter(RecurrenceFrequency::class.java, RecurrenceFrequencySerializer())
+        _gson = gsonBuilder.create()
     }
 
-    public override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
         val permissionGranted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
 
         if (!_cachedParametersMap.containsKey(requestCode)) {
@@ -177,7 +182,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         return true
     }
 
-    public fun requestPermissions(pendingChannelResult: MethodChannel.Result) {
+    fun requestPermissions(pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             finishWithSuccess(true, pendingChannelResult)
         } else {
@@ -186,19 +191,19 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         }
     }
 
-    public fun hasPermissions(pendingChannelResult: MethodChannel.Result) {
+    fun hasPermissions(pendingChannelResult: MethodChannel.Result) {
         finishWithSuccess(arePermissionsGranted(), pendingChannelResult)
     }
 
     @SuppressLint("MissingPermission")
-    public fun retrieveCalendars(pendingChannelResult: MethodChannel.Result) {
+    fun retrieveCalendars(pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
 
             val contentResolver: ContentResolver? = _context?.getContentResolver()
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
             val cursor: Cursor? = contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
 
-            val calendars: MutableList<Calendar> = mutableListOf<Calendar>()
+            val calendars: MutableList<Calendar> = mutableListOf()
 
             try {
                 while (cursor?.moveToNext() ?: false) {
@@ -225,7 +230,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         return
     }
 
-    public fun retrieveCalendar(calendarId: String, pendingChannelResult: MethodChannel.Result, isInternalCall: Boolean = false): Calendar? {
+    fun retrieveCalendar(calendarId: String, pendingChannelResult: MethodChannel.Result, isInternalCall: Boolean = false): Calendar? {
         if (isInternalCall || arePermissionsGranted()) {
             val calendarIdNumber = calendarId.toLongOrNull()
             if (calendarIdNumber == null) {
@@ -266,7 +271,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     }
 
     @SuppressLint("MissingPermission")
-    public fun retrieveEvents(calendarId: String, startDate: Long?, endDate: Long?, eventIds: List<String>, pendingChannelResult: MethodChannel.Result) {
+    fun retrieveEvents(calendarId: String, startDate: Long?, endDate: Long?, eventIds: List<String>, pendingChannelResult: MethodChannel.Result) {
         if (startDate == null && endDate == null && eventIds.isEmpty()) {
             finishWithError(INVALID_ARGUMENT, ErrorMessages.RETRIEVE_EVENTS_ARGUMENTS_NOT_VALID_MESSAGE, pendingChannelResult)
             return
@@ -286,8 +291,8 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             ContentUris.appendId(eventsUriBuilder, endDate ?: Date(Long.MAX_VALUE).time)
 
             val eventsUri = eventsUriBuilder.build()
-            val eventsCalendarQuery = "(${CalendarContract.Events.CALENDAR_ID} = $calendarId)"
-            val eventsNotDeletedQuery = "(${CalendarContract.Events.DELETED} != 1)"
+            val eventsCalendarQuery = "(${Events.CALENDAR_ID} = $calendarId)"
+            val eventsNotDeletedQuery = "(${Events.DELETED} != 1)"
             val eventsIdsQueryElements = eventIds.map { "(${CalendarContract.Instances.EVENT_ID} = $it)" }
             val eventsIdsQuery = eventsIdsQueryElements.joinToString(" OR ")
 
@@ -295,7 +300,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             if (!eventsIdsQuery.isNullOrEmpty()) {
                 eventsSelectionQuery += " AND ($eventsIdsQuery)"
             }
-            val eventsSortOrder = CalendarContract.Events.DTSTART + " ASC"
+            val eventsSortOrder = Events.DTSTART + " ASC"
             val eventsCursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, eventsSortOrder)
 
             val events: MutableList<Event> = mutableListOf()
@@ -331,7 +336,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
     }
 
     @SuppressLint("MissingPermission")
-    public fun createOrUpdateEvent(calendarId: String, event: Event?, pendingChannelResult: MethodChannel.Result) {
+    fun createOrUpdateEvent(calendarId: String, event: Event?, pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             if (event == null) {
                 finishWithError(GENERIC_ERROR, CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE, pendingChannelResult)
@@ -340,25 +345,31 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
             val contentResolver: ContentResolver? = _context?.getContentResolver()
             val values = ContentValues()
+            val duration: String? = null
             values.put(Events.DTSTART, event.start)
             values.put(Events.DTEND, event.end)
             values.put(Events.TITLE, event.title)
             values.put(Events.DESCRIPTION, event.description)
+            values.put(Events.EVENT_LOCATION, event.location)
             values.put(Events.CALENDAR_ID, calendarId)
+            values.put(Events.DURATION, duration)
 
             // MK using current device time zone
             val calendar: java.util.Calendar = java.util.Calendar.getInstance()
             val currentTimeZone: TimeZone = calendar.timeZone
             values.put(Events.EVENT_TIMEZONE, currentTimeZone.displayName)
-
+            if(event.recurrenceRule != null) {
+                val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
+                values.put(Events.RRULE, recurrenceRuleParams)
+            }
             try {
                 var eventId: Long? = event.eventId?.toLongOrNull()
                 if (eventId == null) {
-                    val uri = contentResolver?.insert(CalendarContract.Events.CONTENT_URI, values)
+                    val uri = contentResolver?.insert(Events.CONTENT_URI, values)
                     // get the event ID that is the last element in the Uri
                     eventId = java.lang.Long.parseLong(uri?.getLastPathSegment())
                 } else {
-                    contentResolver?.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), values, null, null)
+                    contentResolver?.update(ContentUris.withAppendedId(Events.CONTENT_URI, eventId), values, null, null)
                 }
 
                 finishWithSuccess(eventId.toString(), pendingChannelResult)
@@ -373,7 +384,7 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         }
     }
 
-    public fun deleteEvent(calendarId: String, eventId: String, pendingChannelResult: MethodChannel.Result) {
+    fun deleteEvent(calendarId: String, eventId: String, pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             var existingCal = retrieveCalendar(calendarId, pendingChannelResult, true)
             if (existingCal == null) {
@@ -393,12 +404,8 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
             }
 
             val contentResolver: ContentResolver? = _context?.getContentResolver()
-            if (isRecurringEvent(eventIdNumber, contentResolver)) {
-                finishWithError(NOT_ALLOWED, DELETING_RECURRING_EVENT_NOT_SUPPORTED_MESSAGE, pendingChannelResult)
-                return
-            }
 
-            val eventsUriWithId = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventIdNumber)
+            val eventsUriWithId = ContentUris.withAppendedId(Events.CONTENT_URI, eventIdNumber)
             val deleteSucceeded = contentResolver?.delete(eventsUriWithId, null, null) ?: 0
 
             finishWithSuccess(deleteSucceeded > 0, pendingChannelResult)
@@ -458,8 +465,6 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         val description = cursor.getString(EVENT_PROJECTION_DESCRIPTION_INDEX)
         val begin = cursor.getLong(EVENT_PROJECTION_BEGIN_INDEX)
         val end = cursor.getLong(EVENT_PROJECTION_END_INDEX)
-        val duration = cursor.getLong(EVENT_PROJECTION_DURATION_INDEX)
-        val recurringDate = cursor.getString(EVENT_PROJECTION_RECURRING_DATE_INDEX)
         val recurringRule = cursor.getString(EVENT_PROJECTION_RECURRING_RULE_INDEX)
         val allDay = cursor.getInt(EVENT_PROJECTION_ALL_DAY_INDEX) > 0
         val location = cursor.getString(EVENT_PROJECTION_EVENT_LOCATION_INDEX)
@@ -472,8 +477,33 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
         event.end = end
         event.allDay = allDay
         event.location = location
-
+        event.recurrenceRule = parseRecurrenceRuleString(recurringRule)
         return event
+    }
+
+    private fun parseRecurrenceRuleString(recurrenceRuleString: String?): RecurrenceRule? {
+        if(recurrenceRuleString == null) {
+            return null
+        }
+        var rfcRecurrenceRule = org.dmfs.rfc5545.recur.RecurrenceRule(recurrenceRuleString!!)
+        var frequency = when(rfcRecurrenceRule.freq) {
+            Freq.YEARLY -> RecurrenceFrequency.YEARLY
+            Freq.MONTHLY -> RecurrenceFrequency.MONTHLY
+            Freq.WEEKLY -> RecurrenceFrequency.WEEKLY
+            Freq.DAILY -> RecurrenceFrequency.DAILY
+            else -> null
+        }
+        var recurrenceRule = RecurrenceRule(frequency!!)
+        if(rfcRecurrenceRule.count != null) {
+            recurrenceRule.totalOccurrences = rfcRecurrenceRule.count
+        }
+        if(rfcRecurrenceRule.interval != null) {
+            recurrenceRule.interval = rfcRecurrenceRule.interval
+        }
+        if(rfcRecurrenceRule.until != null) {
+            recurrenceRule.endDate = rfcRecurrenceRule.until.timestamp
+        }
+        return recurrenceRule
     }
 
     private fun parseAttendee(cursor: Cursor?): Attendee? {
@@ -498,43 +528,13 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
     private fun isCalendarReadOnly(accessLevel: Int): Boolean {
         return when (accessLevel) {
-            CalendarContract.Events.CAL_ACCESS_CONTRIBUTOR,
-            CalendarContract.Events.CAL_ACCESS_ROOT,
-            CalendarContract.Events.CAL_ACCESS_OWNER,
-            CalendarContract.Events.CAL_ACCESS_EDITOR
+            Events.CAL_ACCESS_CONTRIBUTOR,
+            Events.CAL_ACCESS_ROOT,
+            Events.CAL_ACCESS_OWNER,
+            Events.CAL_ACCESS_EDITOR
             -> false
             else -> true
         }
-    }
-
-    private fun isRecurringEvent(eventId: Long, contentResolver: ContentResolver?): Boolean {
-        val eventProjection: Array<String> = arrayOf(
-                // There are a number of properties related to recurrence that
-                // we could check. The Android docs state: "For non-recurring events,
-                // you must include DTEND. For recurring events, you must include a
-                // DURATION in addition to RRULE or RDATE." The API will also throw
-                // an exception if you try to set both DTEND and DURATION on an
-                // event. Thus, it seems reasonable to trust that DURATION will
-                // only be present if the event is recurring.
-                //
-                CalendarContract.Events.DURATION
-        )
-
-        var isRecurring = false
-        var cursor: Cursor? = null
-
-        try {
-            cursor = contentResolver?.query(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), eventProjection, null, null, null)
-            if (cursor != null && cursor.moveToFirst()) {
-                isRecurring = !(cursor.getString(0)?.isNullOrEmpty() ?: true)
-            }
-        } catch (e: Exception) {
-            println(e)
-        } finally {
-            cursor?.close()
-        }
-
-        return isRecurring
     }
 
     @SuppressLint("MissingPermission")
@@ -604,5 +604,28 @@ public class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener 
 
     private fun atLeastAPI(api: Int): Boolean {
         return api <= android.os.Build.VERSION.SDK_INT
+    }
+
+    private fun buildRecurrenceRuleParams(recurrenceRule: RecurrenceRule) : String {
+        val frequencyParam = when(recurrenceRule.recurrenceFrequency) {
+            RecurrenceFrequency.DAILY -> Freq.DAILY
+            RecurrenceFrequency.WEEKLY -> Freq.WEEKLY
+            RecurrenceFrequency.MONTHLY -> Freq.MONTHLY
+            RecurrenceFrequency.YEARLY -> Freq.YEARLY
+        }
+        val rr = org.dmfs.rfc5545.recur.RecurrenceRule(frequencyParam)
+        if(recurrenceRule.interval != null) {
+            rr.interval = recurrenceRule.interval!!
+        }
+        if(recurrenceRule.totalOccurrences != null) {
+            rr.count = recurrenceRule.totalOccurrences!!
+        } else if(recurrenceRule.endDate != null) {
+            val calendar = java.util.Calendar.getInstance();
+            calendar.timeInMillis = recurrenceRule.endDate!!
+            val dateFormat = SimpleDateFormat("yyyyMMdd")
+            dateFormat.timeZone = calendar.timeZone
+            rr.until = DateTime(calendar.timeZone, recurrenceRule.endDate!!)
+        }
+        return rr.toString()
     }
 }
