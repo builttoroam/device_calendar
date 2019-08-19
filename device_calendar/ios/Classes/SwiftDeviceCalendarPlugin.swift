@@ -39,8 +39,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
-    let notFoundErrorCode = "404";
-    let notAllowed = "405";
+    let notFoundErrorCode = "404"
+    let notAllowed = "405"
     let genericError = "500"
     let unauthorizedErrorCode = "401"
     let unauthorizedErrorMessage = "The user has not allowed this application to modify their calendar(s)"
@@ -49,7 +49,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let eventNotFoundErrorMessageFormat = "The event with the ID %@ could not be found"
     let eventStore = EKEventStore()
     let requestPermissionsMethod = "requestPermissions"
-    let hasPermissionsMethod = "hasPermissions";
+    let hasPermissionsMethod = "hasPermissions"
     let retrieveCalendarsMethod = "retrieveCalendars"
     let retrieveEventsMethod = "retrieveEvents"
     let createOrUpdateEventMethod = "createOrUpdateEvent"
@@ -232,7 +232,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch.doubleValue / 1000.0)
             let title = arguments[self.eventTitleArgument] as! String
             let description = arguments[self.eventDescriptionArgument] as? String
-            let location = arguments[self.eventLocationArgument] as? String;
+            let location = arguments[self.eventLocationArgument] as? String
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
@@ -351,7 +351,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     
     private func encodeJsonAndFinish<T: Codable>(codable: T, result: @escaping FlutterResult) {
         do {
-            let jsonEncoder = JSONEncoder();
+            let jsonEncoder = JSONEncoder()
             let jsonData = try jsonEncoder.encode(codable)
             let jsonString = String(data: jsonData, encoding: .utf8)
             result(jsonString)
@@ -381,7 +381,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     
     private func hasPermissions() -> Bool {
         let status = EKEventStore.authorizationStatus(for: .event)
-        return status == EKAuthorizationStatus.authorized;
+        return status == EKAuthorizationStatus.authorized
     }
     
     private func requestPermissions(_ result: @escaping FlutterResult) {
