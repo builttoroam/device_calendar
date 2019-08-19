@@ -1,3 +1,6 @@
+# 0.2.2 19th August 2019
+* Add support for specifying the location of an event
+
 # 0.2.1+1 5th August 2019
 * Fixing date in changelog for version 0.2.1
 
