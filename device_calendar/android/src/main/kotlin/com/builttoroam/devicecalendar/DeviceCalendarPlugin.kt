@@ -39,12 +39,12 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val EVENT_DESCRIPTION_ARGUMENT = "eventDescription"
     private val EVENT_START_DATE_ARGUMENT = "eventStartDate"
     private val EVENT_END_DATE_ARGUMENT = "eventEndDate"
+    private val EVENT_LOCATION_ARGUMENT = "eventLocation"
     private val RECURRENCE_RULE_ARGUMENT = "recurrenceRule"
     private val RECURRENCE_FREQUENCY_ARGUMENT = "recurrenceFrequency"
     private val TOTAL_OCCURRENCES_ARGUMENT = "totalOccurrences"
     private val INTERVAL_ARGUMENT = "interval"
     private val END_DATE_ARGUMENT = "endDate"
-
 
     private constructor(registrar: Registrar, calendarDelegate: CalendarDelegate) : this() {
         _registrar = registrar
@@ -94,6 +94,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val eventId = call.argument<String>(EVENT_ID_ARGUMENT)
                 val eventTitle = call.argument<String>(EVENT_TITLE_ARGUMENT)
                 val eventDescription = call.argument<String>(EVENT_DESCRIPTION_ARGUMENT)
+                val eventLocation = call.argument<String>(EVENT_LOCATION_ARGUMENT)
                 val eventStart = call.argument<Long>(EVENT_START_DATE_ARGUMENT)
                 val eventEnd = call.argument<Long>(EVENT_END_DATE_ARGUMENT)
 
@@ -101,6 +102,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 event.calendarId = calendarId
                 event.eventId = eventId
                 event.description = eventDescription
+                event.location = eventLocation
                 event.start = eventStart!!
                 event.end = eventEnd!!
 
