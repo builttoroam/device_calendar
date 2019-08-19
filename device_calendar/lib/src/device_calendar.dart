@@ -182,6 +182,7 @@ class DeviceCalendarPlugin {
         'eventLocation': event.location,
         'eventStartDate': event.start.millisecondsSinceEpoch,
         'eventEndDate': event.end.millisecondsSinceEpoch,
+        'eventLocation': event.location,
         'recurrenceRule': event.recurrenceRule?.toJson()
       });
     } catch (e) {
