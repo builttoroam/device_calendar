@@ -1,5 +1,3 @@
-part of device_calendar;
-
 class RetrieveEventsParams {
   final List<String> eventIds;
   final DateTime startDate;

@@ -1,4 +1,14 @@
-part of device_calendar;
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
+import 'package:meta/meta.dart';
+
+import 'common/error_codes.dart';
+import 'common/error_messages.dart';
+import 'models/calendar.dart';
+import 'models/event.dart';
+import 'models/result.dart';
+import 'models/retrieve_events_params.dart';
 
 /// Provides functionality for working with device calendar(s)
 class DeviceCalendarPlugin {
@@ -117,7 +127,7 @@ class DeviceCalendarPlugin {
     return res;
   }
 
-  /// Deletes an event from a calendar
+  /// Deletes an event from a calendar. For a recurring event, this will delete all instances of it
   ///
   /// The `calendarId` paramter is the id of the calendar that plugin will try to delete the event from
   /// The `eventId` parameter is the id of the event that plugin will try to delete
@@ -172,6 +182,7 @@ class DeviceCalendarPlugin {
         'eventLocation': event.location,
         'eventStartDate': event.start.millisecondsSinceEpoch,
         'eventEndDate': event.end.millisecondsSinceEpoch,
+        'recurrenceRule': event.recurrenceRule?.toJson()
       });
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult<String>(e, res);
