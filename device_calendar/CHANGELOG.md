@@ -2,6 +2,9 @@
 * Support for more advanced recurrence rules
 * **BREAKING CHANGE** `retrieveCalendars` and `retrieveEvents` now return lists that cannot be modified
 
+# 0.2.2 19th August 2019
+* Add support for specifying the location of an event. Thanks to [oli06](https://github.com/oli06) and [zemanux](https://github.com/zemanux) for submitting PRs to add the functionality to iOS and Android respectively
+
 # 0.2.1+1 5th August 2019
 * Fixing date in changelog for version 0.2.1
 

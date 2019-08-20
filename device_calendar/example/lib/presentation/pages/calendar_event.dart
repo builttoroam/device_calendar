@@ -202,6 +202,17 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       },
                     ),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: TextFormField(
+                      initialValue: _event.location,
+                      decoration: const InputDecoration(
+                          labelText: 'Location', hintText: 'Sydney, Australia'),
+                      onSaved: (String value) {
+                        _event.location = value;
+                      },
+                    ),
+                  ),
                   CheckboxListTile(
                     value: _isRecurringEvent,
                     title: Text('Is recurring'),

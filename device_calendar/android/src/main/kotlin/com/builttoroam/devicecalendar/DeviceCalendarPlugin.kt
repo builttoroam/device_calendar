@@ -37,6 +37,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val calendarEventIdsArgument = "eventIds"
     private val eventIdArgument = "eventId"
     private val eventTitleArgument = "eventTitle"
+    private val eventLocationArgument = "eventLocation"
     private val eventDescriptionArgument = "eventDescription"
     private val eventStartDateArgument = "eventStartDate"
     private val eventEndDateArgument = "eventEndDate"
@@ -50,7 +51,6 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val monthsOfTheYearArgument = "monthsOfTheYear"
     private val weeksOfTheYearArgument = "weeksOfTheYear"
     private val setPositionsArgument = "setPositions"
-
 
     private constructor(registrar: Registrar, calendarDelegate: CalendarDelegate) : this() {
         _registrar = registrar
@@ -115,19 +115,14 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     }
 
     private fun parseEventArgs(call: MethodCall, calendarId: String?): Event {
-        val eventId = call.argument<String>(eventIdArgument)
-        val eventTitle = call.argument<String>(eventTitleArgument)
-        val eventDescription = call.argument<String>(eventDescriptionArgument)
-        val eventStart = call.argument<Long>(eventStartDateArgument)
-        val eventEnd = call.argument<Long>(eventEndDateArgument)
-
         val event = Event()
-        event.title = eventTitle
+        event.title = call.argument<String>(eventTitleArgument)
         event.calendarId = calendarId
-        event.eventId = eventId
-        event.description = eventDescription
-        event.start = eventStart!!
-        event.end = eventEnd!!
+        event.eventId = call.argument<String>(eventIdArgument)
+        event.description = call.argument<String>(eventDescriptionArgument)
+        event.start = call.argument<Long>(eventStartDateArgument)!!
+        event.end = call.argument<Long>(eventEndDateArgument)!!
+        event.location = call.argument<String>(eventLocationArgument)
 
         if (call.hasArgument(recurrenceRuleArgument) && call.argument<Map<String, Any>>(recurrenceRuleArgument) != null) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)

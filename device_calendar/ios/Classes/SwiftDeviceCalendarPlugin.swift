@@ -43,14 +43,9 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let name: String
     }
     
-    struct Location: Codable {
-        let latitude: Double
-        let longitude: Double
-    }
-    
     static let channelName = "plugins.builttoroam.com/device_calendar"
-    let notFoundErrorCode = "404";
-    let notAllowed = "405";
+    let notFoundErrorCode = "404"
+    let notAllowed = "405"
     let genericError = "500"
     let unauthorizedErrorCode = "401"
     let unauthorizedErrorMessage = "The user has not allowed this application to modify their calendar(s)"
@@ -59,7 +54,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let eventNotFoundErrorMessageFormat = "The event with the ID %@ could not be found"
     let eventStore = EKEventStore()
     let requestPermissionsMethod = "requestPermissions"
-    let hasPermissionsMethod = "hasPermissions";
+    let hasPermissionsMethod = "hasPermissions"
     let retrieveCalendarsMethod = "retrieveCalendars"
     let retrieveEventsMethod = "retrieveEvents"
     let createOrUpdateEventMethod = "createOrUpdateEvent"
@@ -73,6 +68,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let eventDescriptionArgument = "eventDescription"
     let eventStartDateArgument =  "eventStartDate"
     let eventEndDateArgument = "eventEndDate"
+    let eventLocationArgument = "eventLocation"
     let recurrenceRuleArgument = "recurrenceRule"
     let recurrenceFrequencyArgument = "recurrenceFrequency"
     let totalOccurrencesArgument = "totalOccurrences"
@@ -83,7 +79,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let weeksOfTheYearArgument = "weeksOfTheYear"
     let setPositionsArgument = "setPositions"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
-    
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
@@ -308,8 +303,9 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let endDateDateMillisecondsSinceEpoch = arguments[eventEndDateArgument] as! NSNumber
             let startDate = Date (timeIntervalSince1970: startDateMillisecondsSinceEpoch.doubleValue / 1000.0)
             let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch.doubleValue / 1000.0)
-            let title = arguments[eventTitleArgument] as! String
-            let description = arguments[eventDescriptionArgument] as? String
+            let title = arguments[self.eventTitleArgument] as! String
+            let description = arguments[self.eventDescriptionArgument] as? String
+            let location = arguments[self.eventLocationArgument] as? String
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
@@ -338,7 +334,32 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.endDate = endDate
             ekEvent!.calendar = ekCalendar!
             ekEvent!.recurrenceRules = createEKRecurrenceRules(arguments)
+            ekEvent!.location = location
             
+            let recurrenceRuleArguments = arguments[recurrenceRuleArgument] as? Dictionary<String, AnyObject>
+            if (recurrenceRuleArguments != nil) {
+                let recurrenceFrequencyIndex = recurrenceRuleArguments![recurrenceFrequencyArgument] as? NSInteger
+                let totalOccurrences = recurrenceRuleArguments![totalOccurrencesArgument] as? NSInteger
+                let interval = recurrenceRuleArguments![intervalArgument] as? NSInteger
+                var recurrenceInterval = 1
+                let endDate = recurrenceRuleArguments![endDateArgument] as? NSNumber
+                let namedFrequency = validFrequencyTypes[recurrenceFrequencyIndex!]
+                
+                var recurrenceEnd:EKRecurrenceEnd?
+                if(endDate != nil) {
+                    recurrenceEnd = EKRecurrenceEnd(end: Date.init(timeIntervalSince1970: endDate!.doubleValue / 1000))
+                } else if(totalOccurrences != nil && totalOccurrences! > 0) {
+                    recurrenceEnd = EKRecurrenceEnd(occurrenceCount: totalOccurrences!)
+                }
+                
+                if(interval != nil && interval! > 1) {
+                    recurrenceInterval = interval!
+                }
+                
+                ekEvent!.recurrenceRules = [EKRecurrenceRule(recurrenceWith: namedFrequency, interval: recurrenceInterval, end: recurrenceEnd)]
+            } else {
+                ekEvent!.recurrenceRules = nil
+            }
             do {
                 try self.eventStore.save(ekEvent!, span: .futureEvents)
                 result(ekEvent!.eventIdentifier)
@@ -403,7 +424,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     
     private func encodeJsonAndFinish<T: Codable>(codable: T, result: @escaping FlutterResult) {
         do {
-            let jsonEncoder = JSONEncoder();
+            let jsonEncoder = JSONEncoder()
             let jsonData = try jsonEncoder.encode(codable)
             let jsonString = String(data: jsonData, encoding: .utf8)
             result(jsonString)
@@ -433,7 +454,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     
     private func hasPermissions() -> Bool {
         let status = EKEventStore.authorizationStatus(for: .event)
-        return status == EKAuthorizationStatus.authorized;
+        return status == EKAuthorizationStatus.authorized
     }
     
     private func requestPermissions(_ result: @escaping FlutterResult) {
