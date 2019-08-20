@@ -17,6 +17,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EVENT_
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_RELATIONSHIP_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
@@ -546,18 +547,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             return null
         }
 
-        val id = cursor.getLong(ATTENDEE_ID_INDEX)
-        val eventId = cursor.getLong(ATTENDEE_EVENT_ID_INDEX)
-        val name = cursor.getString(ATTENDEE_NAME_INDEX)
-        val email = cursor.getString(ATTENDEE_EMAIL_INDEX)
-        val type = cursor.getInt(ATTENDEE_TYPE_INDEX)
-
-        val attendee = Attendee(name)
-        attendee.id = id
-        attendee.eventId = eventId
-        attendee.email = email
-        attendee.attendanceRequired = type == CalendarContract.Attendees.TYPE_REQUIRED
-
+        val attendee = Attendee(cursor.getLong(ATTENDEE_EVENT_ID_INDEX), cursor.getString(ATTENDEE_EMAIL_INDEX), cursor.getString(ATTENDEE_NAME_INDEX), cursor.getInt(ATTENDEE_RELATIONSHIP_INDEX) == CalendarContract.Attendees.RELATIONSHIP_ORGANIZER)
         return attendee
     }
 
@@ -589,6 +579,10 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
                     if (eventsMapById.containsKey(attendee.eventId.toString())) {
                         val attendeeEvent = eventsMapById[attendee.eventId.toString()]
+                        if (attendee.isOrganizer) {
+                            attendeeEvent?.organizer = attendee
+                            continue
+                        }
                         attendeeEvent?.attendees?.add(attendee)
                     }
 
