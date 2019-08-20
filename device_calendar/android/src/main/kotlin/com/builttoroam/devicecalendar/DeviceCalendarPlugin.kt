@@ -75,8 +75,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             registrar.addRequestPermissionsResultListener(calendarDelegate)
         }
     }
-
-
+    
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             requestPermissionsMethod -> {
@@ -160,22 +159,22 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             recurrenceRule.monthsOfTheYear = recurrenceRuleArgs[monthsOfTheYearArgument].toMutableListOf()
         }
 
-        if(recurrenceRuleArgs.containsKey(weeksOfTheYearArgument)) {
+        if (recurrenceRuleArgs.containsKey(weeksOfTheYearArgument)) {
             recurrenceRule.weeksOfTheYear = recurrenceRuleArgs[weeksOfTheYearArgument].toMutableListOf()
         }
 
-        if(recurrenceRuleArgs.containsKey(setPositionsArgument)) {
+        if (recurrenceRuleArgs.containsKey(setPositionsArgument)) {
             recurrenceRule.setPositions = recurrenceRuleArgs[setPositionsArgument].toMutableListOf()
         }
 
         return recurrenceRule
     }
 
-    private inline fun <reified T:Any> Any?.toListOf(): List<T>? {
+    private inline fun <reified T : Any> Any?.toListOf(): List<T>? {
         return (this as List<*>?)?.filterIsInstance<T>()?.toList()
     }
 
-    private inline fun <reified T:Any> Any?.toMutableListOf(): MutableList<T>? {
+    private inline fun <reified T : Any> Any?.toMutableListOf(): MutableList<T>? {
         return this?.toListOf<T>()?.toMutableList()
     }
 }

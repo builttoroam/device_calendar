@@ -345,6 +345,12 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 return
             }
 
+            val calendar = retrieveCalendar(calendarId, pendingChannelResult, true)
+            if (calendar == null) {
+                finishWithError(NOT_FOUND, "Couldn't retrieve the Calendar with ID $calendarId", pendingChannelResult)
+                return
+            }
+
             val contentResolver: ContentResolver? = _context?.getContentResolver()
             val values = ContentValues()
             val duration: String? = null
@@ -357,8 +363,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             values.put(Events.DURATION, duration)
 
             // MK using current device time zone
-            val calendar: java.util.Calendar = java.util.Calendar.getInstance()
-            val currentTimeZone: TimeZone = calendar.timeZone
+            val currentTimeZone: TimeZone = java.util.Calendar.getInstance().timeZone
             values.put(Events.EVENT_TIMEZONE, currentTimeZone.displayName)
             if (event.recurrenceRule != null) {
                 val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
