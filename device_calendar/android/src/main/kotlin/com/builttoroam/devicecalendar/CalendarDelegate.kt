@@ -352,6 +352,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             values.put(Events.DTEND, event.end)
             values.put(Events.TITLE, event.title)
             values.put(Events.DESCRIPTION, event.description)
+            values.put(Events.EVENT_LOCATION, event.location)
             values.put(Events.CALENDAR_ID, calendarId)
             values.put(Events.DURATION, duration)
 
