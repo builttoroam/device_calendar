@@ -25,6 +25,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let attendees: [Attendee]
         let location: String?
         let recurrenceRule: RecurrenceRule?
+        let organizer: Attendee?
     }
     
     struct RecurrenceRule: Codable {
@@ -40,7 +41,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     struct Attendee: Codable {
-        let name: String
+        let name: String?
+        let emailAddress: String
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
@@ -176,12 +178,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         var attendees = [Attendee]()
         if (ekEvent.attendees != nil) {
             for ekParticipant in ekEvent.attendees! {
-                if(ekParticipant.name == nil) {
-                    continue
-                }
-                
-                let attendee = Attendee(name: ekParticipant.name!)
-                attendees.append(attendee)
+                attendees.append(convertEkParticipantToAttendee(ekParticipant: ekParticipant)!)
             }
         }
         
@@ -196,10 +193,23 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             allDay: ekEvent.isAllDay,
             attendees: attendees,
             location: ekEvent.location,
-            recurrenceRule: recurrenceRule
+            recurrenceRule: recurrenceRule,
+            organizer: convertEkParticipantToAttendee(ekParticipant: ekEvent.organizer)
         )
         return event
     }
+    
+    private func convertEkParticipantToAttendee(ekParticipant: EKParticipant?) -> Attendee? {
+        if(ekParticipant == nil) {
+            return nil
+        }
+        
+        let emailAddress = ekParticipant!.url.absoluteString.replacingOccurrences(of: ekParticipant!.url.scheme! + ":", with: "")
+        let attendee = Attendee(name: ekParticipant!.name, emailAddress:  emailAddress)
+        return attendee
+    }
+    
+    
     
     private func parseEKRecurrenceRules(_ ekEvent: EKEvent) -> RecurrenceRule? {
         var recurrenceRule: RecurrenceRule?

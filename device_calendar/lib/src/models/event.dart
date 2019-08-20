@@ -31,6 +31,9 @@ class Event {
   /// A list of attendees for this event
   List<Attendee> attendees;
 
+  /// The organizer of this event
+  Attendee organizer;
+
   /// The recurrence rule for this event
   RecurrenceRule recurrenceRule;
 
@@ -68,6 +71,9 @@ class Event {
     }
     if (json['recurrenceRule'] != null) {
       recurrenceRule = RecurrenceRule.fromJson(json['recurrenceRule']);
+    }
+    if (json['organizer'] != null) {
+      organizer = Attendee.fromJson(json['organizer']);
     }
   }
 
