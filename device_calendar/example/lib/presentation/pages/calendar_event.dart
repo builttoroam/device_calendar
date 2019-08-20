@@ -91,14 +91,11 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           _recurrenceEndTime = TimeOfDay.fromDateTime(_recurrenceEndDate);
         }
         _daysOfTheWeek =
-            _event.recurrenceRule.daysOfTheWeek ?? new List<DayOfTheWeek>();
-        _daysOfTheMonth =
-            _event.recurrenceRule.daysOfTheMonth ?? new List<int>();
-        _monthsOfTheYear =
-            _event.recurrenceRule.monthsOfTheYear ?? new List<int>();
-        _weeksOfTheYear =
-            _event.recurrenceRule.weeksOfTheYear ?? new List<int>();
-        _setPositions = _event.recurrenceRule.setPositions ?? new List<int>();
+            _event.recurrenceRule.daysOfTheWeek ?? List<DayOfTheWeek>();
+        _daysOfTheMonth = _event.recurrenceRule.daysOfTheMonth ?? List<int>();
+        _monthsOfTheYear = _event.recurrenceRule.monthsOfTheYear ?? List<int>();
+        _weeksOfTheYear = _event.recurrenceRule.weeksOfTheYear ?? List<int>();
+        _setPositions = _event.recurrenceRule.setPositions ?? List<int>();
       }
     }
 
