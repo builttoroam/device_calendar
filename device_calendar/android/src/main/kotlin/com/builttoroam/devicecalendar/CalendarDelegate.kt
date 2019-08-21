@@ -197,7 +197,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     @SuppressLint("MissingPermission")
     fun retrieveCalendars(pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
-            val contentResolver: ContentResolver? = _context?.getContentResolver()
+            val contentResolver: ContentResolver? = _context?.contentResolver
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
             val cursor: Cursor? = contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
             val calendars: MutableList<Calendar> = mutableListOf()
@@ -274,7 +274,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 return
             }
 
-            val contentResolver: ContentResolver? = _context?.getContentResolver()
+            val contentResolver: ContentResolver? = _context?.contentResolver
             val eventsUriBuilder = CalendarContract.Instances.CONTENT_URI.buildUpon()
             ContentUris.appendId(eventsUriBuilder, startDate ?: Date(0).time)
             ContentUris.appendId(eventsUriBuilder, endDate ?: Date(Long.MAX_VALUE).time)
@@ -286,7 +286,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             val eventsIdsQuery = eventsIdsQueryElements.joinToString(" OR ")
 
             var eventsSelectionQuery = "$eventsCalendarQuery AND $eventsNotDeletedQuery"
-            if (!eventsIdsQuery.isNullOrEmpty()) {
+            if (eventsIdsQuery.isNotEmpty()) {
                 eventsSelectionQuery += " AND ($eventsIdsQuery)"
             }
             val eventsSortOrder = Events.DTSTART + " ASC"
@@ -471,7 +471,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if (recurrenceRuleString == null) {
             return null
         }
-        val rfcRecurrenceRule = org.dmfs.rfc5545.recur.RecurrenceRule(recurrenceRuleString!!)
+        val rfcRecurrenceRule = org.dmfs.rfc5545.recur.RecurrenceRule(recurrenceRuleString)
         val frequency = when (rfcRecurrenceRule.freq) {
             Freq.YEARLY -> RecurrenceFrequency.YEARLY
             Freq.MONTHLY -> RecurrenceFrequency.MONTHLY
@@ -490,9 +490,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         when (rfcRecurrenceRule.freq) {
             Freq.WEEKLY, Freq.MONTHLY, Freq.YEARLY -> {
-                recurrenceRule.daysOfTheWeek = rfcRecurrenceRule.byDayPart?.map {
+                recurrenceRule.daysOfTheWeek = rfcRecurrenceRule.byDayPart?.mapNotNull {
                     DayOfWeek.values().find { dayOfWeek -> dayOfWeek.ordinal == it.weekday.ordinal }
-                }?.filterNotNull()?.toMutableList()
+                }?.toMutableList()
             }
         }
 
@@ -545,7 +545,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val eventsMapById = events.associateBy { it.eventId }
         val attendeesQueryEventIds = eventsMapById.values.map { "(${CalendarContract.Attendees.EVENT_ID} = ${it.eventId})" }
         val attendeesQuery = attendeesQueryEventIds.joinToString(" OR ")
-        val attendeesCursor = contentResolver?.query(CalendarContract.Attendees.CONTENT_URI, ATTENDEE_PROJECTION, attendeesQuery, null, null);
+        val attendeesCursor = contentResolver?.query(CalendarContract.Attendees.CONTENT_URI, ATTENDEE_PROJECTION, attendeesQuery, null, null)
 
         try {
             if (attendeesCursor?.moveToFirst() == true) {
