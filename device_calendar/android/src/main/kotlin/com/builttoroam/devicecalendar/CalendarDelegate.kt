@@ -581,8 +581,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                         val attendeeEvent = eventsMapById[attendee.eventId.toString()]
                         if (attendee.isOrganizer) {
                             attendeeEvent?.organizer = attendee
-                            continue
                         }
+
                         attendeeEvent?.attendees?.add(attendee)
                     }
 
