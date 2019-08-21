@@ -87,14 +87,14 @@ class Event {
     data['end'] = this.end.millisecondsSinceEpoch;
     data['allDay'] = this.allDay;
     data['location'] = this.location;
-    if (attendees != null) {
+    /*if (attendees != null) {
       List<Map<String, dynamic>> attendeesJson = List();
       for (var attendee in attendees) {
         var attendeeJson = attendee.toJson();
         attendeesJson.add(attendeeJson);
       }
       data['attendees'] = attendeesJson;
-    }
+    }*/
     if (recurrenceRule != null) {
       data['recurrenceRule'] = recurrenceRule.toJson();
     }

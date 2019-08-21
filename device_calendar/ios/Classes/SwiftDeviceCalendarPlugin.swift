@@ -43,6 +43,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     struct Attendee: Codable {
         let name: String?
         let emailAddress: String
+        let role: Int
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
@@ -205,7 +206,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         }
         
         let emailAddress = ekParticipant!.url.absoluteString.replacingOccurrences(of: ekParticipant!.url.scheme! + ":", with: "")
-        let attendee = Attendee(name: ekParticipant!.name, emailAddress:  emailAddress)
+        let attendee = Attendee(name: ekParticipant!.name, emailAddress:  emailAddress, role: ekParticipant!.participantRole.rawValue)
         return attendee
     }
     

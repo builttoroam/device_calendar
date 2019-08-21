@@ -17,6 +17,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EVENT_
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_RELATIONSHIP_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
@@ -230,7 +231,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 return null
             }
 
-            val contentResolver: ContentResolver? = _context?.getContentResolver()
+            val contentResolver: ContentResolver? = _context?.contentResolver
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
             val cursor: Cursor? = contentResolver?.query(ContentUris.withAppendedId(uri, calendarIdNumber), CALENDAR_PROJECTION, null, null, null)
 
@@ -337,8 +338,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             val contentResolver: ContentResolver? = _context?.contentResolver
             val values = ContentValues()
             val duration: String? = null
-            values.put(Events.DTSTART, event.start)
-            values.put(Events.DTEND, event.end)
+            values.put(Events.DTSTART, event.start!!)
+            values.put(Events.DTEND, event.end!!)
             values.put(Events.TITLE, event.title)
             values.put(Events.DESCRIPTION, event.description)
             values.put(Events.EVENT_LOCATION, event.location)
@@ -471,6 +472,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if (recurrenceRuleString == null) {
             return null
         }
+
         val rfcRecurrenceRule = org.dmfs.rfc5545.recur.RecurrenceRule(recurrenceRuleString)
         val frequency = when (rfcRecurrenceRule.freq) {
             Freq.YEARLY -> RecurrenceFrequency.YEARLY
@@ -479,10 +481,12 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             Freq.DAILY -> RecurrenceFrequency.DAILY
             else -> null
         }
+
         val recurrenceRule = RecurrenceRule(frequency!!)
         if (rfcRecurrenceRule.count != null) {
             recurrenceRule.totalOccurrences = rfcRecurrenceRule.count
         }
+
         recurrenceRule.interval = rfcRecurrenceRule.interval
         if (rfcRecurrenceRule.until != null) {
             recurrenceRule.endDate = rfcRecurrenceRule.until.timestamp
@@ -526,7 +530,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             return null
         }
 
-        return Attendee(cursor.getLong(ATTENDEE_EVENT_ID_INDEX), cursor.getString(ATTENDEE_EMAIL_INDEX), cursor.getString(ATTENDEE_NAME_INDEX), cursor.getInt(ATTENDEE_RELATIONSHIP_INDEX) == CalendarContract.Attendees.RELATIONSHIP_ORGANIZER)
+        return Attendee(cursor.getLong(ATTENDEE_EVENT_ID_INDEX), cursor.getString(ATTENDEE_EMAIL_INDEX), cursor.getString(ATTENDEE_NAME_INDEX), cursor.getInt(ATTENDEE_TYPE_INDEX) == CalendarContract.Attendees.TYPE_REQUIRED ,cursor.getInt(ATTENDEE_RELATIONSHIP_INDEX) == CalendarContract.Attendees.RELATIONSHIP_ORGANIZER)
     }
 
     private fun isCalendarReadOnly(accessLevel: Int): Boolean {
@@ -664,7 +668,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             org.dmfs.rfc5545.recur.RecurrenceRule.WeekdayNum(0, it)
         }
     }
-
 
     private fun String.addPartWithValues(partName: String, values: List<Int>?): String {
         if (values != null && values.isNotEmpty()) {
