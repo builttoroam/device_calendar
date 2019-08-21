@@ -3,6 +3,7 @@
 * Update README to include information about using ProGuard for issue [99](https://github.com/builttoroam/flutter_plugins/issues/99)
 * Made event title optional to fix issue [72](https://github.com/builttoroam/flutter_plugins/issues/72)
 * Return information about the organiser of the event as per issue [73](https://github.com/builttoroam/flutter_plugins/issues/73)
+* Return attendance status of attendees and if they're required for an event. These are details are different across iOS and Android and so are returned within platform-specific objects
 * **BREAKING CHANGE** `retrieveCalendars` and `retrieveEvents` now return lists that cannot be modified as part of address issue [113](https://github.com/builttoroam/flutter_plugins/issues/113)
 
 # 0.2.2 19th August 2019
