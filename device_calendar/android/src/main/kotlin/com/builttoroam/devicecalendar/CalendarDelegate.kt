@@ -17,6 +17,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EVENT_
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_RELATIONSHIP_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_STATUS_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
@@ -530,7 +531,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             return null
         }
 
-        return Attendee(cursor.getLong(ATTENDEE_EVENT_ID_INDEX), cursor.getString(ATTENDEE_EMAIL_INDEX), cursor.getString(ATTENDEE_NAME_INDEX), cursor.getInt(ATTENDEE_TYPE_INDEX) == CalendarContract.Attendees.TYPE_REQUIRED, cursor.getInt(ATTENDEE_RELATIONSHIP_INDEX) == CalendarContract.Attendees.RELATIONSHIP_ORGANIZER)
+        return Attendee(cursor.getLong(ATTENDEE_EVENT_ID_INDEX), cursor.getString(ATTENDEE_EMAIL_INDEX), cursor.getString(ATTENDEE_NAME_INDEX), cursor.getInt(ATTENDEE_TYPE_INDEX) == CalendarContract.Attendees.TYPE_REQUIRED, cursor.getInt(ATTENDEE_STATUS_INDEX),cursor.getInt(ATTENDEE_RELATIONSHIP_INDEX) == CalendarContract.Attendees.RELATIONSHIP_ORGANIZER)
     }
 
     private fun isCalendarReadOnly(accessLevel: Int): Boolean {

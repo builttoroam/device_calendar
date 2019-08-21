@@ -7,7 +7,6 @@ extension Date {
 }
 
 public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
-    
     struct Calendar: Codable {
         let id: String
         let name: String
@@ -44,6 +43,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let name: String?
         let emailAddress: String
         let role: Int
+        let attendanceStatus: Int
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
@@ -206,12 +206,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         }
         
         let emailAddress = ekParticipant!.url.absoluteString.replacingOccurrences(of: ekParticipant!.url.scheme! + ":", with: "")
-        let attendee = Attendee(name: ekParticipant!.name, emailAddress:  emailAddress, role: ekParticipant!.participantRole.rawValue)
+        let attendee = Attendee(name: ekParticipant!.name, emailAddress:  emailAddress, role: ekParticipant!.participantRole.rawValue, attendanceStatus: ekParticipant!.participantStatus.rawValue)
         return attendee
     }
-    
-    
-    
+
     private func parseEKRecurrenceRules(_ ekEvent: EKEvent) -> RecurrenceRule? {
         var recurrenceRule: RecurrenceRule?
         if(ekEvent.hasRecurrenceRules) {
