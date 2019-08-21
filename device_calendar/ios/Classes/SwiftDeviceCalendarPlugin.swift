@@ -430,8 +430,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let errorMessage = String(format: self.eventNotFoundErrorMessageFormat, eventId)
         result(FlutterError(code:self.notFoundErrorCode, message: errorMessage, details: nil))
     }
-    
-    
+
     private func encodeJsonAndFinish<T: Codable>(codable: T, result: @escaping FlutterResult) {
         do {
             let jsonEncoder = JSONEncoder()
