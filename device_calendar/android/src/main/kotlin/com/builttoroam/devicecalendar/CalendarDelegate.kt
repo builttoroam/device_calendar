@@ -14,11 +14,9 @@ import android.provider.CalendarContract
 import android.provider.CalendarContract.Events
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EMAIL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EVENT_ID_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_RELATIONSHIP_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
@@ -93,12 +91,10 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             return false
         }
 
-        val cachedValues: CalendarMethodsParametersCacheModel? = _cachedParametersMap[requestCode]
-        if (cachedValues == null) {
-            // unlikely scenario where another plugin is potentially using the same request code but it's not one we are tracking so return to
-            // indicate we're not handling the request
-            return false
-        }
+        val cachedValues: CalendarMethodsParametersCacheModel = _cachedParametersMap[requestCode]
+                ?: // unlikely scenario where another plugin is potentially using the same request code but it's not one we are tracking so return to
+                // indicate we're not handling the request
+                return false
 
         when (cachedValues.calendarDelegateMethodCode) {
             retrieveCalendarsMethodCode -> {
@@ -173,7 +169,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
         _cachedParametersMap.remove(requestCode)
-
         return true
     }
 
@@ -185,7 +180,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
         _cachedParametersMap.remove(requestCode)
-
         return true
     }
 
@@ -208,16 +202,10 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             val contentResolver: ContentResolver? = _context?.getContentResolver()
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
             val cursor: Cursor? = contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
-
             val calendars: MutableList<Calendar> = mutableListOf()
-
             try {
-                while (cursor?.moveToNext() ?: false) {
-
-                    val calendar = parseCalendar(cursor)
-                    if (calendar == null) {
-                        continue
-                    }
+                while (cursor?.moveToNext() == true) {
+                    val calendar = parseCalendar(cursor) ?: continue
                     calendars.add(calendar)
                 }
 
@@ -249,7 +237,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             val cursor: Cursor? = contentResolver?.query(ContentUris.withAppendedId(uri, calendarIdNumber), CALENDAR_PROJECTION, null, null, null)
 
             try {
-                if (cursor?.moveToFirst() ?: false) {
+                if (cursor?.moveToFirst() == true) {
                     val calendar = parseCalendar(cursor)
                     if (isInternalCall) {
                         return calendar
@@ -309,16 +297,12 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             val events: MutableList<Event> = mutableListOf()
 
             try {
-                if (eventsCursor?.moveToFirst() ?: false) {
+                if (eventsCursor?.moveToFirst() == true) {
                     do {
-                        val event = parseEvent(calendarId, eventsCursor)
-                        if (event == null) {
-                            continue
-                        }
-
+                        val event = parseEvent(calendarId, eventsCursor) ?: continue
                         events.add(event)
 
-                    } while (eventsCursor?.moveToNext() ?: false)
+                    } while (eventsCursor.moveToNext())
 
                     updateEventAttendees(events, contentResolver, pendingChannelResult)
                 }
@@ -352,7 +336,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 return
             }
 
-            val contentResolver: ContentResolver? = _context?.getContentResolver()
+            val contentResolver: ContentResolver? = _context?.contentResolver
             val values = ContentValues()
             val duration: String? = null
             values.put(Events.DTSTART, event.start)
@@ -375,7 +359,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 if (eventId == null) {
                     val uri = contentResolver?.insert(Events.CONTENT_URI, values)
                     // get the event ID that is the last element in the Uri
-                    eventId = java.lang.Long.parseLong(uri?.getLastPathSegment())
+                    eventId = java.lang.Long.parseLong(uri?.lastPathSegment)
                 } else {
                     contentResolver?.update(ContentUris.withAppendedId(Events.CONTENT_URI, eventId), values, null, null)
                 }
@@ -411,11 +395,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 return
             }
 
-            val contentResolver: ContentResolver? = _context?.getContentResolver()
-
+            val contentResolver: ContentResolver? = _context?.contentResolver
             val eventsUriWithId = ContentUris.withAppendedId(Events.CONTENT_URI, eventIdNumber)
             val deleteSucceeded = contentResolver?.delete(eventsUriWithId, null, null) ?: 0
-
             finishWithSuccess(deleteSucceeded > 0, pendingChannelResult)
         } else {
             val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, deleteEventMethodCode, calendarId)
@@ -428,7 +410,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if (atLeastAPI(23)) {
             val writeCalendarPermissionGranted = _activity?.checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
             val readCalendarPermissionGranted = _activity?.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
-
             return writeCalendarPermissionGranted && readCalendarPermissionGranted
         }
 
@@ -547,8 +528,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             return null
         }
 
-        val attendee = Attendee(cursor.getLong(ATTENDEE_EVENT_ID_INDEX), cursor.getString(ATTENDEE_EMAIL_INDEX), cursor.getString(ATTENDEE_NAME_INDEX), cursor.getInt(ATTENDEE_RELATIONSHIP_INDEX) == CalendarContract.Attendees.RELATIONSHIP_ORGANIZER)
-        return attendee
+        return Attendee(cursor.getLong(ATTENDEE_EVENT_ID_INDEX), cursor.getString(ATTENDEE_EMAIL_INDEX), cursor.getString(ATTENDEE_NAME_INDEX), cursor.getInt(ATTENDEE_RELATIONSHIP_INDEX) == CalendarContract.Attendees.RELATIONSHIP_ORGANIZER)
     }
 
     private fun isCalendarReadOnly(accessLevel: Int): Boolean {
@@ -570,12 +550,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val attendeesCursor = contentResolver?.query(CalendarContract.Attendees.CONTENT_URI, ATTENDEE_PROJECTION, attendeesQuery, null, null);
 
         try {
-            if (attendeesCursor?.moveToFirst() ?: false) {
+            if (attendeesCursor?.moveToFirst() == true) {
                 do {
-                    val attendee = parseAttendee(attendeesCursor)
-                    if (attendee == null) {
-                        continue
-                    }
+                    val attendee = parseAttendee(attendeesCursor) ?: continue
 
                     if (eventsMapById.containsKey(attendee.eventId.toString())) {
                         val attendeeEvent = eventsMapById[attendee.eventId.toString()]
@@ -586,7 +563,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                         attendeeEvent?.attendees?.add(attendee)
                     }
 
-                } while (attendeesCursor?.moveToNext() ?: false)
+                } while (attendeesCursor.moveToNext())
             }
         } catch (e: Exception) {
             finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
