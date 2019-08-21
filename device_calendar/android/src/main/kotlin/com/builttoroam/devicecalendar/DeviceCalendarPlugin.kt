@@ -71,7 +71,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             registrar.addRequestPermissionsResultListener(calendarDelegate)
         }
     }
-    
+
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             REQUEST_PERMISSIONS_METHOD -> {
