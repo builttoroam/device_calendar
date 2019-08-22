@@ -1,4 +1,4 @@
-import 'package:platform/platform.dart';
+import 'dart:io' show Platform;
 
 import '../common/error_messages.dart';
 import 'platform_specifics/android/attendee_details.dart';
@@ -29,12 +29,11 @@ class Attendee {
 
     name = json['name'];
     emailAddress = json['emailAddress'];
-    final platform = LocalPlatform();
-    if (platform.isAndroid) {
+    if (Platform.isAndroid) {
       androidAttendeeDetails = AndroidAttendeeDetails.fromJson(json);
     }
 
-    if (platform.isIOS) {
+    if (Platform.isIOS) {
       iosAttendeeDetails = IosAttendeeDetails.fromJson(json);
     }
   }

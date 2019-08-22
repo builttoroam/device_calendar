@@ -7,7 +7,6 @@ homepage: https://github.com/builttoroam/flutter_plugins/tree/develop/device_cal
 dependencies:
   flutter:
     sdk: flutter
-  platform: ^2.2.1
 
 dev_dependencies:
   flutter_test:
