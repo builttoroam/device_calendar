@@ -6,13 +6,13 @@ import 'platform_specifics/ios/attendee_details.dart';
 
 /// A person attending an event
 class Attendee {
-  /// The name of the attendee
+  /// The name of the attendee. Currently has no effect when saving attendees on iOS.
   String name;
 
   ///  The email address of the attendee
   String emailAddress;
 
-  /// Details about the attendee that are specific to iOS.
+  /// Details about the attendee that are specific to iOS. Currently has no effect when saving attendees on iOS.
   /// When reading details for an existing event, this will only be populated on iOS devices.
   IosAttendeeDetails iosAttendeeDetails;
 
@@ -20,7 +20,11 @@ class Attendee {
   /// When reading details for an existing event, this will only be populated on Android devices.
   AndroidAttendeeDetails androidAttendeeDetails;
 
-  Attendee({this.name, this.emailAddress});
+  Attendee(
+      {this.name,
+      this.emailAddress,
+      this.iosAttendeeDetails,
+      this.androidAttendeeDetails});
 
   Attendee.fromJson(Map<String, dynamic> json) {
     if (json == null) {
@@ -38,9 +42,16 @@ class Attendee {
     }
   }
 
-  /*Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = Map<String, dynamic>();
-    data['name'] = this.name;
+    data['name'] = name;
+    data['emailAddress'] = emailAddress;
+    if (Platform.isIOS && iosAttendeeDetails != null) {
+      data.addEntries(iosAttendeeDetails.toJson().entries);
+    }
+    if (Platform.isAndroid && androidAttendeeDetails != null) {
+      data.addEntries(androidAttendeeDetails.toJson().entries);
+    }
     return data;
-  }*/
+  }
 }
