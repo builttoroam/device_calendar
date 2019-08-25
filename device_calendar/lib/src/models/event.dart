@@ -43,6 +43,7 @@ class Event {
       this.start,
       this.end,
       this.description,
+      this.attendees,
       this.recurrenceRule});
 
   Event.fromJson(Map<String, dynamic> json) {
@@ -79,22 +80,18 @@ class Event {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = Map<String, dynamic>();
-    data['eventId'] = this.eventId;
-    data['calendarId'] = this.calendarId;
-    data['title'] = this.title;
-    data['description'] = this.description;
-    data['start'] = this.start.millisecondsSinceEpoch;
-    data['end'] = this.end.millisecondsSinceEpoch;
-    data['allDay'] = this.allDay;
-    data['location'] = this.location;
-    /*if (attendees != null) {
-      List<Map<String, dynamic>> attendeesJson = List();
-      for (var attendee in attendees) {
-        var attendeeJson = attendee.toJson();
-        attendeesJson.add(attendeeJson);
-      }
-      data['attendees'] = attendeesJson;
-    }*/
+    data['eventId'] = eventId;
+    data['calendarId'] = calendarId;
+    data['title'] = title;
+    data['description'] = description;
+    data['start'] = start.millisecondsSinceEpoch;
+    data['end'] = end.millisecondsSinceEpoch;
+    data['allDay'] = allDay;
+    data['location'] = location;
+    if (attendees != null) {
+      print('have attendees');
+      data['attendees'] = attendees.map((a) => a.toJson()).toList();
+    }
     if (recurrenceRule != null) {
       data['recurrenceRule'] = recurrenceRule.toJson();
     }

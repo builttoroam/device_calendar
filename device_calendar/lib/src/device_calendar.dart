@@ -181,7 +181,8 @@ class DeviceCalendarPlugin {
         'eventStartDate': event.start.millisecondsSinceEpoch,
         'eventEndDate': event.end.millisecondsSinceEpoch,
         'eventLocation': event.location,
-        'recurrenceRule': event.recurrenceRule?.toJson()
+        'recurrenceRule': event.recurrenceRule?.toJson(),
+        'attendees': event.attendees?.map((a) => a.toJson())?.toList(),
       });
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult<String>(e, res);
