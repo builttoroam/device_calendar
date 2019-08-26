@@ -78,6 +78,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _startDate = _event.start;
       _endDate = _event.end;
       _isRecurringEvent = _event.recurrenceRule != null;
+      if (_event.organizer != null) {
+        printAttendeeDetails(_event.organizer);
+      }
+      _event.attendees?.forEach((a) => printAttendeeDetails(a));
       if (_isRecurringEvent) {
         _interval = _event.recurrenceRule.interval;
         _totalOccurrences = _event.recurrenceRule.totalOccurrences;
@@ -105,6 +109,15 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _recurrenceEndTime = TimeOfDay(
           hour: _recurrenceEndDate.hour, minute: _recurrenceEndDate.minute);
     }
+  }
+
+  void printAttendeeDetails(Attendee attendee) {
+    print(
+        'attendee name: ${attendee.name}, email address: ${attendee.emailAddress}');
+    print(
+        'ios specifics - status: ${attendee.iosAttendeeDetails?.attendanceStatus}, role:  ${attendee.iosAttendeeDetails?.role}');
+    print(
+        'android specifics - status ${attendee.androidAttendeeDetails?.attendanceStatus}, is required: ${attendee.androidAttendeeDetails?.isRequired}');
   }
 
   @override
