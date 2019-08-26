@@ -31,6 +31,8 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTIO
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_MINUTES_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_PROJECTION
 import com.builttoroam.devicecalendar.common.DayOfWeek
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.GENERIC_ERROR
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
@@ -53,7 +55,7 @@ import org.dmfs.rfc5545.Weekday
 import org.dmfs.rfc5545.recur.Freq
 import java.text.SimpleDateFormat
 import java.util.*
-
+import com.builttoroam.devicecalendar.models.CalendarMethodsParametersCacheModel
 
 class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val RETRIEVE_CALENDARS_REQUEST_CODE = 0
@@ -204,7 +206,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             val calendars: MutableList<Calendar> = mutableListOf()
             try {
                 while (cursor?.moveToNext() == true) {
-                    val calendar = parseCalendar(cursor) ?: continue
+                    val calendar = parseCalendarRow(cursor) ?: continue
                     calendars.add(calendar)
                 }
 
@@ -236,7 +238,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             try {
                 if (cursor?.moveToFirst() == true) {
-                    val calendar = parseCalendar(cursor)
+                    val calendar = parseCalendarRow(cursor)
                     if (isInternalCall) {
                         return calendar
                     } else {
@@ -306,6 +308,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                         val attendees = retrieveAttendees(event.eventId!!, contentResolver)
                         event.organizer = attendees.firstOrNull { it.isOrganizer != null && it.isOrganizer }
                         event.attendees = attendees
+                        event.reminders = retrieveReminders(event.eventId!!, contentResolver)
                     }
                 }
             } catch (e: Exception) {
@@ -346,6 +349,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     // get the event ID that is the last element in the Uri
                     eventId = java.lang.Long.parseLong(uri?.lastPathSegment!!)
                     insertAttendees(event.attendees, eventId, contentResolver)
+                    insertReminders(event.reminders, eventId, contentResolver)
                 } else {
                     contentResolver?.update(ContentUris.withAppendedId(Events.CONTENT_URI, eventId), values, null, null)
                     val existingAttendees = retrieveAttendees(eventId.toString(), contentResolver)
@@ -353,8 +357,11 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     for (attendeeToDelete in attendeesToDelete) {
                         deleteAttendee(eventId, attendeeToDelete, contentResolver)
                     }
-                    val attendeesToInsert = event.attendees.filter { existingAttendees.all { existingAttendee -> existingAttendee.emailAddress != it.emailAddress }}
+
+                    val attendeesToInsert = event.attendees.filter { existingAttendees.all { existingAttendee -> existingAttendee.emailAddress != it.emailAddress } }
                     insertAttendees(attendeesToInsert, eventId, contentResolver)
+                    deleteExistingReminders(contentResolver, eventId)
+                    insertReminders(event.reminders, eventId, contentResolver!!)
                 }
 
                 finishWithSuccess(eventId.toString(), pendingChannelResult)
@@ -366,6 +373,38 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             parameters.event = event
             requestPermissions(parameters)
         }
+    }
+
+    private fun deleteExistingReminders(contentResolver: ContentResolver?, eventId: Long) {
+        val cursor = CalendarContract.Reminders.query(contentResolver, eventId, arrayOf(
+                CalendarContract.Reminders._ID
+        ))
+        while (cursor != null && cursor.moveToNext()) {
+            var reminderUri: Uri? = null
+            val reminderId = cursor.getLong(0)
+            if (reminderId > 0) {
+                reminderUri = ContentUris.withAppendedId(CalendarContract.Reminders.CONTENT_URI, reminderId)
+            }
+            if (reminderUri != null) {
+                contentResolver?.delete(reminderUri, null, null)
+            }
+        }
+        cursor?.close()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun insertReminders(reminders: List<Reminder>, eventId: Long?, contentResolver: ContentResolver) {
+        if (reminders.isEmpty()) {
+            return
+        }
+        val remindersContentValues = reminders.map {
+            ContentValues().apply {
+                put(CalendarContract.Reminders.EVENT_ID, eventId)
+                put(CalendarContract.Reminders.MINUTES, it.minutes)
+                put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
+            }
+        }.toTypedArray()
+        contentResolver.bulkInsert(CalendarContract.Reminders.CONTENT_URI, remindersContentValues)
     }
 
     private fun buildEventContentValues(event: Event, calendarId: String): ContentValues {
@@ -391,25 +430,27 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
     @SuppressLint("MissingPermission")
     private fun insertAttendees(attendees: List<Attendee>, eventId: Long?, contentResolver: ContentResolver?) {
-        val attendeesValues: MutableList<ContentValues> = mutableListOf()
-        for (attendee in attendees) {
-            val attendeeValues = ContentValues().apply {
-                put(CalendarContract.Attendees.ATTENDEE_EMAIL, attendee.emailAddress)
+        if (attendees.isEmpty()) {
+            return
+        }
+
+        val attendeesValues = attendees.map {
+            ContentValues().apply {
+                put(CalendarContract.Attendees.ATTENDEE_EMAIL, it.emailAddress)
                 put(
                         CalendarContract.Attendees.ATTENDEE_RELATIONSHIP,
                         CalendarContract.Attendees.RELATIONSHIP_ATTENDEE
                 )
-                put(CalendarContract.Attendees.ATTENDEE_TYPE, if (attendee.isRequired != null && attendee.isRequired) CalendarContract.Attendees.TYPE_REQUIRED else CalendarContract.Attendees.TYPE_OPTIONAL)
+                put(CalendarContract.Attendees.ATTENDEE_TYPE, if (it.isRequired != null && it.isRequired) CalendarContract.Attendees.TYPE_REQUIRED else CalendarContract.Attendees.TYPE_OPTIONAL)
                 put(
                         CalendarContract.Attendees.ATTENDEE_STATUS,
                         CalendarContract.Attendees.ATTENDEE_STATUS_INVITED
                 )
                 put(CalendarContract.Attendees.EVENT_ID, eventId)
             }
-            attendeesValues.add(attendeeValues)
-        }
+        }.toTypedArray()
 
-        contentResolver?.bulkInsert(CalendarContract.Attendees.CONTENT_URI, attendeesValues.toTypedArray())
+        contentResolver?.bulkInsert(CalendarContract.Attendees.CONTENT_URI, attendeesValues)
     }
 
     @SuppressLint("MissingPermission")
@@ -471,7 +512,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
     }
 
-    private fun parseCalendar(cursor: Cursor?): Calendar? {
+    private fun parseCalendarRow(cursor: Cursor?): Calendar? {
         if (cursor == null) {
             return null
         }
@@ -570,12 +611,20 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }?.toMutableList()
     }
 
-    private fun parseAttendee(cursor: Cursor?): Attendee? {
+    private fun parseAttendeeRow(cursor: Cursor?): Attendee? {
         if (cursor == null) {
             return null
         }
 
-        return Attendee(cursor.getString(ATTENDEE_EMAIL_INDEX), cursor.getString(ATTENDEE_NAME_INDEX), cursor.getInt(ATTENDEE_TYPE_INDEX) == CalendarContract.Attendees.TYPE_REQUIRED, cursor.getInt(ATTENDEE_STATUS_INDEX),cursor.getInt(ATTENDEE_RELATIONSHIP_INDEX) == CalendarContract.Attendees.RELATIONSHIP_ORGANIZER)
+        return Attendee(cursor.getString(ATTENDEE_EMAIL_INDEX), cursor.getString(ATTENDEE_NAME_INDEX), cursor.getInt(ATTENDEE_TYPE_INDEX) == CalendarContract.Attendees.TYPE_REQUIRED, cursor.getInt(ATTENDEE_STATUS_INDEX), cursor.getInt(ATTENDEE_RELATIONSHIP_INDEX) == CalendarContract.Attendees.RELATIONSHIP_ORGANIZER)
+    }
+
+    private fun parseReminderRow(cursor: Cursor?): Reminder? {
+        if (cursor == null) {
+            return null
+        }
+
+        return Reminder(cursor.getInt(REMINDER_MINUTES_INDEX))
     }
 
     private fun isCalendarReadOnly(accessLevel: Int): Boolean {
@@ -591,19 +640,36 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
     @SuppressLint("MissingPermission")
     private fun retrieveAttendees(eventId: String, contentResolver: ContentResolver?): MutableList<Attendee> {
-        val attendees:MutableList<Attendee> = mutableListOf()
+        val attendees: MutableList<Attendee> = mutableListOf()
         val attendeesQuery = "(${CalendarContract.Attendees.EVENT_ID} = ${eventId})"
         val attendeesCursor = contentResolver?.query(CalendarContract.Attendees.CONTENT_URI, ATTENDEE_PROJECTION, attendeesQuery, null, null)
         attendeesCursor.use { cursor ->
             if (cursor?.moveToFirst() == true) {
                 do {
-                    val attendee = parseAttendee(attendeesCursor) ?: continue
+                    val attendee = parseAttendeeRow(attendeesCursor) ?: continue
                     attendees.add(attendee)
                 } while (cursor.moveToNext())
             }
         }
 
         return attendees
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun retrieveReminders(eventId: String, contentResolver: ContentResolver?) : MutableList<Reminder> {
+        val reminders: MutableList<Reminder> = mutableListOf()
+        val remindersQuery = "(${CalendarContract.Reminders.EVENT_ID} = ${eventId})"
+        val remindersCursor = contentResolver?.query(CalendarContract.Reminders.CONTENT_URI, REMINDER_PROJECTION, remindersQuery, null, null)
+        remindersCursor.use { cursor ->
+            if (cursor?.moveToFirst() == true) {
+                do {
+                    val reminder = parseReminderRow(remindersCursor) ?: continue
+                    reminders.add(reminder)
+                } while (cursor.moveToNext())
+            }
+        }
+
+        return reminders
     }
 
     @Synchronized

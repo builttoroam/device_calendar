@@ -1,3 +1,4 @@
+import '../../device_calendar.dart';
 import '../common/error_messages.dart';
 import 'attendee.dart';
 import 'recurrence_rule.dart';
@@ -39,6 +40,8 @@ class Event {
   /// The recurrence rule for this event
   RecurrenceRule recurrenceRule;
 
+  List<Reminder> reminders;
+
   Event(this.calendarId,
       {this.eventId,
       this.title,
@@ -78,9 +81,15 @@ class Event {
     if (json['organizer'] != null) {
       _organizer = Attendee.fromJson(json['organizer']);
     }
+    if (json['reminders'] != null) {
+      reminders = json['reminders'].map<Reminder>((decodedReminder) {
+        return Reminder.fromJson(decodedReminder);
+      }).toList();
+    }
   }
 
-  Map<String, dynamic> toJson() {
+  // TODO: look at using this method
+  /* Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = Map<String, dynamic>();
     data['eventId'] = eventId;
     data['calendarId'] = calendarId;
@@ -96,6 +105,9 @@ class Event {
     if (recurrenceRule != null) {
       data['recurrenceRule'] = recurrenceRule.toJson();
     }
+    if (reminders != null) {
+      data['reminders'] = reminders.map((r) => r.toJson()).toList();
+    }
     return data;
-  }
+  }*/
 }

@@ -57,5 +57,11 @@ class Constants {
                 CalendarContract.Attendees.ATTENDEE_RELATIONSHIP,
                 CalendarContract.Attendees.ATTENDEE_STATUS
         )
+
+        const val REMINDER_MINUTES_INDEX = 1
+        val REMINDER_PROJECTION: Array<String> = arrayOf(
+                CalendarContract.Reminders.EVENT_ID,
+                CalendarContract.Reminders.MINUTES
+        )
     }
 }

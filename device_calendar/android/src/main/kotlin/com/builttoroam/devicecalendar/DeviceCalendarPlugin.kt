@@ -7,11 +7,11 @@ import com.builttoroam.devicecalendar.common.RecurrenceFrequency
 import com.builttoroam.devicecalendar.models.Attendee
 import com.builttoroam.devicecalendar.models.Event
 import com.builttoroam.devicecalendar.models.RecurrenceRule
-
+import com.builttoroam.devicecalendar.models.Reminder
+import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.PluginRegistry.Registrar
 
 const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar"
@@ -49,6 +49,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val EMAIL_ADDRESS_ARGUMENT = "emailAddress"
     private val NAME_ARGUMENT = "name"
     private val IS_REQUIRED_ARGUMENT = "isRequired"
+    private val REMINDERS_ARGUMENT = "reminders"
+    private val MINUTES_ARGUMENT = "minutes"
 
     private lateinit var _registrar: Registrar
     private lateinit var _calendarDelegate: CalendarDelegate
@@ -134,6 +136,14 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             val attendeesArgs = call.argument<List<Map<String, Any>>>(ATTENDEES_ARGUMENT)!!
             for (attendeeArgs in attendeesArgs) {
                 event.attendees.add(Attendee(attendeeArgs[EMAIL_ADDRESS_ARGUMENT] as String, attendeeArgs[NAME_ARGUMENT] as String?, attendeeArgs[IS_REQUIRED_ARGUMENT] as Boolean?, null, null))
+            }
+        }
+
+        if (call.hasArgument(REMINDERS_ARGUMENT) && call.argument<List<Map<String, Any>>>(REMINDERS_ARGUMENT) != null) {
+            event.reminders = mutableListOf()
+            val remindersArgs = call.argument<List<Map<String, Any>>>(REMINDERS_ARGUMENT)!!
+            for (reminderArgs in remindersArgs) {
+                event.reminders.add(Reminder(reminderArgs[MINUTES_ARGUMENT] as Int))
             }
         }
 

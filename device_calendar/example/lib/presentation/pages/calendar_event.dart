@@ -82,6 +82,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         printAttendeeDetails(_event.organizer);
       }
       _event.attendees?.forEach((a) => printAttendeeDetails(a));
+      _event.reminders?.forEach((r) => print('reminder ${r.minutes}'));
       if (_isRecurringEvent) {
         _interval = _event.recurrenceRule.interval;
         _totalOccurrences = _event.recurrenceRule.totalOccurrences;

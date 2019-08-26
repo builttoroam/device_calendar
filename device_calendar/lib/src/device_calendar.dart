@@ -183,6 +183,7 @@ class DeviceCalendarPlugin {
         'eventLocation': event.location,
         'recurrenceRule': event.recurrenceRule?.toJson(),
         'attendees': event.attendees?.map((a) => a.toJson())?.toList(),
+        'reminders': event.reminders?.map((r) => r.toJson())?.toList()
       });
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult<String>(e, res);
