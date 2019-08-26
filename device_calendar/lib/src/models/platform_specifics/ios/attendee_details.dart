@@ -1,6 +1,7 @@
-import 'package:device_calendar/src/models/platform_specifics/ios/attendance_status.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../common/error_messages.dart';
+import 'attendance_status.dart';
 import 'role.dart';
 
 class IosAttendeeDetails {
@@ -11,7 +12,7 @@ class IosAttendeeDetails {
   /// The attendee's status for the event. This is read-only
   IosAttendanceStatus get attendanceStatus => _attendanceStatus;
 
-  IosAttendeeDetails(this.role);
+  IosAttendeeDetails({this.role});
 
   IosAttendeeDetails.fromJson(Map<String, dynamic> json) {
     if (json == null) {

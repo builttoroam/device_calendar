@@ -212,7 +212,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 finishWithSuccess(_gson?.toJson(calendars), pendingChannelResult)
             } catch (e: Exception) {
                 finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
-                println(e.message)
             } finally {
                 cursor?.close()
             }
@@ -250,7 +249,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     }
                 }
             } catch (e: Exception) {
-                println(e.message)
+                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
             } finally {
                 cursor?.close()
             }
@@ -304,11 +303,14 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
                     } while (eventsCursor.moveToNext())
 
-                    updateEventAttendees(events, contentResolver, pendingChannelResult)
+                    for (event in events) {
+                        val attendees = retrieveAttendees(event.eventId!!, contentResolver)
+                        event.organizer = attendees.firstOrNull { it.isOrganizer != null && it.isOrganizer }
+                        event.attendees = attendees
+                    }
                 }
             } catch (e: Exception) {
                 finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
-                println(e.message)
             } finally {
                 eventsCursor?.close()
             }
@@ -337,43 +339,86 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             }
 
             val contentResolver: ContentResolver? = _context?.contentResolver
-            val values = ContentValues()
-            val duration: String? = null
-            values.put(Events.DTSTART, event.start!!)
-            values.put(Events.DTEND, event.end!!)
-            values.put(Events.TITLE, event.title)
-            values.put(Events.DESCRIPTION, event.description)
-            values.put(Events.EVENT_LOCATION, event.location)
-            values.put(Events.CALENDAR_ID, calendarId)
-            values.put(Events.DURATION, duration)
-
-            // MK using current device time zone
-            val currentTimeZone: TimeZone = java.util.Calendar.getInstance().timeZone
-            values.put(Events.EVENT_TIMEZONE, currentTimeZone.displayName)
-            if (event.recurrenceRule != null) {
-                val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
-                values.put(Events.RRULE, recurrenceRuleParams)
-            }
+            val values = buildEventContentValues(event, calendarId)
             try {
                 var eventId: Long? = event.eventId?.toLongOrNull()
                 if (eventId == null) {
                     val uri = contentResolver?.insert(Events.CONTENT_URI, values)
                     // get the event ID that is the last element in the Uri
-                    eventId = java.lang.Long.parseLong(uri?.lastPathSegment)
+                    eventId = java.lang.Long.parseLong(uri?.lastPathSegment!!)
+                    insertAttendees(event.attendees, eventId, contentResolver)
                 } else {
                     contentResolver?.update(ContentUris.withAppendedId(Events.CONTENT_URI, eventId), values, null, null)
+                    val existingAttendees = retrieveAttendees(eventId.toString(), contentResolver)
+                    val attendeesToDelete = if (event.attendees.isNotEmpty()) existingAttendees.filter { existingAttendee -> event.attendees.all { it.emailAddress != existingAttendee.emailAddress } } else existingAttendees
+                    for (attendeeToDelete in attendeesToDelete) {
+                        deleteAttendee(eventId, attendeeToDelete, contentResolver)
+                    }
+                    val attendeesToInsert = event.attendees.filter { existingAttendees.all { existingAttendee -> existingAttendee.emailAddress != it.emailAddress }}
+                    insertAttendees(attendeesToInsert, eventId, contentResolver)
                 }
 
                 finishWithSuccess(eventId.toString(), pendingChannelResult)
             } catch (e: Exception) {
                 finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
-                println(e.message)
             }
         } else {
             val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, CREATE_OR_UPDATE_EVENT_REQUEST_CODE, calendarId)
             parameters.event = event
             requestPermissions(parameters)
         }
+    }
+
+    private fun buildEventContentValues(event: Event, calendarId: String): ContentValues {
+        val values = ContentValues()
+        val duration: String? = null
+        values.put(Events.DTSTART, event.start!!)
+        values.put(Events.DTEND, event.end!!)
+        values.put(Events.TITLE, event.title)
+        values.put(Events.DESCRIPTION, event.description)
+        values.put(Events.EVENT_LOCATION, event.location)
+        values.put(Events.CALENDAR_ID, calendarId)
+        values.put(Events.DURATION, duration)
+
+        // MK using current device time zone
+        val currentTimeZone: TimeZone = java.util.Calendar.getInstance().timeZone
+        values.put(Events.EVENT_TIMEZONE, currentTimeZone.displayName)
+        if (event.recurrenceRule != null) {
+            val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
+            values.put(Events.RRULE, recurrenceRuleParams)
+        }
+        return values
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun insertAttendees(attendees: List<Attendee>, eventId: Long?, contentResolver: ContentResolver?) {
+        val attendeesValues: MutableList<ContentValues> = mutableListOf()
+        for (attendee in attendees) {
+            val attendeeValues = ContentValues().apply {
+                put(CalendarContract.Attendees.ATTENDEE_EMAIL, attendee.emailAddress)
+                put(
+                        CalendarContract.Attendees.ATTENDEE_RELATIONSHIP,
+                        CalendarContract.Attendees.RELATIONSHIP_ATTENDEE
+                )
+                put(CalendarContract.Attendees.ATTENDEE_TYPE, if (attendee.isRequired != null && attendee.isRequired) CalendarContract.Attendees.TYPE_REQUIRED else CalendarContract.Attendees.TYPE_OPTIONAL)
+                put(
+                        CalendarContract.Attendees.ATTENDEE_STATUS,
+                        CalendarContract.Attendees.ATTENDEE_STATUS_INVITED
+                )
+                put(CalendarContract.Attendees.EVENT_ID, eventId)
+            }
+            attendeesValues.add(attendeeValues)
+        }
+
+        contentResolver?.bulkInsert(CalendarContract.Attendees.CONTENT_URI, attendeesValues.toTypedArray())
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun deleteAttendee(eventId: Long, attendee: Attendee, contentResolver: ContentResolver?) {
+        val selection = "(" + CalendarContract.Attendees.EVENT_ID + " = ?) AND (" + CalendarContract.Attendees.ATTENDEE_EMAIL + " = ?)"
+        val selectionArgs = arrayOf(eventId.toString() + "", attendee.emailAddress)
+        contentResolver?.delete(CalendarContract.Attendees.CONTENT_URI, selection, selectionArgs)
+
     }
 
     fun deleteEvent(calendarId: String, eventId: String, pendingChannelResult: MethodChannel.Result) {
@@ -546,35 +591,20 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     }
 
     @SuppressLint("MissingPermission")
-    private fun updateEventAttendees(events: MutableList<Event>, contentResolver: ContentResolver?, pendingChannelResult: MethodChannel.Result) {
-        val eventsMapById = events.associateBy { it.eventId }
-        val attendeesQueryEventIds = eventsMapById.values.map { "(${CalendarContract.Attendees.EVENT_ID} = ${it.eventId})" }
-        val attendeesQuery = attendeesQueryEventIds.joinToString(" OR ")
+    private fun retrieveAttendees(eventId: String, contentResolver: ContentResolver?): MutableList<Attendee> {
+        val attendees:MutableList<Attendee> = mutableListOf()
+        val attendeesQuery = "(${CalendarContract.Attendees.EVENT_ID} = ${eventId})"
         val attendeesCursor = contentResolver?.query(CalendarContract.Attendees.CONTENT_URI, ATTENDEE_PROJECTION, attendeesQuery, null, null)
-
-        try {
-            if (attendeesCursor?.moveToFirst() == true) {
+        attendeesCursor.use { cursor ->
+            if (cursor?.moveToFirst() == true) {
                 do {
                     val attendee = parseAttendee(attendeesCursor) ?: continue
-
-                    if (eventsMapById.containsKey(attendee.eventId.toString())) {
-                        val attendeeEvent = eventsMapById[attendee.eventId.toString()]
-                        if (attendee.isOrganizer) {
-                            attendeeEvent?.organizer = attendee
-                        }
-
-                        attendeeEvent?.attendees?.add(attendee)
-                    }
-
-                } while (attendeesCursor.moveToNext())
+                    attendees.add(attendee)
+                } while (cursor.moveToNext())
             }
-        } catch (e: Exception) {
-            finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
-            println(e.message)
-        } finally {
-            attendeesCursor?.close()
         }
 
+        return attendees
     }
 
     @Synchronized
@@ -621,7 +651,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if (recurrenceRule.interval != null) {
             rr.interval = recurrenceRule.interval!!
         }
-
 
         if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.WEEKLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY) {
             rr.byDayPart = buildByDayPart(recurrenceRule)

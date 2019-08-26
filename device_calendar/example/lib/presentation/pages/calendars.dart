@@ -32,7 +32,14 @@ class _CalendarsPageState extends State<CalendarsPage> {
         title: Text('Calendars'),
       ),
       body: Column(
-        children: <Widget>[
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Text(
+              'WARNING: some aspects of saving events are hardcoded in this example app. As such we recommend you do not modify existing events as this may result in loss of information',
+              style: Theme.of(context).textTheme.title,
+            ),
+          ),
           Expanded(
             flex: 1,
             child: ListView.builder(
@@ -53,7 +60,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
                               flex: 1,
                               child: Text(
                                 _calendars[index].name,
-                                style: TextStyle(fontSize: 25.0),
+                                style: Theme.of(context).textTheme.subhead,
                               ),
                             ),
                             Icon(_calendars[index].isReadOnly

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import com.builttoroam.devicecalendar.common.DayOfWeek
 import com.builttoroam.devicecalendar.common.RecurrenceFrequency
+import com.builttoroam.devicecalendar.models.Attendee
 import com.builttoroam.devicecalendar.models.Event
 import com.builttoroam.devicecalendar.models.RecurrenceRule
 
@@ -44,6 +45,10 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val MONTHS_OF_THE_YEAR_ARGUMENT = "monthsOfTheYear"
     private val WEEKS_OF_THE_YEAR_ARGUMENT = "weeksOfTheYear"
     private val SET_POSITIONS_ARGUMENT = "setPositions"
+    private val ATTENDEES_ARGUMENT = "attendees"
+    private val EMAIL_ADDRESS_ARGUMENT = "emailAddress"
+    private val NAME_ARGUMENT = "name"
+    private val IS_REQUIRED_ARGUMENT = "isRequired"
 
     private lateinit var _registrar: Registrar
     private lateinit var _calendarDelegate: CalendarDelegate
@@ -122,6 +127,14 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)
             event.recurrenceRule = recurrenceRule
+        }
+
+        if (call.hasArgument(ATTENDEES_ARGUMENT) && call.argument<List<Map<String, Any>>>(ATTENDEES_ARGUMENT) != null) {
+            event.attendees = mutableListOf()
+            val attendeesArgs = call.argument<List<Map<String, Any>>>(ATTENDEES_ARGUMENT)!!
+            for (attendeeArgs in attendeesArgs) {
+                event.attendees.add(Attendee(null, attendeeArgs[EMAIL_ADDRESS_ARGUMENT] as String, attendeeArgs[NAME_ARGUMENT] as String?, attendeeArgs[IS_REQUIRED_ARGUMENT] as Boolean?, null, null))
+            }
         }
 
         return event

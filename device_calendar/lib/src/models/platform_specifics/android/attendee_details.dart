@@ -1,4 +1,5 @@
 import 'package:device_calendar/src/models/platform_specifics/android/attendance_status.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../common/error_messages.dart';
 
@@ -10,6 +11,8 @@ class AndroidAttendeeDetails {
 
   /// The attendee's status for the event. This is read-only
   AndroidAttendanceStatus get attendanceStatus => _attendanceStatus;
+
+  AndroidAttendeeDetails({@required this.isRequired});
 
   AndroidAttendeeDetails.fromJson(Map<String, dynamic> json) {
     if (json == null) {

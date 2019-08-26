@@ -4,6 +4,8 @@ import 'recurrence_rule.dart';
 
 /// An event associated with a calendar
 class Event {
+  Attendee _organizer;
+
   /// The unique identifier for this event
   String eventId;
 
@@ -31,8 +33,8 @@ class Event {
   /// A list of attendees for this event
   List<Attendee> attendees;
 
-  /// The organizer of this event
-  Attendee organizer;
+  /// The organizer of this event. This property is read-only
+  Attendee get organizer => _organizer;
 
   /// The recurrence rule for this event
   RecurrenceRule recurrenceRule;
@@ -74,7 +76,7 @@ class Event {
       recurrenceRule = RecurrenceRule.fromJson(json['recurrenceRule']);
     }
     if (json['organizer'] != null) {
-      organizer = Attendee.fromJson(json['organizer']);
+      _organizer = Attendee.fromJson(json['organizer']);
     }
   }
 
@@ -89,7 +91,6 @@ class Event {
     data['allDay'] = allDay;
     data['location'] = location;
     if (attendees != null) {
-      print('have attendees');
       data['attendees'] = attendees.map((a) => a.toJson()).toList();
     }
     if (recurrenceRule != null) {
