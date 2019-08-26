@@ -8,11 +8,8 @@ extension Date {
 
 extension EKParticipant {
     var emailAddress: String? {
-        if(self.url.scheme == nil) {
-            return nil
-        }
-        
-        return url.absoluteString.replacingOccurrences(of: self.url.scheme! + ":", with: "") }
+        return self.value(forKey: "emailAddress") as? String
+    }
 }
 
 public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
