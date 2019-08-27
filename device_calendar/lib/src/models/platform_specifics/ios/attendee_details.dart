@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import '../../../common/error_messages.dart';
 import 'attendance_status.dart';
 import 'role.dart';
