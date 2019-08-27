@@ -1,9 +1,11 @@
 import 'package:device_calendar/device_calendar.dart';
+import 'package:device_calendar_example/presentation/pages/event_attendees.dart';
 import 'package:device_calendar_example/presentation/widgets/days_of_the_week_form_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../date_time_picker.dart';
+import 'event_reminders.dart';
 
 enum RecurrenceRuleEndType { MaxOccurrences, SpecifiedEndDate }
 
@@ -45,6 +47,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   List<int> _validDaysOfTheMonth = List<int>();
   List<int> _validMonthsOfTheYear = List<int>();
   List<int> _validWeeksOfTheYear = List<int>();
+  List<Attendee> _attendees = List<Attendee>();
+  List<Reminder> _reminders = List<Reminder>();
   int _totalOccurrences;
   int _interval;
   DateTime _recurrenceEndDate;
@@ -69,6 +73,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     for (var i = 1; i <= 53; i++) {
       _validWeeksOfTheYear.add(i);
     }
+    _attendees = List<Attendee>();
+    _reminders = List<Reminder>();
     if (this._event == null) {
       _startDate = DateTime.now();
       _endDate = DateTime.now().add(Duration(hours: 1));
@@ -78,11 +84,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _startDate = _event.start;
       _endDate = _event.end;
       _isRecurringEvent = _event.recurrenceRule != null;
-      if (_event.organizer != null) {
-        printAttendeeDetails(_event.organizer);
+      if (_event.attendees.isNotEmpty) {
+        _attendees.addAll(_event.attendees);
       }
-      _event.attendees?.forEach((a) => printAttendeeDetails(a));
-      _event.reminders?.forEach((r) => print('reminder ${r.minutes}'));
+      if (_event.reminders.isNotEmpty) {
+        _reminders.addAll(_event.reminders);
+      }
       if (_isRecurringEvent) {
         _interval = _event.recurrenceRule.interval;
         _totalOccurrences = _event.recurrenceRule.totalOccurrences;
@@ -222,6 +229,64 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       onSaved: (String value) {
                         _event.location = value;
                       },
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () async {
+                      List<Attendee> result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  EventAttendees(_attendees)));
+                      if (result == null) {
+                        return;
+                      }
+                      _attendees = result;
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 10.0,
+                          children: [
+                            Icon(Icons.people),
+                            if (_attendees.isEmpty) Text('Add people'),
+                            for (var attendee in _attendees)
+                              Text('${attendee.emailAddress};')
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () async {
+                      List<Reminder> result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  EventReminders(_reminders)));
+                      if (result == null) {
+                        return;
+                      }
+                      _reminders = result;
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 10.0,
+                          children: [
+                            Icon(Icons.alarm),
+                            if (_reminders.isEmpty) Text('Add reminders'),
+                            for (var reminder in _reminders)
+                              Text('${reminder.minutes} minutes before; ')
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   CheckboxListTile(
@@ -441,6 +506,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                   weeksOfTheYear: _weeksOfTheYear,
                   setPositions: _setPositions);
             }
+            _event.attendees = _attendees;
+            _event.reminders = _reminders;
             var createEventResult =
                 await _deviceCalendarPlugin.createOrUpdateEvent(_event);
             if (createEventResult.isSuccess) {
