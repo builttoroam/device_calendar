@@ -12,6 +12,7 @@ A cross platform plugin for modifying calendars on the user's device.
 * Ability to add, update or delete events from a calendar
 * Ability to set up recurring events (NOTE: deleting a recurring event will currently delete all instances of it)
 * Ability to modify attendees for an event (NOTE: certain information is read-only like attendance status. Please refer to API docs)
+* Ability to setup reminders for an event
 
 **NOTE**: there is a known issue where it looks as though specifying `weeksOfTheYear` and `setPositions` for recurrence rules doesn't appear to have an effect. Also note that the example app only provides entering simple scenarios e.g. it may be possible to specify multiple months that a yearly event should occur on but the example app will only allow specifying a single month.
 

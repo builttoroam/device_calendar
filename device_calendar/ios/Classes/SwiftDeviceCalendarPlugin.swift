@@ -31,6 +31,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let location: String?
         let recurrenceRule: RecurrenceRule?
         let organizer: Attendee?
+        let reminders: [Reminder]
     }
     
     struct RecurrenceRule: Codable {
@@ -50,6 +51,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let emailAddress: String
         let role: Int
         let attendanceStatus: Int
+    }
+    
+    struct Reminder: Codable {
+        let minutes: Int
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
@@ -88,6 +93,9 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let monthsOfTheYearArgument = "monthsOfTheYear"
     let weeksOfTheYearArgument = "weeksOfTheYear"
     let setPositionsArgument = "setPositions"
+    let emailAddressArgument = "emailAddress"
+    let remindersArgument = "reminders"
+    let minutesArgument = "minutes"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -195,6 +203,13 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             }
         }
         
+        var reminders = [Reminder]()
+        if ekEvent.alarms != nil {
+            for alarm in ekEvent.alarms! {
+                reminders.append(Reminder(minutes: Int(-alarm.relativeOffset / 60)))
+            }
+        }
+
         let recurrenceRule = parseEKRecurrenceRules(ekEvent)
         let event = Event(
             eventId: ekEvent.eventIdentifier,
@@ -207,7 +222,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             attendees: attendees,
             location: ekEvent.location,
             recurrenceRule: recurrenceRule,
-            organizer: convertEkParticipantToAttendee(ekParticipant: ekEvent.organizer)
+            organizer: convertEkParticipantToAttendee(ekParticipant: ekEvent.organizer),
+            reminders: reminders
         )
         return event
     }
@@ -314,32 +330,49 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         return [EKRecurrenceRule(recurrenceWith: namedFrequency, interval: recurrenceInterval, daysOfTheWeek: daysOfTheWeek, daysOfTheMonth: recurrenceRuleArguments![daysOfTheMonthArgument] as? [NSNumber], monthsOfTheYear: recurrenceRuleArguments![monthsOfTheYearArgument] as? [NSNumber], weeksOfTheYear: recurrenceRuleArguments![weeksOfTheYearArgument] as? [NSNumber], daysOfTheYear: nil, setPositions: recurrenceRuleArguments![setPositionsArgument] as? [NSNumber], end: recurrenceEnd)]
     }
     
-    fileprivate func createAttendees(_ arguments: [String : AnyObject], _ ekEvent: EKEvent?) {
+    private func setAttendees(_ arguments: [String : AnyObject], _ ekEvent: EKEvent?) {
         let attendeesArguments = arguments[attendeesArgument] as? [Dictionary<String, AnyObject>]
-        if attendeesArguments != nil {
-            var attendees = [EKParticipant]()
-            for attendeeArguments in attendeesArguments! {
-                let emailAddress = attendeeArguments["emailAddress"] as! String
-                if(ekEvent!.attendees != nil) {
-                    let existingAttendee = ekEvent!.attendees!.first { element in
-                        return element.emailAddress == emailAddress
-                    }
-                    if existingAttendee != nil && ekEvent!.organizer?.emailAddress != existingAttendee?.emailAddress{
-                        attendees.append(existingAttendee!)
-                        continue
-                    }
+        if attendeesArguments == nil {
+            return
+        }
+        
+        var attendees = [EKParticipant]()
+        for attendeeArguments in attendeesArguments! {
+            let emailAddress = attendeeArguments[emailAddressArgument] as! String
+            if(ekEvent!.attendees != nil) {
+                let existingAttendee = ekEvent!.attendees!.first { element in
+                    return element.emailAddress == emailAddress
                 }
-                
-                let attendee = createParticipant(emailAddress: emailAddress)
-                if(attendee == nil) {
+                if existingAttendee != nil && ekEvent!.organizer?.emailAddress != existingAttendee?.emailAddress{
+                    attendees.append(existingAttendee!)
                     continue
                 }
-                
-                attendees.append(attendee!)
             }
             
-            ekEvent!.setValue(attendees, forKey: "attendees")
+            let attendee = createParticipant(emailAddress: emailAddress)
+            if(attendee == nil) {
+                continue
+            }
+            
+            attendees.append(attendee!)
         }
+        
+        ekEvent!.setValue(attendees, forKey: "attendees")
+    }
+    
+    private func createReminders(_ arguments: [String : AnyObject]) -> [EKAlarm]?{
+        let remindersArguments = arguments[remindersArgument] as? [Dictionary<String, AnyObject>]
+        if remindersArguments == nil {
+            return nil
+        }
+        
+        var reminders = [EKAlarm]()
+        for reminderArguments in remindersArguments! {
+            let minutes = reminderArguments[minutesArgument] as! Int
+            reminders.append(EKAlarm.init(relativeOffset: 60 * Double(-minutes)))
+        }
+        
+        return reminders
     }
     
     private func createOrUpdateEvent(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
@@ -383,7 +416,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.calendar = ekCalendar!
             ekEvent!.location = location
             ekEvent!.recurrenceRules = createEKRecurrenceRules(arguments)
-            createAttendees(arguments, ekEvent)
+            setAttendees(arguments, ekEvent)
+            ekEvent!.alarms = createReminders(arguments)
 
             do {
                 try self.eventStore.save(ekEvent!, span: .futureEvents)
