@@ -44,5 +44,15 @@ void main() {
       final health = await driver.checkHealth();
       print('flutter driver status: ${health.status}');
     });
+
+    test('starts on calendars page', () async {
+      await driver.waitFor(find.byValueKey('calendarsPage'));
+    });
+    test('select first writable calendar', () async {
+      final writableCalendar = find.byValueKey('writableCalendar0');
+      await driver.waitFor(writableCalendar,
+          timeout: Duration(milliseconds: 500));
+      await driver.tap(writableCalendar);
+    });
   });
 }

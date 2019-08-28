@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'calendar_events.dart';
 
 class CalendarsPage extends StatefulWidget {
+  CalendarsPage({Key key}) : super(key: key);
+
   @override
   _CalendarsPageState createState() {
     return _CalendarsPageState();
@@ -14,6 +16,11 @@ class CalendarsPage extends StatefulWidget {
 class _CalendarsPageState extends State<CalendarsPage> {
   DeviceCalendarPlugin _deviceCalendarPlugin;
   List<Calendar> _calendars;
+  List<Calendar> get _writableCalendars =>
+      _calendars?.where((c) => !c.isReadOnly)?.toList() ?? List<Calendar>();
+
+  List<Calendar> get _readOnlyCalendars =>
+      _calendars?.where((c) => c.isReadOnly)?.toList() ?? List<Calendar>();
 
   _CalendarsPageState() {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
@@ -46,6 +53,9 @@ class _CalendarsPageState extends State<CalendarsPage> {
               itemCount: _calendars?.length ?? 0,
               itemBuilder: (BuildContext context, int index) {
                 return GestureDetector(
+                    key: Key(_calendars[index].isReadOnly
+                        ? 'readOnlyCalendar${_readOnlyCalendars.indexWhere((c) => c.id == _calendars[index].id)}'
+                        : 'writableCalendar${_writableCalendars.indexWhere((c) => c.id == _calendars[index].id)}'),
                     onTap: () async {
                       await Navigator.push(context,
                           MaterialPageRoute(builder: (BuildContext context) {
