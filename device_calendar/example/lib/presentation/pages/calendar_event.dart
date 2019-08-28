@@ -148,6 +148,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                   Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: TextFormField(
+                      key: Key('titleField'),
                       initialValue: _event.title,
                       decoration: const InputDecoration(
                           labelText: 'Title',
