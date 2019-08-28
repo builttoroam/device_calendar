@@ -24,7 +24,7 @@ class EventItem extends StatelessWidget {
       child: Card(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
+          children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10.0),
               child: FlutterLogo(),
@@ -35,11 +35,11 @@ class EventItem extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
-                children: <Widget>[
+                children: [
                   Align(
                     alignment: Alignment.topLeft,
                     child: Row(
-                      children: <Widget>[
+                      children: [
                         Container(
                           width: _eventFieldNameWidth,
                           child: Text('Starts'),
@@ -58,7 +58,7 @@ class EventItem extends StatelessWidget {
                   Align(
                     alignment: Alignment.topLeft,
                     child: Row(
-                      children: <Widget>[
+                      children: [
                         Container(
                           width: _eventFieldNameWidth,
                           child: Text('Ends'),
@@ -77,7 +77,7 @@ class EventItem extends StatelessWidget {
                   Align(
                     alignment: Alignment.topLeft,
                     child: Row(
-                      children: <Widget>[
+                      children: [
                         Container(
                           width: _eventFieldNameWidth,
                           child: Text('All day?'),
@@ -95,7 +95,7 @@ class EventItem extends StatelessWidget {
                   Align(
                     alignment: Alignment.topLeft,
                     child: Row(
-                      children: <Widget>[
+                      children: [
                         Container(
                           width: _eventFieldNameWidth,
                           child: Text('Location'),
@@ -115,7 +115,7 @@ class EventItem extends StatelessWidget {
                   Align(
                     alignment: Alignment.topLeft,
                     child: Row(
-                      children: <Widget>[
+                      children: [
                         Container(
                           width: _eventFieldNameWidth,
                           child: Text('Attendees'),
@@ -138,7 +138,7 @@ class EventItem extends StatelessWidget {
             ),
             ButtonTheme.bar(
                 child: ButtonBar(
-              children: <Widget>[
+              children: [
                 IconButton(
                   onPressed: () {
                     _onTapped(_calendarEvent);
@@ -154,7 +154,7 @@ class EventItem extends StatelessWidget {
                           return AlertDialog(
                             title: Text(
                                 'Are you sure you want to delete this event?'),
-                            actions: <Widget>[
+                            actions: [
                               FlatButton(
                                 onPressed: () {
                                   Navigator.of(context).pop();
