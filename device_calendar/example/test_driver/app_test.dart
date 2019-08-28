@@ -6,6 +6,7 @@ import 'package:test/test.dart';
 void main() {
   group('App', () {
     FlutterDriver driver;
+    final saveEventButtonFinder = find.byValueKey('saveEventButton');
     setUpAll(() async {
       // workaround for handling permissions based on info taken from https://github.com/flutter/flutter/issues/12561
       // this is to be run in a Mac environment
@@ -49,10 +50,21 @@ void main() {
       await driver.waitFor(find.byValueKey('calendarsPage'));
     });
     test('select first writable calendar', () async {
-      final writableCalendar = find.byValueKey('writableCalendar0');
-      await driver.waitFor(writableCalendar,
+      final writableCalendarFinder = find.byValueKey('writableCalendar0');
+      await driver.waitFor(writableCalendarFinder,
           timeout: Duration(milliseconds: 500));
-      await driver.tap(writableCalendar);
+      await driver.tap(writableCalendarFinder);
+    });
+    test('go to add event page', () async {
+      final addEventButtonFinder = find.byValueKey('addEventButton');
+      await driver.waitFor(addEventButtonFinder);
+      await driver.tap(addEventButtonFinder);
+      await driver.waitFor(saveEventButtonFinder);
+    });
+    test('try to save event without entering mandatory fields', () async {
+      await driver.tap(saveEventButtonFinder);
+      await driver.waitFor(
+          find.text('Please fix the errors in red before submitting.'));
     });
   });
 }

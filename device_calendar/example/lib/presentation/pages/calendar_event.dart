@@ -1,10 +1,10 @@
 import 'package:device_calendar/device_calendar.dart';
-import 'package:device_calendar_example/presentation/pages/event_attendees.dart';
-import 'package:device_calendar_example/presentation/widgets/days_of_the_week_form_entry.dart';
+import 'event_attendees.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../date_time_picker.dart';
+import '../widgets/days_of_the_week_form_entry.dart';
 import 'event_reminders.dart';
 
 enum RecurrenceRuleEndType { MaxOccurrences, SpecifiedEndDate }
@@ -237,7 +237,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           context,
                           MaterialPageRoute(
                               builder: (context) =>
-                                  EventAttendees(_attendees)));
+                                  EventAttendeesPage(_attendees)));
                       if (result == null) {
                         return;
                       }
@@ -266,7 +266,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           context,
                           MaterialPageRoute(
                               builder: (context) =>
-                                  EventReminders(_reminders)));
+                                  EventRemindersPage(_reminders)));
                       if (result == null) {
                         return;
                       }
@@ -484,6 +484,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        key: Key('saveEventButton'),
         onPressed: () async {
           final FormState form = _formKey.currentState;
           if (!form.validate()) {
