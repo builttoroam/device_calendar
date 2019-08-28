@@ -97,91 +97,38 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 // indicate we're not handling the request
                 return false
 
-        when (cachedValues.calendarDelegateMethodCode) {
-            RETRIEVE_CALENDARS_REQUEST_CODE -> {
-                return handleRetrieveCalendarsRequest(permissionGranted, cachedValues, requestCode)
+        try {
+            if (!permissionGranted) {
+                finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+                return false
             }
-            RETRIEVE_EVENTS_REQUEST_CODE -> {
-                return handleRetrieveEventsRequest(permissionGranted, cachedValues, requestCode)
+
+            when (cachedValues.calendarDelegateMethodCode) {
+                RETRIEVE_CALENDARS_REQUEST_CODE -> {
+                    retrieveCalendars(cachedValues.pendingChannelResult)
+                }
+                RETRIEVE_EVENTS_REQUEST_CODE -> {
+                    retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.calendarEventsIds, cachedValues.pendingChannelResult)
+                }
+                RETRIEVE_CALENDAR_REQUEST_CODE -> {
+                    retrieveCalendar(cachedValues.calendarId, cachedValues.pendingChannelResult)
+                }
+                CREATE_OR_UPDATE_EVENT_REQUEST_CODE -> {
+                    createOrUpdateEvent(cachedValues.calendarId, cachedValues.event, cachedValues.pendingChannelResult)
+                }
+                DELETE_EVENT_REQUEST_CODE -> {
+                    deleteEvent(cachedValues.eventId, cachedValues.calendarId, cachedValues.pendingChannelResult)
+                }
+                REQUEST_PERMISSIONS_REQUEST_CODE -> {
+                    finishWithSuccess(permissionGranted, cachedValues.pendingChannelResult)
+                }
             }
-            RETRIEVE_CALENDAR_REQUEST_CODE -> {
-                return handleRetrieveCalendarRequest(permissionGranted, cachedValues, requestCode)
-            }
-            CREATE_OR_UPDATE_EVENT_REQUEST_CODE -> {
-                return handleCreateOrUpdateEventRequest(permissionGranted, cachedValues, requestCode)
-            }
-            DELETE_EVENT_REQUEST_CODE -> {
-                return handleDeleteEventRequest(permissionGranted, cachedValues, requestCode)
-            }
-            REQUEST_PERMISSIONS_REQUEST_CODE -> {
-                return handlePermissionsRequest(permissionGranted, cachedValues)
-            }
+
+            return true
         }
-
-        return false
-    }
-
-    private fun handlePermissionsRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel): Boolean {
-        finishWithSuccess(permissionGranted, cachedValues.pendingChannelResult)
-        return true
-    }
-
-    private fun handleDeleteEventRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
-        if (permissionGranted) {
-            deleteEvent(cachedValues.eventId, cachedValues.calendarId, cachedValues.pendingChannelResult)
-        } else {
-            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
+        finally {
+            _cachedParametersMap.remove(cachedValues.calendarDelegateMethodCode)
         }
-
-        _cachedParametersMap.remove(requestCode)
-
-        return true
-    }
-
-    private fun handleCreateOrUpdateEventRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
-        if (permissionGranted) {
-            createOrUpdateEvent(cachedValues.calendarId, cachedValues.event, cachedValues.pendingChannelResult)
-        } else {
-            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-        }
-
-        _cachedParametersMap.remove(requestCode)
-
-        return true
-    }
-
-    private fun handleRetrieveCalendarRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
-        if (permissionGranted) {
-            retrieveCalendar(cachedValues.calendarId, cachedValues.pendingChannelResult)
-        } else {
-            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-        }
-
-        _cachedParametersMap.remove(requestCode)
-
-        return true
-    }
-
-    private fun handleRetrieveEventsRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
-        if (permissionGranted) {
-            retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.calendarEventsIds, cachedValues.pendingChannelResult)
-        } else {
-            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-        }
-
-        _cachedParametersMap.remove(requestCode)
-        return true
-    }
-
-    private fun handleRetrieveCalendarsRequest(permissionGranted: Boolean, cachedValues: CalendarMethodsParametersCacheModel, requestCode: Int): Boolean {
-        if (permissionGranted) {
-            retrieveCalendars(cachedValues.pendingChannelResult)
-        } else {
-            finishWithError(NOT_AUTHORIZED, NOT_AUTHORIZED_MESSAGE, cachedValues.pendingChannelResult)
-        }
-
-        _cachedParametersMap.remove(requestCode)
-        return true
     }
 
     fun requestPermissions(pendingChannelResult: MethodChannel.Result) {
