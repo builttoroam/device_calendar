@@ -1,3 +1,6 @@
+# 1.0.0+1 28th August 2019
+* Add integration tests to example app. Note that this is more for internal use at the moment as it currently requires a device with a calendar that can be written to and assumes that the tests are executed from a Mac.
+
 # 1.0.0 28th August 2019
 * Support for more advanced recurrence rules
 * Update README to include information about using ProGuard for issue [99](https://github.com/builttoroam/flutter_plugins/issues/99)
