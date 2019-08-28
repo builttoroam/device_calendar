@@ -1,4 +1,4 @@
-# 1.0.0 TBD
+# 1.0.0 28th August 2019
 * Support for more advanced recurrence rules
 * Update README to include information about using ProGuard for issue [99](https://github.com/builttoroam/flutter_plugins/issues/99)
 * Made event title optional to fix issue [72](https://github.com/builttoroam/flutter_plugins/issues/72)
