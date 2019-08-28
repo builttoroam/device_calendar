@@ -194,7 +194,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         var attendees = [Attendee]()
         if ekEvent.attendees != nil {
             for ekParticipant in ekEvent.attendees! {
-                let attendee = convertEkParticipantToAttendee(ekParticipant: ekParticipant);
+                let attendee = convertEkParticipantToAttendee(ekParticipant: ekParticipant)
                 if attendee == nil {
                     continue
                 }
@@ -515,7 +515,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             return
         }
         eventStore.requestAccess(to: .event, completion: {
-            (accessGranted: Bool, error: Error?) in
+            (accessGranted: Bool, _: Error?) in
             completion(accessGranted)
         })
     }
@@ -530,7 +530,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             result(true)
         }
         eventStore.requestAccess(to: .event, completion: {
-            (accessGranted: Bool, error: Error?) in
+            (accessGranted: Bool, _: Error?) in
             result(accessGranted)
         })
     }

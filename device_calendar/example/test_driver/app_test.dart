@@ -4,7 +4,7 @@ import 'package:flutter_driver/flutter_driver.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-/// NOTE: These integration tests are currently made to be run on a physical device where there is at least a calendar that can be written to.
+/// NOTE: These integration tests are currently made to be run on a physical Android device where there is at least a calendar that can be written to.
 /// They will currently need to be run on a Mac as well
 void main() {
   group('Calendar plugin example', () {
