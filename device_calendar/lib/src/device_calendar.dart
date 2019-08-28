@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
@@ -59,17 +60,19 @@ class DeviceCalendarPlugin {
   /// Retrieves all of the device defined calendars
   ///
   /// Returns a [Result] containing a list of device [Calendar]
-  Future<Result<List<Calendar>>> retrieveCalendars() async {
-    final res = Result<List<Calendar>>();
+  Future<Result<UnmodifiableListView<Calendar>>> retrieveCalendars() async {
+    final res = Result<UnmodifiableListView<Calendar>>();
 
     try {
       var calendarsJson = await channel.invokeMethod('retrieveCalendars');
 
-      res.data = json.decode(calendarsJson).map<Calendar>((decodedCalendar) {
+      res.data = UnmodifiableListView(
+          json.decode(calendarsJson).map<Calendar>((decodedCalendar) {
         return Calendar.fromJson(decodedCalendar);
-      }).toList(growable: false);
+      }));
     } catch (e) {
-      _parsePlatformExceptionAndUpdateResult<List<Calendar>>(e, res);
+      _parsePlatformExceptionAndUpdateResult<UnmodifiableListView<Calendar>>(
+          e, res);
     }
 
     return res;
@@ -84,9 +87,9 @@ class DeviceCalendarPlugin {
   ///
   /// Returns a [Result] containing a list [Event], that fall
   /// into the specified parameters
-  Future<Result<List<Event>>> retrieveEvents(
+  Future<Result<UnmodifiableListView<Event>>> retrieveEvents(
       String calendarId, RetrieveEventsParams retrieveEventsParams) async {
-    final res = Result<List<Event>>();
+    final res = Result<UnmodifiableListView<Event>>();
 
     if ((calendarId?.isEmpty ?? true)) {
       res.errorMessages.add(
@@ -115,11 +118,13 @@ class DeviceCalendarPlugin {
           'eventIds': retrieveEventsParams.eventIds
         });
 
-        res.data = json.decode(eventsJson).map<Event>((decodedEvent) {
+        res.data = UnmodifiableListView(
+            json.decode(eventsJson).map<Event>((decodedEvent) {
           return Event.fromJson(decodedEvent);
-        }).toList(growable: false);
+        }));
       } catch (e) {
-        _parsePlatformExceptionAndUpdateResult<List<Event>>(e, res);
+        _parsePlatformExceptionAndUpdateResult<UnmodifiableListView<Event>>(
+            e, res);
       }
     }
 
