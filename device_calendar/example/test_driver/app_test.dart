@@ -4,8 +4,10 @@ import 'package:flutter_driver/flutter_driver.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
+/// NOTE: These integration tests are currently made to be run on a physical device where there is at least a calendar that can be written to.
+/// They will currently need to be run on a Mac as well
 void main() {
-  group('App', () {
+  group('Calendar plugin example', () {
     FlutterDriver driver;
     final eventTitle = Uuid().v1();
     final saveEventButtonFinder = find.byValueKey('saveEventButton');
@@ -77,6 +79,13 @@ void main() {
       await driver.enterText(eventTitle);
       await driver.tap(saveEventButtonFinder);
       await driver.waitFor(eventTitleFinder);
+    });
+    test('delete event with title $eventTitle', () async {
+      await driver.tap(eventTitleFinder);
+      final deleteButtonFinder = find.byValueKey('deleteEventButton');
+      await driver.scrollIntoView(deleteButtonFinder);
+      await driver.tap(deleteButtonFinder);
+      await driver.waitForAbsent(eventTitleFinder);
     });
   });
 }

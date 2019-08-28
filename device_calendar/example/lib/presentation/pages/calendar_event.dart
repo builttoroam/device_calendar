@@ -139,12 +139,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       ),
       body: SingleChildScrollView(
         child: Column(
-          children: <Widget>[
+          children: [
             Form(
               autovalidate: _autovalidate,
               key: _formKey,
               child: Column(
-                children: <Widget>[
+                children: [
                   Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: TextFormField(
@@ -480,7 +480,19 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                   ],
                 ],
               ),
-            )
+            ),
+            if (_event.eventId?.isNotEmpty ?? false)
+              RaisedButton(
+                key: Key('deleteEventButton'),
+                textColor: Colors.white,
+                color: Colors.red,
+                child: Text('Delete'),
+                onPressed: () async {
+                  await _deviceCalendarPlugin.deleteEvent(
+                      _calendar.id, _event.eventId);
+                  Navigator.pop(context, true);
+                },
+              ),
           ],
         ),
       ),

@@ -53,32 +53,34 @@ class _CalendarsPageState extends State<CalendarsPage> {
               itemCount: _calendars?.length ?? 0,
               itemBuilder: (BuildContext context, int index) {
                 return GestureDetector(
-                    key: Key(_calendars[index].isReadOnly
-                        ? 'readOnlyCalendar${_readOnlyCalendars.indexWhere((c) => c.id == _calendars[index].id)}'
-                        : 'writableCalendar${_writableCalendars.indexWhere((c) => c.id == _calendars[index].id)}'),
-                    onTap: () async {
-                      await Navigator.push(context,
-                          MaterialPageRoute(builder: (BuildContext context) {
-                        return CalendarEventsPage(_calendars[index],
-                            key: Key('calendarEventsPage'));
-                      }));
-                    },
-                    child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              flex: 1,
-                              child: Text(
-                                _calendars[index].name,
-                                style: Theme.of(context).textTheme.subhead,
-                              ),
-                            ),
-                            Icon(_calendars[index].isReadOnly
-                                ? Icons.lock
-                                : Icons.lock_open)
-                          ],
-                        )));
+                  key: Key(_calendars[index].isReadOnly
+                      ? 'readOnlyCalendar${_readOnlyCalendars.indexWhere((c) => c.id == _calendars[index].id)}'
+                      : 'writableCalendar${_writableCalendars.indexWhere((c) => c.id == _calendars[index].id)}'),
+                  onTap: () async {
+                    await Navigator.push(context,
+                        MaterialPageRoute(builder: (BuildContext context) {
+                      return CalendarEventsPage(_calendars[index],
+                          key: Key('calendarEventsPage'));
+                    }));
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            _calendars[index].name,
+                            style: Theme.of(context).textTheme.subhead,
+                          ),
+                        ),
+                        Icon(_calendars[index].isReadOnly
+                            ? Icons.lock
+                            : Icons.lock_open)
+                      ],
+                    ),
+                  ),
+                );
               },
             ),
           )
