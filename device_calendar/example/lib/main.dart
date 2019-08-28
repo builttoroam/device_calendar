@@ -16,7 +16,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       routes: {
         AppRoutes.calendars: (context) {
-          return CalendarsPage();
+          return CalendarsPage(key: Key('calendarsPage'));
         }
       },
     );
