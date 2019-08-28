@@ -10,28 +10,21 @@ void main() {
       // workaround for handling permissions based on info taken from https://github.com/flutter/flutter/issues/12561
       // this is to be run in a Mac environment
       final Map<String, String> envVars = Platform.environment;
-
       final String adbPath = envVars['ANDROID_HOME'] + '/platform-tools/adb';
-      await Process.run(
-          adbPath,
-          [
-            'shell',
-            'pm',
-            'grant',
-            'com.builttoroam.devicecalendarexample',
-            'android.permission.INTERNET'
-          ],
-          runInShell: true);
-      await Process.run(
-          adbPath,
-          [
-            'shell',
-            'pm',
-            'grant',
-            'com.builttoroam.devicecalendarexample',
-            'android.permission.READ_CALENDAR'
-          ],
-          runInShell: true);
+      await Process.run(adbPath, [
+        'shell',
+        'pm',
+        'grant',
+        'com.builttoroam.devicecalendarexample',
+        'android.permission.INTERNET'
+      ]);
+      await Process.run(adbPath, [
+        'shell',
+        'pm',
+        'grant',
+        'com.builttoroam.devicecalendarexample',
+        'android.permission.READ_CALENDAR'
+      ]);
       await Process.run(adbPath, [
         'shell',
         'pm',
