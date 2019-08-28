@@ -69,9 +69,6 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             val calendarDelegate = CalendarDelegate(activity, context)
             val instance = DeviceCalendarPlugin(registrar, calendarDelegate)
 
-            val channel = MethodChannel(registrar.messenger(), "device_calendar")
-            channel.setMethodCallHandler(instance)
-
             val calendarsChannel = MethodChannel(registrar.messenger(), CHANNEL_NAME)
             calendarsChannel.setMethodCallHandler(instance)
 
