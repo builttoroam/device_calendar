@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:device_calendar/device_calendar.dart';
 
-class EventReminders extends StatefulWidget {
+class EventRemindersPage extends StatefulWidget {
   final List<Reminder> _reminders;
-  EventReminders(this._reminders, {Key key}) : super(key: key);
+  EventRemindersPage(this._reminders, {Key key}) : super(key: key);
 
-  _EventRemindersState createState() => _EventRemindersState(_reminders);
+  _EventRemindersPageState createState() =>
+      _EventRemindersPageState(_reminders);
 }
 
-class _EventRemindersState extends State<EventReminders> {
+class _EventRemindersPageState extends State<EventRemindersPage> {
   List<Reminder> _reminders;
   final _formKey = GlobalKey<FormState>();
   final _minutesController = TextEditingController();
 
-  _EventRemindersState(List<Reminder> reminders) {
+  _EventRemindersPageState(List<Reminder> reminders) {
     _reminders = List<Reminder>()..addAll(reminders);
   }
 

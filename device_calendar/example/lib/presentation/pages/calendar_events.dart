@@ -75,6 +75,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
         return body;
       }),
       floatingActionButton: FloatingActionButton(
+        key: Key('addEventButton'),
         onPressed: () async {
           final refreshEvents = await Navigator.push(context,
               MaterialPageRoute(builder: (BuildContext context) {
