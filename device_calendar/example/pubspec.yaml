@@ -4,7 +4,7 @@ description: Demonstrates how to use the device_calendar plugin.
 dependencies:
   flutter:
     sdk: flutter
-  intl: 
+  intl:
   uuid:
 
   # The following adds the Cupertino Icons font to your application.
