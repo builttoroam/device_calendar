@@ -7,7 +7,7 @@ import '../lib/src/common/error_codes.dart';
 void main() {
   MethodChannel channel =
       const MethodChannel('plugins.builttoroam.com/device_calendar');
-  DeviceCalendarPlugin deviceCalendarPlugin = new DeviceCalendarPlugin();
+  DeviceCalendarPlugin deviceCalendarPlugin = DeviceCalendarPlugin();
 
   final List<MethodCall> log = <MethodCall>[];
 
@@ -60,7 +60,7 @@ void main() {
 
   test('RetrieveEvents_CalendarId_IsRequired', () async {
     final String calendarId = null;
-    final RetrieveEventsParams params = new RetrieveEventsParams();
+    final RetrieveEventsParams params = RetrieveEventsParams();
 
     final result =
         await deviceCalendarPlugin.retrieveEvents(calendarId, params);
@@ -107,7 +107,7 @@ void main() {
 
   test('CreateEvent_Arguments_Invalid', () async {
     final String fakeCalendarId = null;
-    final Event event = new Event(fakeCalendarId);
+    final Event event = Event(fakeCalendarId);
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result.isSuccess, false);
@@ -123,10 +123,10 @@ void main() {
     });
 
     final String fakeCalendarId = "fakeCalendarId";
-    final Event event = new Event(fakeCalendarId);
+    final Event event = Event(fakeCalendarId);
     event.title = "fakeEventTitle";
-    event.start = new DateTime.now();
-    event.end = event.start.add(new Duration(hours: 1));
+    event.start = DateTime.now();
+    event.end = event.start.add(Duration(hours: 1));
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result.isSuccess, true);
@@ -147,11 +147,11 @@ void main() {
     });
 
     final String fakeCalendarId = "fakeCalendarId";
-    final Event event = new Event(fakeCalendarId);
+    final Event event = Event(fakeCalendarId);
     event.eventId = "fakeEventId";
     event.title = "fakeEventTitle";
-    event.start = new DateTime.now();
-    event.end = event.start.add(new Duration(hours: 1));
+    event.start = DateTime.now();
+    event.end = event.start.add(Duration(hours: 1));
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result.isSuccess, true);

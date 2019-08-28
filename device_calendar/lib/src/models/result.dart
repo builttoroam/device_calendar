@@ -14,5 +14,5 @@ class Result<T> {
   }
 
   T data;
-  List<String> errorMessages = new List<String>();
+  List<String> errorMessages = List<String>();
 }
