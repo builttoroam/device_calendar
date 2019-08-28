@@ -1,3 +1,13 @@
+# 1.0.0 28th August 2019
+* Support for more advanced recurrence rules
+* Update README to include information about using ProGuard for issue [99](https://github.com/builttoroam/flutter_plugins/issues/99)
+* Made event title optional to fix issue [72](https://github.com/builttoroam/flutter_plugins/issues/72)
+* Return information about the organiser of the event as per issue [73](https://github.com/builttoroam/flutter_plugins/issues/73)
+* Return attendance status of attendees and if they're required for an event. These are details are different across iOS and Android and so are returned within platform-specific objects
+* Ability to modify attendees for an event
+* Ability to create reminders for events expressed in minutes before the event starts
+* **BREAKING CHANGE** `retrieveCalendars` and `retrieveEvents` now return lists that cannot be modified (`UnmodifiableListView`) to address part of  issue [113](https://github.com/builttoroam/flutter_plugins/issues/113)
+
 # 0.2.2 19th August 2019
 * Add support for specifying the location of an event. Thanks to [oli06](https://github.com/oli06) and [zemanux](https://github.com/zemanux) for submitting PRs to add the functionality to iOS and Android respectively
 
