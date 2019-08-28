@@ -9,7 +9,7 @@ import 'calendar_event.dart';
 class CalendarEventsPage extends StatefulWidget {
   final Calendar _calendar;
 
-  CalendarEventsPage(this._calendar);
+  CalendarEventsPage(this._calendar, {Key key}) : super(key: key);
 
   @override
   _CalendarEventsPageState createState() {
@@ -37,43 +37,29 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final hasAnyEvents = _calendarEvents?.isNotEmpty ?? false;
-    Widget body = hasAnyEvents
-        ? Stack(
-            children: <Widget>[
-              Column(
-                children: <Widget>[
-                  Expanded(
-                    flex: 1,
-                    child: ListView.builder(
-                      itemCount: _calendarEvents?.length ?? 0,
-                      itemBuilder: (BuildContext context, int index) {
-                        return EventItem(
-                            _calendarEvents[index],
-                            _deviceCalendarPlugin,
-                            _onLoading,
-                            _onDeletedFinished,
-                            _onTapped);
-                      },
-                    ),
-                  )
-                ],
-              ),
-              Offstage(
-                  offstage: !_isLoading,
-                  child: Container(
-                      decoration: BoxDecoration(
-                          color: Color.fromARGB(155, 192, 192, 192)),
-                      child: Center(child: CircularProgressIndicator())))
-            ],
-          )
-        : Center(child: Text('No events found'));
     return Scaffold(
       appBar: AppBar(title: Text('${_calendar.name} events')),
-      body: Builder(builder: (BuildContext context) {
-        _scaffoldContext = context;
-        return body;
-      }),
+      body: (_calendarEvents?.isNotEmpty ?? false)
+          ? Stack(
+              children: [
+                ListView.builder(
+                  itemCount: _calendarEvents?.length ?? 0,
+                  itemBuilder: (BuildContext context, int index) {
+                    return EventItem(
+                        _calendarEvents[index],
+                        _deviceCalendarPlugin,
+                        _onLoading,
+                        _onDeletedFinished,
+                        _onTapped);
+                  },
+                ),
+                if (_isLoading)
+                  Center(
+                    child: CircularProgressIndicator(),
+                  )
+              ],
+            )
+          : Center(child: Text('No events found')),
       floatingActionButton: FloatingActionButton(
         key: Key('addEventButton'),
         onPressed: () async {

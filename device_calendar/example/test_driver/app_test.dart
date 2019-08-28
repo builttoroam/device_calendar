@@ -2,11 +2,14 @@ import 'dart:io';
 
 import 'package:flutter_driver/flutter_driver.dart';
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
   group('App', () {
     FlutterDriver driver;
+    final eventTitle = Uuid().v1();
     final saveEventButtonFinder = find.byValueKey('saveEventButton');
+    final eventTitleFinder = find.text(eventTitle);
     setUpAll(() async {
       // workaround for handling permissions based on info taken from https://github.com/flutter/flutter/issues/12561
       // this is to be run in a Mac environment
@@ -58,6 +61,7 @@ void main() {
     test('go to add event page', () async {
       final addEventButtonFinder = find.byValueKey('addEventButton');
       await driver.waitFor(addEventButtonFinder);
+      print('found add event button');
       await driver.tap(addEventButtonFinder);
       await driver.waitFor(saveEventButtonFinder);
     });
@@ -65,6 +69,14 @@ void main() {
       await driver.tap(saveEventButtonFinder);
       await driver.waitFor(
           find.text('Please fix the errors in red before submitting.'));
+    });
+    test('save event with title $eventTitle', () async {
+      final titleFieldFinder = find.byValueKey('titleField');
+      await driver.waitFor(titleFieldFinder);
+      await driver.tap(titleFieldFinder);
+      await driver.enterText(eventTitle);
+      await driver.tap(saveEventButtonFinder);
+      await driver.waitFor(eventTitleFinder);
     });
   });
 }

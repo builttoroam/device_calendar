@@ -59,7 +59,8 @@ class _CalendarsPageState extends State<CalendarsPage> {
                     onTap: () async {
                       await Navigator.push(context,
                           MaterialPageRoute(builder: (BuildContext context) {
-                        return CalendarEventsPage(_calendars[index]);
+                        return CalendarEventsPage(_calendars[index],
+                            key: Key('calendarEventsPage'));
                       }));
                     },
                     child: Padding(
