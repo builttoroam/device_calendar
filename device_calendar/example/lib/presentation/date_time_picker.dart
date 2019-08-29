@@ -41,7 +41,7 @@ class DateTimePicker extends StatelessWidget {
     final TextStyle valueStyle = Theme.of(context).textTheme.title;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
-      children: <Widget>[
+      children: [
         Expanded(
           flex: 4,
           child: InputDropdown(
