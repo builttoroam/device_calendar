@@ -1,3 +1,5 @@
+import '../../device_calendar.dart';
+
 /// A calendar on the user's device
 class Calendar {
   /// Read-only. The unique identifier for this calendar
@@ -21,6 +23,8 @@ class Calendar {
   // Read-only. Account type associated with the calendar
   String accountType;
 
+  Source source;
+
   Calendar({this.id, this.name, this.isReadOnly, this.isDefault, this.color, this.accountName, this.accountType});
 
   Calendar.fromJson(Map<String, dynamic> json) {
@@ -41,7 +45,8 @@ class Calendar {
       'isDefault': isDefault,
       'color': color,
       'accountName': accountName,
-      'accountType': accountType
+      'accountType': accountType,
+      'source': source?.toJson()
     };
 
     return data;
