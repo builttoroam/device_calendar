@@ -241,12 +241,35 @@ class DeviceCalendarPlugin {
     return result;
   }
 
+  /// Retrieves sources that calendars can be created against.
+  /// This method is actually iOS specific and will succeed gracefully on Android by returning an empty collection in the data returned
   Future<Result<UnmodifiableListView<Source>>> retrieveSources() async {
     final result = Result<UnmodifiableListView<Source>>();
     try {
       result.data = UnmodifiableListView(json
           .decode(await channel.invokeMethod('retrieveSources'))
           .map<Source>((decodedSource) => Source.fromJson(decodedSource)));
+    } catch (e) {
+      _parsePlatformExceptionAndUpdateResult(e, result);
+    }
+
+    return result;
+  }
+
+  /// Creates a new calendar. On iOS the calendar must be associated with one of the available sources
+  /// ```dart
+  /// final sourcesResult = await deviceCalendarPlugin.retrieveSources();
+  /// final source = sourcesResult.data.firstWhere(
+  ///     (s) => s.sourceType == SourceType.CalDev,
+  ///     orElse: () => null);
+  /// var calendar = Calendar(name: 'Test calendar', source: source);
+  /// var createResult = await deviceCalendarPlugin.createCalendar(calendar);
+  /// ```
+  Future<Result<String>> createCalendar(Calendar calendar) async {
+    final result = Result<String>();
+    try {
+      result.data =
+          await channel.invokeMethod('createCalendar', calendar.toJson());
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult(e, result);
     }
