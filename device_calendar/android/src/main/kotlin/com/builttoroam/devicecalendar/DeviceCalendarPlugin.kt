@@ -13,6 +13,7 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
+import org.json.JSONArray
 
 const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar"
 
@@ -25,6 +26,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val DELETE_EVENT_METHOD = "deleteEvent"
     private val DELETE_EVENT_INSTANCE_METHOD = "deleteEventInstance"
     private val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
+    private val RETRIEVE_SOURCES_METHOD = "retrieveSources"
 
     // Method arguments
     private val CALENDAR_ID_ARGUMENT = "calendarId"
@@ -117,6 +119,9 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val followingInstances = call.argument<Boolean>(FOLLOWING_INSTANCES)
 
                 _calendarDelegate.deleteEvent(calendarId!!, eventId!!, result, startDate, endDate, followingInstances)
+            }
+            RETRIEVE_SOURCES_METHOD -> {
+                result.success(JSONArray().toString())
             }
             else -> {
                 result.notImplemented()

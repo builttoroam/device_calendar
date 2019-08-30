@@ -8,6 +8,7 @@ import 'common/error_codes.dart';
 import 'common/error_messages.dart';
 import 'models/calendar.dart';
 import 'models/event.dart';
+import 'models/platform_specifics/ios/source.dart';
 import 'models/result.dart';
 import 'models/retrieve_events_params.dart';
 
@@ -30,15 +31,15 @@ class DeviceCalendarPlugin {
   /// Returns a [Result] indicating if calendar READ and WRITE permissions
   /// have (true) or have not (false) been granted
   Future<Result<bool>> requestPermissions() async {
-    final res = Result<bool>();
+    final result = Result<bool>();
 
     try {
-      res.data = await channel.invokeMethod('requestPermissions');
+      result.data = await channel.invokeMethod('requestPermissions');
     } catch (e) {
-      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
+      _parsePlatformExceptionAndUpdateResult<bool>(e, result);
     }
 
-    return res;
+    return result;
   }
 
   /// Checks if permissions for modifying the device calendars have been granted
@@ -46,36 +47,36 @@ class DeviceCalendarPlugin {
   /// Returns a [Result] indicating if calendar READ and WRITE permissions
   /// have (true) or have not (false) been granted
   Future<Result<bool>> hasPermissions() async {
-    final res = Result<bool>();
+    final result = Result<bool>();
 
     try {
-      res.data = await channel.invokeMethod('hasPermissions');
+      result.data = await channel.invokeMethod('hasPermissions');
     } catch (e) {
-      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
+      _parsePlatformExceptionAndUpdateResult<bool>(e, result);
     }
 
-    return res;
+    return result;
   }
 
   /// Retrieves all of the device defined calendars
   ///
   /// Returns a [Result] containing a list of device [Calendar]
   Future<Result<UnmodifiableListView<Calendar>>> retrieveCalendars() async {
-    final res = Result<UnmodifiableListView<Calendar>>();
+    final result = Result<UnmodifiableListView<Calendar>>();
 
     try {
       var calendarsJson = await channel.invokeMethod('retrieveCalendars');
 
-      res.data = UnmodifiableListView(
+      result.data = UnmodifiableListView(
           json.decode(calendarsJson).map<Calendar>((decodedCalendar) {
         return Calendar.fromJson(decodedCalendar);
       }));
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult<UnmodifiableListView<Calendar>>(
-          e, res);
+          e, result);
     }
 
-    return res;
+    return result;
   }
 
   /// Retrieves the events from the specified calendar
@@ -89,10 +90,10 @@ class DeviceCalendarPlugin {
   /// into the specified parameters
   Future<Result<UnmodifiableListView<Event>>> retrieveEvents(
       String calendarId, RetrieveEventsParams retrieveEventsParams) async {
-    final res = Result<UnmodifiableListView<Event>>();
+    final result = Result<UnmodifiableListView<Event>>();
 
     if ((calendarId?.isEmpty ?? true)) {
-      res.errorMessages.add(
+      result.errorMessages.add(
           '[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidMissingCalendarId}');
     }
 
@@ -104,11 +105,11 @@ class DeviceCalendarPlugin {
                 retrieveEventsParams.endDate != null &&
                 retrieveEventsParams.startDate
                     .isAfter(retrieveEventsParams.endDate)))) {
-      res.errorMessages.add(
+      result.errorMessages.add(
           '[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidRetrieveEventsParams}');
     }
 
-    if (res.errorMessages.isEmpty) {
+    if (result.errorMessages.isEmpty) {
       try {
         var eventsJson =
             await channel.invokeMethod('retrieveEvents', <String, Object>{
@@ -118,17 +119,16 @@ class DeviceCalendarPlugin {
           'eventIds': retrieveEventsParams.eventIds
         });
 
-        res.data = UnmodifiableListView(
-            json.decode(eventsJson).map<Event>((decodedEvent) {
-          return Event.fromJson(decodedEvent);
-        }));
+        result.data = UnmodifiableListView(json
+            .decode(eventsJson)
+            .map<Event>((decodedEvent) => Event.fromJson(decodedEvent)));
       } catch (e) {
         _parsePlatformExceptionAndUpdateResult<UnmodifiableListView<Event>>(
-            e, res);
+            e, result);
       }
     }
 
-    return res;
+    return result;
   }
 
   /// Deletes an event from a calendar. For a recurring event, this will delete all instances of it.\
@@ -139,22 +139,22 @@ class DeviceCalendarPlugin {
   ///
   /// Returns a [Result] indicating if the event has (true) or has not (false) been deleted from the calendar
   Future<Result<bool>> deleteEvent(String calendarId, String eventId) async {
-    final res = Result<bool>();
+    final result = Result<bool>();
 
     if ((calendarId?.isEmpty ?? true) || (eventId?.isEmpty ?? true)) {
-      res.errorMessages.add(
+      result.errorMessages.add(
           '[${ErrorCodes.invalidArguments}] ${ErrorMessages.deleteEventInvalidArgumentsMessage}');
-      return res;
+      return result;
     }
 
     try {
-      res.data = await channel.invokeMethod('deleteEvent',
+      result.data = await channel.invokeMethod('deleteEvent',
           <String, Object>{'calendarId': calendarId, 'eventId': eventId});
     } catch (e) {
-      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
+      _parsePlatformExceptionAndUpdateResult<bool>(e, result);
     }
 
-    return res;
+    return result;
   }
 
   /// Deletes an instance of a recurring event from a calendar. This should be used for a recurring event only.\
@@ -200,7 +200,7 @@ class DeviceCalendarPlugin {
   ///
   /// Returns a [Result] with the newly created or updated [Event.eventId]
   Future<Result<String>> createOrUpdateEvent(Event event) async {
-    final res = Result<String>();
+    final result = Result<String>();
 
     // Setting time to 0 for all day events
     if (event.allDay == true) {
@@ -209,16 +209,16 @@ class DeviceCalendarPlugin {
     }
 
     if (event.allDay == true && (event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null) {
-      res.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay}');
-      return res;
+      result.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay}');
+      return result;
     }
     else if (event.allDay != true && ((event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null || event.start.isAfter(event.end))) {
-      res.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}');
-      return res;
+      result.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}');
+      return result;
     }
 
     try {
-      res.data =
+      result.data =
           await channel.invokeMethod('createOrUpdateEvent', <String, Object>{
         'calendarId': event.calendarId,
         'eventId': event.eventId,
@@ -235,10 +235,23 @@ class DeviceCalendarPlugin {
         'reminders': event.reminders?.map((r) => r.toJson())?.toList()
       });
     } catch (e) {
-      _parsePlatformExceptionAndUpdateResult<String>(e, res);
+      _parsePlatformExceptionAndUpdateResult<String>(e, result);
     }
 
-    return res;
+    return result;
+  }
+
+  Future<Result<UnmodifiableListView<Source>>> retrieveSources() async {
+    final result = Result<UnmodifiableListView<Source>>();
+    try {
+      result.data = UnmodifiableListView(json
+          .decode(await channel.invokeMethod('retrieveSources'))
+          .map<Source>((decodedSource) => Source.fromJson(decodedSource)));
+    } catch (e) {
+      _parsePlatformExceptionAndUpdateResult(e, result);
+    }
+
+    return result;
   }
 
   void _parsePlatformExceptionAndUpdateResult<T>(
