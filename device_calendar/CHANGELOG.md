@@ -1,3 +1,6 @@
+# 1.0.0+2 30th August 2019
+* Fix home page URL
+
 # 1.0.0+1 30th August 2019
 * Add integration tests to example app. Note that this is more for internal use at the moment as it currently requires an Android device with a calendar that can be written to and assumes that the tests are executed from a Mac.
 
