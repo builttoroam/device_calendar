@@ -9,12 +9,16 @@ class Calendar {
   /// If the calendar is read-only
   bool isReadOnly;
 
-  Calendar({this.id, this.name, this.isReadOnly});
+  /// If the calendar is the default
+  bool isDefault;
+
+  Calendar({this.id, this.name, this.isReadOnly, this.isDefault});
 
   Calendar.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
     isReadOnly = json['isReadOnly'];
+    isDefault = json['isDefault'];
   }
 
   Map<String, dynamic> toJson() {
@@ -22,6 +26,7 @@ class Calendar {
     data['id'] = this.id;
     data['name'] = this.name;
     data['isReadOnly'] = this.isReadOnly;
+    data['isDefault'] = this.isDefault;
     return data;
   }
 }
