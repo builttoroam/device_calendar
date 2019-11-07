@@ -17,6 +17,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let id: String
         let name: String
         let isReadOnly: Bool
+        let isDefault: Bool
     }
     
     struct Event: Codable {
@@ -134,9 +135,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     private func retrieveCalendars(_ result: @escaping FlutterResult) {
         checkPermissionsThenExecute(permissionsGrantedAction: {
             let ekCalendars = self.eventStore.calendars(for: .event)
+            let defaultCalendar = self.eventStore.defaultCalendarForNewEvents
             var calendars = [Calendar]()
             for ekCalendar in ekCalendars {
-                let calendar = Calendar(id: ekCalendar.calendarIdentifier, name: ekCalendar.title, isReadOnly: !ekCalendar.allowsContentModifications)
+                let calendar = Calendar(id: ekCalendar.calendarIdentifier, name: ekCalendar.title, isReadOnly: !ekCalendar.allowsContentModifications, isDefault: defaultCalendar?.calendarIdentifier == ekCalendar.calendarIdentifier)
                 calendars.append(calendar)
             }
             
