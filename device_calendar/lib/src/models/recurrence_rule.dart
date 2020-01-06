@@ -79,7 +79,7 @@ class RecurrenceRule {
                         (d) => (d >= 1 && d <= 53) || (d >= -53 || d <= -1))),
             'Weeks of the year must be between 1 and 53 or between -1 and -53 inclusive, and can only be specified for recurrence rules with a yearly frequency'),
         assert(
-            (setPositions.isEmpty ?? true) ||
+            (setPositions?.isEmpty ?? true) ||
                 ((setPositions?.isNotEmpty ?? false) &&
                     ((daysOfTheMonth?.isNotEmpty ?? false) ||
                         (monthsOfTheYear?.isNotEmpty ?? false) ||
