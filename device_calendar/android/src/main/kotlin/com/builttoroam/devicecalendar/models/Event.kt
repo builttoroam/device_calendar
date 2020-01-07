@@ -9,6 +9,7 @@ class Event {
     var end: Long? = null
     var allDay: Boolean = false
     var location: String? = null
+    var url: String? = null
     var attendees: MutableList<Attendee> = mutableListOf()
     var recurrenceRule: RecurrenceRule? = null
     var organizer: Attendee? = null
