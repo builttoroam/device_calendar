@@ -29,6 +29,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let allDay: Bool
         let attendees: [Attendee]
         let location: String?
+        let url: String?
         let recurrenceRule: RecurrenceRule?
         let organizer: Attendee?
         let reminders: [Reminder]
@@ -83,6 +84,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let eventStartDateArgument =  "eventStartDate"
     let eventEndDateArgument = "eventEndDate"
     let eventLocationArgument = "eventLocation"
+    let eventURLArgument = "eventURL"
     let attendeesArgument = "attendees"
     let recurrenceRuleArgument = "recurrenceRule"
     let recurrenceFrequencyArgument = "recurrenceFrequency"
@@ -221,6 +223,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             allDay: ekEvent.isAllDay,
             attendees: attendees,
             location: ekEvent.location,
+            url: ekEvent.url,
             recurrenceRule: recurrenceRule,
             organizer: convertEkParticipantToAttendee(ekParticipant: ekEvent.organizer),
             reminders: reminders
@@ -387,6 +390,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let title = arguments[self.eventTitleArgument] as! String
             let description = arguments[self.eventDescriptionArgument] as? String
             let location = arguments[self.eventLocationArgument] as? String
+            let url = arguments[self.eventURLArgument] as? String
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
@@ -415,6 +419,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.endDate = endDate
             ekEvent!.calendar = ekCalendar!
             ekEvent!.location = location
+            ekEvent!.url = url
             ekEvent!.recurrenceRules = createEKRecurrenceRules(arguments)
             setAttendees(arguments, ekEvent)
             ekEvent!.alarms = createReminders(arguments)

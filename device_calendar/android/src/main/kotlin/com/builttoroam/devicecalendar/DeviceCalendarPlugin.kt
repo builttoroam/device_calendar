@@ -33,6 +33,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val EVENT_ID_ARGUMENT = "eventId"
     private val EVENT_TITLE_ARGUMENT = "eventTitle"
     private val EVENT_LOCATION_ARGUMENT = "eventLocation"
+    private val EVENT_URL_ARGUMENT = "eventURL"
     private val EVENT_DESCRIPTION_ARGUMENT = "eventDescription"
     private val EVENT_START_DATE_ARGUMENT = "eventStartDate"
     private val EVENT_END_DATE_ARGUMENT = "eventEndDate"
@@ -122,6 +123,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         event.start = call.argument<Long>(EVENT_START_DATE_ARGUMENT)!!
         event.end = call.argument<Long>(EVENT_END_DATE_ARGUMENT)!!
         event.location = call.argument<String>(EVENT_LOCATION_ARGUMENT)
+        event.url = call.argument<String>(EVENT_URL_ARGUMENT)
 
         if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)

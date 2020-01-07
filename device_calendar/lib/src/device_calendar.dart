@@ -186,6 +186,7 @@ class DeviceCalendarPlugin {
         'eventStartDate': event.start.millisecondsSinceEpoch,
         'eventEndDate': event.end.millisecondsSinceEpoch,
         'eventLocation': event.location,
+        'eventURL': event.url,
         'recurrenceRule': event.recurrenceRule?.toJson(),
         'attendees': event.attendees?.map((a) => a.toJson())?.toList(),
         'reminders': event.reminders?.map((r) => r.toJson())?.toList()

@@ -31,6 +31,9 @@ class Event {
   /// The location of this event
   String location;
 
+  /// An URL for this event
+  String url;
+
   /// A list of attendees for this event
   List<Attendee> attendees;
 
@@ -70,6 +73,7 @@ class Event {
     }
     allDay = json['allDay'];
     location = json['location'];
+    url = json['url'];
     if (json['attendees'] != null) {
       attendees = json['attendees'].map<Attendee>((decodedAttendee) {
         return Attendee.fromJson(decodedAttendee);
