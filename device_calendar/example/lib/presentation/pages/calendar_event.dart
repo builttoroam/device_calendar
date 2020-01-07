@@ -232,6 +232,18 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       },
                     ),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: TextFormField(
+                      initialValue: _event.url,
+                      decoration: const InputDecoration(
+                          labelText: 'URL',
+                          hintText: 'https://google.com'),
+                      onSaved: (String value) {
+                        _event.url = value;
+                      },
+                    ),
+                  ),
                   GestureDetector(
                     onTap: () async {
                       List<Attendee> result = await Navigator.push(

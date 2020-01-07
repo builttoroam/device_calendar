@@ -28,6 +28,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTIO
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_END_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_EVENT_LOCATION_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_CUSTOM_APP_URI_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
@@ -362,6 +363,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         values.put(Events.TITLE, event.title)
         values.put(Events.DESCRIPTION, event.description)
         values.put(Events.EVENT_LOCATION, event.location)
+        values.put(Events.CUSTOM_APP_URI, event.url)
         values.put(Events.CALENDAR_ID, calendarId)
         values.put(Events.DURATION, duration)
 
@@ -487,6 +489,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val recurringRule = cursor.getString(EVENT_PROJECTION_RECURRING_RULE_INDEX)
         val allDay = cursor.getInt(EVENT_PROJECTION_ALL_DAY_INDEX) > 0
         val location = cursor.getString(EVENT_PROJECTION_EVENT_LOCATION_INDEX)
+        var url = cursor.getString(EVENT_PROJECTION_CUSTOM_APP_URI_INDEX)
 
         val event = Event()
         event.title = title
@@ -497,6 +500,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         event.end = end
         event.allDay = allDay
         event.location = location
+        event.url = url
         event.recurrenceRule = parseRecurrenceRuleString(recurringRule)
         return event
     }

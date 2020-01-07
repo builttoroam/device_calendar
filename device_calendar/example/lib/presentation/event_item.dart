@@ -118,6 +118,26 @@ class EventItem extends StatelessWidget {
                       children: [
                         Container(
                           width: _eventFieldNameWidth,
+                          child: Text('URL'),
+                        ),
+                        Expanded(
+                          child: Text(
+                            _calendarEvent?.url ?? '',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10.0,
+                  ),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: _eventFieldNameWidth,
                           child: Text('Attendees'),
                         ),
                         Expanded(

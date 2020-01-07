@@ -26,6 +26,7 @@ class Constants {
         const val EVENT_PROJECTION_RECURRING_RULE_INDEX: Int = 7
         const val EVENT_PROJECTION_ALL_DAY_INDEX: Int = 8
         const val EVENT_PROJECTION_EVENT_LOCATION_INDEX: Int = 9
+        const val EVENT_PROJECTION_CUSTOM_APP_URI_INDEX: Int = 10
 
         val EVENT_PROJECTION: Array<String> = arrayOf(
                 CalendarContract.Instances.EVENT_ID,
@@ -37,7 +38,8 @@ class Constants {
                 CalendarContract.Events.RDATE,
                 CalendarContract.Events.RRULE,
                 CalendarContract.Events.ALL_DAY,
-                CalendarContract.Events.EVENT_LOCATION
+                CalendarContract.Events.EVENT_LOCATION,
+                CalendarContract.Events.CUSTOM_APP_URI
         )
 
         const val ATTENDEE_ID_INDEX: Int = 0
