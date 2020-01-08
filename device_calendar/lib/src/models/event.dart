@@ -74,8 +74,8 @@ class Event {
     allDay = json['allDay'];
     location = json['location'];
 
-    var foundUrl = json['url'].toString();
-    if (foundUrl.isEmpty || foundUrl == "null") {
+    var foundUrl = json['url'];
+    if (foundUrl.isEmpty) {
       url = null;
     }
     else {
