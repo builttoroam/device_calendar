@@ -32,7 +32,7 @@ class Event {
   String location;
 
   /// An URL for this event
-  String url;
+  Uri url;
 
   /// A list of attendees for this event
   List<Attendee> attendees;
@@ -73,7 +73,15 @@ class Event {
     }
     allDay = json['allDay'];
     location = json['location'];
-    url = json['url'];
+
+    var foundUrl = json['url'].toString();
+    if (foundUrl.isEmpty || foundUrl == "null") {
+      url = null;
+    }
+    else {
+      url = Uri.dataFromString(foundUrl);
+    }
+
     if (json['attendees'] != null) {
       attendees = json['attendees'].map<Attendee>((decodedAttendee) {
         return Attendee.fromJson(decodedAttendee);
