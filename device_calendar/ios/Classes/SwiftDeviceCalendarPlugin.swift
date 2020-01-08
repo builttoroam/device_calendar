@@ -420,8 +420,14 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.calendar = ekCalendar!
             ekEvent!.location = location
 
-            let iosUrl = URL(string: url ?? "")
-            ekEvent!.url = iosUrl
+            // Create and add URL object only when if the input string is not empty or nil
+            if let urlCheck = url, !urlCheck.isEmpty {
+                let iosUrl = URL(string: url ?? "")
+                ekEvent!.url = iosUrl
+            }
+            else {
+                ekEvent!.url = nil
+            }
 
             ekEvent!.recurrenceRules = createEKRecurrenceRules(arguments)
             setAttendees(arguments, ekEvent)
