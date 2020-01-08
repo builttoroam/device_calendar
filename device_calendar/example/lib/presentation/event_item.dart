@@ -122,7 +122,7 @@ class EventItem extends StatelessWidget {
                         ),
                         Expanded(
                           child: Text(
-                            _calendarEvent?.url ?? '',
+                            _calendarEvent?.url?.data?.contentText ?? '',
                             overflow: TextOverflow.ellipsis,
                           ),
                         )
