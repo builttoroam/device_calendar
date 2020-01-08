@@ -14,3 +14,4 @@ doc/api/
 device_calendar.code-workspace
 device_calendar/example/.flutter-plugins-dependencies
 device_calendar/example/ios/Flutter/flutter_export_environment.sh
+device_calendar/example/ios/Flutter/Flutter.podspec

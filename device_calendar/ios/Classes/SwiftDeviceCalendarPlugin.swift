@@ -223,7 +223,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             allDay: ekEvent.isAllDay,
             attendees: attendees,
             location: ekEvent.location,
-            url: ekEvent.url,
+            url: ekEvent.url?.absoluteString,
             recurrenceRule: recurrenceRule,
             organizer: convertEkParticipantToAttendee(ekParticipant: ekEvent.organizer),
             reminders: reminders
@@ -419,7 +419,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.endDate = endDate
             ekEvent!.calendar = ekCalendar!
             ekEvent!.location = location
-            ekEvent!.url = url
+
+            let iosUrl = URL(string: url ?? "")
+            ekEvent!.url = iosUrl
+
             ekEvent!.recurrenceRules = createEKRecurrenceRules(arguments)
             setAttendees(arguments, ekEvent)
             ekEvent!.alarms = createReminders(arguments)
