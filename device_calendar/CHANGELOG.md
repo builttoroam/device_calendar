@@ -1,3 +1,7 @@
+# 1.0.0+3 9th January 2020
+* Flutter upgrade to 1.12.13
+* Added an URL input for calendar events
+
 # 1.0.0+2 30th August 2019
 * Fix home page URL
 
