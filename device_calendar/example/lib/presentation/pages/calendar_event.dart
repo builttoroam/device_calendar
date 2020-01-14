@@ -105,13 +105,14 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         _daysOfTheWeek = _event.recurrenceRule.daysOfTheWeek ?? List<DayOfTheWeek>();
 
         if (_recurrenceFrequency == RecurrenceFrequency.Monthly || _recurrenceFrequency == RecurrenceFrequency.Yearly) {
+          _monthsOfTheYear = _event.recurrenceRule.monthsOfTheYear ?? List<int>();
+
           if (!_isByDayOfMonth) {
             _setPositions = _event.recurrenceRule.setPositions ?? List<int>();
             _selectedDayPos = _daysOfTheWeek?.first ?? DayOfTheWeek.Sunday;
           }
           else {
             _daysOfTheMonth = _event.recurrenceRule.daysOfTheMonth ?? List<int>();
-            _monthsOfTheYear = _event.recurrenceRule.monthsOfTheYear ?? List<int>();
           }
         }
       }
@@ -433,11 +434,17 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     ],
                     if (!_isByDayOfMonth && (_recurrenceFrequency == RecurrenceFrequency.Monthly || _recurrenceFrequency == RecurrenceFrequency.Yearly)) ...[
                       Padding(
+                        padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(_recurrenceFrequencyToText(_recurrenceFrequency).data + ' on the ')
+                        ),
+                      ),
+                      Padding(
                         padding: const EdgeInsets.fromLTRB(15, 0, 15, 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
-                            Text(_recurrenceFrequencyToText(_recurrenceFrequency).data + ' on the '),
                             Flexible(
                               child: DropdownButton<FirstToLastPosition>(
                                 onChanged: (value) { 
@@ -465,6 +472,28 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                   )).toList(),
                               ),
                             ),
+                            Text('of'),
+                            if (_recurrenceFrequency == RecurrenceFrequency.Monthly) ... [
+                              Text(_enumToString(DateTime.now().month.getMonthEnumValue)),
+                            ],
+                            if (_recurrenceFrequency == RecurrenceFrequency.Yearly) ... [
+                              Flexible(
+                                child: DropdownButton<MonthOfTheYear>(
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _monthsOfTheYear.clear();
+                                      _monthsOfTheYear.add(value.value);
+                                    });
+                                  },
+                                  value: _monthsOfTheYear.isEmpty ? null : _monthsOfTheYear.first.getMonthEnumValue,
+                                  items: MonthOfTheYear.values
+                                    .map((m) => DropdownMenuItem(
+                                      value: m,
+                                      child: Text(_enumToString(m)),
+                                    )).toList(),
+                                  ),
+                              ),
+                            ]
                           ],
                         ),
                       ),

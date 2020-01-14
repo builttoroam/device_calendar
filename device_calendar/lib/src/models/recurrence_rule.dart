@@ -99,16 +99,16 @@ class RecurrenceRule {
     if (daysOfTheWeek != null) {
       data[_daysOfTheWeekKey] = daysOfTheWeek.map((d) => d.index).toList();
     }
+    if (monthsOfTheYear != null) {
+      data[_monthsOfTheYearKey] = monthsOfTheYear;
+    }
 
     if (setPositions?.isEmpty == false && (recurrenceFrequency == RecurrenceFrequency.Monthly || recurrenceFrequency == RecurrenceFrequency.Yearly)) {
       data[_setPositionsKey] = setPositions;
     }
-    else { // Days of the month and months of the year should not be added to the recurrence parameter when SetPos is used
+    else { // Days of the month should not be added to the recurrence parameter when SetPos is used
       if (daysOfTheMonth != null) {
         data[_daysOfTheMonthKey] = daysOfTheMonth;
-      }
-      if (monthsOfTheYear != null) {
-        data[_monthsOfTheYearKey] = monthsOfTheYear;
       }
     }
     return data;
