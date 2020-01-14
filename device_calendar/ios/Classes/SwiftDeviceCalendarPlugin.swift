@@ -43,7 +43,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let daysOfTheWeek: [Int]?
         let daysOfTheMonth: [Int]?
         let monthsOfTheYear: [Int]?
-        let weeksOfTheYear: [Int]?
         let setPositions: [Int]?
     }
     
@@ -81,6 +80,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let eventIdsArgument = "eventIds"
     let eventTitleArgument = "eventTitle"
     let eventDescriptionArgument = "eventDescription"
+    let eventAllDayArgument = "eventAllDay"
     let eventStartDateArgument =  "eventStartDate"
     let eventEndDateArgument = "eventEndDate"
     let eventLocationArgument = "eventLocation"
@@ -93,7 +93,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let daysOfTheWeekArgument = "daysOfTheWeek"
     let daysOfTheMonthArgument = "daysOfTheMonth"
     let monthsOfTheYearArgument = "monthsOfTheYear"
-    let weeksOfTheYearArgument = "weeksOfTheYear"
     let setPositionsArgument = "setPositions"
     let emailAddressArgument = "emailAddress"
     let remindersArgument = "reminders"
@@ -277,7 +276,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 }
             }
             
-            recurrenceRule = RecurrenceRule(recurrenceFrequency: frequency, totalOccurrences: totalOccurrences, interval: ekRecurrenceRule.interval, endDate: endDate, daysOfTheWeek: daysOfTheWeek, daysOfTheMonth: convertToIntArray(ekRecurrenceRule.daysOfTheMonth), monthsOfTheYear: convertToIntArray(ekRecurrenceRule.monthsOfTheYear), weeksOfTheYear: convertToIntArray(ekRecurrenceRule.weeksOfTheYear), setPositions: convertToIntArray(ekRecurrenceRule.setPositions))
+            recurrenceRule = RecurrenceRule(recurrenceFrequency: frequency, totalOccurrences: totalOccurrences, interval: ekRecurrenceRule.interval, endDate: endDate, daysOfTheWeek: daysOfTheWeek, daysOfTheMonth: convertToIntArray(ekRecurrenceRule.daysOfTheMonth), monthsOfTheYear: convertToIntArray(ekRecurrenceRule.monthsOfTheYear), setPositions: convertToIntArray(ekRecurrenceRule.setPositions))
         }
         
         return recurrenceRule
@@ -330,7 +329,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             }
         }
         
-        return [EKRecurrenceRule(recurrenceWith: namedFrequency, interval: recurrenceInterval, daysOfTheWeek: daysOfTheWeek, daysOfTheMonth: recurrenceRuleArguments![daysOfTheMonthArgument] as? [NSNumber], monthsOfTheYear: recurrenceRuleArguments![monthsOfTheYearArgument] as? [NSNumber], weeksOfTheYear: recurrenceRuleArguments![weeksOfTheYearArgument] as? [NSNumber], daysOfTheYear: nil, setPositions: recurrenceRuleArguments![setPositionsArgument] as? [NSNumber], end: recurrenceEnd)]
+        return [EKRecurrenceRule(recurrenceWith: namedFrequency, interval: recurrenceInterval, daysOfTheWeek: daysOfTheWeek, daysOfTheMonth: recurrenceRuleArguments![daysOfTheMonthArgument] as? [NSNumber], monthsOfTheYear: recurrenceRuleArguments![monthsOfTheYearArgument] as? [NSNumber], weeksOfTheYear: nil, daysOfTheYear: nil, setPositions: recurrenceRuleArguments![setPositionsArgument] as? [NSNumber], end: recurrenceEnd)]
     }
     
     private func setAttendees(_ arguments: [String : AnyObject], _ ekEvent: EKEvent?) {
@@ -383,6 +382,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let arguments = call.arguments as! Dictionary<String, AnyObject>
             let calendarId = arguments[calendarIdArgument] as! String
             let eventId = arguments[eventIdArgument] as? String
+            let isAllDay = arguments[eventAllDayArgument] as! Bool
             let startDateMillisecondsSinceEpoch = arguments[eventStartDateArgument] as! NSNumber
             let endDateDateMillisecondsSinceEpoch = arguments[eventEndDateArgument] as! NSNumber
             let startDate = Date (timeIntervalSince1970: startDateMillisecondsSinceEpoch.doubleValue / 1000.0)
@@ -415,8 +415,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             
             ekEvent!.title = title
             ekEvent!.notes = description
+            ekEvent!.isAllDay = isAllDay
             ekEvent!.startDate = startDate
-            ekEvent!.endDate = endDate
+            if (isAllDay) { ekEvent!.endDate = startDate }
+            else { ekEvent!.endDate = endDate }
             ekEvent!.calendar = ekCalendar!
             ekEvent!.location = location
 
