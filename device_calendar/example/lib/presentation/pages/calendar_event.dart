@@ -77,7 +77,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _endDate = DateTime.now().add(Duration(hours: 1));
       _event = Event(this._calendar.id, start: _startDate, end: _endDate);
       _recurrenceEndDate = _endDate;
-      _monthsOfTheYear = [0];
+      _monthsOfTheYear.add(MonthOfTheYear.January.value);
       _daysOfTheMonth = [1];
     } else {
       _startDate = _event.start;
