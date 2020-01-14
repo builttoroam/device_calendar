@@ -68,7 +68,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val PART_TEMPLATE = ";%s="
     private val BYMONTHDAY_PART = "BYMONTHDAY"
     private val BYMONTH_PART = "BYMONTH"
-    private val BYWEEKNO_PART = "BYWEEKNO"
     private val BYSETPOS_PART = "BYSETPOS"
 
     private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> = mutableMapOf()
@@ -358,8 +357,10 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private fun buildEventContentValues(event: Event, calendarId: String): ContentValues {
         val values = ContentValues()
         val duration: String? = null
+        values.put(Events.ALL_DAY, event.allDay)
         values.put(Events.DTSTART, event.start!!)
-        values.put(Events.DTEND, event.end!!)
+        if (event.allDay) values.put(Events.DTEND, event.start!!)
+        else values.put(Events.DTEND, event.end!!)
         values.put(Events.TITLE, event.title)
         values.put(Events.DESCRIPTION, event.description)
         values.put(Events.EVENT_LOCATION, event.location)
@@ -544,7 +545,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         if (rfcRecurrenceRule.freq == Freq.YEARLY) {
             recurrenceRule.monthsOfTheYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTH_PART)
-            recurrenceRule.weeksOfTheYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYWEEKNO_PART)
+            recurrenceRule.daysOfTheMonth = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTHDAY_PART)
         }
 
         recurrenceRule.setPositions = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYSETPOS_PART)
@@ -668,7 +669,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             rr.interval = recurrenceRule.interval!!
         }
 
-        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.WEEKLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY) {
+        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.WEEKLY ||
+            (recurrenceRule.setPositions != null && (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY))) {
             rr.byDayPart = buildByDayPart(recurrenceRule)
         }
 
@@ -683,7 +685,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
         var rrString = rr.toString()
-        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY && recurrenceRule.daysOfTheMonth != null && recurrenceRule.daysOfTheMonth!!.isNotEmpty()) {
+        if ((recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY)
+            && recurrenceRule.daysOfTheMonth != null && recurrenceRule.daysOfTheMonth!!.isNotEmpty()) {
             rrString = rrString.addPartWithValues(BYMONTHDAY_PART, recurrenceRule.daysOfTheMonth)
         }
 
@@ -691,13 +694,11 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             if (recurrenceRule.monthsOfTheYear != null && recurrenceRule.monthsOfTheYear!!.isNotEmpty()) {
                 rrString = rrString.addPartWithValues(BYMONTH_PART, recurrenceRule.monthsOfTheYear)
             }
-
-            if (recurrenceRule.weeksOfTheYear != null && recurrenceRule.weeksOfTheYear!!.isNotEmpty()) {
-                rrString = rrString.addPartWithValues(BYWEEKNO_PART, recurrenceRule.weeksOfTheYear)
-            }
         }
 
-        rrString = rrString.addPartWithValues(BYSETPOS_PART, recurrenceRule.setPositions)
+        if (recurrenceRule.setPositions != null) {
+            rrString = rrString.addPartWithValues(BYSETPOS_PART, recurrenceRule.setPositions)
+        }
         return rrString
     }
 

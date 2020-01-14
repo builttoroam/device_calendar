@@ -166,12 +166,18 @@ class DeviceCalendarPlugin {
   Future<Result<String>> createOrUpdateEvent(Event event) async {
     final res = Result<String>();
 
-    if ((event?.calendarId?.isEmpty ?? true) ||
-        event.start == null ||
-        event.end == null ||
-        event.start.isAfter(event.end)) {
-      res.errorMessages.add(
-          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}");
+    // Setting time to 0 for all day events
+    if (event.allDay) {
+      event.start = new DateTime(event.start.year, event.start.month, event.start.day, 0, 0, 0);
+      event.end = new DateTime(event.end.year, event.end.month, event.end.day, 0, 0, 0);
+    }
+
+    if (event.allDay && (event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null) {
+      res.errorMessages.add("[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay}");
+      return res;
+    }
+    else if (!event.allDay & ((event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null || event.start.isAfter(event.end))) {
+      res.errorMessages.add("[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}");
       return res;
     }
 
@@ -183,6 +189,7 @@ class DeviceCalendarPlugin {
         'eventTitle': event.title,
         'eventDescription': event.description,
         'eventLocation': event.location,
+        'eventAllDay': event.allDay,
         'eventStartDate': event.start.millisecondsSinceEpoch,
         'eventEndDate': event.end.millisecondsSinceEpoch,
         'eventLocation': event.location,
