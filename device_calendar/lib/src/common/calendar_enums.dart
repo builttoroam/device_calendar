@@ -1,11 +1,13 @@
+import 'package:device_calendar/device_calendar.dart';
+
 enum DayOfTheWeek {
-  Sunday,
   Monday,
   Tuesday,
   Wednesday,
   Thursday,
   Friday,
-  Saturday
+  Saturday,
+  Sunday
 }
 
 enum MonthOfTheYear {
@@ -33,6 +35,23 @@ enum FirstToLastPosition {
 
 // Adding extensions for enum values as Flutter does not support it yet
 // TODO: Replace this to enum values when introduced. Ref: https://github.com/dart-lang/language/issues/158
+extension DayOfTheWeekExtension on DayOfTheWeek {
+  static int _value(DayOfTheWeek val) {
+    switch (val) {
+      case DayOfTheWeek.Monday: return 1;
+      case DayOfTheWeek.Tuesday: return 2;
+      case DayOfTheWeek.Wednesday: return 3;
+      case DayOfTheWeek.Thursday: return 4;
+      case DayOfTheWeek.Friday: return 5;
+      case DayOfTheWeek.Saturday: return 6;
+      case DayOfTheWeek.Sunday: return 0;
+      default: return 1;
+    }
+  }
+
+  int get value => _value(this);
+}
+
 extension MonthOfTheYearExtension on MonthOfTheYear {
   static int _value(MonthOfTheYear val) {
     switch (val) {
@@ -72,6 +91,19 @@ extension FirstToLastPositionExtension on FirstToLastPosition {
 }
 
 extension IntExtensions on int {
+  static DayOfTheWeek _getWeekEnumValue(int val) {
+    switch (val) {
+      case 1: return DayOfTheWeek.Monday;
+      case 2: return DayOfTheWeek.Tuesday;
+      case 3: return DayOfTheWeek.Wednesday;
+      case 4: return DayOfTheWeek.Thursday;
+      case 5: return DayOfTheWeek.Friday;
+      case 6: return DayOfTheWeek.Saturday;
+      case 0: return DayOfTheWeek.Sunday;
+      default: return DayOfTheWeek.Monday;
+    }
+  }
+
   static MonthOfTheYear _getMonthEnumValue(int val) {
     switch (val) {
       case 1: return MonthOfTheYear.January;
@@ -101,6 +133,7 @@ extension IntExtensions on int {
     }
   }
 
+  DayOfTheWeek get getWeekEnumValue => _getWeekEnumValue(this);
   MonthOfTheYear get getMonthEnumValue => _getMonthEnumValue(this);
   FirstToLastPosition get getSetPosEnumValue => _getSetPosEnumValue(this);
 }

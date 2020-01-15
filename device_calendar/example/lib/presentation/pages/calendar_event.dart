@@ -51,7 +51,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   List<Reminder> _reminders = List<Reminder>();
   int _totalOccurrences;
   int _interval;
-  DayOfTheWeek _selectedDayPos = DayOfTheWeek.Sunday;
+  DayOfTheWeek _selectedDayPos = DayOfTheWeek.Monday;
   DateTime _recurrenceEndDate;
 
   RecurrenceFrequency _recurrenceFrequency = RecurrenceFrequency.Daily;
@@ -101,7 +101,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           _recurrenceEndDate = _event.recurrenceRule.endDate;
         }
 
-        _isByDayOfMonth = _event.recurrenceRule.setPositions == null ? true : false;
+        _isByDayOfMonth = _event.recurrenceRule.setPositions == null;
         _daysOfTheWeek = _event.recurrenceRule.daysOfTheWeek ?? List<DayOfTheWeek>();
 
         if (_recurrenceFrequency == RecurrenceFrequency.Monthly || _recurrenceFrequency == RecurrenceFrequency.Yearly) {
@@ -109,7 +109,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
           if (!_isByDayOfMonth) {
             _setPositions = _event.recurrenceRule.setPositions ?? List<int>();
-            _selectedDayPos = _daysOfTheWeek?.first ?? DayOfTheWeek.Sunday;
+            _selectedDayPos = _daysOfTheWeek?.first ?? DayOfTheWeek.Monday;
           }
           else {
             _daysOfTheMonth = _event.recurrenceRule.daysOfTheMonth ?? List<int>();

@@ -69,7 +69,7 @@ class RecurrenceRule {
     if (daysOfTheWeekIndices != null && daysOfTheWeekIndices is! List<int>) {
       daysOfTheWeek = daysOfTheWeekIndices
           .cast<int>()
-          .map((index) => DayOfTheWeek.values[index])
+          .map((index) => index.getWeekEnumValue)
           .toList();
     }
     daysOfTheMonth = convertToIntList(json[_daysOfTheMonthKey]);
@@ -97,7 +97,7 @@ class RecurrenceRule {
       data[_endDateKey] = endDate.millisecondsSinceEpoch;
     }
     if (daysOfTheWeek != null) {
-      data[_daysOfTheWeekKey] = daysOfTheWeek.map((d) => d.index).toList();
+      data[_daysOfTheWeekKey] = daysOfTheWeek.map((d) => d.value).toList();
     }
     if (monthsOfTheYear != null) {
       data[_monthsOfTheYearKey] = monthsOfTheYear;
