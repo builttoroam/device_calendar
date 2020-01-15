@@ -31,6 +31,13 @@ enum WeekNumber {
   Last
 }
 
+enum AttendeeType {
+  None,
+  Required,
+  Optional,
+  Resource
+}
+
 // Adding extensions for enum values as Flutter does not support it yet
 // TODO: Replace this to enum values when introduced. Ref: https://github.com/dart-lang/language/issues/158
 extension DayOfWeekExtension on DayOfWeek {
@@ -70,7 +77,6 @@ extension MonthOfYearExtension on MonthOfYear {
   }
 
   int get value => _value(this);
-  
 }
 
 extension WeekNumberExtension on WeekNumber {
@@ -134,4 +140,12 @@ extension IntExtensions on int {
   DayOfWeek get getDayOfWeekEnumValue => _getDayOfWeekEnumValue(this);
   MonthOfYear get getMonthOfYearEnumValue => _getMonthOfYearEnumValue(this);
   WeekNumber get getWeekNumberEnumValue => _getWeekNumberEnumValue(this);
+}
+
+extension ObjectExtensions on Object {
+  String _enumToString(Object enumValue) {
+    return enumValue.toString().split('.').last;
+  }
+
+  String get enumToString => _enumToString(this);
 }
