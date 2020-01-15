@@ -49,7 +49,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val ATTENDEES_ARGUMENT = "attendees"
     private val EMAIL_ADDRESS_ARGUMENT = "emailAddress"
     private val NAME_ARGUMENT = "name"
-    private val IS_REQUIRED_ARGUMENT = "isRequired"
+    private val ATTENDEE_TYPE_ARGUMENT = "attendeeType"
     private val REMINDERS_ARGUMENT = "reminders"
     private val MINUTES_ARGUMENT = "minutes"
 
@@ -135,7 +135,11 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             event.attendees = mutableListOf()
             val attendeesArgs = call.argument<List<Map<String, Any>>>(ATTENDEES_ARGUMENT)!!
             for (attendeeArgs in attendeesArgs) {
-                event.attendees.add(Attendee(attendeeArgs[EMAIL_ADDRESS_ARGUMENT] as String, attendeeArgs[NAME_ARGUMENT] as String?, attendeeArgs[IS_REQUIRED_ARGUMENT] as Boolean?, null, null))
+                event.attendees.add(Attendee(
+                        attendeeArgs[EMAIL_ADDRESS_ARGUMENT] as String,
+                        attendeeArgs[NAME_ARGUMENT] as String?,
+                        attendeeArgs[ATTENDEE_TYPE_ARGUMENT] as Int,
+                        null, null))
             }
         }
 

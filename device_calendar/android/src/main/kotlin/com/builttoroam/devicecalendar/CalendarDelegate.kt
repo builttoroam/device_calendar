@@ -390,12 +390,13 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         val attendeesValues = attendees.map {
             ContentValues().apply {
+                put(CalendarContract.Attendees.ATTENDEE_NAME, it.name)
                 put(CalendarContract.Attendees.ATTENDEE_EMAIL, it.emailAddress)
                 put(
                         CalendarContract.Attendees.ATTENDEE_RELATIONSHIP,
                         CalendarContract.Attendees.RELATIONSHIP_ATTENDEE
                 )
-                put(CalendarContract.Attendees.ATTENDEE_TYPE, if (it.isRequired != null && it.isRequired) CalendarContract.Attendees.TYPE_REQUIRED else CalendarContract.Attendees.TYPE_OPTIONAL)
+                put(CalendarContract.Attendees.ATTENDEE_TYPE, it.attendeeType)
                 put(
                         CalendarContract.Attendees.ATTENDEE_STATUS,
                         CalendarContract.Attendees.ATTENDEE_STATUS_INVITED
@@ -579,7 +580,12 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             return null
         }
 
-        return Attendee(cursor.getString(ATTENDEE_EMAIL_INDEX), cursor.getString(ATTENDEE_NAME_INDEX), cursor.getInt(ATTENDEE_TYPE_INDEX) == CalendarContract.Attendees.TYPE_REQUIRED, cursor.getInt(ATTENDEE_STATUS_INDEX), cursor.getInt(ATTENDEE_RELATIONSHIP_INDEX) == CalendarContract.Attendees.RELATIONSHIP_ORGANIZER)
+        return Attendee(
+                cursor.getString(ATTENDEE_EMAIL_INDEX),
+                cursor.getString(ATTENDEE_NAME_INDEX),
+                cursor.getInt(ATTENDEE_TYPE_INDEX), //== CalendarContract.Attendees.TYPE_REQUIRED,
+                cursor.getInt(ATTENDEE_STATUS_INDEX),
+                cursor.getInt(ATTENDEE_RELATIONSHIP_INDEX) == CalendarContract.Attendees.RELATIONSHIP_ORGANIZER)
     }
 
     private fun parseReminderRow(cursor: Cursor?): Reminder? {
