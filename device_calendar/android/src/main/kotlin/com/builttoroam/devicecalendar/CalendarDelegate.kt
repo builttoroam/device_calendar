@@ -359,8 +359,12 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val duration: String? = null
         values.put(Events.ALL_DAY, event.allDay)
         values.put(Events.DTSTART, event.start!!)
-        if (event.allDay) values.put(Events.DTEND, event.start!!)
-        else values.put(Events.DTEND, event.end!!)
+        if (event.allDay) {
+            values.put(Events.DTEND, event.start!!)
+        }
+        else {
+            values.put(Events.DTEND, event.end!!)
+        }
         values.put(Events.TITLE, event.title)
         values.put(Events.DESCRIPTION, event.description)
         values.put(Events.EVENT_LOCATION, event.location)
@@ -686,7 +690,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         var rrString = rr.toString()
         if ((recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY)
-            && recurrenceRule.daysOfTheMonth != null && recurrenceRule.daysOfTheMonth!!.isNotEmpty()) {
+            && recurrenceRule.daysOfTheMonth?.isNotEmpty() == true) {
             rrString = rrString.addPartWithValues(BYMONTHDAY_PART, recurrenceRule.daysOfTheMonth)
         }
 
