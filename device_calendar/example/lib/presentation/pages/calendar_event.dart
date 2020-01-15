@@ -79,6 +79,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _recurrenceEndDate = _endDate;
       _monthsOfTheYear.add(MonthOfTheYear.January.value);
       _daysOfTheMonth = [1];
+      _setPositions = [1];
     } else {
       _startDate = _event.start;
       _endDate = _event.end;
