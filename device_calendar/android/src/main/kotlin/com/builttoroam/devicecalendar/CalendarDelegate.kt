@@ -583,7 +583,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         return Attendee(
                 cursor.getString(ATTENDEE_EMAIL_INDEX),
                 cursor.getString(ATTENDEE_NAME_INDEX),
-                cursor.getInt(ATTENDEE_TYPE_INDEX), //== CalendarContract.Attendees.TYPE_REQUIRED,
+                cursor.getInt(ATTENDEE_TYPE_INDEX),
                 cursor.getInt(ATTENDEE_STATUS_INDEX),
                 cursor.getInt(ATTENDEE_RELATIONSHIP_INDEX) == CalendarContract.Attendees.RELATIONSHIP_ORGANIZER)
     }

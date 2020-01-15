@@ -31,7 +31,7 @@ enum WeekNumber {
   Last
 }
 
-enum AttendeeType {
+enum AttendeeRole {
   None,
   Required,
   Optional,

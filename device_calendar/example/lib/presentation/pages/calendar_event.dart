@@ -116,11 +116,11 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   void printAttendeeDetails(Attendee attendee) {
     print(
-        'attendee name: ${attendee.name}, email address: ${attendee.emailAddress}, type: ${attendee.iosAttendeeDetails?.attendeeType?.enumToString}');
+        'attendee name: ${attendee.name}, email address: ${attendee.emailAddress}, type: ${attendee.iosAttendeeDetails?.role?.enumToString}');
     print(
-        'ios specifics - status: ${attendee.iosAttendeeDetails?.attendanceStatus}, type: ${attendee.iosAttendeeDetails?.attendeeType?.enumToString}');
+        'ios specifics - status: ${attendee.iosAttendeeDetails?.attendanceStatus}, type: ${attendee.iosAttendeeDetails?.role?.enumToString}');
     print(
-        'android specifics - status ${attendee.androidAttendeeDetails?.attendanceStatus}, type: ${attendee.androidAttendeeDetails?.attendeeType?.enumToString}');
+        'android specifics - status ${attendee.androidAttendeeDetails?.attendanceStatus}, type: ${attendee.androidAttendeeDetails?.role?.enumToString}');
   }
 
   @override
@@ -279,7 +279,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             margin: const EdgeInsets.all(10.0),
                             padding: const EdgeInsets.all(3.0),
                             decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent)),
-                            child: Text('${_attendees[index].attendeeType.enumToString}'),
+                            child: Text('${_attendees[index].role.enumToString}'),
                           ),
                           IconButton(
                             padding: const EdgeInsets.all(0),

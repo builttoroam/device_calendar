@@ -13,8 +13,8 @@ class Attendee {
   /// The email address of the attendee
   String emailAddress;
 
-  /// An attendee type: None, Optional, Required or Resource
-  AttendeeType attendeeType;
+  /// An attendee role: None, Optional, Required or Resource
+  AttendeeRole role;
 
   /// Details about the attendee that are specific to iOS. Currently has no effect when saving attendees on iOS.
   /// When reading details for an existing event, this will only be populated on iOS devices.
@@ -27,7 +27,7 @@ class Attendee {
   Attendee({
     this.name,
     this.emailAddress,
-    this.attendeeType,
+    this.role,
     this.iosAttendeeDetails,
     this.androidAttendeeDetails});
 
@@ -38,7 +38,7 @@ class Attendee {
 
     name = json['name'];
     emailAddress = json['emailAddress'];
-    attendeeType = AttendeeType.values[json['attendeeType'] ?? 0];
+    role = AttendeeRole.values[json['role'] ?? 0];
 
     if (Platform.isAndroid) {
       androidAttendeeDetails = AndroidAttendeeDetails.fromJson(json);
@@ -50,7 +50,7 @@ class Attendee {
   }
 
   Map<String, dynamic> toJson() {
-    final data = { 'name': name, 'emailAddress': emailAddress, 'attendeeType': attendeeType.index };
+    final data = { 'name': name, 'emailAddress': emailAddress, 'role': role.index };
 
     if (Platform.isIOS && iosAttendeeDetails != null) {
       data.addEntries(iosAttendeeDetails.toJson().entries);

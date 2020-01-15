@@ -14,7 +14,7 @@ class _EventAttendeesPageState extends State<EventAttendeesPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailAddressController = TextEditingController();
-  var _attendeeType = AttendeeType.None;
+  var _role = AttendeeRole.None;
 
   @override
   void dispose() {
@@ -59,10 +59,10 @@ class _EventAttendeesPageState extends State<EventAttendeesPage> {
                 ),
                 ListTile(
                   leading: Text('Role'),
-                  trailing: DropdownButton<AttendeeType>(
-                    onChanged: (value) { setState(() { _attendeeType = value; }); },
-                    value: _attendeeType,
-                    items: AttendeeType.values
+                  trailing: DropdownButton<AttendeeRole>(
+                    onChanged: (value) { setState(() { _role = value; }); },
+                    value: _role,
+                    items: AttendeeRole.values
                       .map((f) => DropdownMenuItem(
                         value: f,
                         child: Text(f.enumToString),
@@ -80,7 +80,7 @@ class _EventAttendeesPageState extends State<EventAttendeesPage> {
                   _attendee = Attendee(
                       name: _nameController.text,
                       emailAddress: _emailAddressController.text,
-                      attendeeType: _attendeeType
+                      role: _role
                     );
 
                   _emailAddressController.clear();

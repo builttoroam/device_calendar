@@ -94,7 +94,9 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let dayOfMonthArgument = "dayOfMonth"
     let monthOfYearArgument = "monthOfYear"
     let weekOfMonthArgument = "weekOfMonth"
+    let nameArgument = "name"
     let emailAddressArgument = "emailAddress"
+    let roleArgument = "role"
     let remindersArgument = "reminders"
     let minutesArgument = "minutes"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
@@ -402,8 +404,11 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         
         var attendees = [EKParticipant]()
         for attendeeArguments in attendeesArguments! {
+            let name = attendeeArguments[nameArgument] as! String
             let emailAddress = attendeeArguments[emailAddressArgument] as! String
-            if(ekEvent!.attendees != nil) {
+            let role = attendeeArguments[roleArgument] as! Int
+            
+            if (ekEvent!.attendees != nil) {
                 let existingAttendee = ekEvent!.attendees!.first { element in
                     return element.emailAddress == emailAddress
                 }
@@ -413,8 +418,12 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 }
             }
             
-            let attendee = createParticipant(emailAddress: emailAddress)
-            if(attendee == nil) {
+            let attendee = createParticipant(
+                name: name,
+                emailAddress: emailAddress,
+                role: role)
+            
+            if (attendee == nil) {
                 continue
             }
             
@@ -507,11 +516,13 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         }, result: result)
     }
     
-    private func createParticipant(emailAddress: String) -> EKParticipant? {
+    private func createParticipant(name: String, emailAddress: String, role: Int) -> EKParticipant? {
         let ekAttendeeClass: AnyClass? = NSClassFromString("EKAttendee")
         if let type = ekAttendeeClass as? NSObject.Type {
             let participant = type.init()
+            participant.setValue(name, forKey: "displayName")
             participant.setValue(emailAddress, forKey: "emailAddress")
+            participant.setValue(role, forKey: "participantRole")
             return participant as? EKParticipant
         }
         return nil

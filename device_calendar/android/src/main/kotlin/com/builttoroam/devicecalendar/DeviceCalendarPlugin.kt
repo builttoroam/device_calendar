@@ -49,7 +49,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val ATTENDEES_ARGUMENT = "attendees"
     private val EMAIL_ADDRESS_ARGUMENT = "emailAddress"
     private val NAME_ARGUMENT = "name"
-    private val ATTENDEE_TYPE_ARGUMENT = "attendeeType"
+    private val ROLE_ARGUMENT = "role"
     private val REMINDERS_ARGUMENT = "reminders"
     private val MINUTES_ARGUMENT = "minutes"
 
@@ -138,7 +138,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 event.attendees.add(Attendee(
                         attendeeArgs[EMAIL_ADDRESS_ARGUMENT] as String,
                         attendeeArgs[NAME_ARGUMENT] as String?,
-                        attendeeArgs[ATTENDEE_TYPE_ARGUMENT] as Int,
+                        attendeeArgs[ROLE_ARGUMENT] as Int,
                         null, null))
             }
         }
