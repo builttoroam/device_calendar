@@ -5,20 +5,20 @@ import 'attendance_status.dart';
 class IosAttendeeDetails {
   IosAttendanceStatus _attendanceStatus;
   
-  /// An attendee type: None, Optional, Required or Resource
-  AttendeeType attendeeType;
+  /// An attendee role: None, Optional, Required or Resource
+  AttendeeRole role;
 
   /// The attendee's status for the event. This is read-only
   IosAttendanceStatus get attendanceStatus => _attendanceStatus;
 
-  IosAttendeeDetails({this.attendeeType});
+  IosAttendeeDetails({this.role});
 
   IosAttendeeDetails.fromJson(Map<String, dynamic> json) {
     if (json == null) {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
 
-    attendeeType = AttendeeType.values[json['attendeeType']];
+    role = AttendeeRole.values[json['role']];
 
     if (json['attendanceStatus'] != null && json['attendanceStatus'] is int) {
       _attendanceStatus = IosAttendanceStatus.values[json['attendanceStatus']];
@@ -26,6 +26,6 @@ class IosAttendeeDetails {
   }
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{ 'attendeeType': attendeeType.index };
+    return <String, dynamic>{ 'role': role.index };
   }
 }
