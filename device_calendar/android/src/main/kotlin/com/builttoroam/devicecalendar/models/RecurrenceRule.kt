@@ -8,8 +8,8 @@ class RecurrenceRule(val recurrenceFrequency : RecurrenceFrequency) {
     var totalOccurrences: Int? = null
     var interval: Int? = null
     var endDate: Long? = null
-    var daysOfTheWeek: MutableList<DayOfWeek>? = null
-    var daysOfTheMonth: MutableList<Int>? = null
-    var monthsOfTheYear: MutableList<Int>? = null
-    var setPositions: MutableList<Int>? = null
+    var daysOfWeek: MutableList<DayOfWeek>? = null
+    var dayOfMonth: Int? = null
+    var monthOfYear: Int? = null
+    var weekOfMonth: Int? = null
 }
