@@ -324,9 +324,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         },
                         value: _recurrenceFrequency,
                         items: RecurrenceFrequency.values
-                            .map((f) => DropdownMenuItem(
-                                  value: f,
-                                  child: _recurrenceFrequencyToText(f),
+                            .map((frequency) => DropdownMenuItem(
+                                  value: frequency,
+                                  child: _recurrenceFrequencyToText(frequency),
                                 ))
                             .toList(),
                       ),
@@ -359,14 +359,14 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     if (_recurrenceFrequency == RecurrenceFrequency.Weekly) ... [
                       Column(
                           children: [ 
-                            ...DayOfWeek.values.map((d) {
+                            ...DayOfWeek.values.map((day) {
                               return CheckboxListTile(
-                                title: Text(_enumToString(d)),
-                                value: _daysOfWeek?.any((dow) => dow == d) ?? false,
+                                title: Text(_enumToString(day)),
+                                value: _daysOfWeek?.any((dow) => dow == day) ?? false,
                                 onChanged: (selected) {
                                   setState(() {
-                                    if (selected) _daysOfWeek.add(d);
-                                    else _daysOfWeek.remove(d);
+                                    if (selected) _daysOfWeek.add(day);
+                                    else _daysOfWeek.remove(day);
                                   });
                                 },
                               );
@@ -394,9 +394,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           },
                           value: _monthOfYear,
                           items: MonthOfYear.values
-                            .map((m) => DropdownMenuItem(
-                              value: m,
-                              child: Text(_enumToString(m)),
+                            .map((month) => DropdownMenuItem(
+                              value: month,
+                              child: Text(_enumToString(month)),
                             )).toList(),
                         ),
                       ),
@@ -410,9 +410,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           },
                           value: _dayOfMonth,
                           items: _validDaysOfMonth
-                            .map((d) => DropdownMenuItem(
-                              value: d,
-                              child: Text(d.toString()),
+                            .map((day) => DropdownMenuItem(
+                              value: day,
+                              child: Text(day.toString()),
                             )).toList(),
                         ),
                       ),
@@ -437,9 +437,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 },
                                 value: _weekOfMonth ?? WeekNumber.First,
                                 items: WeekNumber.values
-                                  .map((d) => DropdownMenuItem(
-                                    value: d,
-                                    child: Text(_enumToString(d)),
+                                  .map((weekNum) => DropdownMenuItem(
+                                    value: weekNum,
+                                    child: Text(_enumToString(weekNum)),
                                   )).toList(),
                               ),
                             ),
@@ -448,9 +448,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 onChanged: (value) { setState(() { _selectedDayOfWeek = value; }); },
                                 value: DayOfWeek.values[_selectedDayOfWeek.index],
                                 items: DayOfWeek.values
-                                  .map((d) => DropdownMenuItem(
-                                    value: d,
-                                    child: Text(_enumToString(d)),
+                                  .map((day) => DropdownMenuItem(
+                                    value: day,
+                                    child: Text(_enumToString(day)),
                                   )).toList(),
                               ),
                             ),
@@ -463,9 +463,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                   },
                                   value: _monthOfYear,
                                   items: MonthOfYear.values
-                                    .map((m) => DropdownMenuItem(
-                                      value: m,
-                                      child: Text(_enumToString(m)),
+                                    .map((month) => DropdownMenuItem(
+                                      value: month,
+                                      child: Text(_enumToString(month)),
                                     )).toList(),
                                   ),
                               ),
@@ -484,9 +484,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         },
                         value: _recurrenceRuleEndType,
                         items: RecurrenceRuleEndType.values
-                            .map((f) => DropdownMenuItem(
-                                  value: f,
-                                  child: _recurrenceRuleEndTypeToText(f),
+                            .map((frequency) => DropdownMenuItem(
+                                  value: frequency,
+                                  child: _recurrenceRuleEndTypeToText(frequency),
                                 ))
                             .toList(),
                       ),
