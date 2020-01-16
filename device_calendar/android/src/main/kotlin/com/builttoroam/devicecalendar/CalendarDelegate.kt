@@ -543,16 +543,23 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
         val rfcRecurrenceRuleString = rfcRecurrenceRule.toString()
-        if (rfcRecurrenceRule.freq == Freq.MONTHLY) {
+        if (rfcRecurrenceRule.freq == Freq.MONTHLY || rfcRecurrenceRule.freq == Freq.YEARLY) {
+            // Get week number value from BYSETPOS
+            recurrenceRule.weekOfMonth = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYSETPOS_PART)
+
+            // If value is not found in BYSETPOS and not repeating by nth day or nth month
+            // Get the week number value from the BYDAY position
+            if (recurrenceRule.weekOfMonth == null && rfcRecurrenceRule.byDayPart != null) {
+                recurrenceRule.weekOfMonth = rfcRecurrenceRule.byDayPart.first().pos
+            }
+
             recurrenceRule.dayOfMonth = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTHDAY_PART)
+
+            if (rfcRecurrenceRule.freq == Freq.YEARLY) {
+                recurrenceRule.monthOfYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTH_PART)
+            }
         }
 
-        if (rfcRecurrenceRule.freq == Freq.YEARLY) {
-            recurrenceRule.monthOfYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTH_PART)
-            recurrenceRule.dayOfMonth = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTHDAY_PART)
-        }
-
-        recurrenceRule.weekOfMonth = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYSETPOS_PART)
         return recurrenceRule
     }
 
@@ -695,10 +702,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
         if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY) {
-            rrString = if (recurrenceRule.weekOfMonth != null) {
-                rrString.addPartWithValues(BYSETPOS_PART, recurrenceRule.weekOfMonth)
-            } else {
-                rrString.addPartWithValues(BYMONTHDAY_PART, recurrenceRule.dayOfMonth)
+            if (recurrenceRule.weekOfMonth == null) {
+                rrString = rrString.addPartWithValues(BYMONTHDAY_PART, recurrenceRule.dayOfMonth)
             }
         }
 
@@ -715,7 +720,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 it.ordinal == dayOfWeek.ordinal
             }
         }?.map {
-            org.dmfs.rfc5545.recur.RecurrenceRule.WeekdayNum(0, it)
+            org.dmfs.rfc5545.recur.RecurrenceRule.WeekdayNum(recurrenceRule.weekOfMonth?: 0, it)
         }
     }
 
