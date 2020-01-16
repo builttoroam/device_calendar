@@ -1,6 +1,4 @@
-import 'package:device_calendar/device_calendar.dart';
-
-enum DayOfTheWeek {
+enum DayOfWeek {
   Monday,
   Tuesday,
   Wednesday,
@@ -10,7 +8,7 @@ enum DayOfTheWeek {
   Sunday
 }
 
-enum MonthOfTheYear {
+enum MonthOfYear {
   January,
   Feburary,
   March,
@@ -25,7 +23,7 @@ enum MonthOfTheYear {
   December
 }
 
-enum FirstToLastPosition {
+enum WeekNumber {
   First,
   Second,
   Third,
@@ -35,16 +33,16 @@ enum FirstToLastPosition {
 
 // Adding extensions for enum values as Flutter does not support it yet
 // TODO: Replace this to enum values when introduced. Ref: https://github.com/dart-lang/language/issues/158
-extension DayOfTheWeekExtension on DayOfTheWeek {
-  static int _value(DayOfTheWeek val) {
+extension DayOfWeekExtension on DayOfWeek {
+  static int _value(DayOfWeek val) {
     switch (val) {
-      case DayOfTheWeek.Monday: return 1;
-      case DayOfTheWeek.Tuesday: return 2;
-      case DayOfTheWeek.Wednesday: return 3;
-      case DayOfTheWeek.Thursday: return 4;
-      case DayOfTheWeek.Friday: return 5;
-      case DayOfTheWeek.Saturday: return 6;
-      case DayOfTheWeek.Sunday: return 0;
+      case DayOfWeek.Monday: return 1;
+      case DayOfWeek.Tuesday: return 2;
+      case DayOfWeek.Wednesday: return 3;
+      case DayOfWeek.Thursday: return 4;
+      case DayOfWeek.Friday: return 5;
+      case DayOfWeek.Saturday: return 6;
+      case DayOfWeek.Sunday: return 0;
       default: return 1;
     }
   }
@@ -52,21 +50,21 @@ extension DayOfTheWeekExtension on DayOfTheWeek {
   int get value => _value(this);
 }
 
-extension MonthOfTheYearExtension on MonthOfTheYear {
-  static int _value(MonthOfTheYear val) {
+extension MonthOfYearExtension on MonthOfYear {
+  static int _value(MonthOfYear val) {
     switch (val) {
-      case MonthOfTheYear.January: return 1;
-      case MonthOfTheYear.Feburary: return 2;
-      case MonthOfTheYear.March: return 3;
-      case MonthOfTheYear.April: return 4;
-      case MonthOfTheYear.May: return 5;
-      case MonthOfTheYear.June: return 6;
-      case MonthOfTheYear.July: return 7;
-      case MonthOfTheYear.August: return 8;
-      case MonthOfTheYear.September: return 9;
-      case MonthOfTheYear.October: return 10;
-      case MonthOfTheYear.November: return 11;
-      case MonthOfTheYear.December: return 12;
+      case MonthOfYear.January: return 1;
+      case MonthOfYear.Feburary: return 2;
+      case MonthOfYear.March: return 3;
+      case MonthOfYear.April: return 4;
+      case MonthOfYear.May: return 5;
+      case MonthOfYear.June: return 6;
+      case MonthOfYear.July: return 7;
+      case MonthOfYear.August: return 8;
+      case MonthOfYear.September: return 9;
+      case MonthOfYear.October: return 10;
+      case MonthOfYear.November: return 11;
+      case MonthOfYear.December: return 12;
       default: return 1;
     }
   }
@@ -75,14 +73,14 @@ extension MonthOfTheYearExtension on MonthOfTheYear {
   
 }
 
-extension FirstToLastPositionExtension on FirstToLastPosition {
-  static int _value(FirstToLastPosition val) {
+extension WeekNumberExtension on WeekNumber {
+  static int _value(WeekNumber val) {
     switch (val) {
-      case FirstToLastPosition.First: return 1;
-      case FirstToLastPosition.Second: return 2;
-      case FirstToLastPosition.Third: return 3;
-      case FirstToLastPosition.Fourth: return 4;
-      case FirstToLastPosition.Last: return -1;
+      case WeekNumber.First: return 1;
+      case WeekNumber.Second: return 2;
+      case WeekNumber.Third: return 3;
+      case WeekNumber.Fourth: return 4;
+      case WeekNumber.Last: return -1;
       default: return 1;
     }
   }
@@ -91,49 +89,49 @@ extension FirstToLastPositionExtension on FirstToLastPosition {
 }
 
 extension IntExtensions on int {
-  static DayOfTheWeek _getWeekEnumValue(int val) {
+  static DayOfWeek _getDayOfWeekEnumValue(int val) {
     switch (val) {
-      case 1: return DayOfTheWeek.Monday;
-      case 2: return DayOfTheWeek.Tuesday;
-      case 3: return DayOfTheWeek.Wednesday;
-      case 4: return DayOfTheWeek.Thursday;
-      case 5: return DayOfTheWeek.Friday;
-      case 6: return DayOfTheWeek.Saturday;
-      case 0: return DayOfTheWeek.Sunday;
-      default: return DayOfTheWeek.Monday;
+      case 1: return DayOfWeek.Monday;
+      case 2: return DayOfWeek.Tuesday;
+      case 3: return DayOfWeek.Wednesday;
+      case 4: return DayOfWeek.Thursday;
+      case 5: return DayOfWeek.Friday;
+      case 6: return DayOfWeek.Saturday;
+      case 0: return DayOfWeek.Sunday;
+      default: return DayOfWeek.Monday;
     }
   }
 
-  static MonthOfTheYear _getMonthEnumValue(int val) {
+  static MonthOfYear _getMonthOfYearEnumValue(int val) {
     switch (val) {
-      case 1: return MonthOfTheYear.January;
-      case 2: return MonthOfTheYear.Feburary;
-      case 3: return MonthOfTheYear.March;
-      case 4: return MonthOfTheYear.April;
-      case 5: return MonthOfTheYear.May;
-      case 6: return MonthOfTheYear.June;
-      case 7: return MonthOfTheYear.July;
-      case 8: return MonthOfTheYear.August;
-      case 9: return MonthOfTheYear.September;
-      case 10: return MonthOfTheYear.October;
-      case 11: return MonthOfTheYear.November;
-      case 12: return MonthOfTheYear.December;
-      default: return MonthOfTheYear.January;
+      case 1: return MonthOfYear.January;
+      case 2: return MonthOfYear.Feburary;
+      case 3: return MonthOfYear.March;
+      case 4: return MonthOfYear.April;
+      case 5: return MonthOfYear.May;
+      case 6: return MonthOfYear.June;
+      case 7: return MonthOfYear.July;
+      case 8: return MonthOfYear.August;
+      case 9: return MonthOfYear.September;
+      case 10: return MonthOfYear.October;
+      case 11: return MonthOfYear.November;
+      case 12: return MonthOfYear.December;
+      default: return MonthOfYear.January;
     }
   }
 
-  static FirstToLastPosition _getSetPosEnumValue(int val) {
+  static WeekNumber _getWeekNumberEnumValue(int val) {
     switch (val) {
-      case 1: return FirstToLastPosition.First;
-      case 2: return FirstToLastPosition.Second;
-      case 3: return FirstToLastPosition.Third;
-      case 4: return FirstToLastPosition.Fourth;
-      case -1: return FirstToLastPosition.Last;
-      default: return FirstToLastPosition.First;
+      case 1: return WeekNumber.First;
+      case 2: return WeekNumber.Second;
+      case 3: return WeekNumber.Third;
+      case 4: return WeekNumber.Fourth;
+      case -1: return WeekNumber.Last;
+      default: return WeekNumber.First;
     }
   }
 
-  DayOfTheWeek get getWeekEnumValue => _getWeekEnumValue(this);
-  MonthOfTheYear get getMonthEnumValue => _getMonthEnumValue(this);
-  FirstToLastPosition get getSetPosEnumValue => _getSetPosEnumValue(this);
+  DayOfWeek get getDayOfWeekEnumValue => _getDayOfWeekEnumValue(this);
+  MonthOfYear get getMonthOfYearEnumValue => _getMonthOfYearEnumValue(this);
+  WeekNumber get getWeekNumberEnumValue => _getWeekNumberEnumValue(this);
 }
