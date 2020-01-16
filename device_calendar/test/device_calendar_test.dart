@@ -1,19 +1,18 @@
 import 'package:device_calendar/device_calendar.dart';
+import 'package:device_calendar/src/common/error_codes.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/src/common/error_codes.dart';
-
 void main() {
-  MethodChannel channel =
+  var channel =
       const MethodChannel('plugins.builttoroam.com/device_calendar');
-  DeviceCalendarPlugin deviceCalendarPlugin = DeviceCalendarPlugin();
+  var deviceCalendarPlugin = DeviceCalendarPlugin();
 
-  final List<MethodCall> log = <MethodCall>[];
+  final log = <MethodCall>[];
 
   setUp(() {
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      print("Calling channel method ${methodCall.method}");
+      print('Calling channel method ${methodCall.method}');
       log.add(methodCall);
 
       return null;
@@ -45,9 +44,9 @@ void main() {
   });
 
   test('RetrieveCalendars_Returns_Successfully', () async {
-    final fakeCalendarName = "fakeCalendarName";
+    final fakeCalendarName = 'fakeCalendarName';
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      return "[{\"id\":\"1\",\"isReadOnly\":false,\"name\":\"$fakeCalendarName\"}]";
+      return '[{\"id\":\"1\",\"isReadOnly\":false,\"name\":\"$fakeCalendarName\"}]';
     });
 
     final result = await deviceCalendarPlugin.retrieveCalendars();
@@ -60,7 +59,7 @@ void main() {
 
   test('RetrieveEvents_CalendarId_IsRequired', () async {
     final String calendarId = null;
-    final RetrieveEventsParams params = RetrieveEventsParams();
+    final params = RetrieveEventsParams();
 
     final result =
         await deviceCalendarPlugin.retrieveEvents(calendarId, params);
@@ -72,7 +71,7 @@ void main() {
 
   test('DeleteEvent_CalendarId_IsRequired', () async {
     final String calendarId = null;
-    final String eventId = "fakeEventId";
+    final eventId = 'fakeEventId';
 
     final result = await deviceCalendarPlugin.deleteEvent(calendarId, eventId);
     expect(result.isSuccess, false);
@@ -82,7 +81,7 @@ void main() {
   });
 
   test('DeleteEvent_EventId_IsRequired', () async {
-    final String calendarId = "fakeCalendarId";
+    final calendarId = 'fakeCalendarId';
     final String eventId = null;
 
     final result = await deviceCalendarPlugin.deleteEvent(calendarId, eventId);
@@ -93,8 +92,8 @@ void main() {
   });
 
   test('DeleteEvent_PassesArguments_Correctly', () async {
-    final String calendarId = "fakeCalendarId";
-    final String eventId = "fakeEventId";
+    final calendarId = 'fakeCalendarId';
+    final eventId = 'fakeEventId';
 
     await deviceCalendarPlugin.deleteEvent(calendarId, eventId);
     expect(log, <Matcher>[
@@ -107,7 +106,7 @@ void main() {
 
   test('CreateEvent_Arguments_Invalid', () async {
     final String fakeCalendarId = null;
-    final Event event = Event(fakeCalendarId);
+    final event = Event(fakeCalendarId);
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result.isSuccess, false);
@@ -117,14 +116,14 @@ void main() {
   });
 
   test('CreateEvent_Returns_Successfully', () async {
-    final fakeNewEventId = "fakeNewEventId";
+    final fakeNewEventId = 'fakeNewEventId';
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
       return fakeNewEventId;
     });
 
-    final String fakeCalendarId = "fakeCalendarId";
-    final Event event = Event(fakeCalendarId);
-    event.title = "fakeEventTitle";
+    final fakeCalendarId = 'fakeCalendarId';
+    final event = Event(fakeCalendarId);
+    event.title = 'fakeEventTitle';
     event.start = DateTime.now();
     event.end = event.start.add(Duration(hours: 1));
 
@@ -136,7 +135,7 @@ void main() {
   });
 
   test('UpdateEvent_Returns_Successfully', () async {
-    final fakeNewEventId = "fakeNewEventId";
+    final fakeNewEventId = 'fakeNewEventId';
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
       final arguments = methodCall.arguments as Map<dynamic, dynamic>;
       if (!arguments.containsKey('eventId') || arguments['eventId'] == null) {
@@ -146,10 +145,10 @@ void main() {
       return fakeNewEventId;
     });
 
-    final String fakeCalendarId = "fakeCalendarId";
-    final Event event = Event(fakeCalendarId);
-    event.eventId = "fakeEventId";
-    event.title = "fakeEventTitle";
+    final fakeCalendarId = 'fakeCalendarId';
+    final event = Event(fakeCalendarId);
+    event.eventId = 'fakeEventId';
+    event.title = 'fakeEventTitle';
     event.start = DateTime.now();
     event.end = event.start.add(Duration(hours: 1));
 

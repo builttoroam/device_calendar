@@ -156,8 +156,9 @@ class EventItem extends StatelessWidget {
                 ],
               ),
             ),
-            ButtonTheme.bar(
-                child: ButtonBar(
+            ButtonBarTheme(
+              data: null,
+              child: ButtonBar(
               children: [
                 IconButton(
                   onPressed: () {

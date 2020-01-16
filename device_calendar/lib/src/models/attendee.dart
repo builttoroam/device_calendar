@@ -43,7 +43,7 @@ class Attendee {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final data = <String, dynamic>{};
     data['name'] = name;
     data['emailAddress'] = emailAddress;
     if (Platform.isIOS && iosAttendeeDetails != null) {
