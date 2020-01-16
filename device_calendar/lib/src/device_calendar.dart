@@ -14,7 +14,7 @@ import 'models/retrieve_events_params.dart';
 /// Provides functionality for working with device calendar(s)
 class DeviceCalendarPlugin {
   static const MethodChannel channel =
-      const MethodChannel('plugins.builttoroam.com/device_calendar');
+      MethodChannel('plugins.builttoroam.com/device_calendar');
 
   static final DeviceCalendarPlugin _instance = DeviceCalendarPlugin.private();
 
@@ -93,7 +93,7 @@ class DeviceCalendarPlugin {
 
     if ((calendarId?.isEmpty ?? true)) {
       res.errorMessages.add(
-          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidMissingCalendarId}");
+          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidMissingCalendarId}');
     }
 
     // TODO: Extend capability to handle null start or null end (e.g. all events after a certain date (null end date) or all events prior to a certain date (null start date))
@@ -105,7 +105,7 @@ class DeviceCalendarPlugin {
                 retrieveEventsParams.startDate
                     .isAfter(retrieveEventsParams.endDate)))) {
       res.errorMessages.add(
-          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidRetrieveEventsParams}");
+          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidRetrieveEventsParams}');
     }
 
     if (res.errorMessages.isEmpty) {
@@ -142,7 +142,7 @@ class DeviceCalendarPlugin {
 
     if ((calendarId?.isEmpty ?? true) || (eventId?.isEmpty ?? true)) {
       res.errorMessages.add(
-          "[${ErrorCodes.invalidArguments}] ${ErrorMessages.deleteEventInvalidArgumentsMessage}");
+          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.deleteEventInvalidArgumentsMessage}');
       return res;
     }
 
@@ -168,16 +168,16 @@ class DeviceCalendarPlugin {
 
     // Setting time to 0 for all day events
     if (event.allDay) {
-      event.start = new DateTime(event.start.year, event.start.month, event.start.day, 0, 0, 0);
-      event.end = new DateTime(event.end.year, event.end.month, event.end.day, 0, 0, 0);
+      event.start = DateTime(event.start.year, event.start.month, event.start.day, 0, 0, 0);
+      event.end = DateTime(event.end.year, event.end.month, event.end.day, 0, 0, 0);
     }
 
     if (event.allDay && (event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null) {
-      res.errorMessages.add("[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay}");
+      res.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay}');
       return res;
     }
     else if (!event.allDay & ((event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null || event.start.isAfter(event.end))) {
-      res.errorMessages.add("[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}");
+      res.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}');
       return res;
     }
 
@@ -209,7 +209,7 @@ class DeviceCalendarPlugin {
       Exception exception, Result<T> result) {
     if (exception == null) {
       result.errorMessages.add(
-          "[${ErrorCodes.unknown}] Device calendar plugin ran into an unknown issue");
+          '[${ErrorCodes.unknown}] Device calendar plugin ran into an unknown issue');
       return;
     }
 
@@ -217,10 +217,10 @@ class DeviceCalendarPlugin {
 
     if (exception is PlatformException) {
       result.errorMessages.add(
-          "[${ErrorCodes.platformSpecific}] Device calendar plugin ran into an issue. Platform specific exception [${exception.code}], with message :\"${exception.message}\", has been thrown.");
+          '[${ErrorCodes.platformSpecific}] Device calendar plugin ran into an issue. Platform specific exception [${exception.code}], with message :\"${exception.message}\", has been thrown.');
     } else {
       result.errorMessages.add(
-          "[${ErrorCodes.generic}] Device calendar plugin ran into an issue, with message \"${exception.toString()}\"");
+          '[${ErrorCodes.generic}] Device calendar plugin ran into an issue, with message \"${exception.toString()}\"');
     }
   }
 }

@@ -365,8 +365,11 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 value: _daysOfWeek?.any((dow) => dow == day) ?? false,
                                 onChanged: (selected) {
                                   setState(() {
-                                    if (selected) _daysOfWeek.add(day);
-                                    else _daysOfWeek.remove(day);
+                                    if (selected) {
+                                      _daysOfWeek.add(day);
+                                    } else {
+                                      _daysOfWeek.remove(day);
+                                    }
                                   });
                                 },
                               );
@@ -565,7 +568,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                 _daysOfWeek.clear();
                 _daysOfWeek.add(_selectedDayOfWeek);
               }
-              else _weekOfMonth = null;
+              else {
+                _weekOfMonth = null;
+              }
 
               _event.recurrenceRule = RecurrenceRule(_recurrenceFrequency,
                   interval: _interval,
@@ -642,10 +647,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
     // Year frequency: Get total days of the selected month
     if (frequency == RecurrenceFrequency.Yearly) {
-      totalDays = DateTime(new DateTime.now().year, _monthOfYear.value + 1, 0).day;
+      totalDays = DateTime(DateTime.now().year, _monthOfYear.value + 1, 0).day;
     }
     else { // Otherwise, get total days of the current month
-      var now = new DateTime.now();
+      var now = DateTime.now();
       totalDays = DateTime(now.year, now.month + 1, 0).day;
     }
 

@@ -3,7 +3,7 @@ class Result<T> {
   ///
   /// Returns true if data is not null and there're no error messages, otherwise returns false
   bool get isSuccess {
-    var res = data != null && errorMessages.length == 0;
+    var res = data != null && errorMessages.isEmpty;
     if (res) {
       if (data is String) {
         res = (data as String).isNotEmpty;
@@ -14,5 +14,5 @@ class Result<T> {
   }
 
   T data;
-  List<String> errorMessages = List<String>();
+  List<String> errorMessages = <String>[];
 }
