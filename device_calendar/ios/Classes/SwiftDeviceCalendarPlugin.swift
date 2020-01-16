@@ -40,10 +40,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let totalOccurrences: Int?
         let interval: Int
         let endDate: Int64?
-        let daysOfTheWeek: [Int]?
-        let daysOfTheMonth: [Int]?
-        let monthsOfTheYear: [Int]?
-        let setPositions: [Int]?
+        let daysOfWeek: [Int]?
+        let dayOfMonth: Int?
+        let monthOfYear: Int?
+        let weekOfMonth: Int?
     }
     
     struct Attendee: Codable {
@@ -90,10 +90,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let recurrenceFrequencyArgument = "recurrenceFrequency"
     let totalOccurrencesArgument = "totalOccurrences"
     let intervalArgument = "interval"
-    let daysOfTheWeekArgument = "daysOfTheWeek"
-    let daysOfTheMonthArgument = "daysOfTheMonth"
-    let monthsOfTheYearArgument = "monthsOfTheYear"
-    let setPositionsArgument = "setPositions"
+    let daysOfWeekArgument = "daysOfWeek"
+    let dayOfMonthArgument = "dayOfMonth"
+    let monthOfYearArgument = "monthOfYear"
+    let weekOfMonthArgument = "weekOfMonth"
     let emailAddressArgument = "emailAddress"
     let remindersArgument = "reminders"
     let minutesArgument = "minutes"
@@ -268,31 +268,49 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 endDate = Int64(exactly: endDateMs!)
             }
             
-            var daysOfTheWeek: [Int]?
+            var weekOfMonth = ekRecurrenceRule.setPositions?.first?.intValue
+            
+            var daysOfWeek: [Int]?
             if ekRecurrenceRule.daysOfTheWeek != nil && !ekRecurrenceRule.daysOfTheWeek!.isEmpty {
-                daysOfTheWeek = []
-                for dayOfTheWeek in ekRecurrenceRule.daysOfTheWeek! {
-                    daysOfTheWeek!.append(dayOfTheWeek.dayOfTheWeek.rawValue - 1)
+                daysOfWeek = []
+                for dayOfWeek in ekRecurrenceRule.daysOfTheWeek! {
+                    daysOfWeek!.append(dayOfWeek.dayOfTheWeek.rawValue - 1)
+                    
+                    if weekOfMonth == nil {
+                        weekOfMonth = dayOfWeek.weekNumber
+                    }
                 }
             }
             
-            recurrenceRule = RecurrenceRule(recurrenceFrequency: frequency, totalOccurrences: totalOccurrences, interval: ekRecurrenceRule.interval, endDate: endDate, daysOfTheWeek: daysOfTheWeek, daysOfTheMonth: convertToIntArray(ekRecurrenceRule.daysOfTheMonth), monthsOfTheYear: convertToIntArray(ekRecurrenceRule.monthsOfTheYear), setPositions: convertToIntArray(ekRecurrenceRule.setPositions))
+            // For recurrence of nth day of nth month every year, no calendar parameters are given
+            // So we need to explicitly set them from event start date
+            var dayOfMonth = ekRecurrenceRule.daysOfTheMonth?.first?.intValue
+            var monthOfYear = ekRecurrenceRule.monthsOfTheYear?.first?.intValue
+            if (ekRecurrenceRule.frequency == EKRecurrenceFrequency.yearly
+                && weekOfMonth == nil && dayOfMonth == nil && monthOfYear == nil) {
+                let dateFormatter = DateFormatter()
+                
+                // Setting day of the month
+                dateFormatter.dateFormat = "d"
+                dayOfMonth = Int(dateFormatter.string(from: ekEvent.startDate))
+                
+                // Setting month of the year
+                dateFormatter.dateFormat = "M"
+                monthOfYear = Int(dateFormatter.string(from: ekEvent.startDate))
+            }
+            
+            recurrenceRule = RecurrenceRule(
+                recurrenceFrequency: frequency,
+                totalOccurrences: totalOccurrences,
+                interval: ekRecurrenceRule.interval,
+                endDate: endDate,
+                daysOfWeek: daysOfWeek,
+                dayOfMonth: dayOfMonth,
+                monthOfYear: monthOfYear,
+                weekOfMonth: weekOfMonth)
         }
         
         return recurrenceRule
-    }
-    
-    private func convertToIntArray(_ arguments: [NSNumber]?) -> [Int]? {
-        if arguments?.isEmpty ?? true {
-            return nil
-        }
-        
-        var result: [Int] = []
-        for element in arguments! {
-            result.append(element.intValue)
-        }
-        
-        return result
     }
     
     private func createEKRecurrenceRules(_ arguments: [String : AnyObject]) -> [EKRecurrenceRule]?{
@@ -318,18 +336,63 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         if interval != nil && interval! > 1 {
             recurrenceInterval = interval!
         }
+                
+        let daysOfWeekIndices = recurrenceRuleArguments![daysOfWeekArgument] as? [Int]
+        var daysOfWeek : [EKRecurrenceDayOfWeek]?
         
-        let daysOfTheWeekIndices = recurrenceRuleArguments![daysOfTheWeekArgument] as? [Int]
-        var daysOfTheWeek : [EKRecurrenceDayOfWeek]?
-        
-        if daysOfTheWeekIndices != nil && !daysOfTheWeekIndices!.isEmpty {
-            daysOfTheWeek = []
-            for dayOfWeekIndex in daysOfTheWeekIndices! {
-                daysOfTheWeek!.append(EKRecurrenceDayOfWeek.init(EKWeekday.init(rawValue: dayOfWeekIndex + 1)!))
+        if daysOfWeekIndices != nil && !daysOfWeekIndices!.isEmpty {
+            daysOfWeek = []
+            for dayOfWeekIndex in daysOfWeekIndices! {
+                // Append week number to BYDAY for yearly or monthly with 'last' week number
+                if let weekOfMonth = recurrenceRuleArguments![weekOfMonthArgument] as? Int {
+                    if namedFrequency == EKRecurrenceFrequency.yearly || weekOfMonth == -1 {
+                        daysOfWeek!.append(EKRecurrenceDayOfWeek.init(
+                            dayOfTheWeek: EKWeekday.init(rawValue: dayOfWeekIndex + 1)!,
+                            weekNumber: weekOfMonth
+                        ))
+                    }
+                }
+                
+                
+                if daysOfWeek?.count == 0 {
+                    daysOfWeek!.append(EKRecurrenceDayOfWeek.init(EKWeekday.init(rawValue: dayOfWeekIndex + 1)!))
+                }
             }
         }
         
-        return [EKRecurrenceRule(recurrenceWith: namedFrequency, interval: recurrenceInterval, daysOfTheWeek: daysOfTheWeek, daysOfTheMonth: recurrenceRuleArguments![daysOfTheMonthArgument] as? [NSNumber], monthsOfTheYear: recurrenceRuleArguments![monthsOfTheYearArgument] as? [NSNumber], weeksOfTheYear: nil, daysOfTheYear: nil, setPositions: recurrenceRuleArguments![setPositionsArgument] as? [NSNumber], end: recurrenceEnd)]
+        var dayOfMonthArray : [NSNumber]?
+        if let dayOfMonth = recurrenceRuleArguments![dayOfMonthArgument] as? Int {
+            dayOfMonthArray = []
+            dayOfMonthArray!.append(NSNumber(value: dayOfMonth))
+        }
+        
+        var monthOfYearArray : [NSNumber]?
+        if let monthOfYear = recurrenceRuleArguments![monthOfYearArgument] as? Int {
+            monthOfYearArray = []
+            monthOfYearArray!.append(NSNumber(value: monthOfYear))
+        }
+        
+        // Append BYSETPOS only on monthly (but not last), yearly's week number (and last for monthly) appends to BYDAY
+        var weekOfMonthArray : [NSNumber]?
+        if namedFrequency == EKRecurrenceFrequency.monthly {
+            if let weekOfMonth = recurrenceRuleArguments![weekOfMonthArgument] as? Int {
+                if weekOfMonth != -1 {
+                    weekOfMonthArray = []
+                    weekOfMonthArray!.append(NSNumber(value: weekOfMonth))
+                }
+            }
+        }
+        
+        return [EKRecurrenceRule(
+            recurrenceWith: namedFrequency,
+            interval: recurrenceInterval,
+            daysOfTheWeek: daysOfWeek,
+            daysOfTheMonth: dayOfMonthArray,
+            monthsOfTheYear: monthOfYearArray,
+            weeksOfTheYear: nil,
+            daysOfTheYear: nil,
+            setPositions: weekOfMonthArray,
+            end: recurrenceEnd)]
     }
     
     private func setAttendees(_ arguments: [String : AnyObject], _ ekEvent: EKEvent?) {
