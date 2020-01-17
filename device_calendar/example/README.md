@@ -13,9 +13,9 @@ Examples below present sample parameters of recurrence rules received by each pl
 Please note that receiving monthly and yearly recurrence parameters are slightly different for the two platforms.\
 You can find more standard examples at [iCalendar.org](https://icalendar.org/iCalendar-RFC-5545/3-8-5-3-recurrence-rule.html).
 
-### **Daliy Rule**
+### **Daily Rule**
 
-Daliy every 5 days and end after 3 occurrences
+Daily every 5 days and end after 3 occurrences
 
 * Recurrence parameter example (Android and iOS):\
 `FREQ=DAILY;INTERVAL=5;COUNT=3`
@@ -23,7 +23,7 @@ Daliy every 5 days and end after 3 occurrences
 
     ```dart
     RecurrenceRule(
-        RecurrenceFrequency.Daliy,
+        RecurrenceFrequency.Daily,
         interval: 5,
         totalOccurrences: 3);
     ```
