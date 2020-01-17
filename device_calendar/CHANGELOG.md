@@ -3,8 +3,10 @@
 ## 2.0.0 17th January 2020
 
 * **BREAKING CHANGE** The recurrence models in `recurrence_rule.dart` file have been chaged
+* **BREAKING CHANGE** All articles used in property names or arugments have been removed (i.e. enum `DayOfTheWeek` to `DayOfWeek`)
 * Recurrence fix for monthly and yearly frequencies
 * UI update for the example app
+* Add support for all day events
 
 ## 1.0.0+3 9th January 2020
 
