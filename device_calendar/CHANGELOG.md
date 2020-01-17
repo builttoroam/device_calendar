@@ -2,9 +2,9 @@
 
 ## 2.0.0 17th January 2020
 
-* Recurrence fix for monthly and yearly frequency
-* UI update for the example app
 * **BREAKING CHANGE** The recurrence models in `recurrence_rule.dart` file have been chaged
+* Recurrence fix for monthly and yearly frequencies
+* UI update for the example app
 
 ## 1.0.0+3 9th January 2020
 
@@ -21,6 +21,7 @@
 
 ## 1.0.0 28th August 2019
 
+* **BREAKING CHANGE** `retrieveCalendars` and `retrieveEvents` now return lists that cannot be modified (`UnmodifiableListView`) to address part of  issue [113](https://github.com/builttoroam/flutter_plugins/issues/113)
 * Support for more advanced recurrence rules
 * Update README to include information about using ProGuard for issue [99](https://github.com/builttoroam/flutter_plugins/issues/99)
 * Made event title optional to fix issue [72](https://github.com/builttoroam/flutter_plugins/issues/72)
@@ -28,7 +29,6 @@
 * Return attendance status of attendees and if they're required for an event. These are details are different across iOS and Android and so are returned within platform-specific objects
 * Ability to modify attendees for an event
 * Ability to create reminders for events expressed in minutes before the event starts
-* **BREAKING CHANGE** `retrieveCalendars` and `retrieveEvents` now return lists that cannot be modified (`UnmodifiableListView`) to address part of  issue [113](https://github.com/builttoroam/flutter_plugins/issues/113)
 
 ## 0.2.2 19th August 2019
 
@@ -44,8 +44,8 @@
 
 ## 0.2.0 30th July 2019
 
-* Add initial support for recurring events. Note that currently editing or deleting a recurring event will affect all instances of it. Future releases will look at supporting more advanced recurrence rules
 * **BREAKING CHANGE** [Android] Updated to use Gradle plugin to 3.4.2, Gradle wrapper to 5.1.1, Kotlin version to 1.3.41 and bumped Android dependencies
+* Add initial support for recurring events. Note that currently editing or deleting a recurring event will affect all instances of it. Future releases will look at supporting more advanced recurrence rules
 * Remove old example app to avoid confusion
 
 ## 0.1.3 5th July 2019
