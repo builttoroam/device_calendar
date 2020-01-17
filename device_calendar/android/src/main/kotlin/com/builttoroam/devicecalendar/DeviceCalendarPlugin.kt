@@ -35,17 +35,17 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val EVENT_LOCATION_ARGUMENT = "eventLocation"
     private val EVENT_URL_ARGUMENT = "eventURL"
     private val EVENT_DESCRIPTION_ARGUMENT = "eventDescription"
+    private val EVENT_ALL_DAY_ARGUMENT = "eventAllDay"
     private val EVENT_START_DATE_ARGUMENT = "eventStartDate"
     private val EVENT_END_DATE_ARGUMENT = "eventEndDate"
     private val RECURRENCE_RULE_ARGUMENT = "recurrenceRule"
     private val RECURRENCE_FREQUENCY_ARGUMENT = "recurrenceFrequency"
     private val TOTAL_OCCURRENCES_ARGUMENT = "totalOccurrences"
     private val INTERVAL_ARGUMENT = "interval"
-    private val DAYS_OF_THE_WEEK_ARGUMENT = "daysOfTheWeek"
-    private val DAYS_OF_THE_MONTH_ARGUMENT = "daysOfTheMonth"
-    private val MONTHS_OF_THE_YEAR_ARGUMENT = "monthsOfTheYear"
-    private val WEEKS_OF_THE_YEAR_ARGUMENT = "weeksOfTheYear"
-    private val SET_POSITIONS_ARGUMENT = "setPositions"
+    private val DAYS_OF_WEEK_ARGUMENT = "daysOfWeek"
+    private val DAY_OF_MONTH_ARGUMENT = "dayOfMonth"
+    private val MONTH_OF_YEAR_ARGUMENT = "monthOfYear"
+    private val WEEK_OF_MONTH_ARGUMENT = "weekOfMonth"
     private val ATTENDEES_ARGUMENT = "attendees"
     private val EMAIL_ADDRESS_ARGUMENT = "emailAddress"
     private val NAME_ARGUMENT = "name"
@@ -120,6 +120,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         event.calendarId = calendarId
         event.eventId = call.argument<String>(EVENT_ID_ARGUMENT)
         event.description = call.argument<String>(EVENT_DESCRIPTION_ARGUMENT)
+        event.allDay = call.argument<Boolean>(EVENT_ALL_DAY_ARGUMENT) ?: false
         event.start = call.argument<Long>(EVENT_START_DATE_ARGUMENT)!!
         event.end = call.argument<Long>(EVENT_END_DATE_ARGUMENT)!!
         event.location = call.argument<String>(EVENT_LOCATION_ARGUMENT)
@@ -165,24 +166,20 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             recurrenceRule.endDate = recurrenceRuleArgs[END_DATE_ARGUMENT] as Long
         }
 
-        if (recurrenceRuleArgs.containsKey(DAYS_OF_THE_WEEK_ARGUMENT)) {
-            recurrenceRule.daysOfTheWeek = recurrenceRuleArgs[DAYS_OF_THE_WEEK_ARGUMENT].toListOf<Int>()?.map { DayOfWeek.values()[it] }?.toMutableList()
+        if (recurrenceRuleArgs.containsKey(DAYS_OF_WEEK_ARGUMENT)) {
+            recurrenceRule.daysOfWeek = recurrenceRuleArgs[DAYS_OF_WEEK_ARGUMENT].toListOf<Int>()?.map { DayOfWeek.values()[it] }?.toMutableList()
         }
 
-        if (recurrenceRuleArgs.containsKey(DAYS_OF_THE_MONTH_ARGUMENT)) {
-            recurrenceRule.daysOfTheMonth = recurrenceRuleArgs[DAYS_OF_THE_MONTH_ARGUMENT].toMutableListOf()
+        if (recurrenceRuleArgs.containsKey(DAY_OF_MONTH_ARGUMENT)) {
+            recurrenceRule.dayOfMonth = recurrenceRuleArgs[DAY_OF_MONTH_ARGUMENT] as Int
         }
 
-        if (recurrenceRuleArgs.containsKey(MONTHS_OF_THE_YEAR_ARGUMENT)) {
-            recurrenceRule.monthsOfTheYear = recurrenceRuleArgs[MONTHS_OF_THE_YEAR_ARGUMENT].toMutableListOf()
+        if (recurrenceRuleArgs.containsKey(MONTH_OF_YEAR_ARGUMENT)) {
+            recurrenceRule.monthOfYear = recurrenceRuleArgs[MONTH_OF_YEAR_ARGUMENT] as Int
         }
 
-        if (recurrenceRuleArgs.containsKey(WEEKS_OF_THE_YEAR_ARGUMENT)) {
-            recurrenceRule.weeksOfTheYear = recurrenceRuleArgs[WEEKS_OF_THE_YEAR_ARGUMENT].toMutableListOf()
-        }
-
-        if (recurrenceRuleArgs.containsKey(SET_POSITIONS_ARGUMENT)) {
-            recurrenceRule.setPositions = recurrenceRuleArgs[SET_POSITIONS_ARGUMENT].toMutableListOf()
+        if (recurrenceRuleArgs.containsKey(WEEK_OF_MONTH_ARGUMENT)) {
+            recurrenceRule.weekOfMonth = recurrenceRuleArgs[WEEK_OF_MONTH_ARGUMENT] as Int
         }
 
         return recurrenceRule

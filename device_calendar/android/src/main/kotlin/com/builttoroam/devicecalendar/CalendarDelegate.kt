@@ -68,7 +68,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val PART_TEMPLATE = ";%s="
     private val BYMONTHDAY_PART = "BYMONTHDAY"
     private val BYMONTH_PART = "BYMONTH"
-    private val BYWEEKNO_PART = "BYWEEKNO"
     private val BYSETPOS_PART = "BYSETPOS"
 
     private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> = mutableMapOf()
@@ -358,8 +357,14 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private fun buildEventContentValues(event: Event, calendarId: String): ContentValues {
         val values = ContentValues()
         val duration: String? = null
+        values.put(Events.ALL_DAY, event.allDay)
         values.put(Events.DTSTART, event.start!!)
-        values.put(Events.DTEND, event.end!!)
+        if (event.allDay) {
+            values.put(Events.DTEND, event.start!!)
+        }
+        else {
+            values.put(Events.DTEND, event.end!!)
+        }
         values.put(Events.TITLE, event.title)
         values.put(Events.DESCRIPTION, event.description)
         values.put(Events.EVENT_LOCATION, event.location)
@@ -531,27 +536,34 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         when (rfcRecurrenceRule.freq) {
             Freq.WEEKLY, Freq.MONTHLY, Freq.YEARLY -> {
-                recurrenceRule.daysOfTheWeek = rfcRecurrenceRule.byDayPart?.mapNotNull {
+                recurrenceRule.daysOfWeek = rfcRecurrenceRule.byDayPart?.mapNotNull {
                     DayOfWeek.values().find { dayOfWeek -> dayOfWeek.ordinal == it.weekday.ordinal }
                 }?.toMutableList()
             }
         }
 
         val rfcRecurrenceRuleString = rfcRecurrenceRule.toString()
-        if (rfcRecurrenceRule.freq == Freq.MONTHLY) {
-            recurrenceRule.daysOfTheMonth = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTHDAY_PART)
+        if (rfcRecurrenceRule.freq == Freq.MONTHLY || rfcRecurrenceRule.freq == Freq.YEARLY) {
+            // Get week number value from BYSETPOS
+            recurrenceRule.weekOfMonth = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYSETPOS_PART)
+
+            // If value is not found in BYSETPOS and not repeating by nth day or nth month
+            // Get the week number value from the BYDAY position
+            if (recurrenceRule.weekOfMonth == null && rfcRecurrenceRule.byDayPart != null) {
+                recurrenceRule.weekOfMonth = rfcRecurrenceRule.byDayPart.first().pos
+            }
+
+            recurrenceRule.dayOfMonth = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTHDAY_PART)
+
+            if (rfcRecurrenceRule.freq == Freq.YEARLY) {
+                recurrenceRule.monthOfYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTH_PART)
+            }
         }
 
-        if (rfcRecurrenceRule.freq == Freq.YEARLY) {
-            recurrenceRule.monthsOfTheYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTH_PART)
-            recurrenceRule.weeksOfTheYear = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYWEEKNO_PART)
-        }
-
-        recurrenceRule.setPositions = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYSETPOS_PART)
         return recurrenceRule
     }
 
-    private fun convertCalendarPartToNumericValues(rfcRecurrenceRuleString: String, partName: String): MutableList<Int>? {
+    private fun convertCalendarPartToNumericValues(rfcRecurrenceRuleString: String, partName: String): Int? {
         val partIndex = rfcRecurrenceRuleString.indexOf(partName)
         if (partIndex == -1) {
             return null
@@ -559,7 +571,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         return rfcRecurrenceRuleString.substring(partIndex).split(";").firstOrNull()?.split("=")?.lastOrNull()?.split(",")?.map {
             it.toInt()
-        }?.toMutableList()
+        }?.firstOrNull()
     }
 
     private fun parseAttendeeRow(cursor: Cursor?): Attendee? {
@@ -668,7 +680,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             rr.interval = recurrenceRule.interval!!
         }
 
-        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.WEEKLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY) {
+        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.WEEKLY ||
+            recurrenceRule.weekOfMonth != null && (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY)) {
             rr.byDayPart = buildByDayPart(recurrenceRule)
         }
 
@@ -683,41 +696,37 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
         var rrString = rr.toString()
-        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY && recurrenceRule.daysOfTheMonth != null && recurrenceRule.daysOfTheMonth!!.isNotEmpty()) {
-            rrString = rrString.addPartWithValues(BYMONTHDAY_PART, recurrenceRule.daysOfTheMonth)
+
+        if (recurrenceRule.monthOfYear != null && recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY) {
+            rrString = rrString.addPartWithValues(BYMONTH_PART, recurrenceRule.monthOfYear)
         }
 
-        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY) {
-            if (recurrenceRule.monthsOfTheYear != null && recurrenceRule.monthsOfTheYear!!.isNotEmpty()) {
-                rrString = rrString.addPartWithValues(BYMONTH_PART, recurrenceRule.monthsOfTheYear)
-            }
-
-            if (recurrenceRule.weeksOfTheYear != null && recurrenceRule.weeksOfTheYear!!.isNotEmpty()) {
-                rrString = rrString.addPartWithValues(BYWEEKNO_PART, recurrenceRule.weeksOfTheYear)
+        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY) {
+            if (recurrenceRule.weekOfMonth == null) {
+                rrString = rrString.addPartWithValues(BYMONTHDAY_PART, recurrenceRule.dayOfMonth)
             }
         }
 
-        rrString = rrString.addPartWithValues(BYSETPOS_PART, recurrenceRule.setPositions)
         return rrString
     }
 
     private fun buildByDayPart(recurrenceRule: RecurrenceRule): List<org.dmfs.rfc5545.recur.RecurrenceRule.WeekdayNum>? {
-        if (recurrenceRule.daysOfTheWeek?.isEmpty() == true) {
+        if (recurrenceRule.daysOfWeek?.isEmpty() == true) {
             return null
         }
 
-        return recurrenceRule.daysOfTheWeek?.mapNotNull { dayOfWeek ->
+        return recurrenceRule.daysOfWeek?.mapNotNull { dayOfWeek ->
             Weekday.values().firstOrNull {
                 it.ordinal == dayOfWeek.ordinal
             }
         }?.map {
-            org.dmfs.rfc5545.recur.RecurrenceRule.WeekdayNum(0, it)
+            org.dmfs.rfc5545.recur.RecurrenceRule.WeekdayNum(recurrenceRule.weekOfMonth?: 0, it)
         }
     }
 
-    private fun String.addPartWithValues(partName: String, values: List<Int>?): String {
-        if (values != null && values.isNotEmpty()) {
-            return this + PART_TEMPLATE.format(partName) + values.joinToString(",")
+    private fun String.addPartWithValues(partName: String, values: Int?): String {
+        if (values != null) {
+            return this + PART_TEMPLATE.format(partName) + values
         }
 
         return this
