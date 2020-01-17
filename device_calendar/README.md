@@ -2,9 +2,10 @@
 
 [![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) [![Build Status](https://travis-ci.org/builttoroam/flutter_plugins.svg)](https://travis-ci.org/builttoroam/flutter_plugins)
 
-A cross platform plugin for modifying calendars on the user's device. 
+A cross platform plugin for modifying calendars on the user's device.
 
 ## Features
+
 * Ability to request permissions to modify calendars on the user's device
 * Ability to check if permissions to modify the calendars on the user's device have been granted
 * Retrieve calendars on the user's device
@@ -13,8 +14,6 @@ A cross platform plugin for modifying calendars on the user's device.
 * Ability to set up recurring events (NOTE: deleting a recurring event will currently delete all instances of it)
 * Ability to modify attendees for an event (NOTE: certain information is read-only like attendance status. Please refer to API docs)
 * Ability to setup reminders for an event
-
-**NOTE**: there is a known issue where it looks as though specifying `weeksOfTheYear` and `setPositions` for recurrence rules doesn't appear to have an effect. Also note that the example app only provides entering simple scenarios e.g. it may be possible to specify multiple months that a yearly event should occur on but the example app will only allow specifying a single month.
 
 ## Android Integration
 
@@ -30,6 +29,8 @@ If you have Proguard enabled, you may need to add the following to your configur
 ```
 -keep class com.builttoroam.devicecalendar.** { *; }
 ```
+
+If you want to enable Proguard, please refer to the guide at [Android Developer](https://developer.android.com/studio/build/shrink-code) page
 
 **IMPORTANT**: Since version 0.1.0, this version has migrated to use AndroidX instead of the deprecated Android support libraries. When using version 0.10.0 and onwards for this plugin, please ensure your application has been migrated following the guide [here](https://developer.android.com/jetpack/androidx/migrate)
 
