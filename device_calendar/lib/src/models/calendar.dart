@@ -18,10 +18,8 @@ class Calendar {
   }
 
   Map<String, dynamic> toJson() {
-    final data = <String, dynamic>{};
-    data['id'] = id;
-    data['name'] = name;
-    data['isReadOnly'] = isReadOnly;
+    final data = <String, dynamic>{ 'id': id, 'name': name, 'isReadOnly': isReadOnly };
+    
     return data;
   }
 }
