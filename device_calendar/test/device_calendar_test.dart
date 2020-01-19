@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  var channel =
+  final channel =
       const MethodChannel('plugins.builttoroam.com/device_calendar');
   var deviceCalendarPlugin = DeviceCalendarPlugin();
 
