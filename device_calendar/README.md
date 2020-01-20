@@ -12,7 +12,7 @@ A cross platform plugin for modifying calendars on the user's device.
 * Retrieve events associated with a calendar
 * Ability to add, update or delete events from a calendar
 * Ability to set up recurring events (NOTE: deleting a recurring event will currently delete all instances of it)
-* Ability to modify attendees for an event (NOTE: certain information is read-only like attendance status. Please refer to API docs)
+* Ability to add, modify or remove attendees and receive if an attendee is an organiser for an event
 * Ability to setup reminders for an event
 
 ## Android Integration
