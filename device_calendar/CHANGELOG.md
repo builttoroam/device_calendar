@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.0.0 21st January 2020
+
+* **BREAKING CHANGE** Properties for the attendee model in `attendee.dart` file have been changed:
+  * Boolean property `isRequired` has been replaced to `AttendeeRole` enum
+  * New arugment added for `AttendeeRole` property
+* **BREAKING CHANGE** Package updates:
+  * [Android] Updated Gradle plugin to 3.5.2 and Gradle wrapper to 5.4.1
+  * [iOS] Updated Swift to 5
+* `name` and `isOrganiser` (read-only) properties have been added
+* Attendee UI update for the example app
+* Ability to add, modify or remove an attendee
+
 ## 2.0.0 17th January 2020
 
 * **BREAKING CHANGE** The recurrence models in `recurrence_rule.dart` file have been chaged
