@@ -31,7 +31,7 @@ class Attendee {
     this.name,
     this.emailAddress,
     this.role,
-    this.isOrganiser,
+    this.isOrganiser = false,
     this.iosAttendeeDetails,
     this.androidAttendeeDetails});
 
