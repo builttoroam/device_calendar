@@ -28,6 +28,6 @@ class AndroidAttendeeDetails {
   }
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{ 'role': role.index };
+    return <String, dynamic>{ 'role': role?.index };
   }
 }

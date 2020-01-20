@@ -54,7 +54,12 @@ extension DayOfWeekExtension on DayOfWeek {
     }
   }
 
+  String _enumToString(DayOfWeek enumValue) {
+    return enumValue.toString().split('.').last;
+  }
+
   int get value => _value(this);
+  String get enumToString => _enumToString(this);
 }
 
 extension MonthOfYearExtension on MonthOfYear {
@@ -76,7 +81,12 @@ extension MonthOfYearExtension on MonthOfYear {
     }
   }
 
+  String _enumToString(MonthOfYear enumValue) {
+    return enumValue.toString().split('.').last;
+  }
+
   int get value => _value(this);
+  String get enumToString => _enumToString(this);
 }
 
 extension WeekNumberExtension on WeekNumber {
@@ -91,7 +101,12 @@ extension WeekNumberExtension on WeekNumber {
     }
   }
 
+  String _enumToString(WeekNumber enumValue) {
+    return enumValue.toString().split('.').last;
+  }
+
   int get value => _value(this);
+  String get enumToString => _enumToString(this);
 }
 
 extension IntExtensions on int {
@@ -142,8 +157,8 @@ extension IntExtensions on int {
   WeekNumber get getWeekNumberEnumValue => _getWeekNumberEnumValue(this);
 }
 
-extension ObjectExtensions on Object {
-  String _enumToString(Object enumValue) {
+extension RoleExtensions on AttendeeRole {
+  String _enumToString(AttendeeRole enumValue) {
     return enumValue.toString().split('.').last;
   }
 
