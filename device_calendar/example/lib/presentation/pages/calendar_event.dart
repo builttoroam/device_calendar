@@ -273,22 +273,32 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       return Container(
                         color: _attendees[index].isOrganiser ? Colors.greenAccent[100] : Colors.transparent,
                         child: ListTile(
-                          title: Text('${_attendees[index].emailAddress}'),
+                          title: GestureDetector(
+                            child: Text('${_attendees[index].emailAddress}'),
+                            onTap: () async {
+                              Attendee result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute( builder: (context) => EventAttendeesPage(attendee: _attendees[index])));
+                              if (result == null) return;
+                              _attendees[index] = result;
+                            }
+                          ),
                           trailing: Row (
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
-                            Container(
-                              margin: const EdgeInsets.all(10.0),
-                              padding: const EdgeInsets.all(3.0),
-                              decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent)),
-                              child: Text('${_attendees[index].role.enumToString}'),
-                            ),
-                            IconButton(
-                              padding: const EdgeInsets.all(0),
-                              onPressed: () { setState(() { _attendees.removeAt(index); }); },
-                              icon: Icon(Icons.remove_circle, color: Colors.redAccent,),
-                            ),
-                          ])
+                              Container(
+                                margin: const EdgeInsets.all(10.0),
+                                padding: const EdgeInsets.all(3.0),
+                                decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent)),
+                                child: Text('${_attendees[index].role.enumToString}'),
+                              ),
+                              IconButton(
+                                padding: const EdgeInsets.all(0),
+                                onPressed: () { setState(() { _attendees.removeAt(index); }); },
+                                icon: Icon(Icons.remove_circle, color: Colors.redAccent,),
+                              )
+                            ]
+                          )
                         )
                       );
                     },

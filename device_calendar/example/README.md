@@ -7,6 +7,28 @@ Demonstrates how to use the device_calendar plugin.
 For help getting started with Flutter, view our online
 [documentation](https://flutter.io/).
 
+## Attendees Parameters
+
+Examples below present on how to initialise an `Attendee` model in Dart:
+
+* A required attendee:
+
+    ```dart
+    Attendee(
+        name: 'Test User 1',
+        emailAddress: 'test1@example.com',
+        role: AttendeeRole.Required);
+    ```
+
+* An optional attendee:
+
+    ```dart
+    Attendee(
+        name: 'Test User 2',
+        emailAddress: 'test2@example.com',
+        role: AttendeeRole.Optional);
+    ```
+
 ## Recurrence Rule Parameters
 
 Examples below present sample parameters of recurrence rules received by each platform and required properties for the `RecurrenceRule` model in Dart.\

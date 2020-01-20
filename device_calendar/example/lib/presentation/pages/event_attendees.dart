@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:device_calendar/device_calendar.dart';
 
 class EventAttendeesPage extends StatefulWidget {
-  const EventAttendeesPage({Key key}) : super(key: key);
+  final Attendee attendee;
+  const EventAttendeesPage({Key key, this.attendee}) : super(key: key);
 
   @override
   _EventAttendeesPageState createState() =>
-      _EventAttendeesPageState();
+      _EventAttendeesPageState(attendee);
 }
 
 class _EventAttendeesPageState extends State<EventAttendeesPage> {
@@ -15,6 +16,15 @@ class _EventAttendeesPageState extends State<EventAttendeesPage> {
   final _nameController = TextEditingController();
   final _emailAddressController = TextEditingController();
   var _role = AttendeeRole.None;
+
+  _EventAttendeesPageState(Attendee attendee) {
+    if (attendee != null) {
+      _attendee = attendee;
+      _nameController.text = _attendee.name;
+      _emailAddressController.text = _attendee.emailAddress;
+      _role = _attendee.role;
+    }
+  }
 
   @override
   void dispose() {
@@ -27,7 +37,7 @@ class _EventAttendeesPageState extends State<EventAttendeesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add an Attendee'),
+        title: Text(_attendee != null ? 'Edit attendee ${_attendee.name}' : 'Add an Attendee'),
       ),
       body: Column(
         children: [
@@ -73,16 +83,15 @@ class _EventAttendeesPageState extends State<EventAttendeesPage> {
               ])
           ),
           RaisedButton(
-            child: Text('Add'),
+            child: Text(_attendee != null ? 'Update' : 'Add'),
             onPressed: () {
               if (_formKey.currentState.validate()) {
                 setState(() {
                   _attendee = Attendee(
-                      name: _nameController.text,
-                      emailAddress: _emailAddressController.text,
-                      role: _role,
-                      //isOrganiser: false,
-                    );
+                    name: _nameController.text,
+                    emailAddress: _emailAddressController.text,
+                    role: _role,
+                  );
 
                   _emailAddressController.clear();
                 });
