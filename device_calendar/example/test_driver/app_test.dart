@@ -43,7 +43,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      driver?.close();
+      await driver?.close();
     });
 
     test('check flutter driver health', () async {
