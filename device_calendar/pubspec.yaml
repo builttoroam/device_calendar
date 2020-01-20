@@ -7,10 +7,15 @@ dependencies:
   flutter:
     sdk: flutter
   meta: ^1.1.8
+  pedantic: ^1.8.0+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+# This is a workaround since v1.9.0 cannot be used as a main dependency: https://github.com/dart-lang/pedantic/issues/46
+dependency_overrides:
+  pedantic: 1.9.0
 
 # The following section is specific to Flutter.
 flutter:

@@ -68,7 +68,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
             return CalendarEventPage(_calendar);
           }));
           if (refreshEvents == true) {
-            _retrieveCalendarEvents();
+            await _retrieveCalendarEvents();
           }
         },
         child: Icon(Icons.add),
@@ -103,7 +103,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
       return CalendarEventPage(_calendar, event);
     }));
     if (refreshEvents != null && refreshEvents) {
-      _retrieveCalendarEvents();
+      await _retrieveCalendarEvents();
     }
   }
 

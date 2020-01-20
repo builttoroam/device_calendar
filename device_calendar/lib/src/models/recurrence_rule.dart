@@ -85,7 +85,7 @@ class RecurrenceRule {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final data = <String, dynamic>{};
 
     if (totalOccurrences != null) {
       data[_totalOccurrencesKey] = totalOccurrences;

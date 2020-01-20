@@ -156,8 +156,7 @@ class EventItem extends StatelessWidget {
                 ],
               ),
             ),
-            ButtonTheme.bar(
-                child: ButtonBar(
+            ButtonBar(
               children: [
                 IconButton(
                   onPressed: () {
@@ -201,7 +200,7 @@ class EventItem extends StatelessWidget {
                   icon: Icon(Icons.delete),
                 ),
               ],
-            ))
+            )
           ],
         ),
       ),
