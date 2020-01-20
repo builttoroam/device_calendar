@@ -277,7 +277,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           trailing: Row (
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
-                            new Container(
+                            Container(
                               margin: const EdgeInsets.all(10.0),
                               padding: const EdgeInsets.all(3.0),
                               decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent)),
@@ -418,7 +418,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           items: MonthOfYear.values
                             .map((month) => DropdownMenuItem(
                               value: month,
-                              child: Text(_enumToString(month)),
+                              child: Text(month.enumToString),
                             )).toList(),
                         ),
                       ),
@@ -461,7 +461,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 items: WeekNumber.values
                                   .map((weekNum) => DropdownMenuItem(
                                     value: weekNum,
-                                    child: Text(_enumToString(weekNum)),
+                                    child: Text(weekNum.enumToString),
                                   )).toList(),
                               ),
                             ),
@@ -472,7 +472,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 items: DayOfWeek.values
                                   .map((day) => DropdownMenuItem(
                                     value: day,
-                                    child: Text(_enumToString(day)),
+                                    child: Text(day.enumToString),
                                   )).toList(),
                               ),
                             ),
@@ -487,7 +487,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                   items: MonthOfYear.values
                                     .map((month) => DropdownMenuItem(
                                       value: month,
-                                      child: Text(_enumToString(month)),
+                                      child: Text(month.enumToString),
                                     )).toList(),
                                   ),
                               ),
