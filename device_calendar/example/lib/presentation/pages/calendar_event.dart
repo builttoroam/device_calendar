@@ -270,23 +270,26 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     shrinkWrap: true,
                     itemCount: _attendees.length,
                     itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text('${_attendees[index].emailAddress}'),
-                        trailing: Row (
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                          new Container(
-                            margin: const EdgeInsets.all(10.0),
-                            padding: const EdgeInsets.all(3.0),
-                            decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent)),
-                            child: Text('${_attendees[index].role.enumToString}'),
-                          ),
-                          IconButton(
-                            padding: const EdgeInsets.all(0),
-                            onPressed: () { setState(() { _attendees.removeAt(index); }); },
-                            icon: Icon(Icons.remove_circle, color: Colors.redAccent,),
-                          ),
-                        ])
+                      return Container(
+                        color: _attendees[index].isOrganiser ? Colors.greenAccent[100] : Colors.transparent,
+                        child: ListTile(
+                          title: Text('${_attendees[index].emailAddress}'),
+                          trailing: Row (
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                            new Container(
+                              margin: const EdgeInsets.all(10.0),
+                              padding: const EdgeInsets.all(3.0),
+                              decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent)),
+                              child: Text('${_attendees[index].role.enumToString}'),
+                            ),
+                            IconButton(
+                              padding: const EdgeInsets.all(0),
+                              onPressed: () { setState(() { _attendees.removeAt(index); }); },
+                              icon: Icon(Icons.remove_circle, color: Colors.redAccent,),
+                            ),
+                          ])
+                        )
                       );
                     },
                   ),

@@ -5,8 +5,6 @@ import 'recurrence_rule.dart';
 
 /// An event associated with a calendar
 class Event {
-  Attendee _organizer;
-
   /// The unique identifier for this event
   String eventId;
 
@@ -36,9 +34,6 @@ class Event {
 
   /// A list of attendees for this event
   List<Attendee> attendees;
-
-  /// The organizer of this event. This property is read-only
-  Attendee get organizer => _organizer;
 
   /// The recurrence rule for this event
   RecurrenceRule recurrenceRule;
@@ -91,8 +86,13 @@ class Event {
     if (json['recurrenceRule'] != null) {
       recurrenceRule = RecurrenceRule.fromJson(json['recurrenceRule']);
     }
-    if (json['organizer'] != null) {
-      _organizer = Attendee.fromJson(json['organizer']);
+    if (json['organizer'] != null) { // Getting and setting an organiser for iOS
+      var organiser = Attendee.fromJson(json['organizer']);
+
+      var attendee = attendees.firstWhere((at) => at.name == organiser.name && at.emailAddress == organiser.emailAddress, orElse: () => null);
+      if (attendee != null) { 
+        attendee.isOrganiser = true;
+      }
     }
     if (json['reminders'] != null) {
       reminders = json['reminders'].map<Reminder>((decodedReminder) {
