@@ -1,6 +1,6 @@
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/services.dart';
-import 'event_attendees.dart';
+import 'event_attendee.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -249,7 +249,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     onTap: () async {
                       Attendee result = await Navigator.push(
                           context,
-                          MaterialPageRoute( builder: (context) => EventAttendeesPage()));
+                          MaterialPageRoute( builder: (context) => EventAttendeePage()));
                       if (result == null) return;
                       _attendees.add(result);
                     },
@@ -278,7 +278,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             onTap: () async {
                               Attendee result = await Navigator.push(
                                   context,
-                                  MaterialPageRoute( builder: (context) => EventAttendeesPage(attendee: _attendees[index])));
+                                  MaterialPageRoute( builder: (context) => EventAttendeePage(attendee: _attendees[index])));
                               if (result == null) return;
                               _attendees[index] = result;
                             }

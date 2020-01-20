@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:device_calendar/device_calendar.dart';
 
-class EventAttendeesPage extends StatefulWidget {
+class EventAttendeePage extends StatefulWidget {
   final Attendee attendee;
-  const EventAttendeesPage({Key key, this.attendee}) : super(key: key);
+  const EventAttendeePage({Key key, this.attendee}) : super(key: key);
 
   @override
-  _EventAttendeesPageState createState() =>
-      _EventAttendeesPageState(attendee);
+  _EventAttendeePageState createState() =>
+      _EventAttendeePageState(attendee);
 }
 
-class _EventAttendeesPageState extends State<EventAttendeesPage> {
+class _EventAttendeePageState extends State<EventAttendeePage> {
   Attendee _attendee;
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailAddressController = TextEditingController();
   var _role = AttendeeRole.None;
 
-  _EventAttendeesPageState(Attendee attendee) {
+  _EventAttendeePageState(Attendee attendee) {
     if (attendee != null) {
       _attendee = attendee;
       _nameController.text = _attendee.name;
