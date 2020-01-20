@@ -73,9 +73,9 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
                     onChanged: (value) { setState(() { _role = value; }); },
                     value: _role,
                     items: AttendeeRole.values
-                      .map((f) => DropdownMenuItem(
-                        value: f,
-                        child: Text(f.enumToString),
+                      .map((role) => DropdownMenuItem(
+                        value: role,
+                        child: Text(role.enumToString),
                       ))
                       .toList(),
                   ),
