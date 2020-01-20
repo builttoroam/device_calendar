@@ -81,7 +81,7 @@ class _EventAttendeesPageState extends State<EventAttendeesPage> {
                       name: _nameController.text,
                       emailAddress: _emailAddressController.text,
                       role: _role,
-                      isOrganiser: false,
+                      //isOrganiser: false,
                     );
 
                   _emailAddressController.clear();
