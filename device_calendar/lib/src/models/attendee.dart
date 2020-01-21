@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import '../common/calendar_enums.dart';
 import '../common/error_messages.dart';
 import 'platform_specifics/android/attendee_details.dart';
 import 'platform_specifics/ios/attendee_details.dart';
@@ -9,8 +10,14 @@ class Attendee {
   /// The name of the attendee. Currently has no effect when saving attendees on iOS.
   String name;
 
-  ///  The email address of the attendee
+  /// The email address of the attendee
   String emailAddress;
+
+  /// An attendee role: None, Optional, Required or Resource
+  AttendeeRole role;
+
+  /// Read-only. Returns true if the attendee is an organiser, else false
+  bool isOrganiser = false;
 
   /// Details about the attendee that are specific to iOS. Currently has no effect when saving attendees on iOS.
   /// When reading details for an existing event, this will only be populated on iOS devices.
@@ -20,11 +27,13 @@ class Attendee {
   /// When reading details for an existing event, this will only be populated on Android devices.
   AndroidAttendeeDetails androidAttendeeDetails;
 
-  Attendee(
-      {this.name,
-      this.emailAddress,
-      this.iosAttendeeDetails,
-      this.androidAttendeeDetails});
+  Attendee({
+    this.name,
+    this.emailAddress,
+    this.role,
+    this.isOrganiser = false,
+    this.iosAttendeeDetails,
+    this.androidAttendeeDetails});
 
   Attendee.fromJson(Map<String, dynamic> json) {
     if (json == null) {
@@ -33,7 +42,10 @@ class Attendee {
 
     name = json['name'];
     emailAddress = json['emailAddress'];
+    role = AttendeeRole.values[json['role'] ?? 0];
+
     if (Platform.isAndroid) {
+      isOrganiser = json['isOrganizer']; // Getting and setting an organiser for Android
       androidAttendeeDetails = AndroidAttendeeDetails.fromJson(json);
     }
 
@@ -43,7 +55,7 @@ class Attendee {
   }
 
   Map<String, dynamic> toJson() {
-    final data = { 'name': name, 'emailAddress': emailAddress };
+    final data = { 'name': name, 'emailAddress': emailAddress, 'role': role?.index };
 
     if (Platform.isIOS && iosAttendeeDetails != null) {
       data.addEntries(iosAttendeeDetails.toJson().entries);
@@ -51,6 +63,11 @@ class Attendee {
     if (Platform.isAndroid && androidAttendeeDetails != null) {
       data.addEntries(androidAttendeeDetails.toJson().entries);
     }
+
+    if (Platform.isIOS && iosAttendeeDetails != null) {
+      data.addEntries(iosAttendeeDetails.toJson().entries);
+    }
+
     return data;
   }
 }
