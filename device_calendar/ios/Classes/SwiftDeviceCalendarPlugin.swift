@@ -219,7 +219,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let event = Event(
             eventId: ekEvent.eventIdentifier,
             calendarId: calendarId,
-            title: ekEvent.title,
+            title: ekEvent.title ?? "New Event",
             description: ekEvent.notes,
             start: Int64(ekEvent.startDate.millisecondsSinceEpoch),
             end: Int64(ekEvent.endDate.millisecondsSinceEpoch),

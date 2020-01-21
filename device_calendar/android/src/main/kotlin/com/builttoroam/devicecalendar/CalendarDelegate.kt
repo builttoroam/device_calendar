@@ -517,7 +517,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         var url = cursor.getString(EVENT_PROJECTION_CUSTOM_APP_URI_INDEX)
 
         val event = Event()
-        event.title = title
+        event.title = title ?: "New Event"
         event.eventId = eventId.toString()
         event.calendarId = calendarId
         event.description = description
