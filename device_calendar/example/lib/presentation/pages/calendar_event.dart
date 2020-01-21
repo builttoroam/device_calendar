@@ -1,6 +1,6 @@
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/services.dart';
-import 'event_attendees.dart';
+import 'event_attendee.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -116,11 +116,11 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   void printAttendeeDetails(Attendee attendee) {
     print(
-        'attendee name: ${attendee.name}, email address: ${attendee.emailAddress}');
+        'attendee name: ${attendee.name}, email address: ${attendee.emailAddress}, type: ${attendee.iosAttendeeDetails?.role?.enumToString}');
     print(
-        'ios specifics - status: ${attendee.iosAttendeeDetails?.attendanceStatus}, role:  ${attendee.iosAttendeeDetails?.role}');
+        'ios specifics - status: ${attendee.iosAttendeeDetails?.attendanceStatus}, type: ${attendee.iosAttendeeDetails?.role?.enumToString}');
     print(
-        'android specifics - status ${attendee.androidAttendeeDetails?.attendanceStatus}, is required: ${attendee.androidAttendeeDetails?.isRequired}');
+        'android specifics - status ${attendee.androidAttendeeDetails?.attendanceStatus}, type: ${attendee.androidAttendeeDetails?.role?.enumToString}');
   }
 
   @override
@@ -247,15 +247,11 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                   ],
                   GestureDetector(
                     onTap: () async {
-                      List<Attendee> result = await Navigator.push(
+                      Attendee result = await Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  EventAttendeesPage(_attendees)));
-                      if (result == null) {
-                        return;
-                      }
-                      _attendees = result;
+                          MaterialPageRoute( builder: (context) => EventAttendeePage()));
+                      if (result == null) return;
+                      _attendees.add(result);
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(10.0),
@@ -264,15 +260,48 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         child: Wrap(
                           crossAxisAlignment: WrapCrossAlignment.center,
                           spacing: 10.0,
-                          children: [
-                            Icon(Icons.people),
-                            if (_attendees.isEmpty) Text('Add people'),
-                            for (var attendee in _attendees)
-                              Text('${attendee.emailAddress};')
-                          ],
+                          children: [ Icon(Icons.people), Text('Add Attendees') ],
                         ),
                       ),
                     ),
+                  ),
+                  ListView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: _attendees.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        color: _attendees[index].isOrganiser ? Colors.greenAccent[100] : Colors.transparent,
+                        child: ListTile(
+                          title: GestureDetector(
+                            child: Text('${_attendees[index].emailAddress}'),
+                            onTap: () async {
+                              Attendee result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute( builder: (context) => EventAttendeePage(attendee: _attendees[index])));
+                              if (result == null) return;
+                              _attendees[index] = result;
+                            }
+                          ),
+                          trailing: Row (
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Container(
+                                margin: const EdgeInsets.all(10.0),
+                                padding: const EdgeInsets.all(3.0),
+                                decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent)),
+                                child: Text('${_attendees[index].role.enumToString}'),
+                              ),
+                              IconButton(
+                                padding: const EdgeInsets.all(0),
+                                onPressed: () { setState(() { _attendees.removeAt(index); }); },
+                                icon: Icon(Icons.remove_circle, color: Colors.redAccent,),
+                              )
+                            ]
+                          )
+                        )
+                      );
+                    },
                   ),
                   GestureDetector(
                     onTap: () async {
@@ -361,7 +390,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           children: [ 
                             ...DayOfWeek.values.map((day) {
                               return CheckboxListTile(
-                                title: Text(_enumToString(day)),
+                                title: Text(day.enumToString),
                                 value: _daysOfWeek?.any((dow) => dow == day) ?? false,
                                 onChanged: (selected) {
                                   setState(() {
@@ -399,7 +428,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           items: MonthOfYear.values
                             .map((month) => DropdownMenuItem(
                               value: month,
-                              child: Text(_enumToString(month)),
+                              child: Text(month.enumToString),
                             )).toList(),
                         ),
                       ),
@@ -442,7 +471,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 items: WeekNumber.values
                                   .map((weekNum) => DropdownMenuItem(
                                     value: weekNum,
-                                    child: Text(_enumToString(weekNum)),
+                                    child: Text(weekNum.enumToString),
                                   )).toList(),
                               ),
                             ),
@@ -453,7 +482,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 items: DayOfWeek.values
                                   .map((day) => DropdownMenuItem(
                                     value: day,
-                                    child: Text(_enumToString(day)),
+                                    child: Text(day.enumToString),
                                   )).toList(),
                               ),
                             ),
@@ -468,7 +497,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                   items: MonthOfYear.values
                                     .map((month) => DropdownMenuItem(
                                       value: month,
-                                      child: Text(_enumToString(month)),
+                                      child: Text(month.enumToString),
                                     )).toList(),
                                   ),
                               ),
@@ -693,9 +722,5 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   void showInSnackBar(String value) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(value)));
-  }
-
-  String _enumToString(Object enumValue) {
-    return enumValue.toString().split('.').last;
   }
 }
