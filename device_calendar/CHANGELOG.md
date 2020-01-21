@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.1.0 22nd January 2020
+
+* Boolean variable `isDefault` added for issue [145](https://github.com/builttoroam/flutter_plugins/issues/145) (**NOTE**: Not supported Android API 16 or lower, `isDefault` will always be false)
+* Events with 'null' title now defaults to 'New Event', issue [126](https://github.com/builttoroam/flutter_plugins/issues/126)
+
 ## 3.0.0 21st January 2020
 
 * **BREAKING CHANGE** Properties for the attendee model in `attendee.dart` file have been changed:
