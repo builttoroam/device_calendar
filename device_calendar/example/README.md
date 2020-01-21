@@ -1,13 +1,11 @@
-# device_calendar_example
+# Examples
 
-Demonstrates how to use the device_calendar plugin.
+Most of the APIs are covered in [calendar_event.dart](https://github.com/builttoroam/flutter_plugins/blob/master/device_calendar/example/lib/presentation/pages/calendar_event.dart) or [calendar_events.dart](https://github.com/builttoroam/flutter_plugins/blob/master/device_calendar/example/lib/presentation/pages/calendar_events.dart) files in the example app.
+You'll be able to get a reference of how the APIs are used.
 
-## Getting Started
+For a full API reference, the documentation can be found at [pub.dev](https://pub.dev/documentation/device_calendar/latest/device_calendar/device_calendar-library.html).
 
-For help getting started with Flutter, view our online
-[documentation](https://flutter.io/).
-
-## Attendees Parameters
+## Attendee Examples
 
 Examples below present on how to initialise an `Attendee` model in Dart:
 
@@ -29,10 +27,27 @@ Examples below present on how to initialise an `Attendee` model in Dart:
         role: AttendeeRole.Optional);
     ```
 
-## Recurrence Rule Parameters
+## Reminder Examples
+
+Examples below present on how to initialise a `Reminder` model in Dart:
+
+* 30 minutes
+
+    ```dart
+    Reminder(minutes: 30);
+    ```
+
+* 1 day
+
+    ```dart
+    Reminder(minutes: 1440);
+    ```
+
+## Recurrence Rule Examples
 
 Examples below present sample parameters of recurrence rules received by each platform and required properties for the `RecurrenceRule` model in Dart.\
-Please note that receiving monthly and yearly recurrence parameters are slightly different for the two platforms.\
+**Please note**: Receiving monthly and yearly recurrence parameters are slightly different for the two platforms.
+
 You can find more standard examples at [iCalendar.org](https://icalendar.org/iCalendar-RFC-5545/3-8-5-3-recurrence-rule.html).
 
 ### **Daily Rule**
