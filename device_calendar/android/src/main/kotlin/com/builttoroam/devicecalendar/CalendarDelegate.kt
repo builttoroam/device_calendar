@@ -19,9 +19,11 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_RELATI
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_STATUS_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OLDER_API
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_IS_PRIMARY_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ALL_DAY_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_BEGIN_INDEX
@@ -149,7 +151,12 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if (arePermissionsGranted()) {
             val contentResolver: ContentResolver? = _context?.contentResolver
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
-            val cursor: Cursor? = contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
+            val cursor: Cursor? = if (atLeastAPI(17)) {
+                contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
+            } else {
+                contentResolver?.query(uri, CALENDAR_PROJECTION_OLDER_API, null, null, null)
+            }
+
             val calendars: MutableList<Calendar> = mutableListOf()
             try {
                 while (cursor?.moveToNext() == true) {
@@ -181,7 +188,11 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             val contentResolver: ContentResolver? = _context?.contentResolver
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
-            val cursor: Cursor? = contentResolver?.query(ContentUris.withAppendedId(uri, calendarIdNumber), CALENDAR_PROJECTION, null, null, null)
+            val cursor: Cursor? = if (atLeastAPI(17)) {
+                contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
+            } else {
+                contentResolver?.query(uri, CALENDAR_PROJECTION_OLDER_API, null, null, null)
+            }
 
             try {
                 if (cursor?.moveToFirst() == true) {
@@ -479,6 +490,14 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val calendar = Calendar(calId.toString(), displayName)
         calendar.isReadOnly = isCalendarReadOnly(accessLevel)
 
+        if (atLeastAPI(17)) {
+            val isPrimary = cursor.getString(CALENDAR_PROJECTION_IS_PRIMARY_INDEX)
+            calendar.isDefault = isPrimary == "1"
+        }
+        else {
+            calendar.isDefault = false
+        }
+
         return calendar
     }
 
@@ -498,7 +517,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         var url = cursor.getString(EVENT_PROJECTION_CUSTOM_APP_URI_INDEX)
 
         val event = Event()
-        event.title = title
+        event.title = title ?: "New Event"
         event.eventId = eventId.toString()
         event.calendarId = calendarId
         event.description = description
