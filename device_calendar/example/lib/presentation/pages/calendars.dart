@@ -74,6 +74,12 @@ class _CalendarsPageState extends State<CalendarsPage> {
                             style: Theme.of(context).textTheme.subhead,
                           ),
                         ),
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(0, 0, 5.0, 0),
+                          padding: const EdgeInsets.all(3.0),
+                          decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent)),
+                          child: Text('Default'),
+                        ),
                         Icon(_calendars[index].isReadOnly
                             ? Icons.lock
                             : Icons.lock_open)
