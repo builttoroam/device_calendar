@@ -6,6 +6,7 @@
 * Events with 'null' title now defaults to 'New Event', issue [126](https://github.com/builttoroam/flutter_plugins/issues/126)
 * Updated property summaries for issues [121](https://github.com/builttoroam/flutter_plugins/issues/121) and [122](https://github.com/builttoroam/flutter_plugins/issues/122)
 * Updated example documentation for issue [119](https://github.com/builttoroam/flutter_plugins/issues/119)
+* Read-only calendars cannot be edited or deleted for the example app
 
 ## 3.0.0 21st January 2020
 
