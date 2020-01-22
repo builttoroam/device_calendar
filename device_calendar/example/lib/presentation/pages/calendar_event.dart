@@ -106,6 +106,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         _weekOfMonth = _event.recurrenceRule.weekOfMonth ?? WeekNumber.First;
         _selectedDayOfWeek = _daysOfWeek.isNotEmpty ? _daysOfWeek.first : DayOfWeek.Monday;
         _dayOfMonth = _event.recurrenceRule.dayOfMonth ?? 1;
+        
+        if (_daysOfWeek.isNotEmpty) {
+          _updateDaysOfWeekGroup();
+        }
       }
     }
 
@@ -403,7 +407,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                     } else {
                                       _daysOfWeek.remove(day);
                                     }
-                                    _updateDaysOfWeekGroup(day);
+                                    _updateDaysOfWeekGroup(selectedDay: day);
                                   });
                                 },
                               );
@@ -725,7 +729,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     }
   }
 
-  void _updateDaysOfWeekGroup(DayOfWeek selectedDay) {
+  void _updateDaysOfWeekGroup({DayOfWeek selectedDay}) {
     var deepEquality = const DeepCollectionEquality.unordered().equals;
 
     // If _daysOfWeek contains Monday to Friday
