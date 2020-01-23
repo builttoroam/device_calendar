@@ -50,7 +50,8 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
                         _deviceCalendarPlugin,
                         _onLoading,
                         _onDeletedFinished,
-                        _onTapped);
+                        _onTapped,
+                        _calendar.isReadOnly);
                   },
                 ),
                 if (_isLoading)
