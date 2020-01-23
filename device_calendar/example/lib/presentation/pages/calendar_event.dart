@@ -569,7 +569,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                   ],
                 ),
               ),
-              if (!_calendar.isReadOnly & _event.eventId?.isNotEmpty ?? false) ...[
+              if (!_calendar.isReadOnly && (_event.eventId?.isNotEmpty ?? false)) ...[
                 RaisedButton(
                   key: Key('deleteEventButton'),
                   textColor: Colors.white,
