@@ -23,6 +23,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val RETRIEVE_CALENDARS_METHOD = "retrieveCalendars"
     private val RETRIEVE_EVENTS_METHOD = "retrieveEvents"
     private val DELETE_EVENT_METHOD = "deleteEvent"
+    private val DELETE_EVENT_INSTANCE_METHOD = "deleteEventInstance"
     private val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
 
     // Method arguments
@@ -106,6 +107,14 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val eventId = call.argument<String>(EVENT_ID_ARGUMENT)
 
                 _calendarDelegate.deleteEvent(calendarId!!, eventId!!, result)
+            }
+            DELETE_EVENT_INSTANCE_METHOD -> {
+                val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
+                val eventId = call.argument<String>(EVENT_ID_ARGUMENT)
+                val startDate = call.argument<Long>(EVENT_START_DATE_ARGUMENT)
+                val endDate = call.argument<Long>(EVENT_END_DATE_ARGUMENT)
+
+                _calendarDelegate.deleteEvent(calendarId!!, eventId!!, result, startDate, endDate)
             }
             else -> {
                 result.notImplemented()

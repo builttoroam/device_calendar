@@ -169,12 +169,12 @@ class EventItem extends StatelessWidget {
                   IconButton(
                     onPressed: () async {
                       await showDialog<Null>(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (BuildContext context) {
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          if (_calendarEvent.recurrenceRule == null) {
                             return AlertDialog(
-                              title: Text(
-                                  'Are you sure you want to delete this event?'),
+                              title: Text('Are you sure you want to delete this event?'),
                               actions: [
                                 FlatButton(
                                   onPressed: () {
@@ -186,18 +186,51 @@ class EventItem extends StatelessWidget {
                                   onPressed: () async {
                                     Navigator.of(context).pop();
                                     _onLoadingStarted();
-                                    final deleteResult =
-                                        await _deviceCalendarPlugin.deleteEvent(
-                                            _calendarEvent.calendarId,
-                                            _calendarEvent.eventId);
-                                    _onDeleteFinished(deleteResult.isSuccess &&
-                                        deleteResult.data);
+                                    final deleteResult = await _deviceCalendarPlugin.deleteEvent(_calendarEvent.calendarId, _calendarEvent.eventId);
+                                    _onDeleteFinished(deleteResult.isSuccess && deleteResult.data);
                                   },
-                                  child: Text('Ok'),
+                                  child: Text('Delete'),
                                 ),
                               ],
                             );
-                          });
+                          }
+                          else {
+                            return AlertDialog(
+                              title: Text('Are you sure you want to delete this event?'),
+                              actions: [
+                                FlatButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text('Cancel'),
+                                ),
+                                FlatButton(
+                                  onPressed: () async {
+                                    Navigator.of(context).pop();
+                                    _onLoadingStarted();
+                                    final deleteResult = await _deviceCalendarPlugin.deleteEvent(_calendarEvent.calendarId, _calendarEvent.eventId);
+                                    _onDeleteFinished(deleteResult.isSuccess && deleteResult.data);
+                                  },
+                                  child: Text('Delete All'),
+                                ),
+                                FlatButton(
+                                  onPressed: () async {
+                                    Navigator.of(context).pop();
+                                    _onLoadingStarted();
+                                    final deleteResult = await _deviceCalendarPlugin.deleteEventInstance(
+                                      _calendarEvent.calendarId,
+                                      _calendarEvent.eventId,
+                                      _calendarEvent.start.millisecondsSinceEpoch,
+                                      _calendarEvent.end.millisecondsSinceEpoch);
+                                    _onDeleteFinished(deleteResult.isSuccess && deleteResult.data);
+                                  },
+                                  child: Text('Delete Instance'),
+                                ),
+                              ],
+                            );
+                          }
+                        }
+                      );
                     },
                     icon: Icon(Icons.delete),
                   ),
