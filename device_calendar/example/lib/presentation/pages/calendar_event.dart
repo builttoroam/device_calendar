@@ -591,17 +591,33 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                 ),
               ),
               if (!_calendar.isReadOnly && (_event.eventId?.isNotEmpty ?? false)) ...[
-                RaisedButton(
-                  key: Key('deleteEventButton'),
-                  textColor: Colors.white,
-                  color: Colors.red,
-                  child: Text('Delete'),
-                  onPressed: () async {
-                    await _deviceCalendarPlugin.deleteEvent(
-                        _calendar.id, _event.eventId);
-                    Navigator.pop(context, true);
-                  },
-                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    RaisedButton(
+                      key: Key('deleteEventButton'),
+                      textColor: Colors.white,
+                      color: Colors.red,
+                      child: Text(_isRecurringEvent ? 'Delete All' : 'Delete'),
+                      onPressed: () async {
+                        await _deviceCalendarPlugin.deleteEvent(_calendar.id, _event.eventId);
+                        Navigator.pop(context, true);
+                      },
+                    ),
+                    if (_isRecurringEvent) ...[
+                      RaisedButton(
+                        key: Key('deleteInstnaceEventButton'),
+                        textColor: Colors.white,
+                        color: Colors.red,
+                        child: Text('Delete Instance'),
+                        onPressed: () async {
+                          await _deviceCalendarPlugin.deleteEventInstance(_calendar.id, _event.eventId, _event.start.millisecondsSinceEpoch, _event.end.millisecondsSinceEpoch);
+                          Navigator.pop(context, true);
+                        },
+                      ),
+                    ]
+                  ]
+                )
               ]
             ],
           ),
