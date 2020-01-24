@@ -53,6 +53,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val ROLE_ARGUMENT = "role"
     private val REMINDERS_ARGUMENT = "reminders"
     private val MINUTES_ARGUMENT = "minutes"
+    private val FOLLOWING_INSTANCES = "followingInstances"
 
     private lateinit var _registrar: Registrar
     private lateinit var _calendarDelegate: CalendarDelegate
@@ -113,8 +114,9 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val eventId = call.argument<String>(EVENT_ID_ARGUMENT)
                 val startDate = call.argument<Long>(EVENT_START_DATE_ARGUMENT)
                 val endDate = call.argument<Long>(EVENT_END_DATE_ARGUMENT)
+                val followingInstances = call.argument<Boolean>(FOLLOWING_INSTANCES)
 
-                _calendarDelegate.deleteEvent(calendarId!!, eventId!!, result, startDate, endDate)
+                _calendarDelegate.deleteEvent(calendarId!!, eventId!!, result, startDate, endDate, followingInstances)
             }
             else -> {
                 result.notImplemented()

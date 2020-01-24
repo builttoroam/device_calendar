@@ -75,6 +75,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val BYMONTH_PART = "BYMONTH"
     private val BYSETPOS_PART = "BYSETPOS"
     private val INSTANCE_BEGIN = "begin"
+    private val EVENT_ID = "event_id"
 
     private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> = mutableMapOf()
     private var _registrar: Registrar? = null
@@ -446,7 +447,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
     }
 
-    fun deleteEvent(calendarId: String, eventId: String, pendingChannelResult: MethodChannel.Result, startDate: Long? = null, endDate: Long? = null) {
+    fun deleteEvent(calendarId: String, eventId: String, pendingChannelResult: MethodChannel.Result, startDate: Long? = null, endDate: Long? = null, followingInstances: Boolean? = null) {
         if (arePermissionsGranted()) {
             val existingCal = retrieveCalendar(calendarId, pendingChannelResult, true)
             if (existingCal == null) {
@@ -466,23 +467,49 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             }
 
             val contentResolver: ContentResolver? = _context?.contentResolver
-            if (startDate == null && endDate == null) {
+            if (startDate == null && endDate == null && followingInstances == null) { // Delete all instances
                 val eventsUriWithId = ContentUris.withAppendedId(Events.CONTENT_URI, eventIdNumber)
                 val deleteSucceeded = contentResolver?.delete(eventsUriWithId, null, null) ?: 0
                 finishWithSuccess(deleteSucceeded > 0, pendingChannelResult)
             }
             else {
-                val instanceCursor = CalendarContract.Instances.query(contentResolver, arrayOf(INSTANCE_BEGIN), startDate!!, endDate!!)
-                instanceCursor.moveToFirst()
-
-                val values = ContentValues()
-                values.put(Events.ORIGINAL_INSTANCE_TIME, instanceCursor.getLong(0))
-                values.put(Events.STATUS, Events.STATUS_CANCELED)
-
                 val exceptionUriWithId = ContentUris.withAppendedId(Events.CONTENT_EXCEPTION_URI, eventIdNumber)
 
-                val deleteSucceeded = contentResolver?.insert(exceptionUriWithId, values)
-                finishWithSuccess(deleteSucceeded != null, pendingChannelResult)
+                if (!followingInstances!!) { // Only this instance
+                    val values = ContentValues()
+                    val instanceCursor = CalendarContract.Instances.query(contentResolver, arrayOf(INSTANCE_BEGIN, EVENT_ID), startDate!!, endDate!!)
+
+                    for (x in 0 until instanceCursor.count) {
+                        instanceCursor.moveToNext()
+                        val foundEventID = instanceCursor.getLong(1)
+
+                        if (eventIdNumber == foundEventID) {
+                            values.put(Events.ORIGINAL_INSTANCE_TIME, instanceCursor.getLong(0))
+                            values.put(Events.STATUS, Events.STATUS_CANCELED)
+                        }
+                    }
+
+                    val deleteSucceeded = contentResolver?.insert(exceptionUriWithId, values)
+                    finishWithSuccess(deleteSucceeded != null, pendingChannelResult)
+                }
+                else { // This and following instances
+                    val instanceCursor = CalendarContract.Instances.query(contentResolver, arrayOf(INSTANCE_BEGIN, EVENT_ID), startDate!!, 8640000000000000) // Max milliseconds: 8640000000000000
+
+                    for (x in 0 until instanceCursor.count) {
+                        instanceCursor.moveToNext()
+                        val foundEventID = instanceCursor.getLong(1)
+
+                        if (eventIdNumber == foundEventID) {
+                            val values = ContentValues()
+                            values.put(Events.STATUS, Events.STATUS_CANCELED)
+                            values.put(Events.ORIGINAL_INSTANCE_TIME, instanceCursor.getLong(0))
+
+                            contentResolver?.insert(exceptionUriWithId, values)
+                        }
+                    }
+
+                    finishWithSuccess(true, pendingChannelResult)
+                }
             }
         } else {
             val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, DELETE_EVENT_REQUEST_CODE, calendarId)
