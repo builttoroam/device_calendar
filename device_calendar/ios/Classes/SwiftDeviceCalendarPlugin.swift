@@ -102,6 +102,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let roleArgument = "role"
     let remindersArgument = "reminders"
     let minutesArgument = "minutes"
+    let followingInstancesArgument = "followingInstances"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -542,6 +543,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let eventId = arguments[eventIdArgument] as! String
             let startDateNumber = arguments[eventStartDateArgument] as? NSNumber
             let endDateNumber = arguments[eventEndDateArgument] as? NSNumber
+            let followingInstances = arguments[followingInstancesArgument] as? Bool
             
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if ekCalendar == nil {
@@ -554,7 +556,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 return
             }
             
-            if (startDateNumber == nil && endDateNumber == nil) {
+            if (startDateNumber == nil && endDateNumber == nil && followingInstances == nil) {
                 let ekEvent = self.eventStore.event(withIdentifier: eventId)
                 if ekEvent == nil {
                     self.finishWithEventNotFoundError(result: result, eventId: eventId)
@@ -574,15 +576,23 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 let endDate = Date (timeIntervalSince1970: endDateNumber!.doubleValue / 1000.0)
                                 
                 let predicate = self.eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: nil)
-                let ekEvent = self.eventStore.events(matching: predicate) as [EKEvent]?
+                let foundEkEvents = self.eventStore.events(matching: predicate) as [EKEvent]?
                 
-                if ekEvent == nil || ekEvent?.count == 0 {
+                if foundEkEvents == nil || foundEkEvents?.count == 0 {
                     self.finishWithEventNotFoundError(result: result, eventId: eventId)
                     return
                 }
                 
+                let ekEvent = foundEkEvents!.first(where: {$0.eventIdentifier == eventId})
+                
                 do {
-                    try self.eventStore.remove(ekEvent!.first!, span: .thisEvent, commit: true)
+                    if (!followingInstances!) {
+                        try self.eventStore.remove(ekEvent!, span: .thisEvent, commit: true)
+                    }
+                    else {
+                        try self.eventStore.remove(ekEvent!, span: .futureEvents, commit: true)
+                    }
+                    
                     result(true)
                 } catch {
                     self.eventStore.reset()
