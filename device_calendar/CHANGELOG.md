@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.0+1 28th January 2020
+
+* Updated `event.url` property in `createOrUpdateEvent` method to be null-aware for issue [152](https://github.com/builttoroam/flutter_plugins/issues/152)
+
 ## 3.0.0 21st January 2020
 
 * **BREAKING CHANGE** Properties for the attendee model in `attendee.dart` file have been changed:
