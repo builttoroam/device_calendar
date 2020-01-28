@@ -37,7 +37,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   TimeOfDay _endTime;
 
   bool _autovalidate = false;
-  List<DayOfWeekGroup> _daysOfWeekGroup = List<DayOfWeekGroup>();
+  DayOfWeekGroup _dayOfWeekGroup = DayOfWeekGroup.None;
 
   bool _isRecurringEvent = false;
   bool _isByDayOfMonth = false;
@@ -414,19 +414,17 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             }),
                             Divider(color: Colors.black),
                             ...DayOfWeekGroup.values.map((group) {
-                              return CheckboxListTile(
+                              return RadioListTile(
                                 title: Text(group.enumToString),
-                                value: _daysOfWeekGroup?.any((dg) => dg == group) ?? false,
+                                value: group,
+                                groupValue: _dayOfWeekGroup,
                                 onChanged: (selected) {
                                   setState(() {
-                                    if (selected) {
-                                      _daysOfWeekGroup.add(group);
-                                    } else {
-                                      _daysOfWeekGroup.remove(group);
-                                    }
-                                    _updateDaysOfWeek(group, selected);
+                                    _dayOfWeekGroup = selected;
+                                    _updateDaysOfWeek();
                                   });
                                 },
+                                controlAffinity: ListTileControlAffinity.trailing
                               );
                             }),
                           ],
@@ -718,42 +716,46 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     }
   }
 
-  void _updateDaysOfWeek(DayOfWeekGroup selectedGroup, bool isSelected) {
-    var days = selectedGroup.getDays;
+  void _updateDaysOfWeek() {
+    var days = _dayOfWeekGroup.getDays;
 
-    if (isSelected) {
-      _daysOfWeek.addAll(days.where((a) => _daysOfWeek.every((b) => a != b)));
-    }
-    else {
-      _daysOfWeek.removeWhere((a) => days.contains(a));
+    switch (_dayOfWeekGroup) {
+      case DayOfWeekGroup.Weekday:
+      case DayOfWeekGroup.Weekend:
+      case DayOfWeekGroup.Alldays:
+        _daysOfWeek.clear();
+        _daysOfWeek.addAll(days.where((a) => _daysOfWeek.every((b) => a != b)));
+        break;
+      case DayOfWeekGroup.None:
+        _daysOfWeek.clear();
+        break;
+      default: // DayOfWeekGroup.Custom, it shouldn't be changed
+        break;
     }
   }
 
   void _updateDaysOfWeekGroup({DayOfWeek selectedDay}) {
     var deepEquality = const DeepCollectionEquality.unordered().equals;
 
+    // If _daysOfWeek contains nothing
+    if (_daysOfWeek.isEmpty && _dayOfWeekGroup != DayOfWeekGroup.None) {
+      _dayOfWeekGroup = DayOfWeekGroup.None;
+    }
     // If _daysOfWeek contains Monday to Friday
-    if (deepEquality(_daysOfWeek, DayOfWeekGroup.Weekday.getDays) && !_daysOfWeekGroup.contains(DayOfWeekGroup.Weekday)) {
-      _daysOfWeekGroup.add(DayOfWeekGroup.Weekday);
+    else if (deepEquality(_daysOfWeek, DayOfWeekGroup.Weekday.getDays) && _dayOfWeekGroup != DayOfWeekGroup.Weekday) {
+      _dayOfWeekGroup = DayOfWeekGroup.Weekday;
     }
-    else {
-      _daysOfWeekGroup.removeWhere((a) => a == DayOfWeekGroup.Weekday);
-    }
-
     // If _daysOfWeek contains Saturday and Sunday
-    if (deepEquality(_daysOfWeek, DayOfWeekGroup.Weekend.getDays) && !_daysOfWeekGroup.contains(DayOfWeekGroup.Weekend)) {
-      _daysOfWeekGroup.add(DayOfWeekGroup.Weekend);
+    else if (deepEquality(_daysOfWeek, DayOfWeekGroup.Weekend.getDays) && _dayOfWeekGroup != DayOfWeekGroup.Weekend) {
+      _dayOfWeekGroup = DayOfWeekGroup.Weekend;
     }
-    else {
-      _daysOfWeekGroup.removeWhere((a) => a == DayOfWeekGroup.Weekend);
-    }
-
     // If _daysOfWeek contains all days
-    if (deepEquality(_daysOfWeek, DayOfWeekGroup.Alldays.getDays) && !_daysOfWeekGroup.contains(DayOfWeekGroup.Alldays)) {
-      _daysOfWeekGroup.add(DayOfWeekGroup.Alldays);
+    else if (deepEquality(_daysOfWeek, DayOfWeekGroup.Alldays.getDays) && _dayOfWeekGroup != DayOfWeekGroup.Alldays) {
+      _dayOfWeekGroup = DayOfWeekGroup.Alldays;
     }
+    // Otherwise, set as Custom
     else {
-      _daysOfWeekGroup.removeWhere((a) => a == DayOfWeekGroup.Alldays);
+      _dayOfWeekGroup = DayOfWeekGroup.Custom;
     }
   }
 
