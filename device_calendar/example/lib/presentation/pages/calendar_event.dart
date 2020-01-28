@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'event_attendee.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:collection/collection.dart';
 
 import '../date_time_picker.dart';
 import 'event_reminders.dart';
@@ -36,6 +37,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   TimeOfDay _endTime;
 
   bool _autovalidate = false;
+  DayOfWeekGroup _dayOfWeekGroup = DayOfWeekGroup.None;
 
   bool _isRecurringEvent = false;
   bool _isByDayOfMonth = false;
@@ -104,6 +106,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         _weekOfMonth = _event.recurrenceRule.weekOfMonth ?? WeekNumber.First;
         _selectedDayOfWeek = _daysOfWeek.isNotEmpty ? _daysOfWeek.first : DayOfWeek.Monday;
         _dayOfMonth = _event.recurrenceRule.dayOfMonth ?? 1;
+        
+        if (_daysOfWeek.isNotEmpty) {
+          _updateDaysOfWeekGroup();
+        }
       }
     }
 
@@ -389,23 +395,38 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       ),
                       if (_recurrenceFrequency == RecurrenceFrequency.Weekly) ... [
                         Column(
-                            children: [ 
-                              ...DayOfWeek.values.map((day) {
-                                return CheckboxListTile(
-                                  title: Text(day.enumToString),
-                                  value: _daysOfWeek?.any((dow) => dow == day) ?? false,
-                                  onChanged: (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        _daysOfWeek.add(day);
-                                      } else {
-                                        _daysOfWeek.remove(day);
-                                      }
-                                    });
-                                  },
-                                );
-                              },
-                            ),
+                          children: [ 
+                            ...DayOfWeek.values.map((day) {
+                              return CheckboxListTile(
+                                title: Text(day.enumToString),
+                                value: _daysOfWeek?.any((dow) => dow == day) ?? false,
+                                onChanged: (selected) {
+                                  setState(() {
+                                    if (selected) {
+                                      _daysOfWeek.add(day);
+                                    } else {
+                                      _daysOfWeek.remove(day);
+                                    }
+                                    _updateDaysOfWeekGroup(selectedDay: day);
+                                  });
+                                },
+                              );
+                            }),
+                            Divider(color: Colors.black),
+                            ...DayOfWeekGroup.values.map((group) {
+                              return RadioListTile(
+                                title: Text(group.enumToString),
+                                value: group,
+                                groupValue: _dayOfWeekGroup,
+                                onChanged: (selected) {
+                                  setState(() {
+                                    _dayOfWeekGroup = selected;
+                                    _updateDaysOfWeek();
+                                  });
+                                },
+                                controlAffinity: ListTileControlAffinity.trailing
+                              );
+                            }),
                           ],
                         )
                       ],
@@ -692,6 +713,49 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
     for (var i = 1; i <= totalDays; i++) {
       _validDaysOfMonth.add(i);
+    }
+  }
+
+  void _updateDaysOfWeek() {
+    var days = _dayOfWeekGroup.getDays;
+
+    switch (_dayOfWeekGroup) {
+      case DayOfWeekGroup.Weekday:
+      case DayOfWeekGroup.Weekend:
+      case DayOfWeekGroup.Alldays:
+        _daysOfWeek.clear();
+        _daysOfWeek.addAll(days.where((a) => _daysOfWeek.every((b) => a != b)));
+        break;
+      case DayOfWeekGroup.None:
+        _daysOfWeek.clear();
+        break;
+      default: // DayOfWeekGroup.Custom, it shouldn't be changed
+        break;
+    }
+  }
+
+  void _updateDaysOfWeekGroup({DayOfWeek selectedDay}) {
+    var deepEquality = const DeepCollectionEquality.unordered().equals;
+
+    // If _daysOfWeek contains nothing
+    if (_daysOfWeek.isEmpty && _dayOfWeekGroup != DayOfWeekGroup.None) {
+      _dayOfWeekGroup = DayOfWeekGroup.None;
+    }
+    // If _daysOfWeek contains Monday to Friday
+    else if (deepEquality(_daysOfWeek, DayOfWeekGroup.Weekday.getDays) && _dayOfWeekGroup != DayOfWeekGroup.Weekday) {
+      _dayOfWeekGroup = DayOfWeekGroup.Weekday;
+    }
+    // If _daysOfWeek contains Saturday and Sunday
+    else if (deepEquality(_daysOfWeek, DayOfWeekGroup.Weekend.getDays) && _dayOfWeekGroup != DayOfWeekGroup.Weekend) {
+      _dayOfWeekGroup = DayOfWeekGroup.Weekend;
+    }
+    // If _daysOfWeek contains all days
+    else if (deepEquality(_daysOfWeek, DayOfWeekGroup.Alldays.getDays) && _dayOfWeekGroup != DayOfWeekGroup.Alldays) {
+      _dayOfWeekGroup = DayOfWeekGroup.Alldays;
+    }
+    // Otherwise, set as Custom
+    else {
+      _dayOfWeekGroup = DayOfWeekGroup.Custom;
     }
   }
 
