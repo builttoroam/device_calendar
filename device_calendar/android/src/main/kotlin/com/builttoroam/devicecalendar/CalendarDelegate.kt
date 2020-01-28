@@ -3,6 +3,7 @@ package com.builttoroam.devicecalendar
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Service
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
@@ -37,6 +38,12 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTIO
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_ID_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_RRULE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_LAST_DATE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_BEGIN_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_END_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_MINUTES_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_PROJECTION
 import com.builttoroam.devicecalendar.common.DayOfWeek
@@ -74,8 +81,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val BYMONTHDAY_PART = "BYMONTHDAY"
     private val BYMONTH_PART = "BYMONTH"
     private val BYSETPOS_PART = "BYSETPOS"
-    private val INSTANCE_BEGIN = "begin"
-    private val EVENT_ID = "event_id"
 
     private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> = mutableMapOf()
     private var _registrar: Registrar? = null
@@ -473,18 +478,17 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 finishWithSuccess(deleteSucceeded > 0, pendingChannelResult)
             }
             else {
-                val exceptionUriWithId = ContentUris.withAppendedId(Events.CONTENT_EXCEPTION_URI, eventIdNumber)
-
                 if (!followingInstances!!) { // Only this instance
+                    val exceptionUriWithId = ContentUris.withAppendedId(Events.CONTENT_EXCEPTION_URI, eventIdNumber)
                     val values = ContentValues()
-                    val instanceCursor = CalendarContract.Instances.query(contentResolver, arrayOf(INSTANCE_BEGIN, EVENT_ID), startDate!!, endDate!!)
+                    val instanceCursor = CalendarContract.Instances.query(contentResolver, EVENT_INSTANCE_DELETION, startDate!!, endDate!!)
 
                     for (x in 0 until instanceCursor.count) {
                         instanceCursor.moveToNext()
-                        val foundEventID = instanceCursor.getLong(1)
+                        val foundEventID = instanceCursor.getLong(EVENT_INSTANCE_DELETION_ID_INDEX)
 
                         if (eventIdNumber == foundEventID) {
-                            values.put(Events.ORIGINAL_INSTANCE_TIME, instanceCursor.getLong(0))
+                            values.put(Events.ORIGINAL_INSTANCE_TIME, instanceCursor.getLong(EVENT_INSTANCE_DELETION_BEGIN_INDEX))
                             values.put(Events.STATUS, Events.STATUS_CANCELED)
                         }
                     }
@@ -493,22 +497,49 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     finishWithSuccess(deleteSucceeded != null, pendingChannelResult)
                 }
                 else { // This and following instances
-                    val instanceCursor = CalendarContract.Instances.query(contentResolver, arrayOf(INSTANCE_BEGIN, EVENT_ID), startDate!!, 8640000000000000) // Max milliseconds: 8640000000000000
+                    val eventsUriWithId = ContentUris.withAppendedId(Events.CONTENT_URI, eventIdNumber)
+                    val values = ContentValues()
+                    val instanceCursor = CalendarContract.Instances.query(contentResolver, EVENT_INSTANCE_DELETION, startDate!!, endDate!!)
 
                     for (x in 0 until instanceCursor.count) {
                         instanceCursor.moveToNext()
-                        val foundEventID = instanceCursor.getLong(1)
+                        val foundEventID = instanceCursor.getLong(EVENT_INSTANCE_DELETION_ID_INDEX)
 
                         if (eventIdNumber == foundEventID) {
-                            val values = ContentValues()
-                            values.put(Events.STATUS, Events.STATUS_CANCELED)
-                            values.put(Events.ORIGINAL_INSTANCE_TIME, instanceCursor.getLong(0))
+                            val newRule = org.dmfs.rfc5545.recur.RecurrenceRule(instanceCursor.getString(EVENT_INSTANCE_DELETION_RRULE_INDEX))
+                            val lastDate = instanceCursor.getLong(EVENT_INSTANCE_DELETION_LAST_DATE_INDEX)
 
-                            contentResolver?.insert(exceptionUriWithId, values)
+                            if (lastDate > 0 && newRule.count != null && newRule.count > 0) { // Update occurrence rule
+                                val cursor = CalendarContract.Instances.query(contentResolver, EVENT_INSTANCE_DELETION, startDate, lastDate)
+                                for (y in 0 until cursor.count) {
+                                    cursor.moveToNext()
+                                    if (eventIdNumber == cursor.getLong(EVENT_INSTANCE_DELETION_ID_INDEX)) {
+                                        newRule.count--
+                                    }
+                                }
+                                cursor.close()
+                            }
+                            else { // Indefinite and specified date rule
+                                val cursor = CalendarContract.Instances.query(contentResolver, EVENT_INSTANCE_DELETION, 946645200000, startDate - 1) // 946645200000 = 01/01/2000
+                                var lastRecurrenceDate = 0.toLong()
+
+                                for (y in 0 until cursor.count) {
+                                    cursor.moveToNext()
+                                    if (eventIdNumber == cursor.getLong(EVENT_INSTANCE_DELETION_ID_INDEX)) {
+                                        lastRecurrenceDate = cursor.getLong(EVENT_INSTANCE_DELETION_END_INDEX)
+                                    }
+                                }
+
+                                newRule.until = DateTime(lastRecurrenceDate)
+                                cursor.close()
+                            }
+
+                            values.put(Events.RRULE, newRule.toString())
+                            contentResolver?.update(eventsUriWithId, values, null, null)
+                            instanceCursor.close()
+                            finishWithSuccess(true, pendingChannelResult)
                         }
                     }
-
-                    finishWithSuccess(true, pendingChannelResult)
                 }
             }
         } else {
