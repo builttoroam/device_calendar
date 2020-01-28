@@ -5,6 +5,28 @@ You'll be able to get a reference of how the APIs are used.
 
 For a full API reference, the documentation can be found at [pub.dev](https://pub.dev/documentation/device_calendar/latest/device_calendar/device_calendar-library.html).
 
+## DayOfWeekGroup Enum
+
+`DayOfWeekGroup` enum allows to explicitly choose and return a list of `DayOfWeek` enum values by using an extension `getDays`:
+
+* `DayOfWeekGroup.Weekday.getDays` will return:
+
+    ```dart
+    [DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday];
+    ```
+
+* `DayOfWeekGroup.Weekend.getDays` will return:
+
+    ```dart
+    [DayOfWeek.Saturday, DayOfWeek.Sunday];
+    ```
+
+* `DayOfWeekGroup.Alldays.getDays` will return:
+
+    ```dart
+    [DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday];
+    ```
+
 ## Attendee Examples
 
 Examples below present on how to initialise an `Attendee` model in Dart:
