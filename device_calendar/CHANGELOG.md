@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.0+2 30th January 2020
+
+* Updated `event.allDay` property in `createOrUpdateEvent` method to be null-aware
+
 ## 3.0.0+1 28th January 2020
 
 * Updated `event.url` property in `createOrUpdateEvent` method to be null-aware for issue [152](https://github.com/builttoroam/flutter_plugins/issues/152)
