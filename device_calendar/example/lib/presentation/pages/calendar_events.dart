@@ -19,7 +19,7 @@ class CalendarEventsPage extends StatefulWidget {
 
 class _CalendarEventsPageState extends State<CalendarEventsPage> {
   final Calendar _calendar;
-  BuildContext _scaffoldContext;
+  final GlobalKey<ScaffoldState> _scaffoldstate = GlobalKey<ScaffoldState>();
 
   DeviceCalendarPlugin _deviceCalendarPlugin;
   List<Event> _calendarEvents;
@@ -38,6 +38,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldstate,
       appBar: AppBar(title: Text('${_calendar.name} events')),
       body: (_calendarEvents?.isNotEmpty ?? false)
           ? Stack(
@@ -96,7 +97,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
     if (deleteSucceeded) {
       await _retrieveCalendarEvents();
     } else {
-      Scaffold.of(_scaffoldContext).showSnackBar(SnackBar(
+        _scaffoldstate.currentState.showSnackBar(SnackBar(
         content: Text('Oops, we ran into an issue deleting the event'),
         backgroundColor: Colors.red,
         duration: Duration(seconds: 5),
