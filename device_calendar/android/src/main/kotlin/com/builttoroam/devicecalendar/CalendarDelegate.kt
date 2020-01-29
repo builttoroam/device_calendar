@@ -3,7 +3,6 @@ package com.builttoroam.devicecalendar
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.Service
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
