@@ -61,7 +61,13 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
               ],
             )
           : Center(child: Text('No events found')),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: _getAddEventButton(context)
+    );
+  }
+
+  Widget _getAddEventButton(BuildContext context) {
+    if (!_calendar.isReadOnly) {
+      return FloatingActionButton(
         key: Key('addEventButton'),
         onPressed: () async {
           final refreshEvents = await Navigator.push(context,
@@ -73,8 +79,11 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
           }
         },
         child: Icon(Icons.add),
-      ),
-    );
+      );
+    }
+    else {
+      return Container();
+    }
   }
 
   void _onLoading() {
