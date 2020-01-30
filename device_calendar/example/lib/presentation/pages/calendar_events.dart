@@ -82,7 +82,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
       );
     }
     else {
-      return Container();
+      return null;
     }
   }
 
