@@ -167,16 +167,16 @@ class DeviceCalendarPlugin {
     final res = Result<String>();
 
     // Setting time to 0 for all day events
-    if (event.allDay) {
+    if (event.allDay == true) {
       event.start = DateTime(event.start.year, event.start.month, event.start.day, 0, 0, 0);
       event.end = DateTime(event.end.year, event.end.month, event.end.day, 0, 0, 0);
     }
 
-    if (event.allDay && (event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null) {
+    if (event.allDay == true && (event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null) {
       res.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay}');
       return res;
     }
-    else if (!event.allDay & ((event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null || event.start.isAfter(event.end))) {
+    else if (event.allDay != true & ((event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null || event.start.isAfter(event.end))) {
       res.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}');
       return res;
     }
