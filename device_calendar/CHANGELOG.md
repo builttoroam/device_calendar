@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.0+3 3rd February 2020
+
+* Fixed all day conditional check for issue [162](https://github.com/builttoroam/flutter_plugins/issues/162)
+
 ## 3.0.0+2 30th January 2020
 
 * Updated `event.allDay` property in `createOrUpdateEvent` method to be null-aware
