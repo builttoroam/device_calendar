@@ -150,6 +150,11 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if (arePermissionsGranted()) {
             val contentResolver: ContentResolver? = _context?.contentResolver
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
+             val cursor: Cursor? = if (atLeastAPI(17)) {
+                contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
+            } else {
+                contentResolver?.query(uri, CALENDAR_PROJECTION_OLDER_API, null, null, null)
+            }
             val cursor: Cursor? = contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
             val calendars: MutableList<Calendar> = mutableListOf()
             try {
