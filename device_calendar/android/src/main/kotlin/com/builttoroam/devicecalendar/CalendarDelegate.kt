@@ -484,7 +484,13 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         val calendar = Calendar(calId.toString(), displayName)
         calendar.isReadOnly = isCalendarReadOnly(accessLevel)
-
+        if (atLeastAPI(17)) {
+            val isPrimary = cursor.getString(CALENDAR_PROJECTION_IS_PRIMARY_INDEX)
+            calendar.isDefault = isPrimary == "1"
+        }
+        else {
+            calendar.isDefault = false
+        }
         return calendar
     }
 
@@ -504,7 +510,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         var url = cursor.getString(EVENT_PROJECTION_CUSTOM_APP_URI_INDEX)
 
         val event = Event()
-        event.title = title
+        event.title = title ?: "New Event"
         event.eventId = eventId.toString()
         event.calendarId = calendarId
         event.description = description
