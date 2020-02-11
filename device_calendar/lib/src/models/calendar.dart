@@ -12,18 +12,28 @@ class Calendar {
   /// Read-only. If the calendar is the default
   bool isDefault;
 
-  Calendar({this.id, this.name, this.isReadOnly, this.isDefault});
+  /// Color of the calendar
+  int color;
+
+  Calendar({this.id, this.name, this.isReadOnly, this.isDefault, this.color});
 
   Calendar.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
     isReadOnly = json['isReadOnly'];
     isDefault = json['isDefault'];
+    color = json['color'];
   }
 
   Map<String, dynamic> toJson() {
-    final data = <String, dynamic>{ 'id': id, 'name': name, 'isReadOnly': isReadOnly, 'isDefault': isDefault };
-    
+    final data = <String, dynamic>{
+      'id': id,
+      'name': name,
+      'isReadOnly': isReadOnly,
+      'isDefault': isDefault,
+      'color': color
+    };
+
     return data;
   }
 }
