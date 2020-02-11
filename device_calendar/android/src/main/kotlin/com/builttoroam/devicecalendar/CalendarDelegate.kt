@@ -12,6 +12,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
 import android.provider.CalendarContract.Events
+import io.flutter.plugin.common.PluginRegistry.Registrar
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EMAIL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
@@ -19,11 +20,11 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_RELATI
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_STATUS_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OLDER_API
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_IS_PRIMARY_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OLDER_API
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ALL_DAY_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_BEGIN_INDEX
@@ -73,12 +74,12 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val BYSETPOS_PART = "BYSETPOS"
 
     private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> = mutableMapOf()
-    private var _activity: Activity? = null
+    private var _registrar: Registrar? = null
     private var _context: Context? = null
     private var _gson: Gson? = null
 
-    constructor(activity: Activity?, context: Context) {
-        _activity = activity
+    constructor(activity: Registrar?, context: Context) {
+        _registrar = activity
         _context = context
         val gsonBuilder = GsonBuilder()
         gsonBuilder.registerTypeAdapter(RecurrenceFrequency::class.java, RecurrenceFrequencySerializer())
@@ -151,12 +152,11 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if (arePermissionsGranted()) {
             val contentResolver: ContentResolver? = _context?.contentResolver
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
-            val cursor: Cursor? = if (atLeastAPI(17)) {
+             val cursor: Cursor? = if (atLeastAPI(17)) {
                 contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
             } else {
                 contentResolver?.query(uri, CALENDAR_PROJECTION_OLDER_API, null, null, null)
             }
-
             val calendars: MutableList<Calendar> = mutableListOf()
             try {
                 while (cursor?.moveToNext() == true) {
@@ -188,6 +188,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             val contentResolver: ContentResolver? = _context?.contentResolver
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
+            
             val cursor: Cursor? = if (atLeastAPI(17)) {
                 contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
             } else {
@@ -459,8 +460,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
     private fun arePermissionsGranted(): Boolean {
         if (atLeastAPI(23)) {
-            val writeCalendarPermissionGranted = _activity?.checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
-            val readCalendarPermissionGranted = _activity?.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
+            val writeCalendarPermissionGranted = _registrar!!.activity().checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
+            val readCalendarPermissionGranted = _registrar!!.activity().checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
             return writeCalendarPermissionGranted && readCalendarPermissionGranted
         }
 
@@ -474,7 +475,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
     private fun requestPermissions(requestCode: Int) {
         if (atLeastAPI(23)) {
-            _activity?.requestPermissions(arrayOf(Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR), requestCode)
+            _registrar!!.activity().requestPermissions(arrayOf(Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR), requestCode)
         }
     }
 
@@ -489,7 +490,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
         val calendar = Calendar(calId.toString(), displayName)
         calendar.isReadOnly = isCalendarReadOnly(accessLevel)
-
         if (atLeastAPI(17)) {
             val isPrimary = cursor.getString(CALENDAR_PROJECTION_IS_PRIMARY_INDEX)
             calendar.isDefault = isPrimary == "1"
@@ -497,7 +497,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         else {
             calendar.isDefault = false
         }
-
         return calendar
     }
 
