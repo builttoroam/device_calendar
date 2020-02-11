@@ -8,6 +8,8 @@
 * Updated example documentation for issue [119](https://github.com/builttoroam/flutter_plugins/issues/119)
 * Read-only calendars cannot be edited or deleted for the example app
 * Added `DayOfWeekGroup` enum and an extension `getDays` to get corresponding dates of the enum values (**NOTE**: `DayOfWeekGroup.Custom.getDays` will return an empty list)
+* Added to retrieve colour for calendars. Thanks to [nadavfima](https://github.com/nadavfima) for the contribution and PR to add colour support for both Android and iOS
+* Added compatibility with a new Flutter plugin for Android. Thanks to the PR submitted by [RohitKumarMishra](https://github.com/RohitKumarMishra)
 
 ## 3.0.0 21st January 2020
 
