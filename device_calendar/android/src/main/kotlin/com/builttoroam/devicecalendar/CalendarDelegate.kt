@@ -21,6 +21,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_STATUS
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_COLOR_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_IS_PRIMARY_INDEX
@@ -487,8 +488,10 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val calId = cursor.getLong(CALENDAR_PROJECTION_ID_INDEX)
         val displayName = cursor.getString(CALENDAR_PROJECTION_DISPLAY_NAME_INDEX)
         val accessLevel = cursor.getInt(CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX)
+        val calendarColor = cursor.getInt(CALENDAR_PROJECTION_COLOR_INDEX)
 
-        val calendar = Calendar(calId.toString(), displayName)
+
+        val calendar = Calendar(calId.toString(), displayName, calendarColor)
         calendar.isReadOnly = isCalendarReadOnly(accessLevel)
         if (atLeastAPI(17)) {
             val isPrimary = cursor.getString(CALENDAR_PROJECTION_IS_PRIMARY_INDEX)

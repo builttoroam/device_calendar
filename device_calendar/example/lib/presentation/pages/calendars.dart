@@ -75,6 +75,15 @@ class _CalendarsPageState extends State<CalendarsPage> {
                           ),
                         ),
                         Container(
+                          width: 15,
+                          height: 15,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(_calendars[index].color)
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Container(
                           margin: const EdgeInsets.fromLTRB(0, 0, 5.0, 0),
                           padding: const EdgeInsets.all(3.0),
                           decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent)),

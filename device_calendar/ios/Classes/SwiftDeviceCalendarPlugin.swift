@@ -18,6 +18,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let name: String
         let isReadOnly: Bool
         let isDefault: Bool
+        let color : Int
     }
     
     struct Event: Codable {
@@ -138,7 +139,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let defaultCalendar = self.eventStore.defaultCalendarForNewEvents
             var calendars = [Calendar]()
             for ekCalendar in ekCalendars {
-                let calendar = Calendar(id: ekCalendar.calendarIdentifier, name: ekCalendar.title, isReadOnly: !ekCalendar.allowsContentModifications, isDefault: defaultCalendar?.calendarIdentifier == ekCalendar.calendarIdentifier)
+                let calendar = Calendar(id: ekCalendar.calendarIdentifier, name: ekCalendar.title, isReadOnly: !ekCalendar.allowsContentModifications, isDefault: defaultCalendar?.calendarIdentifier == ekCalendar.calendarIdentifier,
+                                        color: UIColor(cgColor: ekCalendar.cgColor).rgb()!)
                 calendars.append(calendar)
             }
             
@@ -626,3 +628,27 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         })
     }
 }
+
+extension UIColor {
+
+    func rgb() -> Int? {
+        var fRed : CGFloat = 0
+        var fGreen : CGFloat = 0
+        var fBlue : CGFloat = 0
+        var fAlpha: CGFloat = 0
+        if self.getRed(&fRed, green: &fGreen, blue: &fBlue, alpha: &fAlpha) {
+            let iRed = Int(fRed * 255.0)
+            let iGreen = Int(fGreen * 255.0)
+            let iBlue = Int(fBlue * 255.0)
+            let iAlpha = Int(fAlpha * 255.0)
+
+            //  (Bits 24-31 are alpha, 16-23 are red, 8-15 are green, 0-7 are blue).
+            let rgb = (iAlpha << 24) + (iRed << 16) + (iGreen << 8) + iBlue
+            return rgb
+        } else {
+            // Could not extract RGBA components:
+            return nil
+        }
+    }
+}
+
