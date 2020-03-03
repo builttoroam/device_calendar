@@ -13,11 +13,13 @@ trigger:
   branches:
     include:
       - develop
-      - release
+     # - release
 
 stages:
   # CI
   - stage: Build
+    # TODO:Remove after testing
+    condition: eq(1,2)
     jobs: 
      - job: BuildAndroid
        pool:
@@ -31,21 +33,55 @@ stages:
           inputs:
             target: 'apk'
             projectDirectory: 'device_calendar/example'
-        - task: CmdLine@2
-          inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-            script: '$(flutterExecPath) pub publish --dry-run'
      - job: BuildIos
        pool:
         vmImage: 'macOS-latest'
+        steps:
+        - task: FlutterInstall@0
+          inputs:
+            channel: 'stable'
+            version: 'latest'
+        - task: FlutterBuild@0
+          inputs:
+            target: 'ios'
+            projectDirectory: 'device_calendar/example'
   # CD Beta
   - stage: ReleaseBeta
-    dependsOn: Build
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/develop'))
+    # TODO:Remove/uncomment after testing
+    condition: eq(1,1)
+    #dependsOn: Build
+    #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/develop'))
     jobs:
      - job: Release
        pool:
         vmImage: 'windows-latest'
+        steps:
+          - task: PowerShell@0
+            displayName: 'Update pubspec version'
+            inputs:
+              targetType: 'inline'
+              script: |
+                
+                [string] $versionRegex = '\bversion:\s+\K\S+'
+                [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calender/pubspec.yaml" -Raw
+
+                Write-Host " (i) Original pubspec.yaml content: $pubspecContent"
+
+                [bool] $hasMatches = $pubspecContent -match $versionRegex
+
+                Write-Host " (i) Found matches to replace version? $hasMatches"
+
+                [string] $newPubspecContent = $pubspecContent -replace $versionRegex, "$env:VERSION-dev.$(Build.BuildID)"
+                
+                Write-Host " (i) Updated build.gradle content: $newBuildGradleContent"
+                
+                $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calender/pubspec.yaml"
+
+          # - task: CmdLine@2
+          #   inputs:
+          #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+          #     script: '$(flutterExecPath) pub publish --dry-run'
+          # TODO: GitHub Tagging
   # CD Prod
   - stage: ReleaseProd
     dependsOn: Build
@@ -54,3 +90,4 @@ stages:
      - job: Release
        pool:
         vmImage: 'windows-latest'
+          # TODO: Add tasks
