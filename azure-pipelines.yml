@@ -15,7 +15,8 @@ stages:
   - stage: Build
     jobs: 
      - job: BuildAndroid
-       pool: 'macOS-latest'
+       pool:
+        vmImage: 'macOS-latest'
        steps:
         - task: FlutterInstall@0
           inputs:
@@ -28,19 +29,22 @@ stages:
         - task: CmdLine@2
           inputs:
             script: 'flutter pub publish --dry-run'
-    # - job: BuildIos
-    #   pool: 'macOS-latest'
+     - job: BuildIos
+       pool:
+        vmImage: 'macOS-latest'
   # CD Beta
   - stage: ReleaseBeta
     dependsOn: Build
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/develop'))
     jobs:
      - job: Release
-       pool: 'windows-latest'
+       pool:
+        vmImage: 'windows-latest'
   # CD Prod
   - stage: ReleaseProd
     dependsOn: Build
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
     jobs: 
      - job: Release
-       pool: 'windows-latest'
+       pool:
+        vmImage: 'windows-latest'
