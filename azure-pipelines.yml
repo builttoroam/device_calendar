@@ -15,9 +15,9 @@ stages:
   - stage: Build
     jobs: 
      - job: BuildAndroid
-       pool: 'macOS-latest'
-     - job: BuildIos
-       pool: 'macOS-latest'
+       pool: 'windows-latest'
+     # - job: BuildIos
+     #  pool: 'macOS-latest'
   # CD Beta
   - stage: ReleaseBeta
     dependsOn: Build
