@@ -15,9 +15,21 @@ stages:
   - stage: Build
     jobs: 
      - job: BuildAndroid
-       pool: 'windows-latest'
-     # - job: BuildIos
-     #  pool: 'macOS-latest'
+       pool: 'macOS-latest'
+       steps:
+        - task: FlutterInstall@0
+          inputs:
+            channel: 'stable'
+            version: 'latest'
+        - task: FlutterBuild@0
+          inputs:
+            target: 'apk'
+            projectDirectory: '.device_calendar/example'
+        - task: CmdLine@2
+          inputs:
+            script: 'flutter pub publish --dry-run'
+    # - job: BuildIos
+    #   pool: 'macOS-latest'
   # CD Beta
   - stage: ReleaseBeta
     dependsOn: Build
