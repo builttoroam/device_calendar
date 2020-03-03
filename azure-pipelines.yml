@@ -1,0 +1,34 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  batch: 'true'
+  branches:
+    include:
+      - develop
+      - release
+
+stages:
+  # CI
+  - stage: Build
+    jobs: 
+     - job: BuildAndroid
+       pool: 'macOS-latest'
+     - job: BuildIos
+       pool: 'macOS-latest'
+  # CD Beta
+  - stage: ReleaseBeta
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/develop'))
+    jobs:
+     - job: Release
+       pool: 'windows-latest'
+  # CD Prod
+  - stage: ReleaseProd
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
+    jobs: 
+     - job: Release
+       pool: 'windows-latest'
