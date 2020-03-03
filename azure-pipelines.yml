@@ -25,7 +25,7 @@ stages:
         - task: FlutterBuild@0
           inputs:
             target: 'apk'
-            projectDirectory: '.device_calendar/example'
+            projectDirectory: 'device_calendar/example'
         - task: CmdLine@2
           inputs:
             script: 'flutter pub publish --dry-run'
