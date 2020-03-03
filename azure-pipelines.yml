@@ -62,8 +62,8 @@ stages:
             targetType: 'inline'
             script: |
               
-              [string] $versionRegex = '\bversion:\s+\K\S+'
-              [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calender/pubspec.yaml" -Raw
+              [string] $versionRegex = 'version:\s+\K\S+'
+              [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -Raw
 
               Write-Host " (i) Original pubspec.yaml content: $pubspecContent"
 
