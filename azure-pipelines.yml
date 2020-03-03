@@ -56,7 +56,7 @@ stages:
        pool:
         vmImage: 'windows-latest'
         steps:
-          - task: PowerShell@0
+          - task: PowerShell@2
             displayName: 'Update pubspec version'
             inputs:
               targetType: 'inline'
@@ -76,7 +76,7 @@ stages:
                 Write-Host " (i) Updated build.gradle content: $newPubspecContent"
                 
                 $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calender/pubspec.yaml"
-
+                
           # - task: CmdLine@2
           #   inputs:
           #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
