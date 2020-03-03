@@ -73,7 +73,7 @@ stages:
 
                 [string] $newPubspecContent = $pubspecContent -replace $versionRegex, "$env:VERSION-dev.$(Build.BuildID)"
                 
-                Write-Host " (i) Updated build.gradle content: $newBuildGradleContent"
+                Write-Host " (i) Updated build.gradle content: $newPubspecContent"
                 
                 $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calender/pubspec.yaml"
 
