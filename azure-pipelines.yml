@@ -3,6 +3,9 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+variables:
+  flutterExecPath: $(FlutterToolPath)\flutter.bat
+
 trigger:
   batch: 'true'
   branches:
@@ -28,7 +31,7 @@ stages:
             projectDirectory: 'device_calendar/example'
         - task: CmdLine@2
           inputs:
-            script: 'flutter pub publish --dry-run'
+            script: '$(flutterExecPath) pub publish --dry-run'
      - job: BuildIos
        pool:
         vmImage: 'macOS-latest'
