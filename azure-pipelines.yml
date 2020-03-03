@@ -56,32 +56,45 @@ stages:
        pool:
         vmImage: 'windows-latest'
        steps:
-        - task: PowerShell@2
-          displayName: 'Update pubspec version'
+        # - task: PowerShell@2
+        #   displayName: 'Update pubspec version'
+        #   inputs:
+        #     targetType: 'inline'
+        #     script: |
+              
+        #       [string] $versionRegex = '(?<=version: ).*'
+        #       [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -Raw
+
+        #       Write-Host " (i) Original pubspec.yaml content: $pubspecContent"
+
+        #       [bool] $hasMatches = $pubspecContent -match $versionRegex
+
+        #       Write-Host " (i) Found matches to replace version? $hasMatches"
+
+        #       [string] $newPubspecContent = $pubspecContent -replace $versionRegex, "$env:VERSION-dev.$(Build.BuildID)"
+              
+        #       Write-Host " (i) Updated pubspec.yaml content: $newPubspecContent"
+              
+        #       $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
+        - task: CmdLine@2
           inputs:
-            targetType: 'inline'
-            script: |
-              
-              [string] $versionRegex = '(?<=version: ).*'
-              [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -Raw
-
-              Write-Host " (i) Original pubspec.yaml content: $pubspecContent"
-
-              [bool] $hasMatches = $pubspecContent -match $versionRegex
-
-              Write-Host " (i) Found matches to replace version? $hasMatches"
-
-              [string] $newPubspecContent = $pubspecContent -replace $versionRegex, "$env:VERSION-dev.$(Build.BuildID)"
-              
-              Write-Host " (i) Updated pubspec.yaml content: $newPubspecContent"
-              
-              $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
-              
-          # - task: CmdLine@2
-          #   inputs:
-          #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-          #     script: '$(flutterExecPath) pub publish --dry-run'
-          # TODO: GitHub Tagging
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --dry-run'
+        # TODO: Need to investigate how to input 'y'
+        # - task: CmdLine@2
+        #   inputs:
+        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+        #     script: '$(flutterExecPath) pub publish'
+        - task: GitHubRelease@1
+          inputs:
+            gitHubConnection: 'github.com_Brett09'
+            repositoryName: 'builttoroam/flutter_plugins'
+            action: 'create'
+            target: 'master'
+            tagSource: 'gitTag'
+            isDraft: true
+            changeLogCompareToRelease: 'lastFullRelease'
+            changeLogType: 'commitBased'
   # CD Prod
   - stage: ReleaseProd
     dependsOn: Build
