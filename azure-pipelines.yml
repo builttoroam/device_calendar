@@ -19,7 +19,7 @@ stages:
   # CI
   - stage: Build
     # TODO:Remove after testing
-    #condition: eq(1,2)
+    condition: eq(1,2)
     jobs: 
      - job: BuildAndroidAndIos
        pool:
@@ -55,11 +55,11 @@ stages:
        pool:
         vmImage: 'windows-latest'
        steps:
-        - task: FlutterInstall@0
-          displayName: 'Flutter install'
-          inputs:
-            channel: 'stable'
-            version: 'latest'
+        # - task: FlutterInstall@0
+        #   displayName: 'Flutter install'
+        #   inputs:
+        #     channel: 'stable'
+        #     version: 'latest'
 
         # - task: CmdLine@2
         #   displayName: 'Dry run publish'
@@ -94,6 +94,7 @@ stages:
             tagSource: 'userSpecifiedTag'
             tag: v$(currentVersion)
             title: v$(currentVersion)
+            assets: $(Build.ArtifactStagingDirectory)/*
             isDraft: true
             changeLogCompareToRelease: 'lastFullRelease'
             changeLogType: 'commitBased'
