@@ -42,7 +42,8 @@ stages:
           inputs:
             target: 'ios'
             projectDirectory: 'device_calendar/example'
-        
+            iosCodesign: false
+            
   # CD Beta
   - stage: ReleaseBeta
     # TODO:Remove/uncomment after testing
@@ -91,8 +92,8 @@ stages:
             action: 'create'
             target: 'master'
             tagSource: 'userSpecifiedTag'
-            tag: $(currentVersion)
-            title: $(currentVersion)
+            tag: v$(currentVersion)
+            title: v$(currentVersion)
             isDraft: true
             changeLogCompareToRelease: 'lastFullRelease'
             changeLogType: 'commitBased'
