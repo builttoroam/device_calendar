@@ -61,12 +61,11 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              [string] $versionRegex = '(?<=version: ).*'
-              [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -Raw
-
-              select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "(?<=version: ).*" | %{ $_.Matches[0].Groups[1].Value }
+              [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "(?<=version: ).*" | %{ $_.Matches[0].Value }
               
-              Write-Host "##vso[task.setvariable variable=currentVersion]$Matches"
+              Write-Host "##vso[task.setvariable variable=currentVersion]$version"
+
+              Write-Host "Test: $env:currentVersion"
         
         - task: PowerShell@2
           inputs:
