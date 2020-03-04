@@ -64,14 +64,6 @@ stages:
               [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "(?<=version: ).*" | %{ $_.Matches[0].Value }
               
               Write-Host "##vso[task.setvariable variable=currentVersion]$version"
-
-              Write-Host "Test: $env:currentVersion"
-        
-        - task: PowerShell@2
-          inputs:
-            targetType: 'inline'
-            script: |
-              Write-Host "Test: $env:currentVersion"
         # - task: CmdLine@2
         #   inputs:
         #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
@@ -83,17 +75,19 @@ stages:
         #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
         #     script: '$(flutterExecPath) pub publish'
 
-        # - task: GitHubRelease@1
-        #   inputs:
-        #     gitHubConnection: 'github.com_Brett09'
-        #     repositoryName: 'builttoroam/flutter_plugins'
-        #     action: 'create'
-        #     target: 'master'
-        #     tagSource: 'userSpecifiedTag'
-        #     tag: $(currentVersion)
-        #     isDraft: true
-        #     changeLogCompareToRelease: 'lastFullRelease'
-        #     changeLogType: 'commitBased'
+        #TODO: Remove isDraft
+        - task: GitHubRelease@1
+          displayName: 'Tag a release to GitHub'
+          inputs:
+            gitHubConnection: 'github.com_Brett09'
+            repositoryName: 'builttoroam/flutter_plugins'
+            action: 'create'
+            target: 'master'
+            tagSource: 'userSpecifiedTag'
+            tag: $(currentVersion)
+            isDraft: true
+            changeLogCompareToRelease: 'lastFullRelease'
+            changeLogType: 'commitBased'
   # CD Prod
   - stage: ReleaseProd
     dependsOn: Build
