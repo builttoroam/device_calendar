@@ -19,7 +19,7 @@ stages:
   # CI
   - stage: Build
     # TODO:Remove after testing
-    condition: eq(1,2)
+    #condition: eq(1,2)
     jobs: 
      - job: BuildAndroidAndIos
        pool:
@@ -60,11 +60,11 @@ stages:
             channel: 'stable'
             version: 'latest'
 
-        - task: CmdLine@2
-          displayName: 'Dry run publish'
-          inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-            script: '$(flutterExecPath) pub publish --dry-run'
+        # - task: CmdLine@2
+        #   displayName: 'Dry run publish'
+        #   inputs:
+        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+        #     script: '$(flutterExecPath) pub publish --dry-run'
 
         # TODO: Need to investigate how to input 'y'
         # - task: CmdLine@2
@@ -72,8 +72,6 @@ stages:
         #   inputs:
         #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
         #     script: '$(flutterExecPath) pub publish'
-
-        #TODO: Remove isDraft
 
         - task: PowerShell@2
           displayName: 'Get version from pubspec.yaml'
@@ -84,6 +82,7 @@ stages:
               
               Write-Host "##vso[task.setvariable variable=currentVersion]$version"
 
+        #TODO: Remove isDraft
         - task: GitHubRelease@1
           displayName: 'Tag a release to GitHub'
           inputs:
@@ -97,6 +96,7 @@ stages:
             isDraft: true
             changeLogCompareToRelease: 'lastFullRelease'
             changeLogType: 'commitBased'
+            
   # CD Prod
   - stage: ReleaseProd
     dependsOn: Build
