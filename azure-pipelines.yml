@@ -21,30 +21,28 @@ stages:
     # TODO:Remove after testing
     condition: eq(1,2)
     jobs: 
-     - job: BuildAndroid
+     - job: BuildAndroidAndIos
        pool:
-        vmImage: 'windows-latest'
+        vmImage: 'macOS-latest'
        steps:
         - task: FlutterInstall@0
+          displayName: 'Flutter install'
           inputs:
             channel: 'stable'
             version: 'latest'
+
         - task: FlutterBuild@0
+          displayName: 'Flutter build - Android'
           inputs:
             target: 'apk'
             projectDirectory: 'device_calendar/example'
-     - job: BuildIos
-       pool:
-        vmImage: 'macOS-latest'
-        steps:
-        - task: FlutterInstall@0
-          inputs:
-            channel: 'stable'
-            version: 'latest'
+
         - task: FlutterBuild@0
+          displayName: 'Flutter build - iOS'
           inputs:
             target: 'ios'
             projectDirectory: 'device_calendar/example'
+        
   # CD Beta
   - stage: ReleaseBeta
     # TODO:Remove/uncomment after testing
@@ -56,6 +54,27 @@ stages:
        pool:
         vmImage: 'windows-latest'
        steps:
+        - task: FlutterInstall@0
+          displayName: 'Flutter install'
+          inputs:
+            channel: 'stable'
+            version: 'latest'
+
+        - task: CmdLine@2
+          displayName: 'Dry run publish'
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --dry-run'
+
+        # TODO: Need to investigate how to input 'y'
+        # - task: CmdLine@2
+        #   displayName: 'Publish'
+        #   inputs:
+        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+        #     script: '$(flutterExecPath) pub publish'
+
+        #TODO: Remove isDraft
+
         - task: PowerShell@2
           displayName: 'Get version from pubspec.yaml'
           inputs:
@@ -64,18 +83,7 @@ stages:
               [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "(?<=version: ).*" | %{ $_.Matches[0].Value }
               
               Write-Host "##vso[task.setvariable variable=currentVersion]$version"
-        # - task: CmdLine@2
-        #   inputs:
-        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-        #     script: '$(flutterExecPath) pub publish --dry-run'
 
-        # TODO: Need to investigate how to input 'y'
-        # - task: CmdLine@2
-        #   inputs:
-        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-        #     script: '$(flutterExecPath) pub publish'
-
-        #TODO: Remove isDraft
         - task: GitHubRelease@1
           displayName: 'Tag a release to GitHub'
           inputs:
