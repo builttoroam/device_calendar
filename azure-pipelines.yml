@@ -85,6 +85,7 @@ stages:
             target: 'master'
             tagSource: 'userSpecifiedTag'
             tag: $(currentVersion)
+            title: $(currentVersion)
             isDraft: true
             changeLogCompareToRelease: 'lastFullRelease'
             changeLogType: 'commitBased'
