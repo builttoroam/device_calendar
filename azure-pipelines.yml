@@ -61,19 +61,22 @@ stages:
         #     version: 'latest'
 
         - task: PowerShell@2
+          displayName: 'Pre-release versioning'
           inputs:
             targetType: 'inline'
             script: |
               [string] $versionRegex = '(?<=version: ).*'
               [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -Raw
+              [string] $version = select-string -path $pubspecContent -pattern "(?<=version: ).*" | %{ $_.Matches[0].Value }
 
+              Write-Host " (i) Current version: $version"
               Write-Host " (i) Original pubspec.yaml content: $pubspecContent"
 
               [bool] $hasMatches = $pubspecContent -match $versionRegex
 
               Write-Host " (i) Found matches to replace version? $hasMatches"
               
-              [string] $newPubspecContent = $pubspecContent -replace $versionRegex, "$versionRegex-dev.$(Build.BuildID)"
+              [string] $newPubspecContent = $pubspecContent -replace $versionRegex, "$version-dev.$(Build.BuildID)"
 
               Write-Host " (i) Updated pubspec.yaml content: $newPubspecContent"
 
@@ -101,6 +104,12 @@ stages:
        pool:
         vmImage: 'windows-latest'
        steps:
+        - task: FlutterInstall@0
+          displayName: 'Flutter install'
+          inputs:
+            channel: 'stable'
+            version: 'latest'
+
         - task: CmdLine@2
           displayName: 'Dry run publish'
           inputs:
