@@ -22,6 +22,7 @@ trigger:
 stages:
   # ----------- CI -----------
   - stage: Build
+    condition: eq(1,2)
     jobs: 
      - job: BuildAndroidAndIos
        pool:
@@ -48,21 +49,22 @@ stages:
             
   # -----------CD Pre-release -----------
   - stage: ReleaseBeta
-    dependsOn: Build
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
+    condition: eq(1,1)
+    # dependsOn: Build
+    # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
     jobs:
      - job: Release
        pool:
         vmImage: 'windows-latest'
        steps:
-        - task: FlutterInstall@0
-          displayName: 'Flutter install'
-          inputs:
-            channel: 'stable'
-            version: 'latest'
+        # - task: FlutterInstall@0
+        #   displayName: 'Flutter install'
+        #   inputs:
+        #     channel: 'stable'
+        #     version: 'latest'
 
         - task: PowerShell@2
-          displayName: 'Pre-release versioning'
+          displayName: 'Pre-release versioning - pubspec.yaml'
           inputs:
             targetType: 'inline'
             script: |
@@ -83,22 +85,39 @@ stages:
 
               $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
 
-        - task: CmdLine@2
-          displayName: 'Dry run publish'
+        - task: PowerShell@2
+          displayName: 'Pre-release versioning - changelog.md'
           inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-            script: '$(flutterExecPath) pub publish --dry-run'
+            targetType: 'inline'
+            script: |
+              [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "(?<=version: ).*" | %{ $_.Matches[0].Value }
+              [string] $changelogContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md" -Raw
 
-        - task: CmdLine@2
-          displayName: 'Publish'
-          inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-            script: '$(flutterExecPath) pub publish --force'
+              Write-Host " (i) Original CHANGELOG.md content: $changelogContent"
+
+              [string] $newChangelogContent = $changelogContent-replace $version, "$version-dev.$(Build.BuildID)"
+
+              Write-Host " (i) Updated CHANGELOG.md content: $newChangelogContent"
+
+              $newChangelogContent| Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md"
+
+        # - task: CmdLine@2
+        #   displayName: 'Dry run publish'
+        #   inputs:
+        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+        #     script: '$(flutterExecPath) pub publish --dry-run'
+
+        # - task: CmdLine@2
+        #   displayName: 'Publish'
+        #   inputs:
+        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+        #     script: '$(flutterExecPath) pub publish --force'
             
   # ----------- CD Production -----------
   - stage: ReleaseProd
-    dependsOn: Build
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/master'))
+    condition: eq(1,2)
+    # dependsOn: Build
+    # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/master'))
     jobs: 
      - job: Release
        pool:
