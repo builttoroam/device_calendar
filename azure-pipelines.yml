@@ -13,13 +13,12 @@ trigger:
   branches:
     include:
       - develop
-     # - release
+      - release
+      - master
 
 stages:
-  # CI
+  # ----------- CI -----------
   - stage: Build
-    # TODO:Remove after testing
-    condition: eq(1,2)
     jobs: 
      - job: BuildAndroidAndIos
        pool:
@@ -44,28 +43,47 @@ stages:
             projectDirectory: 'device_calendar/example'
             iosCodesign: false
             
-  # CD Beta
+  # -----------CD Pre-release -----------
   - stage: ReleaseBeta
-    # TODO: Remove/uncomment after testing
-    condition: eq(1,1)
-    #dependsOn: Build
-    #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/develop'))
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
     jobs:
      - job: Release
        pool:
         vmImage: 'windows-latest'
        steps:
-        # - task: FlutterInstall@0
-        #   displayName: 'Flutter install'
-        #   inputs:
-        #     channel: 'stable'
-        #     version: 'latest'
+        - task: FlutterInstall@0
+          displayName: 'Flutter install'
+          inputs:
+            channel: 'stable'
+            version: 'latest'
+
+        - task: CmdLine@2
+          displayName: 'Dry run publish'
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --dry-run'
 
         # - task: CmdLine@2
-        #   displayName: 'Dry run publish'
+        #   displayName: 'Publish'
         #   inputs:
         #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-        #     script: '$(flutterExecPath) pub publish --dry-run'
+        #     script: '$(flutterExecPath) pub publish --force'
+            
+  # ----------- CD Production -----------
+  - stage: ReleaseProd
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/master'))
+    jobs: 
+     - job: Release
+       pool:
+        vmImage: 'windows-latest'
+       steps:
+        - task: CmdLine@2
+          displayName: 'Dry run publish'
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --dry-run'
 
         # - task: CmdLine@2
         #   displayName: 'Publish'
@@ -82,7 +100,7 @@ stages:
               
               Write-Host "##vso[task.setvariable variable=currentVersion]$version"
 
-        #TODO: Remove isDraft
+        # TODO: Remove isDraft
         - task: GitHubRelease@1
           displayName: 'Tag a release to GitHub'
           inputs:
@@ -93,17 +111,7 @@ stages:
             tagSource: 'userSpecifiedTag'
             tag: v$(currentVersion)
             title: v$(currentVersion)
-            assets: $(Build.ArtifactStagingDirectory)/*
             isDraft: true
+            assets: $(Build.ArtifactStagingDirectory)/*
             changeLogCompareToRelease: 'lastFullRelease'
             changeLogType: 'commitBased'
-            
-  # CD Prod
-  - stage: ReleaseProd
-    dependsOn: Build
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
-    jobs: 
-     - job: Release
-       pool:
-        vmImage: 'windows-latest'
-          # TODO: Add tasks
