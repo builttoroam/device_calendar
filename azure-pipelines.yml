@@ -46,7 +46,7 @@ stages:
             
   # CD Beta
   - stage: ReleaseBeta
-    # TODO:Remove/uncomment after testing
+    # TODO: Remove/uncomment after testing
     condition: eq(1,1)
     #dependsOn: Build
     #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/develop'))
@@ -67,12 +67,11 @@ stages:
         #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
         #     script: '$(flutterExecPath) pub publish --dry-run'
 
-        # TODO: Need to investigate how to input 'y'
         # - task: CmdLine@2
         #   displayName: 'Publish'
         #   inputs:
         #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-        #     script: '$(flutterExecPath) pub publish'
+        #     script: '$(flutterExecPath) pub publish --force'
 
         - task: PowerShell@2
           displayName: 'Get version from pubspec.yaml'
