@@ -19,7 +19,6 @@ trigger:
 stages:
   # ----------- CI -----------
   - stage: Build
-    condition: eq(1,2)
     jobs: 
      - job: BuildAndroidAndIos
        pool:
@@ -46,19 +45,18 @@ stages:
             
   # -----------CD Pre-release -----------
   - stage: ReleaseBeta
-    condition: eq(1,1)
-    #dependsOn: Build
-    #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
     jobs:
      - job: Release
        pool:
         vmImage: 'windows-latest'
        steps:
-        # - task: FlutterInstall@0
-        #   displayName: 'Flutter install'
-        #   inputs:
-        #     channel: 'stable'
-        #     version: 'latest'
+        - task: FlutterInstall@0
+          displayName: 'Flutter install'
+          inputs:
+            channel: 'stable'
+            version: 'latest'
 
         - task: PowerShell@2
           displayName: 'Pre-release versioning'
@@ -82,23 +80,22 @@ stages:
 
               $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
 
-        # - task: CmdLine@2
-        #   displayName: 'Dry run publish'
-        #   inputs:
-        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-        #     script: '$(flutterExecPath) pub publish --dry-run'
+        - task: CmdLine@2
+          displayName: 'Dry run publish'
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --dry-run'
 
-        # - task: CmdLine@2
-        #   displayName: 'Publish'
-        #   inputs:
-        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-        #     script: '$(flutterExecPath) pub publish --force'
+        - task: CmdLine@2
+          displayName: 'Publish'
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --force'
             
   # ----------- CD Production -----------
   - stage: ReleaseProd
-    #dependsOn: Build
-    #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/master'))
-    condition: eq(1,2)
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/master'))
     jobs: 
      - job: Release
        pool:
@@ -116,11 +113,11 @@ stages:
             workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
             script: '$(flutterExecPath) pub publish --dry-run'
 
-        # - task: CmdLine@2
-        #   displayName: 'Publish'
-        #   inputs:
-        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-        #     script: '$(flutterExecPath) pub publish --force'
+        - task: CmdLine@2
+          displayName: 'Publish'
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --force'
 
         - task: PowerShell@2
           displayName: 'Get version from pubspec.yaml'
@@ -131,7 +128,6 @@ stages:
               
               Write-Host "##vso[task.setvariable variable=currentVersion]$version"
 
-        # TODO: Remove isDraft
         - task: GitHubRelease@1
           displayName: 'Tag a release to GitHub'
           inputs:
@@ -142,7 +138,6 @@ stages:
             tagSource: 'userSpecifiedTag'
             tag: v$(currentVersion)
             title: v$(currentVersion)
-            isDraft: true
             assets: $(Build.ArtifactStagingDirectory)/*
             changeLogCompareToRelease: 'lastFullRelease'
             changeLogType: 'commitBased'
