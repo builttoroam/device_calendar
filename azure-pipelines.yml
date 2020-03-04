@@ -15,6 +15,9 @@ trigger:
       - develop
       - release
       - master
+  paths:
+    include:
+      - device_calendar/*
 
 stages:
   # ----------- CI -----------
