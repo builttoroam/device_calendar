@@ -56,45 +56,45 @@ stages:
        pool:
         vmImage: 'windows-latest'
        steps:
-        # - task: PowerShell@2
-        #   displayName: 'Update pubspec version'
-        #   inputs:
-        #     targetType: 'inline'
-        #     script: |
-              
-        #       [string] $versionRegex = '(?<=version: ).*'
-        #       [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -Raw
-
-        #       Write-Host " (i) Original pubspec.yaml content: $pubspecContent"
-
-        #       [bool] $hasMatches = $pubspecContent -match $versionRegex
-
-        #       Write-Host " (i) Found matches to replace version? $hasMatches"
-
-        #       [string] $newPubspecContent = $pubspecContent -replace $versionRegex, "$env:VERSION-dev.$(Build.BuildID)"
-              
-        #       Write-Host " (i) Updated pubspec.yaml content: $newPubspecContent"
-              
-        #       $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
-        - task: CmdLine@2
+        - task: PowerShell@2
+          displayName: 'Get version from pubspec.yaml'
           inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-            script: '$(flutterExecPath) pub publish --dry-run'
+            targetType: 'inline'
+            script: |
+              [string] $versionRegex = '(?<=version: ).*'
+              [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -Raw
+
+              select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "(?<=version: ).*" | %{ $_.Matches[0].Groups[1].Value }
+              
+              Write-Host "##vso[task.setvariable variable=currentVersion]$Matches"
+        
+        - task: PowerShell@2
+          inputs:
+            targetType: 'inline'
+            script: |
+              Write-Host "Test: $env:currentVersion"
+        # - task: CmdLine@2
+        #   inputs:
+        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+        #     script: '$(flutterExecPath) pub publish --dry-run'
+
         # TODO: Need to investigate how to input 'y'
         # - task: CmdLine@2
         #   inputs:
         #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
         #     script: '$(flutterExecPath) pub publish'
-        - task: GitHubRelease@1
-          inputs:
-            gitHubConnection: 'github.com_Brett09'
-            repositoryName: 'builttoroam/flutter_plugins'
-            action: 'create'
-            target: 'master'
-            tagSource: 'gitTag'
-            isDraft: true
-            changeLogCompareToRelease: 'lastFullRelease'
-            changeLogType: 'commitBased'
+
+        # - task: GitHubRelease@1
+        #   inputs:
+        #     gitHubConnection: 'github.com_Brett09'
+        #     repositoryName: 'builttoroam/flutter_plugins'
+        #     action: 'create'
+        #     target: 'master'
+        #     tagSource: 'userSpecifiedTag'
+        #     tag: $(currentVersion)
+        #     isDraft: true
+        #     changeLogCompareToRelease: 'lastFullRelease'
+        #     changeLogType: 'commitBased'
   # CD Prod
   - stage: ReleaseProd
     dependsOn: Build
