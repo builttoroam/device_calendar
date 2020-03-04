@@ -65,9 +65,9 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
+              [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "(?<=version: ).*" | %{ $_.Matches[0].Value }
               [string] $versionRegex = '(?<=version: ).*'
               [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -Raw
-              [string] $version = select-string -path $pubspecContent -pattern "(?<=version: ).*" | %{ $_.Matches[0].Value }
 
               Write-Host " (i) Current version: $version"
               Write-Host " (i) Original pubspec.yaml content: $pubspecContent"
