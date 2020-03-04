@@ -729,8 +729,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       case DayOfWeekGroup.None:
         _daysOfWeek.clear();
         break;
-      default: // DayOfWeekGroup.Custom, it shouldn't be changed
-        break;
     }
   }
 
@@ -753,9 +751,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     else if (deepEquality(_daysOfWeek, DayOfWeekGroup.Alldays.getDays) && _dayOfWeekGroup != DayOfWeekGroup.Alldays) {
       _dayOfWeekGroup = DayOfWeekGroup.Alldays;
     }
-    // Otherwise, set as Custom
+    // Otherwise null
     else {
-      _dayOfWeekGroup = DayOfWeekGroup.Custom;
+      _dayOfWeekGroup = null;
     }
   }
 
