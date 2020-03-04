@@ -46,8 +46,9 @@ stages:
             
   # -----------CD Pre-release -----------
   - stage: ReleaseBeta
-    dependsOn: Build
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
+    condition: eq(1,1)
+    #dependsOn: Build
+    #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
     jobs:
      - job: Release
        pool:
