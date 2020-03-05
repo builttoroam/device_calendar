@@ -83,11 +83,11 @@ stages:
               
               [string] $newPubspecContent = $pubspecContent -replace $versionRegex, "$version-dev.$(Build.BuildID)"
 
-              $newPubspecContent = $newPubspecContent - replace "collection: any", "collection: ^1.4.11"
+              [string] $test = $newPubspecContent - replace "collection: any", "collection: ^1.4.11"
 
-              Write-Host " (i) Updated pubspec.yaml content: $newPubspecContent"
+              Write-Host " (i) Updated pubspec.yaml content: $test"
 
-              $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
+              $test| Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
 
         - task: PowerShell@2
           displayName: 'Pre-release versioning - CHANGELOG.md'
