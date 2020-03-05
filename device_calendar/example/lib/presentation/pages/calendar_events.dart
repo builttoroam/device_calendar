@@ -4,6 +4,7 @@ import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 
 import '../event_item.dart';
+import '../recurring_event_dialog.dart';
 import 'calendar_event.dart';
 
 class CalendarEventsPage extends StatefulWidget {
@@ -111,7 +112,13 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   Future _onTapped(Event event) async {
     final refreshEvents = await Navigator.push(context,
         MaterialPageRoute(builder: (BuildContext context) {
-      return CalendarEventPage(_calendar, event, _onLoading, _onDeletedFinished);
+      return CalendarEventPage(_calendar, event,
+        RecurringEventDialog(
+          _deviceCalendarPlugin,
+          event,
+          _onLoading,
+          _onDeletedFinished,
+        ),);
     }));
     if (refreshEvents != null && refreshEvents) {
       await _retrieveCalendarEvents();

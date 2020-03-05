@@ -14,15 +14,13 @@ enum RecurrenceRuleEndType { Indefinite, MaxOccurrences, SpecifiedEndDate }
 class CalendarEventPage extends StatefulWidget {
   final Calendar _calendar;
   final Event _event;
+  final RecurringEventDialog _recurringEventDialog;
 
-  final VoidCallback _onLoadingStarted;
-  final Function(bool) _onDeleteFinished;
-
-  CalendarEventPage(this._calendar, [this._event, this._onLoadingStarted, this._onDeleteFinished]);
+  CalendarEventPage(this._calendar, [this._event, this._recurringEventDialog]);
 
   @override
   _CalendarEventPageState createState() {
-    return _CalendarEventPageState(_calendar, _event, _onLoadingStarted, _onDeleteFinished);
+    return _CalendarEventPageState(_calendar, _event, _recurringEventDialog);
   }
 }
 
@@ -33,9 +31,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   Event _event;
   DeviceCalendarPlugin _deviceCalendarPlugin;
-
-  VoidCallback _onLoadingStarted;
-  Function(bool) _onDeleteFinished;
+  RecurringEventDialog _recurringEventDialog;
 
   DateTime _startDate;
   TimeOfDay _startTime;
@@ -63,8 +59,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   List<Attendee> _attendees = List<Attendee>();
   List<Reminder> _reminders = List<Reminder>();
   
-  _CalendarEventPageState(this._calendar, this._event, this._onLoadingStarted, this._onDeleteFinished) {
+  _CalendarEventPageState(this._calendar, this._event, this._recurringEventDialog) {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
+    _recurringEventDialog = this._recurringEventDialog;
 
     _attendees = List<Attendee>();
     _reminders = List<Reminder>();
@@ -613,12 +610,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         context: context,
                         barrierDismissible: false,
                         builder: (BuildContext context) {
-                          return RecurringEventDialog(
-                            _deviceCalendarPlugin,
-                            _event,
-                            _onLoadingStarted,
-                            _onDeleteFinished,
-                          );
+                          return _recurringEventDialog;
                         }
                       );
                     }
