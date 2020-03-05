@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.1.0
+## 3.1.0 6th March 2020 Bug fixes and new features
 
 * Boolean variable `isDefault` added for issue [145](https://github.com/builttoroam/flutter_plugins/issues/145) (**NOTE**: This is not supported Android API 16 or lower, `isDefault` will always be false)
 * Events with 'null' title now defaults to 'New Event', issue [126](https://github.com/builttoroam/flutter_plugins/issues/126)
