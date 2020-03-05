@@ -36,7 +36,7 @@ stages:
         - task: FlutterBuild@0
           displayName: 'Flutter build - Android'
           inputs:
-            target: 'apk'
+            target: 'aab'
             projectDirectory: 'device_calendar/example'
 
         - task: FlutterBuild@0
@@ -137,6 +137,14 @@ stages:
               
               Write-Host "##vso[task.setvariable variable=currentVersion]$version"
 
+        - task: PowerShell@2
+          displayName: 'Get version summary from CHANGELOG.md'
+          inputs:
+            targetType: 'inline'
+            script: |
+              [string] $summary = select-string -path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md" -pattern "($([regex]::escape($env:currentVersion))).*" | %{ $_.Matches[0].Value }
+              
+              Write-Host "##vso[task.setvariable variable=versionSummary]$summary"
         - task: GitHubRelease@1
           displayName: 'Tag a release to GitHub'
           inputs:
@@ -146,7 +154,7 @@ stages:
             target: 'master'
             tagSource: 'userSpecifiedTag'
             tag: v$(currentVersion)
-            title: v$(currentVersion)
+            title: v$(versionSummary)
             assets: $(Build.ArtifactStagingDirectory)/*
             changeLogCompareToRelease: 'lastFullRelease'
             changeLogType: 'commitBased'
