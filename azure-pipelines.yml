@@ -97,7 +97,7 @@ stages:
               Write-Host " (i) Current version: $env.currentVersion"
               Write-Host " (i) Original CHANGELOG.md content: $changelogContent"
 
-              [string] $newChangelogContent = $changelogContent -replace $env:currentVersion, "$version-dev.$(Build.BuildID)"
+              [string] $newChangelogContent = $changelogContent -replace $env:currentVersion, "$env:currentVersion-dev.$(Build.BuildID)"
 
               Write-Host " (i) Updated CHANGELOG.md content: $newChangelogContent"
 
