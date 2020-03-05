@@ -99,7 +99,7 @@ stages:
 
               Write-Host " (i) Updated CHANGELOG.md content: $newChangelogContent"
 
-              $newChangelogContent| Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md"
+              $newChangelogContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md"
 
         - task: CmdLine@2
           displayName: 'Dry run publish'
