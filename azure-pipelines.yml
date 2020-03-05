@@ -22,7 +22,6 @@ trigger:
 stages:
   # ----------- CI -----------
   - stage: Build
-    condition: eq(1,2)
     jobs: 
      - job: BuildAndroidAndIos
        pool:
@@ -49,9 +48,8 @@ stages:
             
   # -----------CD Pre-release -----------
   - stage: ReleaseBeta
-    condition: eq(1,1)
-    # dependsOn: Build
-    # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
     jobs:
      - job: Release
        pool:
@@ -83,11 +81,9 @@ stages:
               
               [string] $newPubspecContent = $pubspecContent -replace $versionRegex, "$version-dev.$(Build.BuildID)"
 
-              [string] $test = $newPubspecContent -replace "collection: any", "collection: ^1.4.11"
+              Write-Host " (i) Updated pubspec.yaml content: $newPubspecContent"
 
-              Write-Host " (i) Updated pubspec.yaml content: $test"
-
-              $test| Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
+              $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
 
         - task: PowerShell@2
           displayName: 'Pre-release versioning - CHANGELOG.md'
@@ -111,17 +107,16 @@ stages:
             workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
             script: '$(flutterExecPath) pub publish --dry-run'
 
-        # - task: CmdLine@2
-        #   displayName: 'Publish'
-        #   inputs:
-        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-        #     script: '$(flutterExecPath) pub publish --force'
+        - task: CmdLine@2
+          displayName: 'Publish'
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --force'
             
   # ----------- CD Production -----------
   - stage: ReleaseProd
-    condition: eq(1,2)
-    # dependsOn: Build
-    # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/master'))
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/master'))
     jobs: 
      - job: Release
        pool:
