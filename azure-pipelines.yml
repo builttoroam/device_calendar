@@ -83,7 +83,7 @@ stages:
               
               [string] $newPubspecContent = $pubspecContent -replace $versionRegex, "$version-dev.$(Build.BuildID)"
 
-              [string] $test = $newPubspecContent - replace "collection: any", "collection: ^1.4.11"
+              [string] $test = $newPubspecContent -replace "collection: any", "collection: ^1.4.11"
 
               Write-Host " (i) Updated pubspec.yaml content: $test"
 
