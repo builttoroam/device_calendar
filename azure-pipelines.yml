@@ -69,6 +69,8 @@ stages:
             targetType: 'inline'
             script: |
               [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "(?<=version: ).*" | %{ $_.Matches[0].Value }
+              Write-Host "##vso[task.setvariable variable=currentVersion]$version"
+
               [string] $versionRegex = '(?<=version: ).*'
               [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -Raw
 
@@ -90,13 +92,12 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "(?<=version: ).*" | %{ $_.Matches[0].Value }
               [string] $changelogContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md" -Raw
 
-              Write-Host " (i) Current version: $version"
+              Write-Host " (i) Current version: $env.currentVersion"
               Write-Host " (i) Original CHANGELOG.md content: $changelogContent"
 
-              [string] $newChangelogContent = $changelogContent -replace $version, "$version-dev.$(Build.BuildID)"
+              [string] $newChangelogContent = $changelogContent -replace $env:currentVersion, "$version-dev.$(Build.BuildID)"
 
               Write-Host " (i) Updated CHANGELOG.md content: $newChangelogContent"
 
