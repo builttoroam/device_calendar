@@ -57,11 +57,11 @@ stages:
        pool:
         vmImage: 'windows-latest'
        steps:
-        # - task: FlutterInstall@0
-        #   displayName: 'Flutter install'
-        #   inputs:
-        #     channel: 'stable'
-        #     version: 'latest'
+        - task: FlutterInstall@0
+          displayName: 'Flutter install'
+          inputs:
+            channel: 'stable'
+            version: 'latest'
 
         - task: PowerShell@2
           displayName: 'Pre-release versioning - pubspec.yaml'
@@ -83,6 +83,8 @@ stages:
               
               [string] $newPubspecContent = $pubspecContent -replace $versionRegex, "$version-dev.$(Build.BuildID)"
 
+              $newPubspecContent = $newPubspecContent - replace "collection: any", "collection: ^1.4.11"
+
               Write-Host " (i) Updated pubspec.yaml content: $newPubspecContent"
 
               $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
@@ -103,11 +105,11 @@ stages:
 
               $newChangelogContent| Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md"
 
-        # - task: CmdLine@2
-        #   displayName: 'Dry run publish'
-        #   inputs:
-        #     workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-        #     script: '$(flutterExecPath) pub publish --dry-run'
+        - task: CmdLine@2
+          displayName: 'Dry run publish'
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --dry-run'
 
         # - task: CmdLine@2
         #   displayName: 'Publish'
