@@ -86,13 +86,14 @@ stages:
               $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
 
         - task: PowerShell@2
-          displayName: 'Pre-release versioning - changelog.md'
+          displayName: 'Pre-release versioning - CHANGELOG.md'
           inputs:
             targetType: 'inline'
             script: |
               [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "(?<=version: ).*" | %{ $_.Matches[0].Value }
               [string] $changelogContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md" -Raw
 
+              Write-Host " (i) Current version: $version"
               Write-Host " (i) Original CHANGELOG.md content: $changelogContent"
 
               [string] $newChangelogContent = $changelogContent -replace $version, "$version-dev.$(Build.BuildID)"
