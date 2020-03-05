@@ -47,11 +47,11 @@ stages:
             iosCodesign: false
             
   # -----------CD Pre-release -----------
-  - stage: ReleaseBeta
+  - stage: DevelopmentRelease
     dependsOn: Build
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
     jobs:
-     - job: Release
+     - job: ReleaseAsDevelopmentVersion
        pool:
         vmImage: 'windows-latest'
        steps:
@@ -114,7 +114,7 @@ stages:
             script: '$(flutterExecPath) pub publish --force'
             
   # ----------- CD Production -----------
-  - stage: ReleaseProd
+  - stage: Release
     dependsOn: Build
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/master'))
     jobs: 
@@ -128,18 +128,6 @@ stages:
             channel: 'stable'
             version: 'latest'
 
-        - task: CmdLine@2
-          displayName: 'Dry run publish'
-          inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-            script: '$(flutterExecPath) pub publish --dry-run'
-
-        - task: CmdLine@2
-          displayName: 'Publish'
-          inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-            script: '$(flutterExecPath) pub publish --force'
-
         - task: PowerShell@2
           displayName: 'Get version from pubspec.yaml'
           inputs:
@@ -152,7 +140,7 @@ stages:
         - task: GitHubRelease@1
           displayName: 'Tag a release to GitHub'
           inputs:
-            gitHubConnection: 'github.com_Brett09'
+            gitHubConnection: 'GitHub Tagging'
             repositoryName: 'builttoroam/flutter_plugins'
             action: 'create'
             target: 'master'
@@ -162,3 +150,15 @@ stages:
             assets: $(Build.ArtifactStagingDirectory)/*
             changeLogCompareToRelease: 'lastFullRelease'
             changeLogType: 'commitBased'
+
+        - task: CmdLine@2
+          displayName: 'Dry run publish'
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --dry-run'
+
+        - task: CmdLine@2
+          displayName: 'Publish'
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --force'
