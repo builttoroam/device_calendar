@@ -12,8 +12,7 @@ enum DayOfWeekGroup {
   None,
   Weekday,
   Weekend,
-  Alldays,
-  Custom
+  Alldays
 }
 
 enum MonthOfYear {
