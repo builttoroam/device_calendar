@@ -145,19 +145,24 @@ stages:
               [string] $summary = select-string -path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md" -pattern "($([regex]::escape($env:currentVersion))).*" | %{ $_.Matches[0].Value }
               
               Write-Host "##vso[task.setvariable variable=versionSummary]$summary"
-        - task: GitHubRelease@1
+
+        - task: GitHubReleasePublish@1
           displayName: 'Tag a release to GitHub'
           inputs:
-            gitHubConnection: 'GitHub Tagging'
-            repositoryName: 'builttoroam/flutter_plugins'
-            action: 'create'
-            target: 'master'
-            tagSource: 'userSpecifiedTag'
-            tag: v$(currentVersion)
-            title: v$(versionSummary)
-            assets: $(Build.ArtifactStagingDirectory)/*
-            changeLogCompareToRelease: 'lastFullRelease'
-            changeLogType: 'commitBased'
+            githubEndpoint: 'GitHub Tagging'
+            manuallySetRepository: false
+            githubRepository: 'builttoroam/flutter_plugins'
+            githubTag: 'v$(currentVersion)'
+            githubReleaseTitle: '$(versionSummary)'
+            githubReleaseDraft: false
+            githubReleasePrerelease: false
+            githubIgnoreAssets: false
+            githubReleaseAsset: '$(Build.ArtifactStagingDirectory)/*'
+            githubReuseRelease: false
+            githubReuseDraftOnly: false
+            githubSkipDuplicatedAssets: false
+            githubEditRelease: false
+            githubDeleteEmptyTag: false
 
         - task: CmdLine@2
           displayName: 'Dry run publish'
