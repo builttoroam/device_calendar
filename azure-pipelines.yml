@@ -14,6 +14,7 @@ trigger:
     include:
       - develop
       - release
+      - hotfix
       - master
   paths:
     include:
@@ -49,7 +50,7 @@ stages:
   # -----------CD Pre-release -----------
   - stage: DevelopmentRelease
     dependsOn: Build
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'))
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/release'), eq(variables['Build.SourceBranch'], 'refs/hotfix'))
     jobs:
      - job: ReleaseAsDevelopmentVersion
        pool:
@@ -62,6 +63,7 @@ stages:
             version: 'latest'
 
         - task: PowerShell@2
+          condition: eq(variables['Build.SourceBranch'], 'refs/release')
           displayName: 'Pre-release versioning - pubspec.yaml'
           inputs:
             targetType: 'inline'
@@ -86,6 +88,7 @@ stages:
               $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
 
         - task: PowerShell@2
+          condition: eq(variables['Build.SourceBranch'], 'refs/release')
           displayName: 'Pre-release versioning - CHANGELOG.md'
           inputs:
             targetType: 'inline'
@@ -108,6 +111,7 @@ stages:
             script: '$(flutterExecPath) pub publish --dry-run'
 
         - task: CmdLine@2
+          condition: eq(variables['Build.SourceBranch'], 'refs/release')
           displayName: 'Publish'
           inputs:
             workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
@@ -175,3 +179,13 @@ stages:
           inputs:
             workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
             script: '$(flutterExecPath) pub publish --force'
+
+        - task: GitHubRelease@1
+          displayName: 'Remove GitHub tag when publish fails'
+          condition: failed()
+          inputs:
+            gitHubConnection: 'GitHub Tagging'
+            repositoryName: 'builttoroam/flutter_plugins'
+            action: 'delete'
+            tag: 'v$(currentVersion)'
+       
