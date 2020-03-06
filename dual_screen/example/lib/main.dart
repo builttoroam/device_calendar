@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:dual_screen/dual_screen.dart';
 
 void main() => runApp(MyApp());
@@ -25,21 +24,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _updateDualScreenInfo() async {
-    bool isDualDevice;
-    bool isAppSpanned;
-
-    try {
-      isDualDevice = await DualScreen.isDualScreenDevice;
-    } on PlatformException catch (error) {
-      throw Exception(
-          'Failed to determine dual device\nerror code: ${error.code}\nerror message: ${error.message}\nerror details: ${error.details}');
-    }
-    try {
-      isAppSpanned = await DualScreen.isAppSpanned;
-    } on PlatformException catch (error) {
-      throw Exception(
-          'Failed to determine if app is spanned\nerror code: ${error.code}\nerror message: ${error.message}\nerror details: ${error.details}');
-    }
+    bool isDualDevice = await DualScreen.isDualScreenDevice;
+    bool isAppSpanned = await DualScreen.isAppSpanned;
 
     if (!mounted) return;
 
@@ -64,7 +50,7 @@ class _MyAppState extends State<MyApp> {
                 Text('App spanned: ${_isAppSpanned ?? 'Unknown'}'),
                 SizedBox(height: 8),
                 RaisedButton(
-                  child: Text('Determine dual device and app spanned'),
+                  child: Text('Manually determine dual device and app spanned'),
                   onPressed: () => _updateDualScreenInfo(),
                 ),
                 SizedBox(height: 64),
