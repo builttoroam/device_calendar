@@ -32,7 +32,6 @@ public class DualScreenPlugin :
     private var activity: Activity? = null
 
     fun registerPlugin(context: Context?, messenger: BinaryMessenger?) {
-        activity = this.activity
         this.context = context
         MethodChannel(messenger, METHOD_CHANNEL_NAME).setMethodCallHandler(this)
         EventChannel(messenger, EVENT_CHANNEL_NAME).setStreamHandler(this)
