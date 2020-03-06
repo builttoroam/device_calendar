@@ -26,6 +26,8 @@ public class DualScreenPlugin :
     ActivityAware {
     private val METHOD_CHANNEL_NAME = "plugins.builttoroam.com/dual_screen/methods"
     private val EVENT_CHANNEL_NAME = "plugins.builttoroam.com/dual_screen/events"
+    private val IS_DUAL_SCREEN_DEVICE = "isDualScreenDevice"
+    private val IS_APP_SPANNED = "isAppSpanned"
     private lateinit var methodChannel: MethodChannel
     private lateinit var eventChannel: EventChannel
     private var context: Context? = null
@@ -50,10 +52,10 @@ public class DualScreenPlugin :
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
-            "isDualScreenDevice" -> {
+            IS_DUAL_SCREEN_DEVICE -> {
                 result.success(isDualScreenDevice())
             }
-            "isAppSpanned" -> {
+            IS_APP_SPANNED -> {
                 if (isDualScreenDevice()) {
                     result.success(isAppSpanned())
                 } else {
