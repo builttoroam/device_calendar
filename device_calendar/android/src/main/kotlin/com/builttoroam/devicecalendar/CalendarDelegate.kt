@@ -371,12 +371,27 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val values = ContentValues()
         val duration: String? = null
         values.put(Events.ALL_DAY, event.allDay)
-        values.put(Events.DTSTART, event.start!!)
+
         if (event.allDay) {
-            values.put(Events.DTEND, event.start!!)
+            // All day events must have UTC timezone
+            val utcTimeZone =  TimeZone.getTimeZone("UTC")
+
+            val calendar = java.util.Calendar.getInstance(utcTimeZone)
+            calendar.timeInMillis = event.start!!
+            calendar.set(java.util.Calendar.MILLISECOND, 0)
+
+            values.put(Events.DTSTART, calendar.timeInMillis)
+            values.put(Events.DTEND, calendar.timeInMillis)
+
+            values.put(Events.EVENT_TIMEZONE, utcTimeZone.displayName)
         }
         else {
+            values.put(Events.DTSTART, event.start!!)
             values.put(Events.DTEND, event.end!!)
+
+            // MK using current device time zone
+            val currentTimeZone: TimeZone = java.util.Calendar.getInstance().timeZone
+            values.put(Events.EVENT_TIMEZONE, currentTimeZone.displayName)
         }
         values.put(Events.TITLE, event.title)
         values.put(Events.DESCRIPTION, event.description)
@@ -385,9 +400,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         values.put(Events.CALENDAR_ID, calendarId)
         values.put(Events.DURATION, duration)
 
-        // MK using current device time zone
-        val currentTimeZone: TimeZone = java.util.Calendar.getInstance().timeZone
-        values.put(Events.EVENT_TIMEZONE, currentTimeZone.displayName)
         if (event.recurrenceRule != null) {
             val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
             values.put(Events.RRULE, recurrenceRuleParams)
