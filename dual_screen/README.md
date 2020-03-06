@@ -1,14 +1,28 @@
 # dual_screen
 
-A new flutter plugin project.
+A Flutter plugin to determine whether the device supports dual screen and whether the app is currently spanned across both screen.
+
+## Usage
+
+```import 'package:dual_screen/dual_screen.dart';```
+
+Determine whether the app is run on a dual screen device
+
+```bool isDualDevice = await DualScreen.isDualScreenDevice;```
+
+Determine whether the app is currently spanned across both screens
+
+```bool isAppSpanned = await DualScreen.isAppSpanned;```
+
+Subscribing to app spanned across both screen stream
+
+```DualScreen.isAppSpannedStream().listen((data) => setState(() => _isAppSpannedStream = data));```
+
 
 ## Getting Started
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+See the example directory for a complete sample app
 
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.dev/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
+## Issues and feedback
+
+Please file issues, bugs, or feature requests in our github issue tracker.
