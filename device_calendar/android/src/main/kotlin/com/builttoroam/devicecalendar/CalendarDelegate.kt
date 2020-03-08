@@ -12,6 +12,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
 import android.provider.CalendarContract.Events
+import android.text.format.DateUtils
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EMAIL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
@@ -378,11 +379,15 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             val calendar = java.util.Calendar.getInstance(utcTimeZone)
             calendar.timeInMillis = event.start!!
+            calendar.set(java.util.Calendar.HOUR, 0)
+            calendar.set(java.util.Calendar.MINUTE, 0)
+            calendar.set(java.util.Calendar.SECOND, 0)
             calendar.set(java.util.Calendar.MILLISECOND, 0)
 
-            values.put(Events.DTSTART, calendar.timeInMillis)
-            values.put(Events.DTEND, calendar.timeInMillis)
+            val allDayTime = calendar.timeInMillis + DateUtils.DAY_IN_MILLIS
 
+            values.put(Events.DTSTART, allDayTime)
+            values.put(Events.DTEND, allDayTime)
             values.put(Events.EVENT_TIMEZONE, utcTimeZone.displayName)
         }
         else {
