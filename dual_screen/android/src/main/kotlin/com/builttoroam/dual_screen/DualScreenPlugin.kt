@@ -107,9 +107,13 @@ public class DualScreenPlugin :
     }
 
     fun isDualScreenDevice(): Boolean {
-        return context?.getPackageManager()!!.hasSystemFeature(
-            DISPLAY_MASK_SYSTEM_FEATURE
-        )
+        val packageManager = context?.getPackageManager()
+        if (packageManager != null) {
+            return packageManager.hasSystemFeature(
+                DISPLAY_MASK_SYSTEM_FEATURE
+            )
+        }
+        return false
     }
 
     fun isAppSpanned(): Boolean {
