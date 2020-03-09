@@ -10,6 +10,7 @@
 * Added `DayOfWeekGroup` enum and an extension `getDays` to get corresponding dates of the enum values (**NOTE**: `DayOfWeekGroup.Custom.getDays` will return an empty list)
 * Added to retrieve colour for calendars. Thanks to [nadavfima](https://github.com/nadavfima) for the contribution and PR to add colour support for both Android and iOS
 * Added compatibility with a new Flutter plugin for Android. Thanks to the PR submitted by [RohitKumarMishra](https://github.com/RohitKumarMishra)
+* [Android] Fixed all day timezone issue [164](https://github.com/builttoroam/flutter_plugins/issues/164)
 
 ## 3.0.0+3 3rd February 2020
 
