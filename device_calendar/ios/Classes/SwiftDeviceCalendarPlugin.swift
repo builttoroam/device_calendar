@@ -18,7 +18,9 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let name: String
         let isReadOnly: Bool
         let isDefault: Bool
-        let color : Int
+        let color: Int
+        let accountName: String
+        let accountType: String
     }
     
     struct Event: Codable {
@@ -143,13 +145,36 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let defaultCalendar = self.eventStore.defaultCalendarForNewEvents
             var calendars = [Calendar]()
             for ekCalendar in ekCalendars {
-                let calendar = Calendar(id: ekCalendar.calendarIdentifier, name: ekCalendar.title, isReadOnly: !ekCalendar.allowsContentModifications, isDefault: defaultCalendar?.calendarIdentifier == ekCalendar.calendarIdentifier,
-                                        color: UIColor(cgColor: ekCalendar.cgColor).rgb()!)
+                let calendar = Calendar(
+                    id: ekCalendar.calendarIdentifier,
+                    name: ekCalendar.title,
+                    isReadOnly: !ekCalendar.allowsContentModifications,
+                    isDefault: defaultCalendar?.calendarIdentifier == ekCalendar.calendarIdentifier,
+                    color: UIColor(cgColor: ekCalendar.cgColor).rgb()!,
+                    accountName: ekCalendar.source.title,
+                    accountType: getAccountType(ekCalendar.source.sourceType))
                 calendars.append(calendar)
             }
             
             self.encodeJsonAndFinish(codable: calendars, result: result)
         }, result: result)
+    }
+    
+    private func getAccountType(_ sourceType: EKSourceType) -> String {
+        switch (sourceType) {
+        case .local:
+            return "Local";
+        case .exchange:
+            return "Exchange";
+        case .calDAV:
+            return "CalDAV";
+        case .mobileMe:
+            return "MobileMe";
+        case .subscribed:
+            return "Subscribed";
+        case .birthdays:
+            return "Birthdays";
+        }
     }
     
     private func retrieveEvents(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
