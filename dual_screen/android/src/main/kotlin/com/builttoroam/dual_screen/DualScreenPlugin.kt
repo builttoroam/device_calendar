@@ -91,19 +91,19 @@ public class DualScreenPlugin :
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        this.activity = binding.activity
+        activity = binding.activity
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        this.activity = binding.activity
+        activity = binding.activity
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        this.activity = null
+        activity = null
     }
 
     override fun onDetachedFromActivity() {
-        this.activity = null
+        activity = null
     }
 
     fun isDualScreenDevice(): Boolean {
@@ -118,7 +118,7 @@ public class DualScreenPlugin :
 
     fun isAppSpanned(): Boolean {
         if (isDualScreenDevice()) {
-            var boundings = DisplayMask.fromResourcesRectApproximation(this.activity).getBoundingRects()
+            var boundings = DisplayMask.fromResourcesRectApproximation(activity).getBoundingRects()
             if (boundings.isEmpty()) {
                 return false
             }
