@@ -126,9 +126,8 @@ public class DualScreenPlugin :
             activity?.getWindow()?.getDecorView()?.getRootView()?.getDrawingRect(drawingRect)
             // 0 is the first bounding rectangle
             return boundings.get(0).intersect(drawingRect)
-        } else {
-            return false
         }
+        return false
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
