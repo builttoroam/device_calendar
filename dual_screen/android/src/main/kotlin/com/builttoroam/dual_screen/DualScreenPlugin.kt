@@ -82,7 +82,7 @@ public class DualScreenPlugin :
                 oldRight: Int,
                 oldBottom: Int
             ) {
-                events!!.success(isAppSpanned())
+                events?.success(isAppSpanned())
             }
         })
     }
