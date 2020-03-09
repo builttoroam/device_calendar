@@ -26,6 +26,7 @@ public class DualScreenPlugin :
     ActivityAware {
     private val METHOD_CHANNEL_NAME = "plugins.builttoroam.com/dual_screen/methods"
     private val EVENT_CHANNEL_NAME = "plugins.builttoroam.com/dual_screen/events"
+    private val DISPLAY_MASK_SYSTEM_FEATURE = "com.microsoft.device.display.displaymask"
     private val IS_DUAL_SCREEN_DEVICE = "isDualScreenDevice"
     private val IS_APP_SPANNED = "isAppSpanned"
     private lateinit var methodChannel: MethodChannel
@@ -107,7 +108,7 @@ public class DualScreenPlugin :
 
     fun isDualScreenDevice(): Boolean {
         return context?.getPackageManager()!!.hasSystemFeature(
-            "com.microsoft.device.display.displaymask"
+            DISPLAY_MASK_SYSTEM_FEATURE
         )
     }
 
