@@ -23,9 +23,10 @@ class Calendar {
   // Read-only. Account type associated with the calendar
   String accountType;
 
+  // Read-only. Source of the calendar
   Source source;
 
-  Calendar({this.id, this.name, this.isReadOnly, this.isDefault, this.color, this.accountName, this.accountType});
+  Calendar({this.id, this.name, this.isReadOnly, this.isDefault, this.color, this.accountName, this.accountType, this.source});
 
   Calendar.fromJson(Map<String, dynamic> json) {
     id = json['id'];
