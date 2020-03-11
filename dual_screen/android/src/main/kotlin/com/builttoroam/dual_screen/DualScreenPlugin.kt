@@ -124,8 +124,7 @@ public class DualScreenPlugin :
             }
             var drawingRect = android.graphics.Rect()
             activity?.getWindow()?.getDecorView()?.getRootView()?.getDrawingRect(drawingRect)
-            // 0 is the first bounding rectangle
-            return boundings.get(0).intersect(drawingRect)
+            return boundings.first().intersect(drawingRect)
         }
         return false
     }
