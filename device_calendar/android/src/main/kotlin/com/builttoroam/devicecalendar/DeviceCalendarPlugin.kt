@@ -57,7 +57,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val REMINDERS_ARGUMENT = "reminders"
     private val MINUTES_ARGUMENT = "minutes"
     private val FOLLOWING_INSTANCES = "followingInstances"
-    private val ACCOUNT_NAME_ARGUMENT = "name"
+    private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
 
     private lateinit var _registrar: Registrar
     private lateinit var _calendarDelegate: CalendarDelegate
@@ -124,9 +124,9 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             }
             CREATE_CALENDAR_METHOD -> {
                 val calendarName = call.argument<String>(CALENDAR_NAME_ARGUMENT)
-                val accountName = call.argument<String>(ACCOUNT_NAME_ARGUMENT)
+                val localAccountName = call.argument<String>(LOCAL_ACCOUNT_NAME_ARGUMENT)
 
-                _calendarDelegate.createCalendar(calendarName!!, accountName!!, result)
+                _calendarDelegate.createCalendar(calendarName!!, localAccountName!!, result)
             }
             else -> {
                 result.notImplemented()

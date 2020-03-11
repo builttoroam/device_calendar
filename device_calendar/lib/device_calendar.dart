@@ -2,7 +2,6 @@ library device_calendar;
 
 export 'src/common/calendar_enums.dart';
 export 'src/common/recurrence_frequency.dart';
-export 'src/models/account_source.dart';
 export 'src/models/attendee.dart';
 export 'src/models/calendar.dart';
 export 'src/models/result.dart';
