@@ -58,8 +58,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     struct Source: Codable {
-        let title: String
-        let sourceType: Int
+        let name: String
+        let type: Int
     }
     
     struct Reminder: Codable {
@@ -153,10 +153,9 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     private func createCalendar(_ call: FlutterMethodCall, _ result: FlutterResult) {
         let arguments = call.arguments as! Dictionary<String, AnyObject>
         let calendar = EKCalendar.init(for: EKEntityType.event, eventStore: eventStore)
-        calendar.title = arguments["name"] as! String
-        let sourceArguments = arguments["source"] as! Dictionary<String, AnyObject>
-        let sourceTitle = sourceArguments["title"] as! String
-        let sourceType = EKSourceType.init(rawValue: sourceArguments["sourceType"] as! Int)
+        calendar.title = arguments["calenderName"] as! String
+        let sourceTitle = arguments["name"] as! String
+        let sourceType = EKSourceType.init(rawValue: arguments["type"] as! Int)
         do {
             
             calendar.source = eventStore.sources.first { element in
@@ -302,7 +301,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         checkPermissionsThenExecute(permissionsGrantedAction: {
             var sources = [Source]()
             for source in eventStore.sources {
-                sources.append(Source(title: source.title, sourceType: source.sourceType.rawValue))
+                sources.append(Source(name: source.title, type: String(source.sourceType.rawValue)))
             }
             encodeJsonAndFinish(codable: sources, result: result)
         }, result: result)

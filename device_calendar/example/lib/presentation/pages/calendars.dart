@@ -98,7 +98,12 @@ class _CalendarsPageState extends State<CalendarsPage> {
                 );
               },
             ),
-          )
+          ),
+          RaisedButton(child: Text('create test'),
+          onPressed: () async {
+            var result = await _deviceCalendarPlugin.createCalendar("Test Calendar", AccountSource(name: "Device Calendar"));
+            _retrieveCalendars();
+          })
         ],
       ),
     );

@@ -6,9 +6,9 @@ import 'package:meta/meta.dart';
 
 import 'common/error_codes.dart';
 import 'common/error_messages.dart';
+import 'models/account_source.dart';
 import 'models/calendar.dart';
 import 'models/event.dart';
-import 'models/platform_specifics/ios/source.dart';
 import 'models/result.dart';
 import 'models/retrieve_events_params.dart';
 
@@ -243,12 +243,12 @@ class DeviceCalendarPlugin {
 
   /// Retrieves sources that calendars can be created against.
   /// This method is actually iOS specific and will succeed gracefully on Android by returning an empty collection in the data returned
-  Future<Result<UnmodifiableListView<Source>>> retrieveSources() async {
-    final result = Result<UnmodifiableListView<Source>>();
+  Future<Result<UnmodifiableListView<AccountSource>>> retrieveSources() async {
+    final result = Result<UnmodifiableListView<AccountSource>>();
     try {
       result.data = UnmodifiableListView(json
           .decode(await channel.invokeMethod('retrieveSources'))
-          .map<Source>((decodedSource) => Source.fromJson(decodedSource)));
+          .map<AccountSource>((decodedSource) => AccountSource.fromJson(decodedSource)));
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult(e, result);
     }
@@ -256,7 +256,8 @@ class DeviceCalendarPlugin {
     return result;
   }
 
-  /// Creates a new calendar. On iOS the calendar must be associated with one of the available sources
+  /// Creates a new calendar. On iOS the calendar must be associated with one of the available sources\
+  /// The `calendarName` parameter will the name of the new calendar. This must not be null or empty
   /// ```dart
   /// final sourcesResult = await deviceCalendarPlugin.retrieveSources();
   /// final source = sourcesResult.data.firstWhere(
@@ -265,13 +266,23 @@ class DeviceCalendarPlugin {
   /// var calendar = Calendar(name: 'Test calendar', source: source);
   /// var createResult = await deviceCalendarPlugin.createCalendar(calendar);
   /// ```
-  Future<Result<String>> createCalendar(Calendar calendar) async {
+  /// Returns a [Result] with the newly created [Calendar.id]
+  Future<Result<String>> createCalendar(String calendarName, AccountSource accountSource) async {
     final result = Result<String>();
-    try {
-      result.data =
-          await channel.invokeMethod('createCalendar', calendar.toJson());
-    } catch (e) {
-      _parsePlatformExceptionAndUpdateResult(e, result);
+
+    if (calendarName?.isNotEmpty == true && accountSource != null) {
+      try {        
+        result.data =
+            await channel.invokeMethod('createCalendar', <String, Object>{ 
+              'calendarName': calendarName,
+              'name': accountSource.name,
+              'type': accountSource.type });
+      } catch (e) {
+        _parsePlatformExceptionAndUpdateResult(e, result);
+      }
+    }
+    else {
+      result.errorMessages.add('All parameters must not be null or empty');
     }
 
     return result;
