@@ -11,6 +11,7 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
+import android.provider.CalendarContract.CALLER_IS_SYNCADAPTER
 import android.provider.CalendarContract.Events
 import android.text.format.DateUtils
 import io.flutter.plugin.common.PluginRegistry.Registrar
@@ -162,7 +163,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if (arePermissionsGranted()) {
             val contentResolver: ContentResolver? = _context?.contentResolver
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
-             val cursor: Cursor? = if (atLeastAPI(17)) {
+            val cursor: Cursor? = if (atLeastAPI(17)) {
                 contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
             } else {
                 contentResolver?.query(uri, CALENDAR_PROJECTION_OLDER_API, null, null, null)
@@ -229,6 +230,33 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
         return null
+    }
+
+    fun createCalendar(calendarName: String, accountName: String, pendingChannelResult: MethodChannel.Result) {
+        val contentResolver: ContentResolver? = _context?.contentResolver
+
+        var uri = CalendarContract.Calendars.CONTENT_URI
+        uri = uri.buildUpon()
+                .appendQueryParameter(CALLER_IS_SYNCADAPTER, "true")
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, accountName)
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+                .build()
+
+        val values = ContentValues()
+        values.put(CalendarContract.Calendars.NAME, calendarName)
+        values.put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, calendarName)
+        values.put(CalendarContract.Calendars.ACCOUNT_NAME, "Device Calendar")
+        values.put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+        values.put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
+        values.put(CalendarContract.Calendars.CALENDAR_COLOR, "0xFF000000") // Black colour as a default
+        values.put(CalendarContract.Calendars.OWNER_ACCOUNT, accountName)
+        values.put(CalendarContract.Calendars.CALENDAR_TIME_ZONE, java.util.Calendar.getInstance().timeZone.displayName)
+
+        val result = contentResolver?.insert(uri, values)
+        // Get the calendar ID that is the last element in the Uri
+        val calendarId = java.lang.Long.parseLong(result?.lastPathSegment!!)
+
+        finishWithSuccess(calendarId.toString(), pendingChannelResult)
     }
 
     @SuppressLint("MissingPermission")
