@@ -6,7 +6,6 @@ import 'package:meta/meta.dart';
 
 import 'common/error_codes.dart';
 import 'common/error_messages.dart';
-import 'models/account_source.dart';
 import 'models/calendar.dart';
 import 'models/event.dart';
 import 'models/result.dart';
@@ -241,42 +240,23 @@ class DeviceCalendarPlugin {
     return result;
   }
 
-  /// Retrieves sources that calendars can be created against.
-  /// This method is actually iOS specific and will succeed gracefully on Android by returning an empty collection in the data returned
-  Future<Result<UnmodifiableListView<AccountSource>>> retrieveSources() async {
-    final result = Result<UnmodifiableListView<AccountSource>>();
-    try {
-      result.data = UnmodifiableListView(json
-          .decode(await channel.invokeMethod('retrieveSources'))
-          .map<AccountSource>((decodedSource) => AccountSource.fromJson(decodedSource)));
-    } catch (e) {
-      _parsePlatformExceptionAndUpdateResult(e, result);
-    }
-
-    return result;
-  }
-
-  /// Creates a new calendar. On iOS the calendar must be associated with one of the available sources\
-  /// The `calendarName` parameter will the name of the new calendar. This must not be null or empty
-  /// ```dart
-  /// final sourcesResult = await deviceCalendarPlugin.retrieveSources();
-  /// final source = sourcesResult.data.firstWhere(
-  ///     (s) => s.sourceType == SourceType.CalDev,
-  ///     orElse: () => null);
-  /// var calendar = Calendar(name: 'Test calendar', source: source);
-  /// var createResult = await deviceCalendarPlugin.createCalendar(calendar);
-  /// ```
+  /// Creates a new local calendar for the current device.
+  ///
+  /// The `calendarName` parameter is the name of the new calendar\
+  /// The `localAccountName` parameter is the name of the local account.
+  /// If the account name already exists in the device, it will add another calendar under the account,
+  /// otherwise a new local account and a new calendar will be created.
+  ///
   /// Returns a [Result] with the newly created [Calendar.id]
-  Future<Result<String>> createCalendar(String calendarName, AccountSource accountSource) async {
+  Future<Result<String>> createCalendar(String calendarName, String localAccountName) async {
     final result = Result<String>();
 
-    if (calendarName?.isNotEmpty == true && accountSource != null) {
+    if (calendarName?.isNotEmpty == true && localAccountName?.isNotEmpty == true) {
       try {        
         result.data =
             await channel.invokeMethod('createCalendar', <String, Object>{ 
               'calendarName': calendarName,
-              'name': accountSource.name,
-              'type': accountSource.type });
+              'localAccountName': localAccountName });
       } catch (e) {
         _parsePlatformExceptionAndUpdateResult(e, result);
       }
