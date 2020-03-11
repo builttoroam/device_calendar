@@ -388,7 +388,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             values.put(Events.DTSTART, allDayTime)
             values.put(Events.DTEND, allDayTime)
-            values.put(Events.EVENT_TIMEZONE, utcTimeZone.displayName)
+            values.put(Events.EVENT_TIMEZONE, utcTimeZone.id)
         }
         else {
             values.put(Events.DTSTART, event.start!!)
@@ -396,7 +396,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             // MK using current device time zone
             val currentTimeZone: TimeZone = java.util.Calendar.getInstance().timeZone
-            values.put(Events.EVENT_TIMEZONE, currentTimeZone.displayName)
+            values.put(Events.EVENT_TIMEZONE, currentTimeZone.id)
         }
         values.put(Events.TITLE, event.title)
         values.put(Events.DESCRIPTION, event.description)
