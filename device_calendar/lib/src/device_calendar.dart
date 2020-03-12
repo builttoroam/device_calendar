@@ -264,7 +264,7 @@ class DeviceCalendarPlugin {
       }
     }
     else {
-      result.errorMessages.add('All parameters must not be null or empty');
+      result.errorMessages.add('Calendar name must not be null or empty');
     }
 
     return result;
