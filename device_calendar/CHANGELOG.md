@@ -12,6 +12,8 @@
 * Added compatibility with a new Flutter plugin for Android. Thanks to the PR submitted by [RohitKumarMishra](https://github.com/RohitKumarMishra)
 * [Android] Fixed all day timezone issue [164](https://github.com/builttoroam/flutter_plugins/issues/164)
 * Added support for deleting individual or multiple instances of a recurring event for issue [108](https://github.com/builttoroam/flutter_plugins/issues/108)
+* Ability to add local calendars
+* Returns account name and type for each calendars for issue [179](https://github.com/builttoroam/flutter_plugins/issues/179)
 
 ## 3.0.0+3 3rd February 2020
 

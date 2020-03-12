@@ -8,7 +8,7 @@ A cross platform plugin for modifying calendars on the user's device.
 
 * Ability to request permissions to modify calendars on the user's device
 * Ability to check if permissions to modify the calendars on the user's device have been granted
-* Retrieve calendars on the user's device
+* Ability to add or retrieve calendars on the user's device
 * Retrieve events associated with a calendar
 * Ability to add, update or delete events from a calendar
 * Ability to set up, edit or delete recurring events
