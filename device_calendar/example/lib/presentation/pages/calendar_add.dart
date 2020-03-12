@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +15,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DeviceCalendarPlugin _deviceCalendarPlugin;
 
-  bool _autovalidate = true;
+  bool _autovalidate = false;
   String _calendarName = '';
   String _localAccountName = '';
 
@@ -43,15 +45,17 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
                 validator: _validateCalendarName,
                 onSaved: (String value) => _calendarName = value,
               ),
-              SizedBox(height: 10),
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Local Account Name',
-                  hintText: 'Device Calendar',
+              if (Platform.isAndroid) ...[
+                SizedBox(height: 10),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Local Account Name',
+                    hintText: 'Device Calendar',
+                  ),
+                  validator: _validateLocalAccountName,
+                  onSaved: (String value) => _localAccountName = value,
                 ),
-                validator: _validateLocalAccountName,
-                onSaved: (String value) => _localAccountName = value,
-              ),
+              ]
             ],
           ),
         ),
@@ -67,7 +71,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
             form.save();
             var result = await _deviceCalendarPlugin.createCalendar(
               _calendarName,
-              _localAccountName,
+              localAccountName: _localAccountName,
             );
 
             if (result.isSuccess) {

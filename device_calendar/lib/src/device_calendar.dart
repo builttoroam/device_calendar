@@ -242,16 +242,16 @@ class DeviceCalendarPlugin {
 
   /// Creates a new local calendar for the current device.
   ///
-  /// The `calendarName` parameter is the name of the new calendar\
-  /// The `localAccountName` parameter is the name of the local account.
+  /// The `calendarName` parameter is the name of the new calendar.\
+  /// The `localAccountName` parameter is the name of the local account. Required for Android only.
   /// If the account name already exists in the device, it will add another calendar under the account,
   /// otherwise a new local account and a new calendar will be created.
   ///
   /// Returns a [Result] with the newly created [Calendar.id]
-  Future<Result<String>> createCalendar(String calendarName, String localAccountName) async {
+  Future<Result<String>> createCalendar(String calendarName, {String localAccountName}) async {
     final result = Result<String>();
 
-    if (calendarName?.isNotEmpty == true && localAccountName?.isNotEmpty == true) {
+    if (calendarName?.isNotEmpty == true) {
       try {        
         result.data =
             await channel.invokeMethod('createCalendar', <String, Object>{ 

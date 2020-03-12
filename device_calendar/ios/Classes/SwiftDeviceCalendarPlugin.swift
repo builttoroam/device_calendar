@@ -57,11 +57,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let attendanceStatus: Int
     }
     
-    struct Source: Codable {
-        let name: String
-        let type: Int
-    }
-    
     struct Reminder: Codable {
         let minutes: Int
     }
@@ -112,6 +107,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let remindersArgument = "reminders"
     let minutesArgument = "minutes"
     let followingInstancesArgument = "followingInstances"
+    let calendarNameArgument = "calendarName"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -136,8 +132,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             deleteEvent(call, result)
         case deleteEventInstanceMethod:
             deleteEvent(call, result)
-        case retrieveSourcesMethod:
-            retrieveSources(result)
         case createCalendarMethod:
             createCalendar(call, result)
         default:
@@ -153,19 +147,23 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     private func createCalendar(_ call: FlutterMethodCall, _ result: FlutterResult) {
         let arguments = call.arguments as! Dictionary<String, AnyObject>
         let calendar = EKCalendar.init(for: EKEntityType.event, eventStore: eventStore)
-        calendar.title = arguments["calenderName"] as! String
-        let sourceTitle = arguments["name"] as! String
-        let sourceType = EKSourceType.init(rawValue: arguments["type"] as! Int)
         do {
+            calendar.title = arguments[calendarNameArgument] as! String
+            calendar.cgColor = UIColor(red: 255, green: 0, blue: 0, alpha: 0).cgColor // Red colour as a default
             
-            calendar.source = eventStore.sources.first { element in
-                return element.sourceType == sourceType && element.title == sourceTitle
+            let localSources = eventStore.sources.filter { $0.sourceType == .local }
+            
+            if (!localSources.isEmpty) {
+                calendar.source = localSources.first
+                
+                try eventStore.saveCalendar(calendar, commit: true)
+                result(calendar.calendarIdentifier)
             }
-            
-            try eventStore.saveCalendar(calendar, commit: true)
-            result(calendar.calendarIdentifier)
-            
-        } catch {
+            else {
+                result(FlutterError(code: self.genericError, message: "Local calendar was not found.", details: nil))
+            }
+        }
+        catch {
             eventStore.reset()
             result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
         }
@@ -206,6 +204,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             return "Subscribed";
         case .birthdays:
             return "Birthdays";
+        default:
+            return "Unknown";
         }
     }
     
@@ -295,16 +295,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             reminders: reminders
         )
         return event
-    }
-    
-    private func retrieveSources(_ result: @escaping FlutterResult) {
-        checkPermissionsThenExecute(permissionsGrantedAction: {
-            var sources = [Source]()
-            for source in eventStore.sources {
-                sources.append(Source(name: source.title, type: String(source.sourceType.rawValue)))
-            }
-            encodeJsonAndFinish(codable: sources, result: result)
-        }, result: result)
     }
     
     private func convertEkParticipantToAttendee(ekParticipant: EKParticipant?) -> Attendee? {
