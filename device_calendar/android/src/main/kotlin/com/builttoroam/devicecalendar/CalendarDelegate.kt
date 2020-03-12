@@ -232,24 +232,24 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         return null
     }
 
-    fun createCalendar(calendarName: String, localAccountName: String, pendingChannelResult: MethodChannel.Result) {
+    fun createCalendar(calendarName: String, localAccountName: String?, pendingChannelResult: MethodChannel.Result) {
         val contentResolver: ContentResolver? = _context?.contentResolver
 
         var uri = CalendarContract.Calendars.CONTENT_URI
         uri = uri.buildUpon()
                 .appendQueryParameter(CALLER_IS_SYNCADAPTER, "true")
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, localAccountName)
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, localAccountName ?: "Device Calendar")
                 .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
                 .build()
 
         val values = ContentValues()
         values.put(CalendarContract.Calendars.NAME, calendarName)
         values.put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, calendarName)
-        values.put(CalendarContract.Calendars.ACCOUNT_NAME, localAccountName)
+        values.put(CalendarContract.Calendars.ACCOUNT_NAME, localAccountName ?: "Device Calendar")
         values.put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
         values.put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
         values.put(CalendarContract.Calendars.CALENDAR_COLOR, "0xFFFF0000") // Red colour as a default
-        values.put(CalendarContract.Calendars.OWNER_ACCOUNT, localAccountName)
+        values.put(CalendarContract.Calendars.OWNER_ACCOUNT, localAccountName ?: "Device Calendar")
         values.put(CalendarContract.Calendars.CALENDAR_TIME_ZONE, java.util.Calendar.getInstance().timeZone.id)
 
         val result = contentResolver?.insert(uri, values)

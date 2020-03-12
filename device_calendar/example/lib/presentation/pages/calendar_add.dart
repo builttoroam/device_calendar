@@ -52,7 +52,6 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
                     labelText: 'Local Account Name',
                     hintText: 'Device Calendar',
                   ),
-                  validator: _validateLocalAccountName,
                   onSaved: (String value) => _localAccountName = value,
                 ),
               ]
@@ -88,14 +87,6 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
   String _validateCalendarName(String value) {
     if (value.isEmpty) {
       return 'Calendar name is required.';
-    }
-
-    return null;
-  }
-
-  String _validateLocalAccountName(String value) {
-    if (value.isEmpty) {
-      return 'Local account name is required.';
     }
 
     return null;
