@@ -51,7 +51,7 @@ stages:
   # -----------CD Pre-release -----------
   - stage: DevelopmentRelease
     dependsOn: Build
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'ref/release'), eq(variables['Build.SourceBranch'], 'refs/hotfix'))
+    condition: and(succeeded(), in(variables['Build.SourceBranch'], 'refs/heads/release', 'refs/heads/hotfix'))
     jobs:
      - job: ReleaseDevelopmentVersion
        pool:
@@ -64,18 +64,20 @@ stages:
             version: 'latest'
 
         - task: PowerShell@2
-          condition: eq(variables['Build.SourceBranch'], 'ref/release')
+          condition: eq(variables['Build.SourceBranch'], 'refs/heads/release')
           displayName: 'Pre-release versioning - pubspec.yaml'
           inputs:
             targetType: 'inline'
             script: |
-              [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "$(versionGetRegex)" | %{ $_.Matches[0].Value }
+              [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "$(versionNumberRegex)" | %{ $_.Matches[0].Value }
               Write-Host "##vso[task.setvariable variable=currentVersion]$version"
 
               [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -Raw
 
               Write-Host " (i) Current version: $version"
               Write-Host " (i) Original pubspec.yaml content: $pubspecContent"
+
+              [bool] $hasMatches = $pubspecContent -match $versionRegex
               
               [string] $newPubspecContent = $pubspecContent -replace $version, "$version-dev.$(Build.BuildID)"
 
@@ -84,7 +86,7 @@ stages:
               $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
 
         - task: PowerShell@2
-          condition: eq(variables['Build.SourceBranch'], 'ref/release')
+          condition: eq(variables['Build.SourceBranch'], 'refs/heads/release')
           displayName: 'Pre-release versioning - CHANGELOG.md'
           inputs:
             targetType: 'inline'
@@ -107,7 +109,7 @@ stages:
             script: '$(flutterExecPath) pub publish --dry-run'
 
         - task: CmdLine@2
-          condition: eq(variables['Build.SourceBranch'], 'ref/release')
+          condition: eq(variables['Build.SourceBranch'], 'refs/heads/release')
           displayName: 'Publish'
           inputs:
             workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
@@ -116,7 +118,7 @@ stages:
   # ----------- CD Production -----------
   - stage: Release
     dependsOn: Build
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/master'))
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     jobs: 
      - job: Release
        pool:
@@ -133,7 +135,7 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern $(versionGetRegex) | %{ $_.Matches[0].Value }
+              [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern $(versionNumberRegex) | %{ $_.Matches[0].Value }
               
               Write-Host "##vso[task.setvariable variable=currentVersion]$version"
 
