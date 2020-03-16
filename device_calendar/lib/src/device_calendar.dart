@@ -131,6 +131,48 @@ class DeviceCalendarPlugin {
     return res;
   }
 
+  /// Retrieves the events by urls from the specified calendar
+  ///
+  /// The `calendarId` paramter is the id of the calendar that plugin will return events for\
+  /// The `eventUrls` parameter is a list of urls that plugin will return events for
+  ///
+  /// Returns a [Result] containing a list [Event], that fall
+  /// into the specified parameters
+  Future<Result<UnmodifiableListView<Event>>> retrieveEventsByUrl(
+      String calendarId, List<String> eventUrls) async {
+    final res = Result<UnmodifiableListView<Event>>();
+
+    if (calendarId?.isEmpty ?? true) {
+      res.errorMessages.add(
+          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidMissingCalendarId}');
+    }
+
+    if (eventUrls?.isEmpty ?? true) {
+      res.errorMessages.add(
+          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidEventUrlsParams}');
+    }
+
+    if (res.errorMessages.isEmpty) {
+      try {
+        var eventsJson =
+            await channel.invokeMethod('retrieveEventsByUrl', <String, Object>{
+          'calendarId': calendarId,
+          'eventUrls': eventUrls
+        });
+
+        res.data = UnmodifiableListView(
+            json.decode(eventsJson).map<Event>((decodedEvent) {
+          return Event.fromJson(decodedEvent);
+        }));
+      } catch (e) {
+        _parsePlatformExceptionAndUpdateResult<UnmodifiableListView<Event>>(
+            e, res);
+      }
+    }
+
+    return res;
+  }
+
   /// Deletes an event from a calendar. For a recurring event, this will delete all instances of it
   ///
   /// The `calendarId` paramter is the id of the calendar that plugin will try to delete the event from

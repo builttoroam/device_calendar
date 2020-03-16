@@ -7,7 +7,8 @@ class CalendarMethodsParametersCacheModel(val pendingChannelResult: MethodChanne
                                           var calendarId: String = "",
                                           var calendarEventsStartDate: Long? = null,
                                           var calendarEventsEndDate: Long? = null,
-                                          var calendarEventsIds: List<String> = listOf(),
+                                          var calendarEventsIdsOrUrls: List<String> = listOf(),
+                                          var retrieveByUrl: Boolean = false,
                                           var eventId: String = "",
                                           var event: Event? = null) {
     var ownCacheKey: Int? = null

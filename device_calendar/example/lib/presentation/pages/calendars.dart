@@ -98,6 +98,15 @@ class _CalendarsPageState extends State<CalendarsPage> {
                 );
               },
             ),
+          ),
+          RaisedButton(
+            child: Text("test retrieve by url"),
+            onPressed: () {
+              var urls = List<String>();
+              urls.add("https://google.com");
+              urls.add("test");
+              _deviceCalendarPlugin.retrieveEventsByUrl('4', urls);
+            },
           )
         ],
       ),

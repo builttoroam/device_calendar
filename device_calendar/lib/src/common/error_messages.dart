@@ -6,6 +6,9 @@ class ErrorMessages {
 
   static const String invalidRetrieveEventsParams =
       'A valid instance of the RetrieveEventsParams class is required. Must the event ids to filter by or the start and end date to filter by or a combination of these';
+  static const String invalidEventUrlsParams =
+      'At least one event url is required for the eventUrls parameter.';
+
   static const String deleteEventInvalidArgumentsMessage =
       'Calendar ID and/or Event ID argument(s) have not been specified or are invalid';
   static const String createOrUpdateEventInvalidArgumentsMessageAllDay =

@@ -112,7 +112,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     retrieveCalendars(cachedValues.pendingChannelResult)
                 }
                 RETRIEVE_EVENTS_REQUEST_CODE -> {
-                    retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.calendarEventsIds, cachedValues.pendingChannelResult)
+                    retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.calendarEventsIdsOrUrls, cachedValues.retrieveByUrl, cachedValues.pendingChannelResult)
                 }
                 RETRIEVE_CALENDAR_REQUEST_CODE -> {
                     retrieveCalendar(cachedValues.calendarId, cachedValues.pendingChannelResult)
@@ -223,8 +223,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     }
 
     @SuppressLint("MissingPermission")
-    fun retrieveEvents(calendarId: String, startDate: Long?, endDate: Long?, eventIds: List<String>, pendingChannelResult: MethodChannel.Result) {
-        if (startDate == null && endDate == null && eventIds.isEmpty()) {
+    fun retrieveEvents(calendarId: String, startDate: Long?, endDate: Long?, eventIdsOrUrls: List<String>, retrieveByUrl: Boolean, pendingChannelResult: MethodChannel.Result) {
+        if (startDate == null && endDate == null && eventIdsOrUrls.isEmpty()) {
             finishWithError(INVALID_ARGUMENT, ErrorMessages.RETRIEVE_EVENTS_ARGUMENTS_NOT_VALID_MESSAGE, pendingChannelResult)
             return
         }
@@ -242,17 +242,30 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             ContentUris.appendId(eventsUriBuilder, endDate ?: Date(Long.MAX_VALUE).time)
 
             val eventsUri = eventsUriBuilder.build()
-            val eventsCalendarQuery = "(${Events.CALENDAR_ID} = $calendarId)"
-            val eventsNotDeletedQuery = "(${Events.DELETED} != 1)"
-            val eventsIdsQueryElements = eventIds.map { "(${CalendarContract.Instances.EVENT_ID} = $it)" }
-            val eventsIdsQuery = eventsIdsQueryElements.joinToString(" OR ")
+            var query = ""
+            if (!retrieveByUrl) {
+                val eventsCalendarQuery = "(${Events.CALENDAR_ID} = $calendarId)"
+                val eventsNotDeletedQuery = "(${Events.DELETED} != 1)"
+                val eventsIdsQueryElements = eventIdsOrUrls.map { "(${CalendarContract.Instances.EVENT_ID} = $it)" }
+                val eventsIdsQuery = eventsIdsQueryElements.joinToString(" OR ")
 
-            var eventsSelectionQuery = "$eventsCalendarQuery AND $eventsNotDeletedQuery"
-            if (eventsIdsQuery.isNotEmpty()) {
-                eventsSelectionQuery += " AND ($eventsIdsQuery)"
+                query = "$eventsCalendarQuery AND $eventsNotDeletedQuery"
+                if (eventsIdsQuery.isNotEmpty()) {
+                    query += " AND ($eventsIdsQuery)"
+                }
             }
+            else {
+                for (url in eventIdsOrUrls) {
+                    if (query.isEmpty()) {
+                        query = Events.CUSTOM_APP_URI + " = '" + url + "'"
+                    } else {
+                        query += " OR " + Events.CUSTOM_APP_URI + " = '" + url + "'"
+                    }
+                }
+            }
+
             val eventsSortOrder = Events.DTSTART + " ASC"
-            val eventsCursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, eventsSortOrder)
+            val eventsCursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, query, null, eventsSortOrder)
 
             val events: MutableList<Event> = mutableListOf()
 
@@ -279,7 +292,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             finishWithSuccess(_gson?.toJson(events), pendingChannelResult)
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_EVENTS_REQUEST_CODE, calendarId, startDate, endDate)
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_EVENTS_REQUEST_CODE, calendarId, startDate, endDate, eventIdsOrUrls, retrieveByUrl)
             requestPermissions(parameters)
         }
 

@@ -22,6 +22,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val HAS_PERMISSIONS_METHOD = "hasPermissions"
     private val RETRIEVE_CALENDARS_METHOD = "retrieveCalendars"
     private val RETRIEVE_EVENTS_METHOD = "retrieveEvents"
+    private val RETRIEVE_EVENTS_BY_URL_METHOD = "retrieveEventsByUrl"
     private val DELETE_EVENT_METHOD = "deleteEvent"
     private val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
 
@@ -31,6 +32,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val END_DATE_ARGUMENT = "endDate"
     private val EVENT_IDS_ARGUMENT = "eventIds"
     private val EVENT_ID_ARGUMENT = "eventId"
+    private val EVENT_URLS_ARGUMENT = "eventUrls"
     private val EVENT_TITLE_ARGUMENT = "eventTitle"
     private val EVENT_LOCATION_ARGUMENT = "eventLocation"
     private val EVENT_URL_ARGUMENT = "eventURL"
@@ -93,7 +95,13 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val endDate = call.argument<Long>(END_DATE_ARGUMENT)
                 val eventIds = call.argument<List<String>>(EVENT_IDS_ARGUMENT) ?: listOf()
 
-                _calendarDelegate.retrieveEvents(calendarId!!, startDate, endDate, eventIds, result)
+                _calendarDelegate.retrieveEvents(calendarId!!, startDate, endDate, eventIds, false, result)
+            }
+            RETRIEVE_EVENTS_BY_URL_METHOD -> {
+                val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
+                val eventUrls = call.argument<List<String>>(EVENT_URLS_ARGUMENT) ?: listOf()
+
+                _calendarDelegate.retrieveEvents(calendarId!!, null, null, eventUrls, true, result)
             }
             CREATE_OR_UPDATE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
