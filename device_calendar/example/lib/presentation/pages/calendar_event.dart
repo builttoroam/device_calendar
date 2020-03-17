@@ -661,7 +661,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                 result = await _deviceCalendarPlugin.createOrUpdateEvent(_event);
               }
               else {
-                result = await showDialog<Result<String>>(
+                result = await showDialog<Result<bool>>(
                   context: context,
                   barrierDismissible: false,
                   builder: (BuildContext context) {

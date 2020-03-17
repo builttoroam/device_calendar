@@ -598,13 +598,19 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.alarms = createReminders(arguments)
             
             do {
-                if (followingInstances != nil && !followingInstances!) {
-                    try self.eventStore.save(ekEvent!, span: .thisEvent)
+                if (followingInstances != nil) {
+                    if (!followingInstances!) {
+                        try self.eventStore.save(ekEvent!, span: .thisEvent)
+                    }
+                    else {
+                        try self.eventStore.save(ekEvent!, span: .futureEvents)
+                    }
+                    result(true)
                 }
                 else {
                     try self.eventStore.save(ekEvent!, span: .futureEvents)
+                    result(ekEvent!.eventIdentifier)
                 }
-                result(ekEvent!.eventIdentifier)
             } catch {
                 self.eventStore.reset()
                 result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))

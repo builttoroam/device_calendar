@@ -285,8 +285,8 @@ class DeviceCalendarPlugin {
   /// The `updateFollowingInstances` parameter will also update the following instances if set to true
   ///
   /// Returns a [Result] indicating if the instance of the event has (true) or has not (false) been updated from the calendar
-  Future<Result<String>> updateEventInstance(String calendarId, Event event, bool updateFollowingInstances) async {
-    final res = Result<String>();
+  Future<Result<bool>> updateEventInstance(String calendarId, Event event, bool updateFollowingInstances) async {
+    final res = Result<bool>();
 
     if (event.allDay && (event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null) {
       res.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay}');
@@ -316,7 +316,7 @@ class DeviceCalendarPlugin {
           'followingInstances': updateFollowingInstances
         });
     } catch (e) {
-      _parsePlatformExceptionAndUpdateResult<String>(e, res);
+      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
     }
 
     return res;
