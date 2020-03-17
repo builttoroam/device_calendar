@@ -192,9 +192,10 @@ class DeviceCalendarPlugin {
     return res;
   }
 
-  /// Creates or updates an event
+  /// Creates or updates an event. For updating a recurring event, this will update all instances of it.\
+  /// To update individual instance of a recurring event, please use [updateEventInstance()]
   ///
-  /// The `event` paramter specifies how event data should be saved into the calendar
+  /// The `event` parameter specifies how event data should be saved into the calendar
   /// Always specify the [Event.calendarId], to inform the plugin in which calendar
   /// it should create or update the event.
   ///
@@ -274,6 +275,51 @@ class DeviceCalendarPlugin {
     }
 
     return result;
+  }
+
+  /// Updates an instance of a recurring event from a calendar. This should be used for a recurring event only.\
+  /// If `startDate`, `endDate` or `updateFollowingInstances` is not valid or null, then all instances of the event will be updated.
+  ///
+  /// The `calendarId` parameter is the id of the calendar that plugin will try to update the event from\
+  /// The `event` parameter specifies how event data should be updated into the calendar\
+  /// The `updateFollowingInstances` parameter will also update the following instances if set to true
+  ///
+  /// Returns a [Result] indicating if the instance of the event has (true) or has not (false) been updated from the calendar
+  Future<Result<bool>> updateEventInstance(String calendarId, Event event, bool updateFollowingInstances) async {
+    final res = Result<bool>();
+
+    if (event.allDay && (event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null) {
+      res.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay}');
+      return res;
+    }
+    else if (!event.allDay & ((event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null || event.start.isAfter(event.end))) {
+      res.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}');
+      return res;
+    }
+
+    try {
+      res.data = await channel.invokeMethod('updateEventInstance',
+        <String, Object>{
+          'calendarId': calendarId,
+          'eventId': event.eventId,
+          'eventTitle': event.title,
+          'eventDescription': event.description,
+          'eventLocation': event.location,
+          'eventAllDay': event.allDay,
+          'eventStartDate': event.start.millisecondsSinceEpoch,
+          'eventEndDate': event.end.millisecondsSinceEpoch,
+          'eventLocation': event.location,
+          'eventURL': event.url.data.contentText,
+          'recurrenceRule': event.recurrenceRule?.toJson(),
+          'attendees': event.attendees?.map((a) => a.toJson())?.toList(),
+          'reminders': event.reminders?.map((r) => r.toJson())?.toList(),
+          'followingInstances': updateFollowingInstances
+        });
+    } catch (e) {
+      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
+    }
+
+    return res;
   }
 
   void _parsePlatformExceptionAndUpdateResult<T>(

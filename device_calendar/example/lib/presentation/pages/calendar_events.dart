@@ -112,13 +112,22 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   Future _onTapped(Event event) async {
     final refreshEvents = await Navigator.push(context,
         MaterialPageRoute(builder: (BuildContext context) {
-      return CalendarEventPage(_calendar, event,
-        RecurringEventDialog(
+      return CalendarEventPage(_calendar, event: event,
+        deleteRecurringEventDialog: RecurringEventDialog(
           _deviceCalendarPlugin,
           event,
+          true,
           _onLoading,
           _onDeletedFinished,
-        ),);
+        ),
+        editRecurringEventDialog: RecurringEventDialog(
+          _deviceCalendarPlugin,
+          event,
+          false,
+          _onLoading,
+          _onDeletedFinished,
+        ),
+      );
     }));
     if (refreshEvents != null && refreshEvents) {
       await _retrieveCalendarEvents();

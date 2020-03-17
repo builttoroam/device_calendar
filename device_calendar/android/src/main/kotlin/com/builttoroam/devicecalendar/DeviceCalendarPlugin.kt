@@ -27,6 +27,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val DELETE_EVENT_INSTANCE_METHOD = "deleteEventInstance"
     private val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
     private val CREATE_CALENDAR_METHOD = "createCalendar"
+    private val UPDATE_EVENT_INSTANCE_METHOD = "updateEventInstance"
 
     // Method arguments
     private val CALENDAR_ID_ARGUMENT = "calendarId"
@@ -107,6 +108,13 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val event = parseEventArgs(call, calendarId)
 
                 _calendarDelegate.createOrUpdateEvent(calendarId!!, event, result)
+            }
+            UPDATE_EVENT_INSTANCE_METHOD -> {
+                val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
+                val event = parseEventArgs(call, calendarId)
+                val followingInstances = call.argument<Boolean>(FOLLOWING_INSTANCES)
+
+                _calendarDelegate.updateEventInstances(calendarId!!, event, followingInstances, result)
             }
             DELETE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)

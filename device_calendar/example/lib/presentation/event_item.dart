@@ -200,6 +200,7 @@ class EventItem extends StatelessWidget {
                             return RecurringEventDialog(
                               _deviceCalendarPlugin,
                               _calendarEvent,
+                              true,
                               _onLoadingStarted,
                               _onDeleteFinished
                             );

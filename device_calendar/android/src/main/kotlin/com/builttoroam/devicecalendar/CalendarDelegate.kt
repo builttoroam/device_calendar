@@ -338,7 +338,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             }
 
             val contentResolver: ContentResolver? = _context?.contentResolver
-            val values = buildEventContentValues(event, calendarId)
+            val values = buildEventContentValues(event, calendarId, false)
             try {
                 var eventId: Long? = event.eventId?.toLongOrNull()
                 if (eventId == null) {
@@ -362,6 +362,76 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 }
 
                 finishWithSuccess(eventId.toString(), pendingChannelResult)
+            } catch (e: Exception) {
+                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
+            }
+        } else {
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, CREATE_OR_UPDATE_EVENT_REQUEST_CODE, calendarId)
+            parameters.event = event
+            requestPermissions(parameters)
+        }
+    }
+
+    fun updateEventInstances(calendarId: String, event: Event?, followingInstances: Boolean? = null, pendingChannelResult: MethodChannel.Result) {
+        if (arePermissionsGranted()) {
+            if (event == null) {
+                finishWithError(GENERIC_ERROR, CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE, pendingChannelResult)
+                return
+            }
+
+            val calendar = retrieveCalendar(calendarId, pendingChannelResult, true)
+            if (calendar == null) {
+                finishWithError(NOT_FOUND, "Couldn't retrieve the Calendar with ID $calendarId", pendingChannelResult)
+                return
+            }
+
+            if (calendar.isReadOnly) {
+                finishWithError(NOT_ALLOWED, "Calendar with ID $calendarId is read-only", pendingChannelResult)
+                return
+            }
+
+            val eventId = event.eventId?.toLongOrNull()
+            if (eventId == null) {
+                finishWithError(INVALID_ARGUMENT, "Event ID cannot be null", pendingChannelResult)
+                return
+            }
+
+            val contentResolver: ContentResolver? = _context?.contentResolver
+            var updatedRows = 0
+
+            try {
+                if (followingInstances == null) { // Update all instances
+                    val values = buildEventContentValues(event, calendarId, false)
+                    contentResolver?.update(ContentUris.withAppendedId(Events.CONTENT_URI, eventId), values, null, null)
+                } else {
+                    if (followingInstances == false) { // Only this instance
+                        val test = CalendarContract.Instances.CONTENT_URI.buildUpon().appendPath(event.start.toString()).appendPath(event.end.toString()).build()
+
+                        val values = buildEventContentValues(event, calendarId, true)
+
+                        updatedRows = contentResolver?.update(test, values, null, null) ?: 0
+                        //updatedRows = contentResolver?.update(ContentUris.withAppendedId(CalendarContract.Instances.CONTENT_URI, eventId), values, null, null) ?: 0
+                    } else { // This and following instances
+
+                    }
+                }
+
+//                val existingAttendees = retrieveAttendees(eventId.toString(), contentResolver)
+//                val attendeesToDelete = if (event.attendees.isNotEmpty()) existingAttendees.filter { existingAttendee -> event.attendees.all { it.emailAddress != existingAttendee.emailAddress } } else existingAttendees
+//                for (attendeeToDelete in attendeesToDelete) {
+//                    deleteAttendee(eventId, attendeeToDelete, contentResolver)
+//                }
+//
+//                val attendeesToInsert = event.attendees.filter { existingAttendees.all { existingAttendee -> existingAttendee.emailAddress != it.emailAddress } }
+//                insertAttendees(attendeesToInsert, eventId, contentResolver)
+//                deleteExistingReminders(contentResolver, eventId)
+//                insertReminders(event.reminders, eventId, contentResolver!!)
+                if (updatedRows > 0) {
+                    finishWithSuccess(true, pendingChannelResult)
+                }
+                else {
+                    finishWithError(GENERIC_ERROR, "Nothing updated", pendingChannelResult)
+                }
             } catch (e: Exception) {
                 finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
             }
@@ -404,7 +474,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         contentResolver.bulkInsert(CalendarContract.Reminders.CONTENT_URI, remindersContentValues)
     }
 
-    private fun buildEventContentValues(event: Event, calendarId: String): ContentValues {
+    private fun buildEventContentValues(event: Event, calendarId: String, updateInstances: Boolean): ContentValues {
         val values = ContentValues()
         val duration: String? = null
         values.put(Events.ALL_DAY, event.allDay)
@@ -438,7 +508,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         values.put(Events.EVENT_LOCATION, event.location)
         values.put(Events.CUSTOM_APP_URI, event.url)
         values.put(Events.CALENDAR_ID, calendarId)
-        values.put(Events.DURATION, duration)
 
         if (event.recurrenceRule != null) {
             val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)

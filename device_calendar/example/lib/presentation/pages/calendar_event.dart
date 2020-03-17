@@ -12,15 +12,16 @@ import 'event_reminders.dart';
 enum RecurrenceRuleEndType { Indefinite, MaxOccurrences, SpecifiedEndDate }
 
 class CalendarEventPage extends StatefulWidget {
-  final Calendar _calendar;
-  final Event _event;
-  final RecurringEventDialog _recurringEventDialog;
+  final Calendar calendar;
+  final Event event;
+  final RecurringEventDialog deleteRecurringEventDialog;
+  final RecurringEventDialog editRecurringEventDialog; 
 
-  CalendarEventPage(this._calendar, [this._event, this._recurringEventDialog]);
+  CalendarEventPage(this.calendar, {this.event, this.deleteRecurringEventDialog, this.editRecurringEventDialog});
 
   @override
   _CalendarEventPageState createState() {
-    return _CalendarEventPageState(_calendar, _event, _recurringEventDialog);
+    return _CalendarEventPageState(calendar, event);
   }
 }
 
@@ -31,8 +32,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   Event _event;
   DeviceCalendarPlugin _deviceCalendarPlugin;
-  RecurringEventDialog _recurringEventDialog;
-
   DateTime _startDate;
   TimeOfDay _startTime;
 
@@ -59,9 +58,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   List<Attendee> _attendees = List<Attendee>();
   List<Reminder> _reminders = List<Reminder>();
   
-  _CalendarEventPageState(this._calendar, this._event, this._recurringEventDialog) {
+  _CalendarEventPageState(this._calendar, this._event) {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
-    _recurringEventDialog = this._recurringEventDialog;
 
     _attendees = List<Attendee>();
     _reminders = List<Reminder>();
@@ -610,12 +608,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         context: context,
                         barrierDismissible: false,
                         builder: (BuildContext context) {
-                          return _recurringEventDialog;
+                          return widget.deleteRecurringEventDialog;
                         }
                       );
                     }
 
-                    if (result) {
+                    if (result == true) {
                       Navigator.pop(context, true);
                     }
                   },
@@ -657,12 +655,27 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
               }
               _event.attendees = _attendees;
               _event.reminders = _reminders;
-              var createEventResult =
-                  await _deviceCalendarPlugin.createOrUpdateEvent(_event);
-              if (createEventResult.isSuccess) {
-                Navigator.pop(context, true);
-              } else {
-                showInSnackBar(createEventResult.errorMessages.join(' | '));
+
+              Result<dynamic> result;
+              if (_event.eventId?.isEmpty ?? true) {
+                result = await _deviceCalendarPlugin.createOrUpdateEvent(_event);
+              }
+              else {
+                result = await showDialog<Result<bool>>(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return widget.editRecurringEventDialog;
+                  }
+                );
+              }
+
+              if (result != null) {
+                if (result.isSuccess) {
+                  Navigator.pop(context, true);
+                } else {
+                  showInSnackBar(result.errorMessages.join(' | '));
+                }
               }
             }
           },
