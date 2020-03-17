@@ -126,7 +126,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val calendarName = call.argument<String>(CALENDAR_NAME_ARGUMENT)
                 val localAccountName = call.argument<String>(LOCAL_ACCOUNT_NAME_ARGUMENT)
 
-                _calendarDelegate.createCalendar(calendarName!!, localAccountName, result)
+                _calendarDelegate.createCalendar(calendarName!!, localAccountName!!, result)
             }
             else -> {
                 result.notImplemented()
