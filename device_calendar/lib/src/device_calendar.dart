@@ -278,15 +278,15 @@ class DeviceCalendarPlugin {
   }
 
   /// Updates an instance of a recurring event from a calendar. This should be used for a recurring event only.\
-  /// If `startDate`, `endDate` or `updateFollowingInstances` is not valid or null, then all instances of the event will be updated.
+  /// If `event.start`, `event.end` or `updateFollowingInstances` is not valid or null, then all instances of the event will be updated.
   ///
   /// The `calendarId` parameter is the id of the calendar that plugin will try to update the event from\
   /// The `event` parameter specifies how event data should be updated into the calendar\
   /// The `updateFollowingInstances` parameter will also update the following instances if set to true
   ///
   /// Returns a [Result] indicating if the instance of the event has (true) or has not (false) been updated from the calendar
-  Future<Result<bool>> updateEventInstance(String calendarId, Event event, bool updateFollowingInstances) async {
-    final res = Result<bool>();
+  Future<Result<String>> updateEventInstance(String calendarId, Event event, bool updateFollowingInstances) async {
+    final res = Result<String>();
 
     if (event.allDay && (event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null) {
       res.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay}');
@@ -316,7 +316,7 @@ class DeviceCalendarPlugin {
           'followingInstances': updateFollowingInstances
         });
     } catch (e) {
-      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
+      _parsePlatformExceptionAndUpdateResult<String>(e, res);
     }
 
     return res;

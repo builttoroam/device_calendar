@@ -78,6 +78,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let retrieveSourcesMethod = "retrieveSources"
     let createOrUpdateEventMethod = "createOrUpdateEvent"
     let createCalendarMethod = "createCalendar"
+    let updateEventInstanceMethod = "updateEventInstance"
     let deleteEventMethod = "deleteEvent"
     let deleteEventInstanceMethod = "deleteEventInstance"
     let calendarIdArgument = "calendarId"
@@ -128,6 +129,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         case retrieveEventsMethod:
             retrieveEvents(call, result)
         case createOrUpdateEventMethod:
+            createOrUpdateEvent(call, result)
+        case updateEventInstanceMethod:
             createOrUpdateEvent(call, result)
         case deleteEventMethod:
             deleteEvent(call, result)
@@ -535,6 +538,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let description = arguments[self.eventDescriptionArgument] as? String
             let location = arguments[self.eventLocationArgument] as? String
             let url = arguments[self.eventURLArgument] as? String
+            let followingInstances = arguments[followingInstancesArgument] as? Bool
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
@@ -547,11 +551,25 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             }
             
             var ekEvent: EKEvent?
-            if eventId == nil {
+            if (eventId == nil) { // Create event
                 ekEvent = EKEvent.init(eventStore: self.eventStore)
             } else {
-                ekEvent = self.eventStore.event(withIdentifier: eventId!)
-                if(ekEvent == nil) {
+                if (followingInstances == nil) { // Update all events
+                    ekEvent = self.eventStore.event(withIdentifier: eventId!)
+                }
+                else { // Update event instance(s)
+                    let predicate = self.eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: nil)
+                    let foundEkEvents = self.eventStore.events(matching: predicate) as [EKEvent]?
+                    
+                    if foundEkEvents == nil || foundEkEvents?.count == 0 {
+                        self.finishWithEventNotFoundError(result: result, eventId: eventId!)
+                        return
+                    }
+                    
+                    ekEvent = foundEkEvents!.first(where: {$0.eventIdentifier == eventId})
+                }
+                
+                if (ekEvent == nil) {
                     self.finishWithEventNotFoundError(result: result, eventId: eventId!)
                     return
                 }
@@ -580,7 +598,12 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.alarms = createReminders(arguments)
             
             do {
-                try self.eventStore.save(ekEvent!, span: .futureEvents)
+                if (followingInstances != nil && !followingInstances!) {
+                    try self.eventStore.save(ekEvent!, span: .thisEvent)
+                }
+                else {
+                    try self.eventStore.save(ekEvent!, span: .futureEvents)
+                }
                 result(ekEvent!.eventIdentifier)
             } catch {
                 self.eventStore.reset()
