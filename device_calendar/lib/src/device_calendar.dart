@@ -244,10 +244,10 @@ class DeviceCalendarPlugin {
   ///
   /// The `calendarName` parameter is the name of the new calendar\
   /// The `localAccountName` parameter is the name of the local account:
-  /// - [Android] Required. If `localAccountName` parameter is empty, it will default to 'Device Calendar'.
+  /// - [Android] Required. If `localAccountName` parameter is null or empty, it will default to 'Device Calendar'.
   /// If the account name already exists in the device, it will add another calendar under the account,
   /// otherwise a new local account and a new calendar will be created.
-  /// - [iOS] Not used.
+  /// - [iOS] Not used. A local account will be picked up automatically, if not found, an error will be thrown.
   ///
   /// Returns a [Result] with the newly created [Calendar.id]
   Future<Result<String>> createCalendar(String calendarName, {String localAccountName}) async {
@@ -258,7 +258,7 @@ class DeviceCalendarPlugin {
         result.data =
             await channel.invokeMethod('createCalendar', <String, Object>{ 
               'calendarName': calendarName,
-              'localAccountName': localAccountName });
+              'localAccountName': localAccountName?.isEmpty ?? true ? 'Device Calendar' : localAccountName });
       } catch (e) {
         _parsePlatformExceptionAndUpdateResult(e, result);
       }
