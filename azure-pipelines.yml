@@ -59,7 +59,6 @@ stages:
             version: 'latest'
 
         - task: PowerShell@2
-          condition: eq(variables['Build.SourceBranch'], 'refs/heads/release')
           displayName: 'Pre-release versioning - pubspec.yaml'
           inputs:
             targetType: 'inline'
@@ -81,7 +80,6 @@ stages:
               $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
 
         - task: PowerShell@2
-          condition: eq(variables['Build.SourceBranch'], 'refs/heads/release')
           displayName: 'Pre-release versioning - CHANGELOG.md'
           inputs:
             targetType: 'inline'
@@ -104,7 +102,6 @@ stages:
             script: '$(flutterExecPath) pub publish --dry-run'
 
         - task: CmdLine@2
-          condition: eq(variables['Build.SourceBranch'], 'refs/heads/release')
           displayName: 'Publish'
           inputs:
             workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
