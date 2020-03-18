@@ -482,8 +482,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     val values = ContentValues()
                     val instanceCursor = CalendarContract.Instances.query(contentResolver, EVENT_INSTANCE_DELETION, startDate!!, endDate!!)
 
-                    for (x in 0 until instanceCursor.count) {
-                        instanceCursor.moveToNext()
+                    while (instanceCursor.moveToNext()) {
                         val foundEventID = instanceCursor.getLong(EVENT_INSTANCE_DELETION_ID_INDEX)
 
                         if (eventIdNumber == foundEventID) {
@@ -493,6 +492,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     }
 
                     val deleteSucceeded = contentResolver?.insert(exceptionUriWithId, values)
+                    instanceCursor.close()
                     finishWithSuccess(deleteSucceeded != null, pendingChannelResult)
                 }
                 else { // This and following instances
@@ -500,8 +500,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     val values = ContentValues()
                     val instanceCursor = CalendarContract.Instances.query(contentResolver, EVENT_INSTANCE_DELETION, startDate!!, endDate!!)
 
-                    for (x in 0 until instanceCursor.count) {
-                        instanceCursor.moveToNext()
+                    while (instanceCursor.moveToNext()) {
                         val foundEventID = instanceCursor.getLong(EVENT_INSTANCE_DELETION_ID_INDEX)
 
                         if (eventIdNumber == foundEventID) {
@@ -510,8 +509,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
                             if (lastDate > 0 && newRule.count != null && newRule.count > 0) { // Update occurrence rule
                                 val cursor = CalendarContract.Instances.query(contentResolver, EVENT_INSTANCE_DELETION, startDate, lastDate)
-                                for (y in 0 until cursor.count) {
-                                    cursor.moveToNext()
+                                while (cursor.moveToNext()) {
                                     if (eventIdNumber == cursor.getLong(EVENT_INSTANCE_DELETION_ID_INDEX)) {
                                         newRule.count--
                                     }
@@ -519,26 +517,30 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                                 cursor.close()
                             }
                             else { // Indefinite and specified date rule
-                                val cursor = CalendarContract.Instances.query(contentResolver, EVENT_INSTANCE_DELETION, 946645200000, startDate - 1) // 946645200000 = 01/01/2000
-                                var lastRecurrenceDate = 0.toLong()
+                                val cursor = CalendarContract.Instances.query(contentResolver, EVENT_INSTANCE_DELETION, startDate - DateUtils.YEAR_IN_MILLIS, startDate - 1)
+                                var lastRecurrenceDate: Long? = null
 
-                                for (y in 0 until cursor.count) {
-                                    cursor.moveToNext()
+                                while (cursor.moveToNext()) {
                                     if (eventIdNumber == cursor.getLong(EVENT_INSTANCE_DELETION_ID_INDEX)) {
                                         lastRecurrenceDate = cursor.getLong(EVENT_INSTANCE_DELETION_END_INDEX)
                                     }
                                 }
 
-                                newRule.until = DateTime(lastRecurrenceDate)
+                                if (lastRecurrenceDate != null) {
+                                    newRule.until = DateTime(lastRecurrenceDate)
+                                }
+                                else {
+                                    newRule.until = DateTime(startDate - 1)
+                                }
                                 cursor.close()
                             }
 
                             values.put(Events.RRULE, newRule.toString())
                             contentResolver?.update(eventsUriWithId, values, null, null)
-                            instanceCursor.close()
                             finishWithSuccess(true, pendingChannelResult)
                         }
                     }
+                    instanceCursor.close()
                 }
             }
         } else {
