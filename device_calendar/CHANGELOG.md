@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.1.0
+## 3.1.0 6th March 2020 - Bug fixes and new features
 
 * Boolean variable `isDefault` added for issue [145](https://github.com/builttoroam/flutter_plugins/issues/145) (**NOTE**: This is not supported Android API 16 or lower, `isDefault` will always be false)
 * Events with 'null' title now defaults to 'New Event', issue [126](https://github.com/builttoroam/flutter_plugins/issues/126)
@@ -10,6 +10,18 @@
 * Added `DayOfWeekGroup` enum and an extension `getDays` to get corresponding dates of the enum values (**NOTE**: `DayOfWeekGroup.Custom.getDays` will return an empty list)
 * Added to retrieve colour for calendars. Thanks to [nadavfima](https://github.com/nadavfima) for the contribution and PR to add colour support for both Android and iOS
 * Added compatibility with a new Flutter plugin for Android. Thanks to the PR submitted by [RohitKumarMishra](https://github.com/RohitKumarMishra)
+
+## 3.0.0+3 3rd February 2020
+
+* Fixed all day conditional check for issue [162](https://github.com/builttoroam/flutter_plugins/issues/162)
+
+## 3.0.0+2 30th January 2020
+
+* Updated `event.allDay` property in `createOrUpdateEvent` method to be null-aware
+
+## 3.0.0+1 28th January 2020
+
+* Updated `event.url` property in `createOrUpdateEvent` method to be null-aware for issue [152](https://github.com/builttoroam/flutter_plugins/issues/152)
 
 ## 3.0.0 21st January 2020
 
