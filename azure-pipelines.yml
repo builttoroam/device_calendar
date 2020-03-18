@@ -143,6 +143,18 @@ stages:
               
               Write-Host "##vso[task.setvariable variable=versionSummary]$summary"
 
+        - task: CmdLine@2
+          displayName: 'Dry run publish'
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --dry-run'
+
+        - task: CmdLine@2
+          displayName: 'Publish'
+          inputs:
+            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            script: '$(flutterExecPath) pub publish --force'
+
         - task: GitHubReleasePublish@1
           displayName: 'Tag a release to GitHub'
           inputs:
@@ -160,25 +172,3 @@ stages:
             githubSkipDuplicatedAssets: false
             githubEditRelease: false
             githubDeleteEmptyTag: false
-
-        - task: CmdLine@2
-          displayName: 'Dry run publish'
-          inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-            script: '$(flutterExecPath) pub publish --dry-run'
-
-        - task: CmdLine@2
-          displayName: 'Publish'
-          inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
-            script: '$(flutterExecPath) pub publish --force'
-
-        - task: GitHubRelease@1
-          displayName: 'Remove GitHub tag when publish fails'
-          condition: failed()
-          inputs:
-            gitHubConnection: 'GitHub Tagging'
-            repositoryName: 'builttoroam/flutter_plugins'
-            action: 'delete'
-            tag: 'v$(currentVersion)'
-       
