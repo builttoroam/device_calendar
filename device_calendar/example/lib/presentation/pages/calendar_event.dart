@@ -740,7 +740,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     switch (_dayOfWeekGroup) {
       case DayOfWeekGroup.Weekday:
       case DayOfWeekGroup.Weekend:
-      case DayOfWeekGroup.Alldays:
+      case DayOfWeekGroup.AllDays:
         _daysOfWeek.clear();
         _daysOfWeek.addAll(days.where((a) => _daysOfWeek.every((b) => a != b)));
         break;
@@ -766,8 +766,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _dayOfWeekGroup = DayOfWeekGroup.Weekend;
     }
     // If _daysOfWeek contains all days
-    else if (deepEquality(_daysOfWeek, DayOfWeekGroup.Alldays.getDays) && _dayOfWeekGroup != DayOfWeekGroup.Alldays) {
-      _dayOfWeekGroup = DayOfWeekGroup.Alldays;
+    else if (deepEquality(_daysOfWeek, DayOfWeekGroup.AllDays.getDays) && _dayOfWeekGroup != DayOfWeekGroup.AllDays) {
+      _dayOfWeekGroup = DayOfWeekGroup.AllDays;
     }
     // Otherwise null
     else {
