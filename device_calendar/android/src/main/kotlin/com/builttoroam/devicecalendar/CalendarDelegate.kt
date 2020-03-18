@@ -374,20 +374,19 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         values.put(Events.ALL_DAY, event.allDay)
 
         if (event.allDay) {
-            // All day events must have UTC timezone
-            val utcTimeZone =  TimeZone.getTimeZone("UTC")
-
-            val calendar = java.util.Calendar.getInstance(utcTimeZone)
+            val calendar = java.util.Calendar.getInstance()
             calendar.timeInMillis = event.start!!
             calendar.set(java.util.Calendar.HOUR, 0)
             calendar.set(java.util.Calendar.MINUTE, 0)
             calendar.set(java.util.Calendar.SECOND, 0)
             calendar.set(java.util.Calendar.MILLISECOND, 0)
 
-            val allDayTime = calendar.timeInMillis + DateUtils.DAY_IN_MILLIS
+            // All day events must have UTC timezone
+            val utcTimeZone =  TimeZone.getTimeZone("UTC")
+            calendar.timeZone = utcTimeZone
 
-            values.put(Events.DTSTART, allDayTime)
-            values.put(Events.DTEND, allDayTime)
+            values.put(Events.DTSTART, calendar.timeInMillis)
+            values.put(Events.DTEND, calendar.timeInMillis)
             values.put(Events.EVENT_TIMEZONE, utcTimeZone.id)
         }
         else {
