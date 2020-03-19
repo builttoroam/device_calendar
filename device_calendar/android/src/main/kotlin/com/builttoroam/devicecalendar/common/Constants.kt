@@ -58,6 +58,20 @@ class Constants {
                 CalendarContract.Events.CUSTOM_APP_URI
         )
 
+        const val EVENT_INSTANCE_DELETION_ID_INDEX: Int = 0
+        const val EVENT_INSTANCE_DELETION_RRULE_INDEX: Int = 1
+        const val EVENT_INSTANCE_DELETION_LAST_DATE_INDEX: Int = 2
+        const val EVENT_INSTANCE_DELETION_BEGIN_INDEX: Int = 3
+        const val EVENT_INSTANCE_DELETION_END_INDEX: Int = 4
+
+        val EVENT_INSTANCE_DELETION: Array<String> = arrayOf(
+                CalendarContract.Instances.EVENT_ID,
+                CalendarContract.Events.RRULE,
+                CalendarContract.Events.LAST_DATE,
+                CalendarContract.Instances.BEGIN,
+                CalendarContract.Instances.END
+        )
+
         const val ATTENDEE_ID_INDEX: Int = 0
         const val ATTENDEE_EVENT_ID_INDEX: Int = 1
         const val ATTENDEE_NAME_INDEX: Int = 2
