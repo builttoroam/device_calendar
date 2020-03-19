@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 
@@ -243,6 +244,8 @@ class DeviceCalendarPlugin {
   /// Creates a new local calendar for the current device.
   ///
   /// The `calendarName` parameter is the name of the new calendar\
+  /// The `calendarColor` parameter is the color of the calendar. If null, 
+  /// a default color (red) will be used\
   /// The `localAccountName` parameter is the name of the local account:
   /// - [Android] Required. If `localAccountName` parameter is null or empty, it will default to 'Device Calendar'.
   /// If the account name already exists in the device, it will add another calendar under the account,
@@ -250,14 +253,17 @@ class DeviceCalendarPlugin {
   /// - [iOS] Not used. A local account will be picked up automatically, if not found, an error will be thrown.
   ///
   /// Returns a [Result] with the newly created [Calendar.id]
-  Future<Result<String>> createCalendar(String calendarName, {String localAccountName}) async {
+  Future<Result<String>> createCalendar(String calendarName, {Color calendarColor, String localAccountName}) async {
     final result = Result<String>();
 
     if (calendarName?.isNotEmpty == true) {
+      calendarColor ??= Colors.red;
+
       try {        
         result.data =
             await channel.invokeMethod('createCalendar', <String, Object>{ 
               'calendarName': calendarName,
+              'calendarColor': '0x${calendarColor.value.toRadixString(16)}',
               'localAccountName': localAccountName?.isEmpty ?? true ? 'Device Calendar' : localAccountName });
       } catch (e) {
         _parsePlatformExceptionAndUpdateResult(e, result);
