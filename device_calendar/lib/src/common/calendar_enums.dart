@@ -12,8 +12,7 @@ enum DayOfWeekGroup {
   None,
   Weekday,
   Weekend,
-  Alldays,
-  Custom
+  AllDays
 }
 
 enum MonthOfYear {
@@ -77,7 +76,7 @@ extension DaysOfWeekGroupExtension on DayOfWeekGroup {
         return [DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday];
       case DayOfWeekGroup.Weekend:
         return [DayOfWeek.Saturday, DayOfWeek.Sunday];
-      case DayOfWeekGroup.Alldays:
+      case DayOfWeekGroup.AllDays:
         return [DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday];
       default:
         return [];

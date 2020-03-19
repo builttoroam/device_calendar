@@ -131,9 +131,10 @@ class DeviceCalendarPlugin {
     return res;
   }
 
-  /// Deletes an event from a calendar. For a recurring event, this will delete all instances of it
+  /// Deletes an event from a calendar. For a recurring event, this will delete all instances of it.\
+  /// To delete individual instance of a recurring event, please use [deleteEventInstance()]
   ///
-  /// The `calendarId` paramter is the id of the calendar that plugin will try to delete the event from
+  /// The `calendarId` parameter is the id of the calendar that plugin will try to delete the event from\
   /// The `eventId` parameter is the id of the event that plugin will try to delete
   ///
   /// Returns a [Result] indicating if the event has (true) or has not (false) been deleted from the calendar
@@ -149,6 +150,41 @@ class DeviceCalendarPlugin {
     try {
       res.data = await channel.invokeMethod('deleteEvent',
           <String, Object>{'calendarId': calendarId, 'eventId': eventId});
+    } catch (e) {
+      _parsePlatformExceptionAndUpdateResult<bool>(e, res);
+    }
+
+    return res;
+  }
+
+  /// Deletes an instance of a recurring event from a calendar. This should be used for a recurring event only.\
+  /// If `startDate`, `endDate` or `deleteFollowingInstances` is not valid or null, then all instances of the event will be deleted.
+  ///
+  /// The `calendarId` parameter is the id of the calendar that plugin will try to delete the event from\
+  /// The `eventId` parameter is the id of the event that plugin will try to delete\
+  /// The `startDate` parameter is the start date of the instance to delete\
+  /// The `endDate` parameter is the end date of the instance to delete\
+  /// The `deleteFollowingInstances` parameter will also delete the following instances if set to true
+  ///
+  /// Returns a [Result] indicating if the instance of the event has (true) or has not (false) been deleted from the calendar
+  Future<Result<bool>> deleteEventInstance(String calendarId, String eventId, int startDate, int endDate, bool deleteFollowingInstances) async {
+    final res = Result<bool>();
+
+    if ((calendarId?.isEmpty ?? true) || (eventId?.isEmpty ?? true)) {
+      res.errorMessages.add(
+          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.deleteEventInvalidArgumentsMessage}');
+      return res;
+    }
+
+    try {
+      res.data = await channel.invokeMethod('deleteEventInstance',
+        <String, Object>{
+          'calendarId': calendarId,
+          'eventId': eventId,
+          'eventStartDate': startDate,
+          'eventEndDate': endDate,
+          'followingInstances': deleteFollowingInstances
+        });
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult<bool>(e, res);
     }

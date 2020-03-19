@@ -2,6 +2,8 @@ import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'recurring_event_dialog.dart';
+
 class EventItem extends StatelessWidget {
   final Event _calendarEvent;
   final DeviceCalendarPlugin _deviceCalendarPlugin;
@@ -168,13 +170,13 @@ class EventItem extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: () async {
-                      await showDialog<Null>(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (BuildContext context) {
+                      await showDialog<bool>(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          if (_calendarEvent.recurrenceRule == null) {
                             return AlertDialog(
-                              title: Text(
-                                  'Are you sure you want to delete this event?'),
+                              title: Text('Are you sure you want to delete this event?'),
                               actions: [
                                 FlatButton(
                                   onPressed: () {
@@ -186,18 +188,24 @@ class EventItem extends StatelessWidget {
                                   onPressed: () async {
                                     Navigator.of(context).pop();
                                     _onLoadingStarted();
-                                    final deleteResult =
-                                        await _deviceCalendarPlugin.deleteEvent(
-                                            _calendarEvent.calendarId,
-                                            _calendarEvent.eventId);
-                                    _onDeleteFinished(deleteResult.isSuccess &&
-                                        deleteResult.data);
+                                    final deleteResult = await _deviceCalendarPlugin.deleteEvent(_calendarEvent.calendarId, _calendarEvent.eventId);
+                                    _onDeleteFinished(deleteResult.isSuccess && deleteResult.data);
                                   },
-                                  child: Text('Ok'),
+                                  child: Text('Delete'),
                                 ),
                               ],
                             );
-                          });
+                          }
+                          else {
+                            return RecurringEventDialog(
+                              _deviceCalendarPlugin,
+                              _calendarEvent,
+                              _onLoadingStarted,
+                              _onDeleteFinished
+                            );
+                          }
+                        }
+                      );
                     },
                     icon: Icon(Icons.delete),
                   ),

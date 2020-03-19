@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 
 import '../date_time_picker.dart';
+import '../recurring_event_dialog.dart';
 import 'event_reminders.dart';
 
 enum RecurrenceRuleEndType { Indefinite, MaxOccurrences, SpecifiedEndDate }
@@ -13,12 +14,13 @@ enum RecurrenceRuleEndType { Indefinite, MaxOccurrences, SpecifiedEndDate }
 class CalendarEventPage extends StatefulWidget {
   final Calendar _calendar;
   final Event _event;
+  final RecurringEventDialog _recurringEventDialog;
 
-  CalendarEventPage(this._calendar, [this._event]);
+  CalendarEventPage(this._calendar, [this._event, this._recurringEventDialog]);
 
   @override
   _CalendarEventPageState createState() {
-    return _CalendarEventPageState(_calendar, _event);
+    return _CalendarEventPageState(_calendar, _event, _recurringEventDialog);
   }
 }
 
@@ -29,6 +31,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   Event _event;
   DeviceCalendarPlugin _deviceCalendarPlugin;
+  RecurringEventDialog _recurringEventDialog;
 
   DateTime _startDate;
   TimeOfDay _startTime;
@@ -56,8 +59,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   List<Attendee> _attendees = List<Attendee>();
   List<Reminder> _reminders = List<Reminder>();
   
-  _CalendarEventPageState(this._calendar, this._event) {
+  _CalendarEventPageState(this._calendar, this._event, this._recurringEventDialog) {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
+    _recurringEventDialog = this._recurringEventDialog;
 
     _attendees = List<Attendee>();
     _reminders = List<Reminder>();
@@ -597,9 +601,23 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                   color: Colors.red,
                   child: Text('Delete'),
                   onPressed: () async {
-                    await _deviceCalendarPlugin.deleteEvent(
-                        _calendar.id, _event.eventId);
-                    Navigator.pop(context, true);
+                    var result = true;
+                    if (!_isRecurringEvent) {
+                      await _deviceCalendarPlugin.deleteEvent(_calendar.id, _event.eventId);
+                    }
+                    else {
+                      result = await showDialog<bool>(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return _recurringEventDialog;
+                        }
+                      );
+                    }
+
+                    if (result) {
+                      Navigator.pop(context, true);
+                    }
                   },
                 ),
               ]
@@ -722,14 +740,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     switch (_dayOfWeekGroup) {
       case DayOfWeekGroup.Weekday:
       case DayOfWeekGroup.Weekend:
-      case DayOfWeekGroup.Alldays:
+      case DayOfWeekGroup.AllDays:
         _daysOfWeek.clear();
         _daysOfWeek.addAll(days.where((a) => _daysOfWeek.every((b) => a != b)));
         break;
       case DayOfWeekGroup.None:
         _daysOfWeek.clear();
-        break;
-      default: // DayOfWeekGroup.Custom, it shouldn't be changed
         break;
     }
   }
@@ -750,12 +766,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _dayOfWeekGroup = DayOfWeekGroup.Weekend;
     }
     // If _daysOfWeek contains all days
-    else if (deepEquality(_daysOfWeek, DayOfWeekGroup.Alldays.getDays) && _dayOfWeekGroup != DayOfWeekGroup.Alldays) {
-      _dayOfWeekGroup = DayOfWeekGroup.Alldays;
+    else if (deepEquality(_daysOfWeek, DayOfWeekGroup.AllDays.getDays) && _dayOfWeekGroup != DayOfWeekGroup.AllDays) {
+      _dayOfWeekGroup = DayOfWeekGroup.AllDays;
     }
-    // Otherwise, set as Custom
+    // Otherwise null
     else {
-      _dayOfWeekGroup = DayOfWeekGroup.Custom;
+      _dayOfWeekGroup = null;
     }
   }
 
