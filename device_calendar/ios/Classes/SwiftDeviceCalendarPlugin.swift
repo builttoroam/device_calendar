@@ -108,6 +108,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let minutesArgument = "minutes"
     let followingInstancesArgument = "followingInstances"
     let calendarNameArgument = "calendarName"
+    let calendarColorArgument = "calendarColor"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -149,7 +150,14 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let calendar = EKCalendar.init(for: EKEntityType.event, eventStore: eventStore)
         do {
             calendar.title = arguments[calendarNameArgument] as! String
-            calendar.cgColor = UIColor(red: 255, green: 0, blue: 0, alpha: 0).cgColor // Red colour as a default
+            let calendarColor = arguments[calendarColorArgument] as? String
+            
+            if (calendarColor != nil) {
+                calendar.cgColor = UIColor(hex: calendarColor!)?.cgColor
+            }
+            else {
+                calendar.cgColor = UIColor(red: 255, green: 0, blue: 0, alpha: 0).cgColor // Red colour as a default
+            }
             
             let localSources = eventStore.sources.filter { $0.sourceType == .local }
             
@@ -744,6 +752,32 @@ extension UIColor {
             // Could not extract RGBA components:
             return nil
         }
+    }
+    
+    public convenience init?(hex: String) {
+        let r, g, b, a: CGFloat
+
+        if hex.hasPrefix("0x") {
+            let start = hex.index(hex.startIndex, offsetBy: 2)
+            let hexColor = String(hex[start...])
+
+            if hexColor.count == 8 {
+                let scanner = Scanner(string: hexColor)
+                var hexNumber: UInt64 = 0
+
+                if scanner.scanHexInt64(&hexNumber) {
+                    a = CGFloat((hexNumber & 0xff000000) >> 24) / 255
+                    r = CGFloat((hexNumber & 0x00ff0000) >> 16) / 255
+                    g = CGFloat((hexNumber & 0x0000ff00) >> 8) / 255
+                    b = CGFloat((hexNumber & 0x000000ff)) / 255
+                    
+                    self.init(red: r, green: g, blue: b, alpha: a)
+                    return
+                }
+            }
+        }
+
+        return nil
     }
 }
 

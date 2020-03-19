@@ -17,6 +17,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
 
   bool _autovalidate = false;
   String _calendarName = '';
+  ColorChoice _colorChoice;
   String _localAccountName = '';
 
   _CalendarAddPageState() {
@@ -45,8 +46,26 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
                 validator: _validateCalendarName,
                 onSaved: (String value) => _calendarName = value,
               ),
+              SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Calendar Color'),
+                  DropdownButton<ColorChoice>(
+                    onChanged: (selectedColor) {
+                      setState(() => _colorChoice = selectedColor);
+                    },
+                    value: _colorChoice,
+                    items: ColorChoice.values
+                        .map((color) => DropdownMenuItem(
+                              value: color,
+                              child: Text(color.toString().split('.').last),
+                            ))
+                        .toList(),
+                  ),
+                ],
+              ),
               if (Platform.isAndroid) ...[
-                SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(
                     labelText: 'Local Account Name',
@@ -70,6 +89,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
             form.save();
             var result = await _deviceCalendarPlugin.createCalendar(
               _calendarName,
+              calendarColor: _colorChoice.value,
               localAccountName: _localAccountName,
             );
 
@@ -95,4 +115,35 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
   void showInSnackBar(String value) {
     _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(value)));
   }
+}
+
+enum ColorChoice {
+  Red,
+  Orange,
+  Yellow,
+  Green,
+  Blue,
+  Purple,
+  Brown,
+  Black,
+  White
+}
+
+extension ColorChoiceExtension on ColorChoice {
+  static Color _value(ColorChoice val) {
+    switch (val) {
+      case ColorChoice.Red: return Colors.red;
+      case ColorChoice.Orange: return Colors.orange;
+      case ColorChoice.Yellow: return Colors.yellow;
+      case ColorChoice.Green: return Colors.green;
+      case ColorChoice.Blue: return Colors.blue;
+      case ColorChoice.Purple: return Colors.purple;
+      case ColorChoice.Brown: return Colors.brown;
+      case ColorChoice.Black: return Colors.black;
+      case ColorChoice.White: return Colors.white;
+      default: return Colors.red;
+    }
+  }
+
+  Color get value => _value(this);
 }

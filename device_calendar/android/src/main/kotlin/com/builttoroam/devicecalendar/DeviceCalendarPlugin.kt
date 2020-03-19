@@ -57,6 +57,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val REMINDERS_ARGUMENT = "reminders"
     private val MINUTES_ARGUMENT = "minutes"
     private val FOLLOWING_INSTANCES = "followingInstances"
+    private val CALENDAR_COLOR_ARGUMENT = "calendarColor"
     private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
 
     private lateinit var _registrar: Registrar
@@ -124,9 +125,10 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             }
             CREATE_CALENDAR_METHOD -> {
                 val calendarName = call.argument<String>(CALENDAR_NAME_ARGUMENT)
+                val calendarColor = call.argument<String>(CALENDAR_COLOR_ARGUMENT)
                 val localAccountName = call.argument<String>(LOCAL_ACCOUNT_NAME_ARGUMENT)
 
-                _calendarDelegate.createCalendar(calendarName!!, localAccountName!!, result)
+                _calendarDelegate.createCalendar(calendarName!!, calendarColor, localAccountName!!, result)
             }
             else -> {
                 result.notImplemented()
