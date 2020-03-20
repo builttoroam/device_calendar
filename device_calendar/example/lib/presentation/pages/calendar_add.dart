@@ -65,7 +65,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
                   ),
                 ],
               ),
-              if (Platform.isAndroid) ...[
+              if (Platform.isAndroid)
                 TextFormField(
                   decoration: const InputDecoration(
                     labelText: 'Local Account Name',
@@ -73,7 +73,6 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
                   ),
                   onSaved: (String value) => _localAccountName = value,
                 ),
-              ]
             ],
           ),
         ),
