@@ -428,9 +428,20 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             values.put(Events.DTSTART, event.start!!)
             values.put(Events.DTEND, event.end!!)
 
-            // MK using current device time zone
             val currentTimeZone: TimeZone = java.util.Calendar.getInstance().timeZone
-            values.put(Events.EVENT_TIMEZONE, currentTimeZone.id)
+            var startTimeZone = TimeZone.getTimeZone(event.startTimeZone ?: currentTimeZone.id)
+            // Invalid time zone names defaults to GMT so update that to be device's time zone
+            if (startTimeZone.id == "GMT" && event.startTimeZone != "GMT") {
+                startTimeZone = TimeZone.getTimeZone(currentTimeZone.id)
+            }
+            values.put(Events.EVENT_TIMEZONE, startTimeZone.id)
+
+            var endTimeZone = TimeZone.getTimeZone(event.endTimeZone ?: currentTimeZone.id)
+            // Invalid time zone names defaults to GMT so update that to be device's time zone
+            if (endTimeZone.id == "GMT" && event.endTimeZone != "GMT") {
+                endTimeZone = TimeZone.getTimeZone(currentTimeZone.id)
+            }
+            values.put(Events.EVENT_END_TIMEZONE, endTimeZone.id)
         }
         values.put(Events.TITLE, event.title)
         values.put(Events.DESCRIPTION, event.description)
