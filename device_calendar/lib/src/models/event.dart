@@ -5,7 +5,7 @@ import 'recurrence_rule.dart';
 
 /// An event associated with a calendar
 class Event {
-  /// The unique identifier for this event
+  /// Read-only. The unique identifier for this event. This is auto-generated when a new event is created
   String eventId;
 
   /// The identifier of the calendar that this event is associated with
