@@ -13,6 +13,7 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
+import org.json.JSONArray
 
 const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar"
 
@@ -25,9 +26,11 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val DELETE_EVENT_METHOD = "deleteEvent"
     private val DELETE_EVENT_INSTANCE_METHOD = "deleteEventInstance"
     private val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
+    private val CREATE_CALENDAR_METHOD = "createCalendar"
 
     // Method arguments
     private val CALENDAR_ID_ARGUMENT = "calendarId"
+    private val CALENDAR_NAME_ARGUMENT = "calendarName"
     private val START_DATE_ARGUMENT = "startDate"
     private val END_DATE_ARGUMENT = "endDate"
     private val EVENT_IDS_ARGUMENT = "eventIds"
@@ -54,6 +57,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val REMINDERS_ARGUMENT = "reminders"
     private val MINUTES_ARGUMENT = "minutes"
     private val FOLLOWING_INSTANCES = "followingInstances"
+    private val CALENDAR_COLOR_ARGUMENT = "calendarColor"
+    private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
 
     private lateinit var _registrar: Registrar
     private lateinit var _calendarDelegate: CalendarDelegate
@@ -117,6 +122,13 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val followingInstances = call.argument<Boolean>(FOLLOWING_INSTANCES)
 
                 _calendarDelegate.deleteEvent(calendarId!!, eventId!!, result, startDate, endDate, followingInstances)
+            }
+            CREATE_CALENDAR_METHOD -> {
+                val calendarName = call.argument<String>(CALENDAR_NAME_ARGUMENT)
+                val calendarColor = call.argument<String>(CALENDAR_COLOR_ARGUMENT)
+                val localAccountName = call.argument<String>(LOCAL_ACCOUNT_NAME_ARGUMENT)
+
+                _calendarDelegate.createCalendar(calendarName!!, calendarColor, localAccountName!!, result)
             }
             else -> {
                 result.notImplemented()

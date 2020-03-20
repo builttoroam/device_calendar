@@ -11,6 +11,7 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
+import android.provider.CalendarContract.CALLER_IS_SYNCADAPTER
 import android.provider.CalendarContract.Events
 import android.text.format.DateUtils
 import io.flutter.plugin.common.PluginRegistry.Registrar
@@ -23,6 +24,8 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_I
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_COLOR_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_TYPE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_IS_PRIMARY_INDEX
@@ -160,7 +163,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if (arePermissionsGranted()) {
             val contentResolver: ContentResolver? = _context?.contentResolver
             val uri: Uri = CalendarContract.Calendars.CONTENT_URI
-             val cursor: Cursor? = if (atLeastAPI(17)) {
+            val cursor: Cursor? = if (atLeastAPI(17)) {
                 contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
             } else {
                 contentResolver?.query(uri, CALENDAR_PROJECTION_OLDER_API, null, null, null)
@@ -227,6 +230,32 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
         return null
+    }
+
+    fun createCalendar(calendarName: String, calendarColor: String?, localAccountName: String, pendingChannelResult: MethodChannel.Result) {
+        val contentResolver: ContentResolver? = _context?.contentResolver
+
+        var uri = CalendarContract.Calendars.CONTENT_URI
+        uri = uri.buildUpon()
+                .appendQueryParameter(CALLER_IS_SYNCADAPTER, "true")
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, localAccountName)
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+                .build()
+        val values = ContentValues()
+        values.put(CalendarContract.Calendars.NAME, calendarName)
+        values.put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, calendarName)
+        values.put(CalendarContract.Calendars.ACCOUNT_NAME, localAccountName)
+        values.put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+        values.put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
+        values.put(CalendarContract.Calendars.CALENDAR_COLOR, calendarColor ?: "0xFFFF0000") // Red colour as a default
+        values.put(CalendarContract.Calendars.OWNER_ACCOUNT, localAccountName)
+        values.put(CalendarContract.Calendars.CALENDAR_TIME_ZONE, java.util.Calendar.getInstance().timeZone.id)
+
+        val result = contentResolver?.insert(uri, values)
+        // Get the calendar ID that is the last element in the Uri
+        val calendarId = java.lang.Long.parseLong(result?.lastPathSegment!!)
+
+        finishWithSuccess(calendarId.toString(), pendingChannelResult)
     }
 
     @SuppressLint("MissingPermission")
@@ -580,9 +609,10 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val displayName = cursor.getString(CALENDAR_PROJECTION_DISPLAY_NAME_INDEX)
         val accessLevel = cursor.getInt(CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX)
         val calendarColor = cursor.getInt(CALENDAR_PROJECTION_COLOR_INDEX)
+        val accountName = cursor.getString(CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX)
+        val accountType = cursor.getString(CALENDAR_PROJECTION_ACCOUNT_TYPE_INDEX)
 
-
-        val calendar = Calendar(calId.toString(), displayName, calendarColor)
+        val calendar = Calendar(calId.toString(), displayName, calendarColor, accountName, accountType)
         calendar.isReadOnly = isCalendarReadOnly(accessLevel)
         if (atLeastAPI(17)) {
             val isPrimary = cursor.getString(CALENDAR_PROJECTION_IS_PRIMARY_INDEX)
