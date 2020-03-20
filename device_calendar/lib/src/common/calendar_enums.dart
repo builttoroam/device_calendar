@@ -8,6 +8,13 @@ enum DayOfWeek {
   Sunday
 }
 
+enum DayOfWeekGroup {
+  None,
+  Weekday,
+  Weekend,
+  AllDays
+}
+
 enum MonthOfYear {
   January,
   Feburary,
@@ -59,6 +66,28 @@ extension DayOfWeekExtension on DayOfWeek {
   }
 
   int get value => _value(this);
+  String get enumToString => _enumToString(this);
+}
+
+extension DaysOfWeekGroupExtension on DayOfWeekGroup {
+  static List<DayOfWeek> _getDays(DayOfWeekGroup val) {
+    switch (val) {
+      case DayOfWeekGroup.Weekday:
+        return [DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday];
+      case DayOfWeekGroup.Weekend:
+        return [DayOfWeek.Saturday, DayOfWeek.Sunday];
+      case DayOfWeekGroup.AllDays:
+        return [DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday];
+      default:
+        return [];
+    }
+  }
+
+  String _enumToString(DayOfWeekGroup enumValue) {
+    return enumValue.toString().split('.').last;
+  }
+
+  List<DayOfWeek> get getDays => _getDays(this);
   String get enumToString => _enumToString(this);
 }
 

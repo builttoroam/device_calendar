@@ -17,6 +17,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let id: String
         let name: String
         let isReadOnly: Bool
+        let isDefault: Bool
+        let color: Int
+        let accountName: String
+        let accountType: String
     }
     
     struct Event: Codable {
@@ -71,8 +75,11 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let hasPermissionsMethod = "hasPermissions"
     let retrieveCalendarsMethod = "retrieveCalendars"
     let retrieveEventsMethod = "retrieveEvents"
+    let retrieveSourcesMethod = "retrieveSources"
     let createOrUpdateEventMethod = "createOrUpdateEvent"
+    let createCalendarMethod = "createCalendar"
     let deleteEventMethod = "deleteEvent"
+    let deleteEventInstanceMethod = "deleteEventInstance"
     let calendarIdArgument = "calendarId"
     let startDateArgument = "startDate"
     let endDateArgument = "endDate"
@@ -99,6 +106,9 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let roleArgument = "role"
     let remindersArgument = "reminders"
     let minutesArgument = "minutes"
+    let followingInstancesArgument = "followingInstances"
+    let calendarNameArgument = "calendarName"
+    let calendarColorArgument = "calendarColor"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -121,27 +131,90 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             createOrUpdateEvent(call, result)
         case deleteEventMethod:
             deleteEvent(call, result)
+        case deleteEventInstanceMethod:
+            deleteEvent(call, result)
+        case createCalendarMethod:
+            createCalendar(call, result)
         default:
             result(FlutterMethodNotImplemented)
         }
     }
     
     private func hasPermissions(_ result: FlutterResult) {
-        let hasPermissions = self.hasPermissions()
+        let hasPermissions = hasEventPermissions()
         result(hasPermissions)
+    }
+    
+    private func createCalendar(_ call: FlutterMethodCall, _ result: FlutterResult) {
+        let arguments = call.arguments as! Dictionary<String, AnyObject>
+        let calendar = EKCalendar.init(for: EKEntityType.event, eventStore: eventStore)
+        do {
+            calendar.title = arguments[calendarNameArgument] as! String
+            let calendarColor = arguments[calendarColorArgument] as? String
+            
+            if (calendarColor != nil) {
+                calendar.cgColor = UIColor(hex: calendarColor!)?.cgColor
+            }
+            else {
+                calendar.cgColor = UIColor(red: 255, green: 0, blue: 0, alpha: 0).cgColor // Red colour as a default
+            }
+            
+            let localSources = eventStore.sources.filter { $0.sourceType == .local }
+            
+            if (!localSources.isEmpty) {
+                calendar.source = localSources.first
+                
+                try eventStore.saveCalendar(calendar, commit: true)
+                result(calendar.calendarIdentifier)
+            }
+            else {
+                result(FlutterError(code: self.genericError, message: "Local calendar was not found.", details: nil))
+            }
+        }
+        catch {
+            eventStore.reset()
+            result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
+        }
     }
     
     private func retrieveCalendars(_ result: @escaping FlutterResult) {
         checkPermissionsThenExecute(permissionsGrantedAction: {
             let ekCalendars = self.eventStore.calendars(for: .event)
+            let defaultCalendar = self.eventStore.defaultCalendarForNewEvents
             var calendars = [Calendar]()
             for ekCalendar in ekCalendars {
-                let calendar = Calendar(id: ekCalendar.calendarIdentifier, name: ekCalendar.title, isReadOnly: !ekCalendar.allowsContentModifications)
+                let calendar = Calendar(
+                    id: ekCalendar.calendarIdentifier,
+                    name: ekCalendar.title,
+                    isReadOnly: !ekCalendar.allowsContentModifications,
+                    isDefault: defaultCalendar?.calendarIdentifier == ekCalendar.calendarIdentifier,
+                    color: UIColor(cgColor: ekCalendar.cgColor).rgb()!,
+                    accountName: ekCalendar.source.title,
+                    accountType: getAccountType(ekCalendar.source.sourceType))
                 calendars.append(calendar)
             }
             
             self.encodeJsonAndFinish(codable: calendars, result: result)
         }, result: result)
+    }
+    
+    private func getAccountType(_ sourceType: EKSourceType) -> String {
+        switch (sourceType) {
+        case .local:
+            return "Local";
+        case .exchange:
+            return "Exchange";
+        case .calDAV:
+            return "CalDAV";
+        case .mobileMe:
+            return "MobileMe";
+        case .subscribed:
+            return "Subscribed";
+        case .birthdays:
+            return "Birthdays";
+        default:
+            return "Unknown";
+        }
     }
     
     private func retrieveEvents(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
@@ -212,12 +285,12 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 reminders.append(Reminder(minutes: Int(-alarm.relativeOffset / 60)))
             }
         }
-
+        
         let recurrenceRule = parseEKRecurrenceRules(ekEvent)
         let event = Event(
             eventId: ekEvent.eventIdentifier,
             calendarId: calendarId,
-            title: ekEvent.title,
+            title: ekEvent.title ?? "New Event",
             description: ekEvent.notes,
             start: Int64(ekEvent.startDate.millisecondsSinceEpoch),
             end: Int64(ekEvent.endDate.millisecondsSinceEpoch),
@@ -236,11 +309,11 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         if ekParticipant == nil || ekParticipant?.emailAddress == nil {
             return nil
         }
-
+        
         let attendee = Attendee(name: ekParticipant!.name, emailAddress:  ekParticipant!.emailAddress!, role: ekParticipant!.participantRole.rawValue, attendanceStatus: ekParticipant!.participantStatus.rawValue)
         return attendee
     }
-
+    
     private func parseEKRecurrenceRules(_ ekEvent: EKEvent) -> RecurrenceRule? {
         var recurrenceRule: RecurrenceRule?
         if ekEvent.hasRecurrenceRules {
@@ -505,7 +578,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.recurrenceRules = createEKRecurrenceRules(arguments)
             setAttendees(arguments, ekEvent)
             ekEvent!.alarms = createReminders(arguments)
-
+            
             do {
                 try self.eventStore.save(ekEvent!, span: .futureEvents)
                 result(ekEvent!.eventIdentifier)
@@ -533,6 +606,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let arguments = call.arguments as! Dictionary<String, AnyObject>
             let calendarId = arguments[calendarIdArgument] as! String
             let eventId = arguments[eventIdArgument] as! String
+            let startDateNumber = arguments[eventStartDateArgument] as? NSNumber
+            let endDateNumber = arguments[eventEndDateArgument] as? NSNumber
+            let followingInstances = arguments[followingInstancesArgument] as? Bool
+            
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if ekCalendar == nil {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
@@ -544,18 +621,48 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 return
             }
             
-            let ekEvent = self.eventStore.event(withIdentifier: eventId)
-            if ekEvent == nil {
-                self.finishWithEventNotFoundError(result: result, eventId: eventId)
-                return
+            if (startDateNumber == nil && endDateNumber == nil && followingInstances == nil) {
+                let ekEvent = self.eventStore.event(withIdentifier: eventId)
+                if ekEvent == nil {
+                    self.finishWithEventNotFoundError(result: result, eventId: eventId)
+                    return
+                }
+                
+                do {
+                    try self.eventStore.remove(ekEvent!, span: .futureEvents)
+                    result(true)
+                } catch {
+                    self.eventStore.reset()
+                    result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
+                }
             }
-            
-            do {
-                try self.eventStore.remove(ekEvent!, span: .futureEvents)
-                result(true)
-            } catch {
-                self.eventStore.reset()
-                result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
+            else {
+                let startDate = Date (timeIntervalSince1970: startDateNumber!.doubleValue / 1000.0)
+                let endDate = Date (timeIntervalSince1970: endDateNumber!.doubleValue / 1000.0)
+                                
+                let predicate = self.eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: nil)
+                let foundEkEvents = self.eventStore.events(matching: predicate) as [EKEvent]?
+                
+                if foundEkEvents == nil || foundEkEvents?.count == 0 {
+                    self.finishWithEventNotFoundError(result: result, eventId: eventId)
+                    return
+                }
+                
+                let ekEvent = foundEkEvents!.first(where: {$0.eventIdentifier == eventId})
+                
+                do {
+                    if (!followingInstances!) {
+                        try self.eventStore.remove(ekEvent!, span: .thisEvent, commit: true)
+                    }
+                    else {
+                        try self.eventStore.remove(ekEvent!, span: .futureEvents, commit: true)
+                    }
+                    
+                    result(true)
+                } catch {
+                    self.eventStore.reset()
+                    result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
+                }
             }
         }, result: result)
     }
@@ -578,7 +685,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let errorMessage = String(format: self.eventNotFoundErrorMessageFormat, eventId)
         result(FlutterError(code:self.notFoundErrorCode, message: errorMessage, details: nil))
     }
-
+    
     private func encodeJsonAndFinish<T: Codable>(codable: T, result: @escaping FlutterResult) {
         do {
             let jsonEncoder = JSONEncoder()
@@ -591,7 +698,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     private func checkPermissionsThenExecute(permissionsGrantedAction: () -> Void, result: @escaping FlutterResult) {
-        if hasPermissions() {
+        if hasEventPermissions() {
             permissionsGrantedAction()
             return
         }
@@ -599,7 +706,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     private func requestPermissions(completion: @escaping (Bool) -> Void) {
-        if hasPermissions() {
+        if hasEventPermissions() {
             completion(true)
             return
         }
@@ -609,13 +716,13 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         })
     }
     
-    private func hasPermissions() -> Bool {
+    private func hasEventPermissions() -> Bool {
         let status = EKEventStore.authorizationStatus(for: .event)
         return status == EKAuthorizationStatus.authorized
     }
     
     private func requestPermissions(_ result: @escaping FlutterResult) {
-        if hasPermissions()  {
+        if hasEventPermissions()  {
             result(true)
         }
         eventStore.requestAccess(to: .event, completion: {
@@ -624,3 +731,53 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         })
     }
 }
+
+extension UIColor {
+
+    func rgb() -> Int? {
+        var fRed : CGFloat = 0
+        var fGreen : CGFloat = 0
+        var fBlue : CGFloat = 0
+        var fAlpha: CGFloat = 0
+        if self.getRed(&fRed, green: &fGreen, blue: &fBlue, alpha: &fAlpha) {
+            let iRed = Int(fRed * 255.0)
+            let iGreen = Int(fGreen * 255.0)
+            let iBlue = Int(fBlue * 255.0)
+            let iAlpha = Int(fAlpha * 255.0)
+
+            //  (Bits 24-31 are alpha, 16-23 are red, 8-15 are green, 0-7 are blue).
+            let rgb = (iAlpha << 24) + (iRed << 16) + (iGreen << 8) + iBlue
+            return rgb
+        } else {
+            // Could not extract RGBA components:
+            return nil
+        }
+    }
+    
+    public convenience init?(hex: String) {
+        let r, g, b, a: CGFloat
+
+        if hex.hasPrefix("0x") {
+            let start = hex.index(hex.startIndex, offsetBy: 2)
+            let hexColor = String(hex[start...])
+
+            if hexColor.count == 8 {
+                let scanner = Scanner(string: hexColor)
+                var hexNumber: UInt64 = 0
+
+                if scanner.scanHexInt64(&hexNumber) {
+                    a = CGFloat((hexNumber & 0xff000000) >> 24) / 255
+                    r = CGFloat((hexNumber & 0x00ff0000) >> 16) / 255
+                    g = CGFloat((hexNumber & 0x0000ff00) >> 8) / 255
+                    b = CGFloat((hexNumber & 0x000000ff)) / 255
+                    
+                    self.init(red: r, green: g, blue: b, alpha: a)
+                    return
+                }
+            }
+        }
+
+        return nil
+    }
+}
+
