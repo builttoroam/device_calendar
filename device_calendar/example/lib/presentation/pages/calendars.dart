@@ -1,4 +1,5 @@
 import 'package:device_calendar/device_calendar.dart';
+import 'package:device_calendar_example/presentation/pages/calendar_add.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
@@ -98,8 +99,21 @@ class _CalendarsPageState extends State<CalendarsPage> {
                 );
               },
             ),
-          )
+          ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final createCalendar = await Navigator.push(context,
+              MaterialPageRoute(builder: (BuildContext context) {
+            return CalendarAddPage();
+          }));
+          
+          if (createCalendar == true) {
+            _retrieveCalendars();
+          }
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
