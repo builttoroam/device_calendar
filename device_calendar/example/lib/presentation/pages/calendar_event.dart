@@ -229,6 +229,18 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         },
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: TextFormField(
+                        initialValue: _event.startTimeZone,
+                        decoration: const InputDecoration(
+                            labelText: 'Start date timezone',
+                            hintText: 'Australia/Sydney'),
+                        onSaved: (String value) {
+                          _event.startTimeZone = value;
+                        },
+                      ),
+                    ),
                     if (!_event.allDay) ... [
                       Padding(
                         padding: const EdgeInsets.all(10.0),
@@ -253,6 +265,18 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                     _combineDateWithTime(_endDate, _endTime);
                               },
                             );
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: TextFormField(
+                          initialValue: _event.endTimeZone,
+                          decoration: const InputDecoration(
+                              labelText: 'End date time zone',
+                              hintText: 'Australia/Sydney'),
+                          onSaved: (String value) {
+                            _event.endTimeZone = value;
                           },
                         ),
                       ),

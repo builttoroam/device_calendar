@@ -16,6 +16,9 @@ A cross platform plugin for modifying calendars on the user's device.
   * **NOTE**: Deleting multiple instances in **Android** takes time to update, you'll see the changes after a few seconds
 * Ability to add, modify or remove attendees and receive if an attendee is an organiser for an event
 * Ability to setup reminders for an event
+* Ability to specify a time zone for event start and end date
+  * **NOTE**: For the time zone list, please refer to the `TZ database name` column on [Wikipedia](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+  * **NOTE**: If the time zone values are null or invalid, it will be defaulted to the device's current time zone.
 
 ## Android Integration
 
