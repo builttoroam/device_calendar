@@ -12,9 +12,6 @@ trigger:
       - release
       - hotfix
       - master
-  paths:
-    include:
-      - device_calendar/*
 
 stages:
   # ----------- CI -----------
