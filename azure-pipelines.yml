@@ -105,17 +105,12 @@ stages:
               cd .pub-cache/
 
               $credentials = @{
-                accessToken = "$env:MAPPED_ACCESS_TOKEN"
-                refreshToken = "$env:MAPPED_REFRESH_TOKEN"
-                tokenEndpoint = "$env:MAPPED_TOKEN_ENDPOINT"
+                accessToken = "$(ACCESS_TOKEN)"
+                refreshToken = "$(REFRESH_TOKEN)"
+                tokenEndpoint = "$(TOKEN_ENDPOINT)"
                 scopes = @("https://www.googleapis.com/auth/userinfo.email","openid")
-                expiration = $env:MAPPED_EXPIRATION
+                expiration = $(EXPIRATION)
               } | ConvertTo-Json | Out-File "credentials.json"
-          env:
-            MAPPED_ACCESS_TOKEN: $(ACCESS_TOKEN)
-            MAPPED_REFRESH_TOKEN: $(REFRESH_TOKEN)
-            MAPPED_TOKEN_ENDPOINT: $(TOKEN_ENDPOINT)
-            MAPPED_EXPIRATION: $(EXPIRATION)
 
         - task: CmdLine@2
           displayName: 'Dry run publish'
@@ -172,17 +167,12 @@ stages:
               cd .pub-cache/
 
               $credentials = @{
-                accessToken = "$env:MAPPED_ACCESS_TOKEN"
-                refreshToken = "$env:MAPPED_REFRESH_TOKEN"
-                tokenEndpoint = "$env:MAPPED_TOKEN_ENDPOINT"
+                accessToken = "$(ACCESS_TOKEN)"
+                refreshToken = "$(REFRESH_TOKEN)"
+                tokenEndpoint = "$(TOKEN_ENDPOINT)"
                 scopes = @("https://www.googleapis.com/auth/userinfo.email","openid")
-                expiration = $env:MAPPED_EXPIRATION
+                expiration = $(EXPIRATION)
               } | ConvertTo-Json | Out-File "credentials.json"
-          env:
-            MAPPED_ACCESS_TOKEN: $(ACCESS_TOKEN)
-            MAPPED_REFRESH_TOKEN: $(REFRESH_TOKEN)
-            MAPPED_TOKEN_ENDPOINT: $(TOKEN_ENDPOINT)
-            MAPPED_EXPIRATION: $(EXPIRATION)
 
         - task: CmdLine@2
           displayName: 'Dry run publish'
