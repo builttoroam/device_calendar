@@ -94,6 +94,23 @@ stages:
               Write-Host " (i) Updated CHANGELOG.md content: $newChangelogContent"
 
               $newChangelogContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md"
+              
+        - task: PowerShell@2
+          displayName: 'Create publisher credentials file'
+          inputs:
+            targetType: 'inline'
+            script: |
+              cd $(FlutterToolPath)
+              cd..
+              cd .pub-cache/
+
+              $credentials = @{
+                accessToken = "$(ACCESS_TOKEN)"
+                refreshToken = "$(REFRESH_TOKEN)"
+                tokenEndpoint = "$(TOKEN_ENDPOINT)"
+                scopes = @("https://www.googleapis.com/auth/userinfo.email","openid")
+                expiration = $(EXPIRATION)
+              } | ConvertTo-Json | Out-File "credentials.json"
 
         - task: CmdLine@2
           displayName: 'Dry run publish'
@@ -139,6 +156,23 @@ stages:
               [string] $summary = select-string -path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md" -pattern "($([regex]::escape($env:currentVersion))).*" | %{ $_.Matches[0].Value }
               
               Write-Host "##vso[task.setvariable variable=versionSummary]$summary"
+
+        - task: PowerShell@2
+          displayName: 'Create publisher credentials file'
+          inputs:
+            targetType: 'inline'
+            script: |
+              cd $(FlutterToolPath)
+              cd..
+              cd .pub-cache/
+
+              $credentials = @{
+                accessToken = "$(ACCESS_TOKEN)"
+                refreshToken = "$(REFRESH_TOKEN)"
+                tokenEndpoint = "$(TOKEN_ENDPOINT)"
+                scopes = @("https://www.googleapis.com/auth/userinfo.email","openid")
+                expiration = $(EXPIRATION)
+              } | ConvertTo-Json | Out-File "credentials.json"
 
         - task: CmdLine@2
           displayName: 'Dry run publish'
