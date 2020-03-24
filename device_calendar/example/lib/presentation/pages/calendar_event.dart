@@ -229,19 +229,19 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         },
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: TextFormField(
-                        initialValue: _event.startTimeZone,
-                        decoration: const InputDecoration(
-                            labelText: 'Start date timezone',
-                            hintText: 'Australia/Sydney'),
-                        onSaved: (String value) {
-                          _event.startTimeZone = value;
-                        },
-                      ),
-                    ),
                     if (!_event.allDay) ... [
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: TextFormField(
+                          initialValue: _event.startTimeZone,
+                          decoration: const InputDecoration(
+                              labelText: 'Start date timezone',
+                              hintText: 'Australia/Sydney'),
+                          onSaved: (String value) {
+                            _event.startTimeZone = value;
+                          },
+                        ),
+                      ),
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: DateTimePicker(
