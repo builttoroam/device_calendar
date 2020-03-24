@@ -109,7 +109,7 @@ stages:
                 refreshToken = "$env:MAPPED_REFRESH_TOKEN"
                 tokenEndpoint = "$env:MAPPED_TOKEN_ENDPOINT"
                 scopes = @("https://www.googleapis.com/auth/userinfo.email","openid")
-                expiration = "$env:MAPPED_EXPIRATION"
+                expiration = $env:MAPPED_EXPIRATION
               } | ConvertTo-Json | Out-File "credentials.json"
           env:
             MAPPED_ACCESS_TOKEN: $(ACCESS_TOKEN)
@@ -176,7 +176,7 @@ stages:
                 refreshToken = "$env:MAPPED_REFRESH_TOKEN"
                 tokenEndpoint = "$env:MAPPED_TOKEN_ENDPOINT"
                 scopes = @("https://www.googleapis.com/auth/userinfo.email","openid")
-                expiration = "$env:MAPPED_EXPIRATION"
+                expiration = $env:MAPPED_EXPIRATION
               } | ConvertTo-Json | Out-File "credentials.json"
           env:
             MAPPED_ACCESS_TOKEN: $(ACCESS_TOKEN)
