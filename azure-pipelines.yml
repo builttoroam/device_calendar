@@ -110,7 +110,7 @@ stages:
                 tokenEndpoint = "$(TOKEN_ENDPOINT)"
                 scopes = @("https://www.googleapis.com/auth/userinfo.email","openid")
                 expiration = $(EXPIRATION)
-              } | ConvertTo-Json | Out-File "credentials.json"
+              } | ConvertTo-Json | Out-File -FilePath .\credentials.json -Encoding UTF8
 
         - task: CmdLine@2
           displayName: 'Dry run publish'
@@ -172,7 +172,7 @@ stages:
                 tokenEndpoint = "$(TOKEN_ENDPOINT)"
                 scopes = @("https://www.googleapis.com/auth/userinfo.email","openid")
                 expiration = $(EXPIRATION)
-              } | ConvertTo-Json | Out-File "credentials.json"
+              } | ConvertTo-Json | Out-File -FilePath .\credentials.json -Encoding UTF8
 
         - task: CmdLine@2
           displayName: 'Dry run publish'
