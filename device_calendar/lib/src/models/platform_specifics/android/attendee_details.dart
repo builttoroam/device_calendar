@@ -23,11 +23,12 @@ class AndroidAttendeeDetails {
     role = AttendeeRole.values[json['role']];
 
     if (json['attendanceStatus'] != null && json['attendanceStatus'] is int) {
-      _attendanceStatus = AndroidAttendanceStatus.values[json['attendanceStatus']];
+      _attendanceStatus =
+          AndroidAttendanceStatus.values[json['attendanceStatus']];
     }
   }
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{ 'role': role?.index };
+    return <String, dynamic>{'role': role?.index};
   }
 }

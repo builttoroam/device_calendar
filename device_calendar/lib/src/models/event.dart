@@ -73,8 +73,7 @@ class Event {
     var foundUrl = json['url']?.toString();
     if (foundUrl?.isEmpty ?? true) {
       url = null;
-    }
-    else {
+    } else {
       url = Uri.dataFromString(foundUrl);
     }
 
@@ -86,11 +85,16 @@ class Event {
     if (json['recurrenceRule'] != null) {
       recurrenceRule = RecurrenceRule.fromJson(json['recurrenceRule']);
     }
-    if (json['organizer'] != null) { // Getting and setting an organiser for iOS
+    if (json['organizer'] != null) {
+      // Getting and setting an organiser for iOS
       var organiser = Attendee.fromJson(json['organizer']);
 
-      var attendee = attendees.firstWhere((at) => at.name == organiser.name && at.emailAddress == organiser.emailAddress, orElse: () => null);
-      if (attendee != null) { 
+      var attendee = attendees.firstWhere(
+          (at) =>
+              at.name == organiser.name &&
+              at.emailAddress == organiser.emailAddress,
+          orElse: () => null);
+      if (attendee != null) {
         attendee.isOrganiser = true;
       }
     }

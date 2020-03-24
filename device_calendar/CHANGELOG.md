@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.1.0 6th March 2020 - Bug fixes and new features
+## 3.1.0 25th March 2020 - Bug fixes and new features
 
 * Boolean variable `isDefault` added for issue [145](https://github.com/builttoroam/flutter_plugins/issues/145) (**NOTE**: This is not supported Android API 16 or lower, `isDefault` will always be false)
 * Events with 'null' title now defaults to 'New Event', issue [126](https://github.com/builttoroam/flutter_plugins/issues/126)
@@ -13,7 +13,7 @@
 * [Android] Fixed all day timezone issue [164](https://github.com/builttoroam/flutter_plugins/issues/164)
 * Added support for deleting individual or multiple instances of a recurring event for issue [108](https://github.com/builttoroam/flutter_plugins/issues/108)
 * Ability to add local calendars with a desired colour for issue [115](https://github.com/builttoroam/flutter_plugins/issues/115)
-* Returns account name and type for each calendars for issue [179](https://github.com/builttoroam/flutter_plugins/issues/179)
+* Returns an account name and type for each calendar for issue [179](https://github.com/builttoroam/flutter_plugins/issues/179)
 
 ## 3.0.0+3 3rd February 2020
 

@@ -27,13 +27,13 @@ class Attendee {
   /// When reading details for an existing event, this will only be populated on Android devices.
   AndroidAttendeeDetails androidAttendeeDetails;
 
-  Attendee({
-    this.name,
-    this.emailAddress,
-    this.role,
-    this.isOrganiser = false,
-    this.iosAttendeeDetails,
-    this.androidAttendeeDetails});
+  Attendee(
+      {this.name,
+      this.emailAddress,
+      this.role,
+      this.isOrganiser = false,
+      this.iosAttendeeDetails,
+      this.androidAttendeeDetails});
 
   Attendee.fromJson(Map<String, dynamic> json) {
     if (json == null) {
@@ -45,7 +45,8 @@ class Attendee {
     role = AttendeeRole.values[json['role'] ?? 0];
 
     if (Platform.isAndroid) {
-      isOrganiser = json['isOrganizer']; // Getting and setting an organiser for Android
+      isOrganiser =
+          json['isOrganizer']; // Getting and setting an organiser for Android
       androidAttendeeDetails = AndroidAttendeeDetails.fromJson(json);
     }
 
@@ -55,7 +56,11 @@ class Attendee {
   }
 
   Map<String, dynamic> toJson() {
-    final data = { 'name': name, 'emailAddress': emailAddress, 'role': role?.index };
+    final data = {
+      'name': name,
+      'emailAddress': emailAddress,
+      'role': role?.index
+    };
 
     if (Platform.isIOS && iosAttendeeDetails != null) {
       data.addEntries(iosAttendeeDetails.toJson().entries);

@@ -167,7 +167,8 @@ class DeviceCalendarPlugin {
   /// The `deleteFollowingInstances` parameter will also delete the following instances if set to true
   ///
   /// Returns a [Result] indicating if the instance of the event has (true) or has not (false) been deleted from the calendar
-  Future<Result<bool>> deleteEventInstance(String calendarId, String eventId, int startDate, int endDate, bool deleteFollowingInstances) async {
+  Future<Result<bool>> deleteEventInstance(String calendarId, String eventId,
+      int startDate, int endDate, bool deleteFollowingInstances) async {
     final res = Result<bool>();
 
     if ((calendarId?.isEmpty ?? true) || (eventId?.isEmpty ?? true)) {
@@ -177,14 +178,14 @@ class DeviceCalendarPlugin {
     }
 
     try {
-      res.data = await channel.invokeMethod('deleteEventInstance',
-        <String, Object>{
-          'calendarId': calendarId,
-          'eventId': eventId,
-          'eventStartDate': startDate,
-          'eventEndDate': endDate,
-          'followingInstances': deleteFollowingInstances
-        });
+      res.data =
+          await channel.invokeMethod('deleteEventInstance', <String, Object>{
+        'calendarId': calendarId,
+        'eventId': eventId,
+        'eventStartDate': startDate,
+        'eventEndDate': endDate,
+        'followingInstances': deleteFollowingInstances
+      });
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult<bool>(e, res);
     }
@@ -204,16 +205,25 @@ class DeviceCalendarPlugin {
 
     // Setting time to 0 for all day events
     if (event.allDay == true) {
-      event.start = DateTime(event.start.year, event.start.month, event.start.day, 0, 0, 0);
-      event.end = DateTime(event.end.year, event.end.month, event.end.day, 0, 0, 0);
+      event.start = DateTime(
+          event.start.year, event.start.month, event.start.day, 0, 0, 0);
+      event.end =
+          DateTime(event.end.year, event.end.month, event.end.day, 0, 0, 0);
     }
 
-    if (event.allDay == true && (event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null) {
-      result.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay}');
+    if (event.allDay == true && (event?.calendarId?.isEmpty ?? true) ||
+        event.start == null ||
+        event.end == null) {
+      result.errorMessages.add(
+          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay}');
       return result;
-    }
-    else if (event.allDay != true && ((event?.calendarId?.isEmpty ?? true) || event.start == null || event.end == null || event.start.isAfter(event.end))) {
-      result.errorMessages.add('[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}');
+    } else if (event.allDay != true &&
+        ((event?.calendarId?.isEmpty ?? true) ||
+            event.start == null ||
+            event.end == null ||
+            event.start.isAfter(event.end))) {
+      result.errorMessages.add(
+          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}');
       return result;
     }
 
@@ -244,7 +254,7 @@ class DeviceCalendarPlugin {
   /// Creates a new local calendar for the current device.
   ///
   /// The `calendarName` parameter is the name of the new calendar\
-  /// The `calendarColor` parameter is the color of the calendar. If null, 
+  /// The `calendarColor` parameter is the color of the calendar. If null,
   /// a default color (red) will be used\
   /// The `localAccountName` parameter is the name of the local account:
   /// - [Android] Required. If `localAccountName` parameter is null or empty, it will default to 'Device Calendar'.
@@ -253,23 +263,26 @@ class DeviceCalendarPlugin {
   /// - [iOS] Not used. A local account will be picked up automatically, if not found, an error will be thrown.
   ///
   /// Returns a [Result] with the newly created [Calendar.id]
-  Future<Result<String>> createCalendar(String calendarName, {Color calendarColor, String localAccountName}) async {
+  Future<Result<String>> createCalendar(String calendarName,
+      {Color calendarColor, String localAccountName}) async {
     final result = Result<String>();
 
     if (calendarName?.isNotEmpty == true) {
       calendarColor ??= Colors.red;
 
-      try {        
+      try {
         result.data =
-            await channel.invokeMethod('createCalendar', <String, Object>{ 
-              'calendarName': calendarName,
-              'calendarColor': '0x${calendarColor.value.toRadixString(16)}',
-              'localAccountName': localAccountName?.isEmpty ?? true ? 'Device Calendar' : localAccountName });
+            await channel.invokeMethod('createCalendar', <String, Object>{
+          'calendarName': calendarName,
+          'calendarColor': '0x${calendarColor.value.toRadixString(16)}',
+          'localAccountName': localAccountName?.isEmpty ?? true
+              ? 'Device Calendar'
+              : localAccountName
+        });
       } catch (e) {
         _parsePlatformExceptionAndUpdateResult(e, result);
       }
-    }
-    else {
+    } else {
       result.errorMessages.add('Calendar name must not be null or empty');
     }
 
