@@ -44,6 +44,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val EVENT_END_DATE_ARGUMENT = "eventEndDate"
     private val EVENT_START_TIMEZONE_ARGUMENT = "eventStartTimeZone"
     private val EVENT_END_TIMEZONE_ARGUMENT = "eventEndTimeZone"
+    private val EVENT_ORIGINAL_START_TIMEZONE_ARGUMENT = "eventOriginalStartTimeZone"
+    private val EVENT_ORIGINAL_END_TIMEZONE_ARGUMENT = "eventOriginalEndTimeZone"
     private val RECURRENCE_RULE_ARGUMENT = "recurrenceRule"
     private val RECURRENCE_FREQUENCY_ARGUMENT = "recurrenceFrequency"
     private val TOTAL_OCCURRENCES_ARGUMENT = "totalOccurrences"
@@ -149,6 +151,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         event.end = call.argument<Long>(EVENT_END_DATE_ARGUMENT)!!
         event.startTimeZone = call.argument<String>(EVENT_START_TIMEZONE_ARGUMENT)
         event.endTimeZone = call.argument<String>(EVENT_END_TIMEZONE_ARGUMENT)
+        event.originalStartTimeZone = call.argument<String>(EVENT_ORIGINAL_START_TIMEZONE_ARGUMENT)
+        event.originalEndTimeZone = call.argument<String>(EVENT_ORIGINAL_END_TIMEZONE_ARGUMENT)
         event.location = call.argument<String>(EVENT_LOCATION_ARGUMENT)
         event.url = call.argument<String>(EVENT_URL_ARGUMENT)
 

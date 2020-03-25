@@ -425,22 +425,19 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             values.put(Events.EVENT_TIMEZONE, utcTimeZone.id)
         }
         else {
-            val deviceTimeZone: TimeZone = java.util.Calendar.getInstance().timeZone
-            var startTimeZone = TimeZone.getTimeZone(event.startTimeZone ?: deviceTimeZone.id)
-            // Invalid time zone names defaults to GMT so update that to be device's time zone
-            if (startTimeZone.id == "GMT" && event.startTimeZone != "GMT") {
-                startTimeZone = TimeZone.getTimeZone(deviceTimeZone.id)
-            }
-            val startCalendar = getCalendarOnTZ(Date(event.start!!), deviceTimeZone, startTimeZone)
+            // Start date
+            val originalStartTimeZone = getTimeZone(event.originalStartTimeZone)
+            val startTimeZone = getTimeZone(event.startTimeZone)
+            val startCalendar = getCalendarOnTZ(Date(event.start!!), originalStartTimeZone, startTimeZone)
+
             values.put(Events.DTSTART, startCalendar.timeInMillis)
             values.put(Events.EVENT_TIMEZONE, startTimeZone.id)
 
-            var endTimeZone = TimeZone.getTimeZone(event.endTimeZone ?: deviceTimeZone.id)
-            // Invalid time zone names defaults to GMT so update that to be device's time zone
-            if (endTimeZone.id == "GMT" && event.endTimeZone != "GMT") {
-                endTimeZone = TimeZone.getTimeZone(deviceTimeZone.id)
-            }
-            val endCalendar = getCalendarOnTZ(Date(event.end!!), deviceTimeZone, endTimeZone)
+            // End date
+            val originalEndTimeZone = getTimeZone(event.originalEndTimeZone)
+            val endTimeZone = getTimeZone(event.endTimeZone)
+            val endCalendar = getCalendarOnTZ(Date(event.end!!), originalEndTimeZone, endTimeZone)
+
             values.put(Events.DTEND, endCalendar.timeInMillis)
             values.put(Events.EVENT_END_TIMEZONE, endTimeZone.id)
         }
@@ -456,6 +453,18 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             values.put(Events.RRULE, recurrenceRuleParams)
         }
         return values
+    }
+
+    private fun getTimeZone(timeZoneString: String?): TimeZone {
+        val deviceTimeZone: TimeZone = java.util.Calendar.getInstance().timeZone
+        var timeZone = TimeZone.getTimeZone(timeZoneString ?: deviceTimeZone.id)
+
+        // Invalid time zone names defaults to GMT so update that to be device's time zone
+        if (timeZone.id == "GMT" && timeZoneString != "GMT") {
+            timeZone = TimeZone.getTimeZone(deviceTimeZone.id)
+        }
+
+        return timeZone
     }
 
     private fun getCalendarOnTZ(date: Date?, fromTZ: TimeZone, toTZ: TimeZone): java.util.Calendar {
@@ -687,6 +696,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         event.recurrenceRule = parseRecurrenceRuleString(recurringRule)
         event.startTimeZone = startTimeZone
         event.endTimeZone = endTimeZone
+        event.originalStartTimeZone = startTimeZone
+        event.originalEndTimeZone = endTimeZone
         return event
     }
 
