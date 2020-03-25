@@ -9,6 +9,8 @@ class Event {
     var end: Long? = null
     var startTimeZone: String? = null
     var endTimeZone: String? = null
+    var originalStartTimeZone: String? = null
+    var originalEndTimeZone: String? = null
     var allDay: Boolean = false
     var location: String? = null
     var url: String? = null
