@@ -13,6 +13,7 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
+import org.json.JSONArray
 
 const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar"
 
@@ -23,10 +24,13 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val RETRIEVE_CALENDARS_METHOD = "retrieveCalendars"
     private val RETRIEVE_EVENTS_METHOD = "retrieveEvents"
     private val DELETE_EVENT_METHOD = "deleteEvent"
+    private val DELETE_EVENT_INSTANCE_METHOD = "deleteEventInstance"
     private val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
+    private val CREATE_CALENDAR_METHOD = "createCalendar"
 
     // Method arguments
     private val CALENDAR_ID_ARGUMENT = "calendarId"
+    private val CALENDAR_NAME_ARGUMENT = "calendarName"
     private val START_DATE_ARGUMENT = "startDate"
     private val END_DATE_ARGUMENT = "endDate"
     private val EVENT_IDS_ARGUMENT = "eventIds"
@@ -52,6 +56,9 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val ROLE_ARGUMENT = "role"
     private val REMINDERS_ARGUMENT = "reminders"
     private val MINUTES_ARGUMENT = "minutes"
+    private val FOLLOWING_INSTANCES = "followingInstances"
+    private val CALENDAR_COLOR_ARGUMENT = "calendarColor"
+    private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
 
     private lateinit var _registrar: Registrar
     private lateinit var _calendarDelegate: CalendarDelegate
@@ -65,9 +72,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         @JvmStatic
         fun registerWith(registrar: Registrar) {
             val context: Context = registrar.context()
-            val activity: Activity? = registrar.activity()
 
-            val calendarDelegate = CalendarDelegate(activity, context)
+            val calendarDelegate = CalendarDelegate(registrar, context)
             val instance = DeviceCalendarPlugin(registrar, calendarDelegate)
 
             val calendarsChannel = MethodChannel(registrar.messenger(), CHANNEL_NAME)
@@ -107,6 +113,22 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val eventId = call.argument<String>(EVENT_ID_ARGUMENT)
 
                 _calendarDelegate.deleteEvent(calendarId!!, eventId!!, result)
+            }
+            DELETE_EVENT_INSTANCE_METHOD -> {
+                val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
+                val eventId = call.argument<String>(EVENT_ID_ARGUMENT)
+                val startDate = call.argument<Long>(EVENT_START_DATE_ARGUMENT)
+                val endDate = call.argument<Long>(EVENT_END_DATE_ARGUMENT)
+                val followingInstances = call.argument<Boolean>(FOLLOWING_INSTANCES)
+
+                _calendarDelegate.deleteEvent(calendarId!!, eventId!!, result, startDate, endDate, followingInstances)
+            }
+            CREATE_CALENDAR_METHOD -> {
+                val calendarName = call.argument<String>(CALENDAR_NAME_ARGUMENT)
+                val calendarColor = call.argument<String>(CALENDAR_COLOR_ARGUMENT)
+                val localAccountName = call.argument<String>(LOCAL_ACCOUNT_NAME_ARGUMENT)
+
+                _calendarDelegate.createCalendar(calendarName!!, calendarColor, localAccountName!!, result)
             }
             else -> {
                 result.notImplemented()

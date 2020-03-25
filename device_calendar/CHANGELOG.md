@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.1.0 6th March 2020 - Bug fixes and new features
+
+* Boolean variable `isDefault` added for issue [145](https://github.com/builttoroam/flutter_plugins/issues/145) (**NOTE**: This is not supported Android API 16 or lower, `isDefault` will always be false)
+* Events with 'null' title now defaults to 'New Event', issue [126](https://github.com/builttoroam/flutter_plugins/issues/126)
+* Updated property summaries for issues [121](https://github.com/builttoroam/flutter_plugins/issues/121) and [122](https://github.com/builttoroam/flutter_plugins/issues/122)
+* Updated example documentation for issue [119](https://github.com/builttoroam/flutter_plugins/issues/119)
+* Read-only calendars cannot be edited or deleted for the example app
+* Added `DayOfWeekGroup` enum and an extension `getDays` to get corresponding dates of the enum values
+* Added to retrieve colour for calendars. Thanks to [nadavfima](https://github.com/nadavfima) for the contribution and PR to add colour support for both Android and iOS
+* Added compatibility with a new Flutter plugin for Android. Thanks to the PR submitted by [RohitKumarMishra](https://github.com/RohitKumarMishra)
+* [Android] Fixed all day timezone issue [164](https://github.com/builttoroam/flutter_plugins/issues/164)
+* Added support for deleting individual or multiple instances of a recurring event for issue [108](https://github.com/builttoroam/flutter_plugins/issues/108)
+* Ability to add local calendars with a desired colour for issue [115](https://github.com/builttoroam/flutter_plugins/issues/115)
+* Returns account name and type for each calendars for issue [179](https://github.com/builttoroam/flutter_plugins/issues/179)
+
 ## 3.0.0+3 3rd February 2020
 
 * Fixed all day conditional check for issue [162](https://github.com/builttoroam/flutter_plugins/issues/162)

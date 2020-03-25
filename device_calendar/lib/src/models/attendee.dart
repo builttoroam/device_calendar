@@ -7,7 +7,7 @@ import 'platform_specifics/ios/attendee_details.dart';
 
 /// A person attending an event
 class Attendee {
-  /// The name of the attendee. Currently has no effect when saving attendees on iOS.
+  /// The name of the attendee
   String name;
 
   /// The email address of the attendee
@@ -19,7 +19,7 @@ class Attendee {
   /// Read-only. Returns true if the attendee is an organiser, else false
   bool isOrganiser = false;
 
-  /// Details about the attendee that are specific to iOS. Currently has no effect when saving attendees on iOS.
+  /// Details about the attendee that are specific to iOS.
   /// When reading details for an existing event, this will only be populated on iOS devices.
   IosAttendeeDetails iosAttendeeDetails;
 
