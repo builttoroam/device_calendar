@@ -1,4 +1,5 @@
 import 'package:device_calendar/device_calendar.dart';
+import 'package:device_calendar_example/presentation/pages/calendar_add.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
@@ -74,6 +75,21 @@ class _CalendarsPageState extends State<CalendarsPage> {
                             style: Theme.of(context).textTheme.subhead,
                           ),
                         ),
+                        Container(
+                          width: 15,
+                          height: 15,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(_calendars[index].color)
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(0, 0, 5.0, 0),
+                          padding: const EdgeInsets.all(3.0),
+                          decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent)),
+                          child: Text('Default'),
+                        ),
                         Icon(_calendars[index].isReadOnly
                             ? Icons.lock
                             : Icons.lock_open)
@@ -83,8 +99,21 @@ class _CalendarsPageState extends State<CalendarsPage> {
                 );
               },
             ),
-          )
+          ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final createCalendar = await Navigator.push(context,
+              MaterialPageRoute(builder: (BuildContext context) {
+            return CalendarAddPage();
+          }));
+          
+          if (createCalendar == true) {
+            _retrieveCalendars();
+          }
+        },
+        child: Icon(Icons.add),
       ),
     );
   }

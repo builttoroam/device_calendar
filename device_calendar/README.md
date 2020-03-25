@@ -1,6 +1,6 @@
 # Device Calendar Plugin
 
-[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) [![Build Status](https://travis-ci.org/builttoroam/flutter_plugins.svg)](https://travis-ci.org/builttoroam/flutter_plugins)
+[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) [![Build Status](https://dev.azure.com/builttoroam/Flutter%20Plugins/_apis/build/status/Device%20Calendar)](https://dev.azure.com/builttoroam/Flutter%20Plugins/_build/latest?definitionId=106)
 
 A cross platform plugin for modifying calendars on the user's device.
 
@@ -8,10 +8,12 @@ A cross platform plugin for modifying calendars on the user's device.
 
 * Ability to request permissions to modify calendars on the user's device
 * Ability to check if permissions to modify the calendars on the user's device have been granted
-* Retrieve calendars on the user's device
+* Ability to add or retrieve calendars on the user's device
 * Retrieve events associated with a calendar
 * Ability to add, update or delete events from a calendar
-* Ability to set up recurring events (NOTE: deleting a recurring event will currently delete all instances of it)
+* Ability to set up, edit or delete recurring events
+  * **NOTE**: Editing a recurring event will currently edit all instances of it
+  * **NOTE**: Deleting multiple instances in **Android** takes time to update, you'll see the changes after a few seconds
 * Ability to add, modify or remove attendees and receive if an attendee is an organiser for an event
 * Ability to setup reminders for an event
 
