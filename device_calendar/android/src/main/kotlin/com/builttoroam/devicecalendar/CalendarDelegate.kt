@@ -425,21 +425,11 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             values.put(Events.EVENT_TIMEZONE, utcTimeZone.id)
         }
         else {
-            // Start date
-            val originalStartTimeZone = getTimeZone(event.originalStartTimeZone)
-            val startTimeZone = getTimeZone(event.startTimeZone)
-            val startCalendar = getCalendarOnTZ(Date(event.start!!), originalStartTimeZone, startTimeZone)
+            values.put(Events.DTSTART, event.start!!)
+            values.put(Events.EVENT_TIMEZONE, getTimeZone(event.startTimeZone).id)
 
-            values.put(Events.DTSTART, startCalendar.timeInMillis)
-            values.put(Events.EVENT_TIMEZONE, startTimeZone.id)
-
-            // End date
-            val originalEndTimeZone = getTimeZone(event.originalEndTimeZone)
-            val endTimeZone = getTimeZone(event.endTimeZone)
-            val endCalendar = getCalendarOnTZ(Date(event.end!!), originalEndTimeZone, endTimeZone)
-
-            values.put(Events.DTEND, endCalendar.timeInMillis)
-            values.put(Events.EVENT_END_TIMEZONE, endTimeZone.id)
+            values.put(Events.DTEND, event.end!!)
+            values.put(Events.EVENT_END_TIMEZONE, getTimeZone(event.endTimeZone).id)
         }
         values.put(Events.TITLE, event.title)
         values.put(Events.DESCRIPTION, event.description)
@@ -465,27 +455,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
         return timeZone
-    }
-
-    private fun getCalendarOnTZ(date: Date?, fromTZ: TimeZone, toTZ: TimeZone): java.util.Calendar {
-        val calendar = java.util.Calendar.getInstance()
-        val changedCalendar = java.util.Calendar.getInstance()
-        calendar.timeZone = fromTZ
-        calendar.time = date
-
-        if (fromTZ == toTZ) {
-            return calendar
-        }
-
-        val millis = calendar.timeInMillis
-        val fromOffset = fromTZ.getOffset(millis).toLong()
-        val toOffset = toTZ.getOffset(millis).toLong()
-        val convertedTime = millis - (fromOffset - toOffset)
-
-        changedCalendar.timeInMillis = convertedTime
-        changedCalendar.timeZone = toTZ
-
-        return changedCalendar
     }
 
     @SuppressLint("MissingPermission")
@@ -696,8 +665,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         event.recurrenceRule = parseRecurrenceRuleString(recurringRule)
         event.startTimeZone = startTimeZone
         event.endTimeZone = endTimeZone
-        event.originalStartTimeZone = startTimeZone
-        event.originalEndTimeZone = endTimeZone
         return event
     }
 
