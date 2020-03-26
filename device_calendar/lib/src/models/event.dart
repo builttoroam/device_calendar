@@ -44,13 +44,8 @@ class Event {
   /// The recurrence rule for this event
   RecurrenceRule recurrenceRule;
 
+  /// A list of reminders (by minutes) for this event
   List<Reminder> reminders;
-
-  /// Read-only. Original time zone of the event start date
-  String originalStartTimeZone;
-
-  /// Read-only. Original time zone of the event end date
-  String originalEndTimeZone;
 
   Event(this.calendarId,
       {this.eventId,
@@ -83,8 +78,6 @@ class Event {
     }
     startTimeZone = json['startTimeZone'];
     endTimeZone = json['endTimeZone'];
-    originalStartTimeZone = json['originalStartTimeZone'];
-    originalEndTimeZone = json['originalEndTimeZone'];
     allDay = json['allDay'];
     location = json['location'];
 
@@ -130,8 +123,6 @@ class Event {
     data['eventEndDate'] = end.millisecondsSinceEpoch;
     data['eventStartTimeZone'] = startTimeZone;
     data['eventEndTimeZone'] = endTimeZone;
-    data['eventOriginalStartTimeZone'] = originalStartTimeZone;
-    data['eventOriginalEndTimeZone'] = originalEndTimeZone;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
     data['eventURL'] = url?.data?.contentText;
