@@ -23,10 +23,12 @@ class Event {
   /// Indicates when the event ends
   DateTime end;
 
-  // Time zone of the event start date
+  /// Time zone of the event start date\
+  /// **Note**: In iOS this will set time zones for both start and end date
   String startTimeZone;
 
-  // Time zone of the event end date
+  /// Time zone of the event end date\
+  /// **Note**: Not used in iOS, only single time zone is used. Please use `startTimeZone`
   String endTimeZone;
 
   /// Indicates if this is an all-day event

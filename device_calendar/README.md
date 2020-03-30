@@ -17,6 +17,7 @@ A cross platform plugin for modifying calendars on the user's device.
 * Ability to add, modify or remove attendees and receive if an attendee is an organiser for an event
 * Ability to setup reminders for an event
 * Ability to specify a time zone for event start and end date
+  * **NOTE**: Due to a limitation of iOS API, single time zone property is used for iOS (`event.startTimeZone`)
   * **NOTE**: For the time zone list, please refer to the `TZ database name` column on [Wikipedia](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
   * **NOTE**: If the time zone values are null or invalid, it will be defaulted to the device's current time zone.
 
