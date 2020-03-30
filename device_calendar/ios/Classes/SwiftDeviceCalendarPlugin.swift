@@ -30,6 +30,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let description: String?
         let start: Int64
         let end: Int64
+        let startTimeZone: String?
         let allDay: Bool
         let attendees: [Attendee]
         let location: String?
@@ -90,6 +91,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let eventAllDayArgument = "eventAllDay"
     let eventStartDateArgument =  "eventStartDate"
     let eventEndDateArgument = "eventEndDate"
+    let eventStartTimeZoneArgument = "eventStartTimeZone"
     let eventLocationArgument = "eventLocation"
     let eventURLArgument = "eventURL"
     let attendeesArgument = "attendees"
@@ -294,6 +296,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             description: ekEvent.notes,
             start: Int64(ekEvent.startDate.millisecondsSinceEpoch),
             end: Int64(ekEvent.endDate.millisecondsSinceEpoch),
+            startTimeZone: ekEvent.timeZone?.identifier,
             allDay: ekEvent.isAllDay,
             attendees: attendees,
             location: ekEvent.location,
@@ -531,6 +534,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let endDateDateMillisecondsSinceEpoch = arguments[eventEndDateArgument] as! NSNumber
             let startDate = Date (timeIntervalSince1970: startDateMillisecondsSinceEpoch.doubleValue / 1000.0)
             let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch.doubleValue / 1000.0)
+            let startTimeZoneString = arguments[eventStartTimeZoneArgument] as? String
             let title = arguments[self.eventTitleArgument] as! String
             let description = arguments[self.eventDescriptionArgument] as? String
             let location = arguments[self.eventLocationArgument] as? String
@@ -562,7 +566,12 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.isAllDay = isAllDay
             ekEvent!.startDate = startDate
             if (isAllDay) { ekEvent!.endDate = startDate }
-            else { ekEvent!.endDate = endDate }
+            else {
+                ekEvent!.endDate = endDate
+                
+                let timeZone = TimeZone(identifier: startTimeZoneString ?? TimeZone.current.identifier) ?? .current
+                ekEvent!.timeZone = timeZone
+            }
             ekEvent!.calendar = ekCalendar!
             ekEvent!.location = location
 
@@ -732,8 +741,14 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
 }
 
-extension UIColor {
+extension Date {
+    func convert(from initTimeZone: TimeZone, to targetTimeZone: TimeZone) -> Date {
+        let delta = TimeInterval(initTimeZone.secondsFromGMT() - targetTimeZone.secondsFromGMT())
+        return addingTimeInterval(delta)
+    }
+}
 
+extension UIColor {
     func rgb() -> Int? {
         var fRed : CGFloat = 0
         var fGreen : CGFloat = 0

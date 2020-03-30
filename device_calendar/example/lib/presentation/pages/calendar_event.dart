@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/services.dart';
 import 'event_attendee.dart';
@@ -230,18 +232,19 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       ),
                     ),
                     if (!_event.allDay) ... [
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: TextFormField(
-                          initialValue: _event.startTimeZone,
-                          decoration: const InputDecoration(
-                              labelText: 'Start date timezone',
-                              hintText: 'Australia/Sydney'),
-                          onSaved: (String value) {
-                            _event.startTimeZone = value;
-                          },
+                      if (Platform.isAndroid)
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: TextFormField(
+                            initialValue: _event.startTimeZone,
+                            decoration: const InputDecoration(
+                                labelText: 'Start date time zone',
+                                hintText: 'Australia/Sydney'),
+                            onSaved: (String value) {
+                              _event.startTimeZone = value;
+                            },
+                          ),
                         ),
-                      ),
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: DateTimePicker(
@@ -271,13 +274,13 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: TextFormField(
-                          initialValue: _event.endTimeZone,
-                          decoration: const InputDecoration(
-                              labelText: 'End date time zone',
+                          initialValue: Platform.isAndroid ? _event.endTimeZone : _event.startTimeZone,
+                          decoration: InputDecoration(
+                              labelText: Platform.isAndroid ? 'End date time zone' : 'Start and end time zone',
                               hintText: 'Australia/Sydney'),
-                          onSaved: (String value) {
-                            _event.endTimeZone = value;
-                          },
+                          onSaved: (String value) => Platform.isAndroid
+                              ? _event.endTimeZone = value
+                              : _event.startTimeZone = value,
                         ),
                       ),
                     ],
