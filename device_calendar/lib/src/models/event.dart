@@ -59,6 +59,7 @@ class Event {
       this.description,
       this.attendees,
       this.recurrenceRule,
+      this.reminders,
       this.allDay = false});
 
   Event.fromJson(Map<String, dynamic> json) {
