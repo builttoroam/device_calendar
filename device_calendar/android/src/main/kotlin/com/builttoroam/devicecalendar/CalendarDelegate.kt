@@ -2,7 +2,6 @@ package com.builttoroam.devicecalendar
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
@@ -14,7 +13,6 @@ import android.provider.CalendarContract
 import android.provider.CalendarContract.CALLER_IS_SYNCADAPTER
 import android.provider.CalendarContract.Events
 import android.text.format.DateUtils
-import io.flutter.plugin.common.PluginRegistry.Registrar
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EMAIL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
@@ -23,29 +21,31 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_STATUS
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_COLOR_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_TYPE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_COLOR_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_IS_PRIMARY_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OLDER_API
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_BEGIN_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_END_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_ID_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_LAST_DATE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_RRULE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ALL_DAY_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_BEGIN_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_CUSTOM_APP_URI_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_END_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_END_TIMEZONE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_EVENT_LOCATION_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_CUSTOM_APP_URI_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_START_TIMEZONE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_ID_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_RRULE_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_LAST_DATE_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_BEGIN_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_END_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_MINUTES_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_PROJECTION
 import com.builttoroam.devicecalendar.common.DayOfWeek
@@ -65,12 +65,12 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.PluginRegistry
+import io.flutter.plugin.common.PluginRegistry.Registrar
 import org.dmfs.rfc5545.DateTime
 import org.dmfs.rfc5545.Weekday
 import org.dmfs.rfc5545.recur.Freq
 import java.text.SimpleDateFormat
 import java.util.*
-import com.builttoroam.devicecalendar.models.CalendarMethodsParametersCacheModel
 
 class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val RETRIEVE_CALENDARS_REQUEST_CODE = 0
@@ -426,11 +426,10 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
         else {
             values.put(Events.DTSTART, event.start!!)
-            values.put(Events.DTEND, event.end!!)
+            values.put(Events.EVENT_TIMEZONE, getTimeZone(event.startTimeZone).id)
 
-            // MK using current device time zone
-            val currentTimeZone: TimeZone = java.util.Calendar.getInstance().timeZone
-            values.put(Events.EVENT_TIMEZONE, currentTimeZone.id)
+            values.put(Events.DTEND, event.end!!)
+            values.put(Events.EVENT_END_TIMEZONE, getTimeZone(event.endTimeZone).id)
         }
         values.put(Events.TITLE, event.title)
         values.put(Events.DESCRIPTION, event.description)
@@ -444,6 +443,18 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             values.put(Events.RRULE, recurrenceRuleParams)
         }
         return values
+    }
+
+    private fun getTimeZone(timeZoneString: String?): TimeZone {
+        val deviceTimeZone: TimeZone = java.util.Calendar.getInstance().timeZone
+        var timeZone = TimeZone.getTimeZone(timeZoneString ?: deviceTimeZone.id)
+
+        // Invalid time zone names defaults to GMT so update that to be device's time zone
+        if (timeZone.id == "GMT" && timeZoneString != "GMT") {
+            timeZone = TimeZone.getTimeZone(deviceTimeZone.id)
+        }
+
+        return timeZone
     }
 
     @SuppressLint("MissingPermission")
@@ -637,7 +648,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val recurringRule = cursor.getString(EVENT_PROJECTION_RECURRING_RULE_INDEX)
         val allDay = cursor.getInt(EVENT_PROJECTION_ALL_DAY_INDEX) > 0
         val location = cursor.getString(EVENT_PROJECTION_EVENT_LOCATION_INDEX)
-        var url = cursor.getString(EVENT_PROJECTION_CUSTOM_APP_URI_INDEX)
+        val url = cursor.getString(EVENT_PROJECTION_CUSTOM_APP_URI_INDEX)
+        val startTimeZone = cursor.getString(EVENT_PROJECTION_START_TIMEZONE_INDEX)
+        val endTimeZone = cursor.getString(EVENT_PROJECTION_END_TIMEZONE_INDEX)
 
         val event = Event()
         event.title = title ?: "New Event"
@@ -650,6 +663,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         event.location = location
         event.url = url
         event.recurrenceRule = parseRecurrenceRuleString(recurringRule)
+        event.startTimeZone = startTimeZone
+        event.endTimeZone = endTimeZone
         return event
     }
 

@@ -1,6 +1,7 @@
 package com.builttoroam.devicecalendar.common
 
 import android.provider.CalendarContract
+import java.util.*
 
 class Constants {
     companion object {
@@ -46,6 +47,8 @@ class Constants {
         const val EVENT_PROJECTION_ALL_DAY_INDEX: Int = 8
         const val EVENT_PROJECTION_EVENT_LOCATION_INDEX: Int = 9
         const val EVENT_PROJECTION_CUSTOM_APP_URI_INDEX: Int = 10
+        const val EVENT_PROJECTION_START_TIMEZONE_INDEX: Int = 11
+        const val EVENT_PROJECTION_END_TIMEZONE_INDEX: Int = 12
 
         val EVENT_PROJECTION: Array<String> = arrayOf(
                 CalendarContract.Instances.EVENT_ID,
@@ -58,7 +61,9 @@ class Constants {
                 CalendarContract.Events.RRULE,
                 CalendarContract.Events.ALL_DAY,
                 CalendarContract.Events.EVENT_LOCATION,
-                CalendarContract.Events.CUSTOM_APP_URI
+                CalendarContract.Events.CUSTOM_APP_URI,
+                CalendarContract.Events.EVENT_TIMEZONE,
+                CalendarContract.Events.EVENT_END_TIMEZONE
         )
 
         const val EVENT_INSTANCE_DELETION_ID_INDEX: Int = 0

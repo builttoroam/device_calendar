@@ -8,7 +8,7 @@ class Event {
   /// Read-only. The unique identifier for this event. This is auto-generated when a new event is created
   String eventId;
 
-  /// The identifier of the calendar that this event is associated with
+  /// Read-only. The identifier of the calendar that this event is associated with
   String calendarId;
 
   /// The title of this event
@@ -22,6 +22,14 @@ class Event {
 
   /// Indicates when the event ends
   DateTime end;
+
+  /// Time zone of the event start date\
+  /// **Note**: In iOS this will set time zones for both start and end date
+  String startTimeZone;
+
+  /// Time zone of the event end date\
+  /// **Note**: Not used in iOS, only single time zone is used. Please use `startTimeZone`
+  String endTimeZone;
 
   /// Indicates if this is an all-day event
   bool allDay;
@@ -38,6 +46,7 @@ class Event {
   /// The recurrence rule for this event
   RecurrenceRule recurrenceRule;
 
+  /// A list of reminders (by minutes) for this event
   List<Reminder> reminders;
 
   Event(this.calendarId,
@@ -45,9 +54,12 @@ class Event {
       this.title,
       this.start,
       this.end,
+      this.startTimeZone,
+      this.endTimeZone,
       this.description,
       this.attendees,
       this.recurrenceRule,
+      this.reminders,
       this.allDay = false});
 
   Event.fromJson(Map<String, dynamic> json) {
@@ -67,6 +79,8 @@ class Event {
     if (endMillisecondsSinceEpoch != null) {
       end = DateTime.fromMillisecondsSinceEpoch(endMillisecondsSinceEpoch);
     }
+    startTimeZone = json['startTimeZone'];
+    endTimeZone = json['endTimeZone'];
     allDay = json['allDay'];
     location = json['location'];
 
@@ -101,17 +115,20 @@ class Event {
     }
   }
 
-  // TODO: look at using this method
-  /* Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
-    data['eventId'] = eventId;
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+
     data['calendarId'] = calendarId;
-    data['title'] = title;
-    data['description'] = description;
-    data['start'] = start.millisecondsSinceEpoch;
-    data['end'] = end.millisecondsSinceEpoch;
-    data['allDay'] = allDay;
-    data['location'] = location;
+    data['eventId'] = eventId;    
+    data['eventTitle'] = title;
+    data['eventDescription'] = description;
+    data['eventStartDate'] = start.millisecondsSinceEpoch;
+    data['eventEndDate'] = end.millisecondsSinceEpoch;
+    data['eventStartTimeZone'] = startTimeZone;
+    data['eventEndTimeZone'] = endTimeZone;
+    data['eventAllDay'] = allDay;
+    data['eventLocation'] = location;
+    data['eventURL'] = url?.data?.contentText;
     if (attendees != null) {
       data['attendees'] = attendees.map((a) => a.toJson()).toList();
     }
@@ -121,6 +138,7 @@ class Event {
     if (reminders != null) {
       data['reminders'] = reminders.map((r) => r.toJson()).toList();
     }
+
     return data;
-  }*/
+  }
 }
