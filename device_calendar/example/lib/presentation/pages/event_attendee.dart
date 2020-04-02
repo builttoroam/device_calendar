@@ -6,8 +6,7 @@ class EventAttendeePage extends StatefulWidget {
   const EventAttendeePage({Key key, this.attendee}) : super(key: key);
 
   @override
-  _EventAttendeePageState createState() =>
-      _EventAttendeePageState(attendee);
+  _EventAttendeePageState createState() => _EventAttendeePageState(attendee);
 }
 
 class _EventAttendeePageState extends State<EventAttendeePage> {
@@ -37,7 +36,9 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_attendee != null ? 'Edit attendee ${_attendee.name}' : 'Add an Attendee'),
+        title: Text(_attendee != null
+            ? 'Edit attendee ${_attendee.name}'
+            : 'Add an Attendee'),
       ),
       body: Column(
         children: [
@@ -48,39 +49,51 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: TextFormField(
-                      controller: _nameController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) return 'Please enter a name';
-                        return null;
-                      },
-                      decoration: const InputDecoration(labelText: 'Name'),
-                    ),
+                    controller: _nameController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a name';
+                      }
+                      return null;
+                    },
+                    decoration: const InputDecoration(labelText: 'Name'),
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: TextFormField(
-                      controller: _emailAddressController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty || !value.contains('@')) return 'Please enter a valid email address';
-                        return null;
-                      },
-                      decoration: const InputDecoration(labelText: 'Email Address'),
-                    ),
+                    controller: _emailAddressController,
+                    validator: (value) {
+                      if (value == null ||
+                          value.isEmpty ||
+                          !value.contains('@')) {
+                        return 'Please enter a valid email address';
+                      }
+                      return null;
+                    },
+                    decoration:
+                        const InputDecoration(labelText: 'Email Address'),
+                  ),
                 ),
                 ListTile(
                   leading: Text('Role'),
                   trailing: DropdownButton<AttendeeRole>(
-                    onChanged: (value) { setState(() { _role = value; }); },
+                    onChanged: (value) {
+                      setState(() {
+                        _role = value;
+                      });
+                    },
                     value: _role,
                     items: AttendeeRole.values
-                      .map((role) => DropdownMenuItem(
-                        value: role,
-                        child: Text(role.enumToString),
-                      ))
-                      .toList(),
+                        .map((role) => DropdownMenuItem(
+                              value: role,
+                              child: Text(role.enumToString),
+                            ))
+                        .toList(),
                   ),
                 ),
-              ])
+              ],
+            ),
           ),
           RaisedButton(
             child: Text(_attendee != null ? 'Update' : 'Add'),

@@ -36,15 +36,16 @@ class RecurrenceRule {
   final String _monthOfYearKey = 'monthOfYear';
   final String _weekOfMonthKey = 'weekOfMonth';
 
-  RecurrenceRule(this.recurrenceFrequency, {
-    this.totalOccurrences,
-    this.interval,
-    this.endDate,
-    this.daysOfWeek,
-    this.dayOfMonth,
-    this.monthOfYear,
-    this.weekOfMonth})
-    : assert(!(endDate != null && totalOccurrences != null), 'Cannot specify both an end date and total occurrences for a recurring event');
+  RecurrenceRule(this.recurrenceFrequency,
+      {this.totalOccurrences,
+      this.interval,
+      this.endDate,
+      this.daysOfWeek,
+      this.dayOfMonth,
+      this.monthOfYear,
+      this.weekOfMonth})
+      : assert(!(endDate != null && totalOccurrences != null),
+            'Cannot specify both an end date and total occurrences for a recurring event');
 
   RecurrenceRule.fromJson(Map<String, dynamic> json) {
     if (json == null) {
@@ -52,7 +53,8 @@ class RecurrenceRule {
     }
 
     int recurrenceFrequencyIndex = json[_recurrenceFrequencyKey];
-    if (recurrenceFrequencyIndex == null && recurrenceFrequencyIndex >= RecurrenceFrequency.values.length) {
+    if (recurrenceFrequencyIndex == null &&
+        recurrenceFrequencyIndex >= RecurrenceFrequency.values.length) {
       throw ArgumentError(ErrorMessages.invalidRecurrencyFrequency);
     }
     recurrenceFrequency = RecurrenceFrequency.values[recurrenceFrequencyIndex];
@@ -63,7 +65,8 @@ class RecurrenceRule {
 
     int endDateMillisecondsSinceEpoch = json[_endDateKey];
     if (endDateMillisecondsSinceEpoch != null) {
-      endDate = DateTime.fromMillisecondsSinceEpoch(endDateMillisecondsSinceEpoch);
+      endDate =
+          DateTime.fromMillisecondsSinceEpoch(endDateMillisecondsSinceEpoch);
     }
 
     List<Object> daysOfWeekValues = json[_daysOfWeekKey];
@@ -75,8 +78,10 @@ class RecurrenceRule {
     }
 
     dayOfMonth = json[_dayOfMonthKey];
-    monthOfYear = convertDynamicToInt(json[_monthOfYearKey])?.getMonthOfYearEnumValue;
-    weekOfMonth = convertDynamicToInt(json[_weekOfMonthKey])?.getWeekNumberEnumValue;
+    monthOfYear =
+        convertDynamicToInt(json[_monthOfYearKey])?.getMonthOfYearEnumValue;
+    weekOfMonth =
+        convertDynamicToInt(json[_weekOfMonthKey])?.getWeekNumberEnumValue;
   }
 
   int convertDynamicToInt(dynamic value) {
@@ -105,22 +110,23 @@ class RecurrenceRule {
       data[_daysOfWeekKey] = daysOfWeek.map((d) => d.value).toList();
     }
 
-    if (monthOfYear != null && recurrenceFrequency == RecurrenceFrequency.Yearly) {
+    if (monthOfYear != null &&
+        recurrenceFrequency == RecurrenceFrequency.Yearly) {
       data[_monthOfYearKey] = monthOfYear.value;
     }
 
-    if (recurrenceFrequency == RecurrenceFrequency.Monthly || recurrenceFrequency == RecurrenceFrequency.Yearly) {
+    if (recurrenceFrequency == RecurrenceFrequency.Monthly ||
+        recurrenceFrequency == RecurrenceFrequency.Yearly) {
       if (weekOfMonth != null) {
         data[_weekOfMonthKey] = weekOfMonth.value;
-      }
-      else {
+      } else {
         // Days of the month should not be added to the recurrence parameter when WeekOfMonth is used
         if (dayOfMonth != null) {
           data[_dayOfMonthKey] = dayOfMonth;
         }
       }
     }
-    
+
     return data;
   }
 }

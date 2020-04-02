@@ -131,16 +131,26 @@ enum ColorChoice {
 extension ColorChoiceExtension on ColorChoice {
   static Color _value(ColorChoice val) {
     switch (val) {
-      case ColorChoice.Red: return Colors.red;
-      case ColorChoice.Orange: return Colors.orange;
-      case ColorChoice.Yellow: return Colors.yellow;
-      case ColorChoice.Green: return Colors.green;
-      case ColorChoice.Blue: return Colors.blue;
-      case ColorChoice.Purple: return Colors.purple;
-      case ColorChoice.Brown: return Colors.brown;
-      case ColorChoice.Black: return Colors.black;
-      case ColorChoice.White: return Colors.white;
-      default: return Colors.red;
+      case ColorChoice.Red:
+        return Colors.red;
+      case ColorChoice.Orange:
+        return Colors.orange;
+      case ColorChoice.Yellow:
+        return Colors.yellow;
+      case ColorChoice.Green:
+        return Colors.green;
+      case ColorChoice.Blue:
+        return Colors.blue;
+      case ColorChoice.Purple:
+        return Colors.purple;
+      case ColorChoice.Brown:
+        return Colors.brown;
+      case ColorChoice.Black:
+        return Colors.black;
+      case ColorChoice.White:
+        return Colors.white;
+      default:
+        return Colors.red;
     }
   }
 
