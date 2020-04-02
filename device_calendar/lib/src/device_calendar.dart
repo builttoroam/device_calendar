@@ -218,22 +218,7 @@ class DeviceCalendarPlugin {
     }
 
     try {
-      result.data =
-          await channel.invokeMethod('createOrUpdateEvent', <String, Object>{
-        'calendarId': event.calendarId,
-        'eventId': event.eventId,
-        'eventTitle': event.title,
-        'eventDescription': event.description,
-        'eventLocation': event.location,
-        'eventAllDay': event.allDay,
-        'eventStartDate': event.start.millisecondsSinceEpoch,
-        'eventEndDate': event.end.millisecondsSinceEpoch,
-        'eventLocation': event.location,
-        'eventURL': event.url?.data?.contentText,
-        'recurrenceRule': event.recurrenceRule?.toJson(),
-        'attendees': event.attendees?.map((a) => a.toJson())?.toList(),
-        'reminders': event.reminders?.map((r) => r.toJson())?.toList()
-      });
+      result.data = await channel.invokeMethod('createOrUpdateEvent', event.toJson());
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult<String>(e, result);
     }

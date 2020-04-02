@@ -7,6 +7,8 @@ class Event {
     var description: String? = null
     var start: Long? = null
     var end: Long? = null
+    var startTimeZone: String? = null
+    var endTimeZone: String? = null
     var allDay: Boolean = false
     var location: String? = null
     var url: String? = null
