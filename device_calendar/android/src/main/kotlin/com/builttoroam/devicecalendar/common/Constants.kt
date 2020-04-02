@@ -1,7 +1,6 @@
 package com.builttoroam.devicecalendar.common
 
 import android.provider.CalendarContract
-import java.util.*
 
 class Constants {
     companion object {

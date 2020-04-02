@@ -4,7 +4,7 @@ import 'attendance_status.dart';
 
 class IosAttendeeDetails {
   IosAttendanceStatus _attendanceStatus;
-  
+
   /// An attendee role: None, Optional, Required or Resource
   AttendeeRole role;
 
@@ -26,6 +26,6 @@ class IosAttendeeDetails {
   }
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{ 'role': role?.index };
+    return <String, dynamic>{'role': role?.index};
   }
 }
