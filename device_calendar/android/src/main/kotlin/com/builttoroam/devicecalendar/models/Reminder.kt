@@ -1,4 +1,3 @@
 package com.builttoroam.devicecalendar.models
 
-class Reminder(val minutes: Int) {
-}
+class Reminder(val minutes: Int)

@@ -3,6 +3,7 @@
 ## 3.2.0
 
 * Added time zone support
+* Project clean up
 
 ## 3.1.0 6th March 2020 - Bug fixes and new features
 

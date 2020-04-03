@@ -57,7 +57,7 @@ class DateTimePicker extends StatelessWidget {
             },
           ),
         ),
-        if (enableTime) ... [
+        if (enableTime) ...[
           const SizedBox(width: 12.0),
           Expanded(
             flex: 3,

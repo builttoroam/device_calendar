@@ -15,8 +15,13 @@ class EventItem extends StatelessWidget {
 
   final double _eventFieldNameWidth = 75.0;
 
-  EventItem(this._calendarEvent, this._deviceCalendarPlugin,
-      this._onLoadingStarted, this._onDeleteFinished, this._onTapped, this._isReadOnly);
+  EventItem(
+      this._calendarEvent,
+      this._deviceCalendarPlugin,
+      this._onLoadingStarted,
+      this._onDeleteFinished,
+      this._onTapped,
+      this._isReadOnly);
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +181,8 @@ class EventItem extends StatelessWidget {
                         builder: (BuildContext context) {
                           if (_calendarEvent.recurrenceRule == null) {
                             return AlertDialog(
-                              title: Text('Are you sure you want to delete this event?'),
+                              title: Text(
+                                  'Are you sure you want to delete this event?'),
                               actions: [
                                 FlatButton(
                                   onPressed: () {
@@ -188,29 +194,30 @@ class EventItem extends StatelessWidget {
                                   onPressed: () async {
                                     Navigator.of(context).pop();
                                     _onLoadingStarted();
-                                    final deleteResult = await _deviceCalendarPlugin.deleteEvent(_calendarEvent.calendarId, _calendarEvent.eventId);
-                                    _onDeleteFinished(deleteResult.isSuccess && deleteResult.data);
+                                    final deleteResult =
+                                        await _deviceCalendarPlugin.deleteEvent(
+                                            _calendarEvent.calendarId,
+                                            _calendarEvent.eventId);
+                                    _onDeleteFinished(deleteResult.isSuccess &&
+                                        deleteResult.data);
                                   },
                                   child: Text('Delete'),
                                 ),
                               ],
                             );
-                          }
-                          else {
+                          } else {
                             return RecurringEventDialog(
-                              _deviceCalendarPlugin,
-                              _calendarEvent,
-                              _onLoadingStarted,
-                              _onDeleteFinished
-                            );
+                                _deviceCalendarPlugin,
+                                _calendarEvent,
+                                _onLoadingStarted,
+                                _onDeleteFinished);
                           }
-                        }
+                        },
                       );
                     },
                     icon: Icon(Icons.delete),
                   ),
-                ]
-                else ... [
+                ] else ...[
                   IconButton(
                     onPressed: () {
                       _onTapped(_calendarEvent);
