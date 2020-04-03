@@ -39,32 +39,31 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldstate,
-      appBar: AppBar(title: Text('${_calendar.name} events')),
-      body: (_calendarEvents?.isNotEmpty ?? false)
-          ? Stack(
-              children: [
-                ListView.builder(
-                  itemCount: _calendarEvents?.length ?? 0,
-                  itemBuilder: (BuildContext context, int index) {
-                    return EventItem(
-                        _calendarEvents[index],
-                        _deviceCalendarPlugin,
-                        _onLoading,
-                        _onDeletedFinished,
-                        _onTapped,
-                        _calendar.isReadOnly);
-                  },
-                ),
-                if (_isLoading)
-                  Center(
-                    child: CircularProgressIndicator(),
-                  )
-              ],
-            )
-          : Center(child: Text('No events found')),
-      floatingActionButton: _getAddEventButton(context)
-    );
+        key: _scaffoldstate,
+        appBar: AppBar(title: Text('${_calendar.name} events')),
+        body: (_calendarEvents?.isNotEmpty ?? false)
+            ? Stack(
+                children: [
+                  ListView.builder(
+                    itemCount: _calendarEvents?.length ?? 0,
+                    itemBuilder: (BuildContext context, int index) {
+                      return EventItem(
+                          _calendarEvents[index],
+                          _deviceCalendarPlugin,
+                          _onLoading,
+                          _onDeletedFinished,
+                          _onTapped,
+                          _calendar.isReadOnly);
+                    },
+                  ),
+                  if (_isLoading)
+                    Center(
+                      child: CircularProgressIndicator(),
+                    )
+                ],
+              )
+            : Center(child: Text('No events found')),
+        floatingActionButton: _getAddEventButton(context));
   }
 
   Widget _getAddEventButton(BuildContext context) {
@@ -82,8 +81,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
         },
         child: Icon(Icons.add),
       );
-    }
-    else {
+    } else {
       return null;
     }
   }
@@ -98,7 +96,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
     if (deleteSucceeded) {
       await _retrieveCalendarEvents();
     } else {
-        _scaffoldstate.currentState.showSnackBar(SnackBar(
+      _scaffoldstate.currentState.showSnackBar(SnackBar(
         content: Text('Oops, we ran into an issue deleting the event'),
         backgroundColor: Colors.red,
         duration: Duration(seconds: 5),
@@ -112,13 +110,16 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   Future _onTapped(Event event) async {
     final refreshEvents = await Navigator.push(context,
         MaterialPageRoute(builder: (BuildContext context) {
-      return CalendarEventPage(_calendar, event,
+      return CalendarEventPage(
+        _calendar,
+        event,
         RecurringEventDialog(
           _deviceCalendarPlugin,
           event,
           _onLoading,
           _onDeletedFinished,
-        ),);
+        ),
+      );
     }));
     if (refreshEvents != null && refreshEvents) {
       await _retrieveCalendarEvents();
