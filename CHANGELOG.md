@@ -3,26 +3,26 @@
 ## 3.2.0
 
 * Added time zone support
-* Project directory and code clean up
+* Project hierarchy update and clean up
 
-## 3.1.0 6th March 2020 - Bug fixes and new features
+## 3.1.0 25th March 2020 - Bug fixes and new features
 
-* Boolean variable `isDefault` added for issue [145](https://github.com/builttoroam/flutter_plugins/issues/145) (**NOTE**: This is not supported Android API 16 or lower, `isDefault` will always be false)
-* Events with 'null' title now defaults to 'New Event', issue [126](https://github.com/builttoroam/flutter_plugins/issues/126)
-* Updated property summaries for issues [121](https://github.com/builttoroam/flutter_plugins/issues/121) and [122](https://github.com/builttoroam/flutter_plugins/issues/122)
-* Updated example documentation for issue [119](https://github.com/builttoroam/flutter_plugins/issues/119)
+* Boolean variable `isDefault` added for issue [145](https://github.com/builttoroam/device_calendar/issues/145) (**NOTE**: This is not supported Android API 16 or lower, `isDefault` will always be false)
+* Events with 'null' title now defaults to 'New Event', issue [126](https://github.com/builttoroam/device_calendar/issues/126)
+* Updated property summaries for issues [121](https://github.com/builttoroam/device_calendar/issues/121) and [122](https://github.com/builttoroam/device_calendar/issues/122)
+* Updated example documentation for issue [119](https://github.com/builttoroam/device_calendar/issues/119)
 * Read-only calendars cannot be edited or deleted for the example app
 * Added `DayOfWeekGroup` enum and an extension `getDays` to get corresponding dates of the enum values
 * Added to retrieve colour for calendars. Thanks to [nadavfima](https://github.com/nadavfima) for the contribution and PR to add colour support for both Android and iOS
 * Added compatibility with a new Flutter plugin for Android. Thanks to the PR submitted by [RohitKumarMishra](https://github.com/RohitKumarMishra)
-* [Android] Fixed all day timezone issue [164](https://github.com/builttoroam/flutter_plugins/issues/164)
-* Added support for deleting individual or multiple instances of a recurring event for issue [108](https://github.com/builttoroam/flutter_plugins/issues/108)
-* Ability to add local calendars with a desired colour for issue [115](https://github.com/builttoroam/flutter_plugins/issues/115)
-* Returns account name and type for each calendars for issue [179](https://github.com/builttoroam/flutter_plugins/issues/179)
+* [Android] Fixed all day timezone issue [164](https://github.com/builttoroam/device_calendar/issues/164)
+* Added support for deleting individual or multiple instances of a recurring event for issue [108](https://github.com/builttoroam/device_calendar/issues/108)
+* Ability to add local calendars with a desired colour for issue [115](https://github.com/builttoroam/device_calendar/issues/115)
+* Returns account name and type for each calendars for issue [179](https://github.com/builttoroam/device_calendar/issues/179)
 
 ## 3.0.0+3 3rd February 2020
 
-* Fixed all day conditional check for issue [162](https://github.com/builttoroam/flutter_plugins/issues/162)
+* Fixed all day conditional check for issue [162](https://github.com/builttoroam/device_calendar/issues/162)
 
 ## 3.0.0+2 30th January 2020
 
@@ -30,7 +30,7 @@
 
 ## 3.0.0+1 28th January 2020
 
-* Updated `event.url` property in `createOrUpdateEvent` method to be null-aware for issue [152](https://github.com/builttoroam/flutter_plugins/issues/152)
+* Updated `event.url` property in `createOrUpdateEvent` method to be null-aware for issue [152](https://github.com/builttoroam/device_calendar/issues/152)
 
 ## 3.0.0 21st January 2020
 
@@ -55,7 +55,7 @@
 ## 1.0.0+3 9th January 2020
 
 * Flutter upgrade to 1.12.13
-* Added an URL input for calendar events for issue [132](https://github.com/builttoroam/flutter_plugins/issues/132)
+* Added an URL input for calendar events for issue [132](https://github.com/builttoroam/device_calendar/issues/132)
 
 ## 1.0.0+2 30th August 2019
 
@@ -67,11 +67,11 @@
 
 ## 1.0.0 28th August 2019
 
-* **BREAKING CHANGE** `retrieveCalendars` and `retrieveEvents` now return lists that cannot be modified (`UnmodifiableListView`) to address part of  issue [113](https://github.com/builttoroam/flutter_plugins/issues/113)
+* **BREAKING CHANGE** `retrieveCalendars` and `retrieveEvents` now return lists that cannot be modified (`UnmodifiableListView`) to address part of  issue [113](https://github.com/builttoroam/device_calendar/issues/113)
 * Support for more advanced recurrence rules
-* Update README to include information about using ProGuard for issue [99](https://github.com/builttoroam/flutter_plugins/issues/99)
-* Made event title optional to fix issue [72](https://github.com/builttoroam/flutter_plugins/issues/72)
-* Return information about the organiser of the event as per issue [73](https://github.com/builttoroam/flutter_plugins/issues/73)
+* Update README to include information about using ProGuard for issue [99](https://github.com/builttoroam/device_calendar/issues/99)
+* Made event title optional to fix issue [72](https://github.com/builttoroam/device_calendar/issues/72)
+* Return information about the organiser of the event as per issue [73](https://github.com/builttoroam/device_calendar/issues/73)
 * Return attendance status of attendees and if they're required for an event. These are details are different across iOS and Android and so are returned within platform-specific objects
 * Ability to modify attendees for an event
 * Ability to create reminders for events expressed in minutes before the event starts
@@ -86,7 +86,7 @@
 
 ## 0.2.1 5th August 2019
 
-* [Android] Fixes issue [101](https://github.com/builttoroam/flutter_plugins/issues/101) where plugin results in a crash with headless execution
+* [Android] Fixes issue [101](https://github.com/builttoroam/device_calendar/issues/101) where plugin results in a crash with headless execution
 
 ## 0.2.0 30th July 2019
 
@@ -96,7 +96,7 @@
 
 ## 0.1.3 5th July 2019
 
-* [iOS] Fixes issue [94](https://github.com/builttoroam/flutter_plugins/issues/94) that occurred on 32-bit iOS devices around date of events. Thanks to the PR submitted by [duzenko](https://github.com/duzenko)
+* [iOS] Fixes issue [94](https://github.com/builttoroam/device_calendar/issues/94) that occurred on 32-bit iOS devices around date of events. Thanks to the PR submitted by [duzenko](https://github.com/duzenko)
 
 ## 0.1.2+2 28th May 2019
 
@@ -109,11 +109,11 @@
 
 ## 0.1.2 - 16th May 2019
 
-* [Android] An updated fix to address issue [79](https://github.com/builttoroam/flutter_plugins/issues/79), thanks to the PR submitted by [Gerry High](https://github.com/gerryhigh)
+* [Android] An updated fix to address issue [79](https://github.com/builttoroam/device_calendar/issues/79), thanks to the PR submitted by [Gerry High](https://github.com/gerryhigh)
 
 ## 0.1.1 - 1st March 2019
 
-* Fixed issue [79](https://github.com/builttoroam/flutter_plugins/issues/79) where on Android, the plugin was indicating that it was handling permissions that it shouldn't have
+* Fixed issue [79](https://github.com/builttoroam/device_calendar/issues/79) where on Android, the plugin was indicating that it was handling permissions that it shouldn't have
 
 ## 0.1.0 - 26th February 2019
 
@@ -127,7 +127,7 @@
 
 ## 0.0.7 - 16th November 2018
 
-* Fixes issue [##67](https://github.com/builttoroam/flutter_plugins/issues/67) and [##68](https://github.com/builttoroam/flutter_plugins/issues/68). Thanks to PR submitted by huzhiren.
+* Fixes issue [##67](https://github.com/builttoroam/device_calendar/issues/67) and [##68](https://github.com/builttoroam/device_calendar/issues/68). Thanks to PR submitted by huzhiren.
 
 ## 0.0.6 - 18th June 2018
 

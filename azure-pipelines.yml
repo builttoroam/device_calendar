@@ -188,7 +188,7 @@ stages:
           inputs:
             githubEndpoint: 'GitHub Tagging'
             manuallySetRepository: false
-            githubRepository: 'builttoroam/flutter_plugins'
+            githubRepository: 'builttoroam/device_calendar'
             githubTag: 'v$(currentVersion)'
             githubReleaseTitle: '$(versionSummary)'
             githubReleaseDraft: false
