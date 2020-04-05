@@ -1,6 +1,6 @@
 # Device Calendar Plugin
 
-[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) [![Build Status](https://dev.azure.com/builttoroam/Flutter%20Plugins/_apis/build/status/Device%20Calendar)](https://dev.azure.com/builttoroam/Flutter%20Plugins/_build/latest?definitionId=106)
+[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) [![Build Status](https://dev.azure.com/builttoroam/Flutter%20Plugins/_apis/build/status/Device%20Calendar)](https://dev.azure.com/builttoroam/Flutter%20Plugins/_build/latest?definitionId=111)
 
 A cross platform plugin for modifying calendars on the user's device.
 
@@ -30,7 +30,7 @@ The following will need to be added to the manifest file for your application to
 <uses-permission android:name="android.permission.WRITE_CALENDAR" />
 ```
 
-If you have Proguard enabled, you may need to add the following to your configuration (thanks to [Britannio Jarrett](https://github.com/britannio) who posted about it [here](https://github.com/builttoroam/flutter_plugins/issues/99))
+If you have Proguard enabled, you may need to add the following to your configuration (thanks to [Britannio Jarrett](https://github.com/britannio) who posted about it [here](https://github.com/builttoroam/device_calendar/issues/99))
 
 ```
 -keep class com.builttoroam.devicecalendar.** { *; }
