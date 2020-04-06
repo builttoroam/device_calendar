@@ -508,7 +508,7 @@ EKEventStore *eventStore;
         NSDictionary<NSString*, id> *arguments = [call arguments];
         NSString *calendarId = [arguments valueForKey:calendarIdArgument];
         NSString *eventId = [arguments valueForKey:eventIdArgument];
-        BOOL isAllDay = [arguments valueForKey:eventAllDayArgument];
+        BOOL isAllDay = [[arguments valueForKey:eventAllDayArgument] boolValue];
         NSNumber *startDateMillisecondsSinceEpoch = [arguments valueForKey: eventStartDateArgument];
         NSNumber *endDateDateMillisecondsSinceEpoch = [arguments valueForKey: eventEndDateArgument];
         NSDate *startDate = [NSDate dateWithTimeIntervalSince1970: [startDateMillisecondsSinceEpoch doubleValue] / 1000.0 ];
