@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 #import "RecurrenceRule.h"
 #import "Attendee.h"
+#import "Reminder.h"
 #import "JSONModel/JSONModel.h"
 
 @interface Event : JSONModel
@@ -16,6 +17,7 @@
 @property NSString *location;
 @property RecurrenceRule *recurrenceRule;
 @property Attendee *organizer;
-@property NSMutableArray *reminders;
+@property NSArray *reminders;
+@property NSString *url;
 
 @end

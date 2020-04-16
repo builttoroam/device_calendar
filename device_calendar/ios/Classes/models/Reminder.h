@@ -3,6 +3,6 @@
 
 @interface Reminder : JSONModel
 
-@property NSInteger minutes;
+@property (nonatomic) double minutes;
 
 @end
