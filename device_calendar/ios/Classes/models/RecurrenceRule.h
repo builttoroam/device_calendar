@@ -4,9 +4,9 @@
 @interface RecurrenceRule : JSONModel
 
 @property NSInteger recurrenceFrequency;
-@property NSInteger totalOccurrences;
+@property NSNumber *totalOccurrences;
 @property NSInteger interval;
-@property NSInteger endDate;
+@property NSNumber *endDate;
 @property NSArray *daysOfWeek;
 @property NSInteger daysOfMonth;
 @property NSInteger monthsOfYear;

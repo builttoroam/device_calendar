@@ -63,6 +63,7 @@ NSString *minutesArgument = @"minutes";
 NSString *followingInstancesArgument = @"followingInstances";
 NSString *calendarNameArgument = @"calendarName";
 NSString *calendarColorArgument = @"calendarColor";
+NSString *eventURLArgument = @"eventURL";
 NSMutableArray *validFrequencyTypes;
 EKEventStore *eventStore;
 
@@ -139,7 +140,7 @@ EKEventStore *eventStore;
             [localSources addObject:ekSource];
         }
     }
-    if ([localSources count] == 0) {
+    if ([localSources count]) {
         calendar.source = [localSources firstObject];
         [eventStore saveCalendar:calendar commit:YES error:&error];
     } else {
@@ -270,12 +271,10 @@ EKEventStore *eventStore;
     if ([ekEvent alarms] != nil) {
         for (EKAlarm *alarm in [ekEvent alarms]) {
             Reminder *reminder = [Reminder new];
-            NSUInteger minutes = -[alarm relativeOffset]/60;
-            reminder.minutes = [[[NSNumber alloc] initWithUnsignedInteger:minutes] integerValue];
+            reminder.minutes = -[alarm relativeOffset]/60;
             [reminders addObject:reminder];
         }
     }
-
     RecurrenceRule *recurrenceRule = [self parseEKRecurrenceRules:ekEvent];
     Event *event = [Event new];
     event.eventId = [ekEvent eventIdentifier];
@@ -291,6 +290,7 @@ EKEventStore *eventStore;
     event.allDay = [ekEvent isAllDay];
     event.attendees = attendees;
     event.location = [ekEvent location];
+    event.url = [[ekEvent URL] absoluteString];
     event.recurrenceRule = recurrenceRule;
     event.organizer = [self convertEkParticipantToAttendee:[ekEvent organizer]];
     event.reminders = reminders;
@@ -331,17 +331,15 @@ EKEventStore *eventStore;
                 break;
         }
         
-        NSInteger totalOccurrences = 0;
-        NSInteger endDate;
+        NSNumber *totalOccurrences;
+        NSNumber *endDate;
         if([[ekRecurrenceRule recurrenceEnd] occurrenceCount] != 0){
-            totalOccurrences = [[ekRecurrenceRule recurrenceEnd] occurrenceCount];
+            totalOccurrences = [[NSNumber alloc] initWithUnsignedInteger:[[ekRecurrenceRule recurrenceEnd] occurrenceCount]];
         }
-        float endDateMs = -1;
-        endDateMs = [[[ekRecurrenceRule recurrenceEnd] endDate] millisecondsSinceEpoch];
-        if (endDateMs != -1) {
-            endDate = [[[NSNumber alloc] initWithFloat:endDateMs] integerValue];
+        float endDateMs = [[[ekRecurrenceRule recurrenceEnd] endDate] millisecondsSinceEpoch];
+        if (endDateMs) {
+            endDate = [[NSNumber alloc] initWithFloat:endDateMs];
         }
-
         NSMutableArray *daysOfWeek = [NSMutableArray new];
         NSInteger weekOfMonth = [[[ekRecurrenceRule setPositions] firstObject] intValue];
         if ([ekRecurrenceRule daysOfTheWeek] != nil && [[ekRecurrenceRule daysOfTheWeek] count] != 0) {
@@ -380,19 +378,18 @@ EKEventStore *eventStore;
 
 -(NSArray*) createEKRecurrenceRules: (NSDictionary*)arguments {
     NSDictionary *recurrenceRuleArguments = [arguments valueForKey:recurrenceRuleArgument];
-    if (recurrenceRuleArguments) {
+    if ([recurrenceRuleArguments isEqual:[NSNull null]]) {
         return nil;
     }
-    
-    NSString *recurrenceFrequencyIndex = [recurrenceRuleArguments valueForKey:recurrenceFrequencyArgument];
+    NSNumber *recurrenceFrequencyIndex = [recurrenceRuleArguments valueForKey:recurrenceFrequencyArgument];
     NSInteger totalOccurrences = [[recurrenceRuleArguments valueForKey:totalOccurrencesArgument] integerValue];
     NSInteger interval = -1;
     interval = [[recurrenceRuleArguments valueForKey:intervalArgument] integerValue];
     NSInteger recurrenceInterval = 1;
     NSNumber *endDate = [recurrenceRuleArguments valueForKey:endDateArgument];
-    EKRecurrenceFrequency namedFrequency = [[validFrequencyTypes valueForKey:recurrenceFrequencyIndex] integerValue];
+    EKRecurrenceFrequency namedFrequency = [[validFrequencyTypes objectAtIndex:[recurrenceFrequencyIndex intValue]] integerValue];
     EKRecurrenceEnd *recurrenceEnd;
-    
+            
     if (endDate != nil) {
         recurrenceEnd = [EKRecurrenceEnd recurrenceEndWithEndDate: [[NSDate alloc] initWithTimeIntervalSince1970: [endDate doubleValue]]];
     } else if (totalOccurrences > 0){
@@ -496,9 +493,10 @@ EKEventStore *eventStore;
     }
     NSMutableArray *reminders = [NSMutableArray new];
     for (NSString *reminderArguments in remindersArguments) {
-        NSNumber *arg = [[NSNumber alloc] initWithInt: [reminderArguments valueForKey:minutesArgument]];
-        double relativeOffset = 60 * (-[arg doubleValue]);
-        [reminders addObject:[EKAlarm alarmWithRelativeOffset:relativeOffset]];
+        NSNumber *arg = [reminderArguments valueForKey:minutesArgument];
+        NSNumber *reminder = [NSNumber numberWithDouble:fabs([arg doubleValue])];
+        NSNumber *relativeOffset = [[NSNumber alloc] initWithDouble: (0 - 60 * [reminder doubleValue])];
+        [reminders addObject:[EKAlarm alarmWithRelativeOffset:[relativeOffset doubleValue]]];
     }
     return reminders;
 }
@@ -517,6 +515,8 @@ EKEventStore *eventStore;
         NSString *description = [arguments valueForKey: eventDescriptionArgument];
         NSString *location = [arguments valueForKey: eventLocationArgument];
         EKCalendar *ekCalendar = [eventStore calendarWithIdentifier: calendarId];
+        NSString *url = [arguments valueForKey:eventURLArgument];
+        
         if (ekCalendar == nil) {
             [self finishWithCalendarNotFoundError:calendarId result: result];
             return;
@@ -526,9 +526,9 @@ EKEventStore *eventStore;
             return;
         }
         EKEvent *ekEvent;
-        if (eventId == [NSNull null]) {
+        if ([eventId isEqual:[NSNull null]]) {
             ekEvent = [EKEvent eventWithEventStore:eventStore];
-        }else {
+        } else {
             ekEvent = [eventStore eventWithIdentifier:eventId];
             if (ekEvent == nil) {
                 [self finishWithEventNotFoundError: eventId result: result];
@@ -546,10 +546,14 @@ EKEventStore *eventStore;
         }
         [ekEvent setCalendar:ekCalendar];
         [ekEvent setLocation:location];
+        if (![url isEqual:[NSNull null]]) {
+            ekEvent.URL = [NSURL URLWithString: url];
+        } else {
+            ekEvent.URL = [NSURL URLWithString: @""];
+        }
         [ekEvent setRecurrenceRules: [self createEKRecurrenceRules: arguments]];
         [self setAttendees:arguments event:ekEvent];
         [ekEvent setAlarms: [self createReminders: arguments]];
-        
         NSError *error = nil;
         [eventStore saveEvent:ekEvent span:EKSpanFutureEvents error:&error];
         if (error == nil) {
@@ -658,6 +662,11 @@ EKEventStore *eventStore;
         }
     } else if ([codable.events count] > 0) {
         for(Event *event in codable.events) {
+            NSMutableArray *reminders = [NSMutableArray new];
+            for (Reminder *remeinder in event.reminders) {
+                [reminders addObject:[remeinder toDictionary]];
+            }
+            event.reminders = reminders;
             [resultArr addObject:[event toJSONString]];
         }
     }
