@@ -21,6 +21,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val HAS_PERMISSIONS_METHOD = "hasPermissions"
     private val RETRIEVE_CALENDARS_METHOD = "retrieveCalendars"
     private val RETRIEVE_EVENTS_METHOD = "retrieveEvents"
+    private val RETRIEVE_EVENTS_NONBLOCKING_METHOD = "retrieveEventsNonBlock"
     private val DELETE_EVENT_METHOD = "deleteEvent"
     private val DELETE_EVENT_INSTANCE_METHOD = "deleteEventInstance"
     private val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
@@ -103,6 +104,14 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                 val eventIds = call.argument<List<String>>(EVENT_IDS_ARGUMENT) ?: listOf()
 
                 _calendarDelegate.retrieveEvents(calendarId!!, startDate, endDate, eventIds, result)
+            }
+            RETRIEVE_EVENTS_NONBLOCKING_METHOD -> {
+                val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
+                val startDate = call.argument<Long>(START_DATE_ARGUMENT)
+                val endDate = call.argument<Long>(END_DATE_ARGUMENT)
+                val eventIds = call.argument<List<String>>(EVENT_IDS_ARGUMENT) ?: listOf()
+
+                _calendarDelegate.retrieveEventsNonBlock(calendarId!!, startDate, endDate, eventIds, result)
             }
             CREATE_OR_UPDATE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
