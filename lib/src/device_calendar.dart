@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -84,12 +85,14 @@ class DeviceCalendarPlugin {
   /// The `calendarId` paramter is the id of the calendar that plugin will return events for
   /// The `retrieveEventsParams` parameter combines multiple properties that
   /// specifies conditions of the events retrieval. For instance, defining [RetrieveEventsParams.startDate]
-  /// and [RetrieveEventsParams.endDate] will return events only happening in that time range
-  ///
+  /// and [RetrieveEventsParams.endDate] will return events only happening in that time range.
+  /// Specify [runInThread] to use run on a separate thread (currently only support Android).
+  /// 
   /// Returns a [Result] containing a list [Event], that fall
   /// into the specified parameters
   Future<Result<UnmodifiableListView<Event>>> retrieveEvents(
-      String calendarId, RetrieveEventsParams retrieveEventsParams) async {
+      String calendarId, RetrieveEventsParams retrieveEventsParams, [bool runInThread = true]
+  ) async {
     final result = Result<UnmodifiableListView<Event>>();
 
     if ((calendarId?.isEmpty ?? true)) {
@@ -111,13 +114,19 @@ class DeviceCalendarPlugin {
 
     if (result.errorMessages.isEmpty) {
       try {
-        var eventsJson =
-            await channel.invokeMethod('retrieveEvents', <String, Object>{
-          'calendarId': calendarId,
-          'startDate': retrieveEventsParams.startDate?.millisecondsSinceEpoch,
-          'endDate': retrieveEventsParams.endDate?.millisecondsSinceEpoch,
-          'eventIds': retrieveEventsParams.eventIds
-        });
+        var eventsJson;
+        var params = {
+            'calendarId': calendarId,
+            'startDate': retrieveEventsParams.startDate?.millisecondsSinceEpoch,
+            'endDate': retrieveEventsParams.endDate?.millisecondsSinceEpoch,
+            'eventIds': retrieveEventsParams.eventIds
+          };
+
+        if (runInThread && Platform.isAndroid) {
+          eventsJson = await channel.invokeMethod('retrieveEventsNonBlock', params);
+        } else {
+          eventsJson = await channel.invokeMethod('retrieveEvents', params);
+        }
 
         result.data = UnmodifiableListView(json
             .decode(eventsJson)

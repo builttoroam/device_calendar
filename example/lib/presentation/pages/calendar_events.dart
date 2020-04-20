@@ -41,7 +41,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
     return Scaffold(
         key: _scaffoldstate,
         appBar: AppBar(title: Text('${_calendar.name} events')),
-        body: (_calendarEvents?.isNotEmpty ?? false)
+        body: ((_calendarEvents?.isNotEmpty ?? false) || _isLoading)
             ? Stack(
                 children: [
                   ListView.builder(
