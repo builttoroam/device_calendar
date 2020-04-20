@@ -67,6 +67,9 @@ import com.google.gson.GsonBuilder
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugin.common.PluginRegistry.Registrar
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.dmfs.rfc5545.DateTime
 import org.dmfs.rfc5545.Weekday
 import org.dmfs.rfc5545.recur.Freq
@@ -80,6 +83,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val CREATE_OR_UPDATE_EVENT_REQUEST_CODE = RETRIEVE_CALENDAR_REQUEST_CODE + 1
     private val DELETE_EVENT_REQUEST_CODE = CREATE_OR_UPDATE_EVENT_REQUEST_CODE + 1
     private val REQUEST_PERMISSIONS_REQUEST_CODE = DELETE_EVENT_REQUEST_CODE + 1
+    private val RETRIEVE_EVENTS_NONBLOCK_REQUEST_CODE = REQUEST_PERMISSIONS_REQUEST_CODE + 1
     private val PART_TEMPLATE = ";%s="
     private val BYMONTHDAY_PART = "BYMONTHDAY"
     private val BYMONTH_PART = "BYMONTH"
@@ -124,6 +128,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 }
                 RETRIEVE_EVENTS_REQUEST_CODE -> {
                     retrieveEvents(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.calendarEventsIds, cachedValues.pendingChannelResult)
+                }
+                RETRIEVE_EVENTS_NONBLOCK_REQUEST_CODE -> {
+                    retrieveEventsNonBlock(cachedValues.calendarId, cachedValues.calendarEventsStartDate, cachedValues.calendarEventsEndDate, cachedValues.calendarEventsIds, cachedValues.pendingChannelResult)
                 }
                 RETRIEVE_CALENDAR_REQUEST_CODE -> {
                     retrieveCalendar(cachedValues.calendarId, cachedValues.pendingChannelResult)
@@ -315,6 +322,71 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             }
 
             finishWithSuccess(_gson?.toJson(events), pendingChannelResult)
+        } else {
+            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_EVENTS_REQUEST_CODE, calendarId, startDate, endDate)
+            requestPermissions(parameters)
+        }
+
+        return
+    }
+
+    fun retrieveEventsNonBlock(calendarId: String, startDate: Long?, endDate: Long?, eventIds: List<String>, pendingChannelResult: MethodChannel.Result) {
+        if (startDate == null && endDate == null && eventIds.isEmpty()) {
+            finishWithError(INVALID_ARGUMENT, ErrorMessages.RETRIEVE_EVENTS_ARGUMENTS_NOT_VALID_MESSAGE, pendingChannelResult)
+            return
+        }
+
+        if (arePermissionsGranted()) {
+            val calendar = retrieveCalendar(calendarId, pendingChannelResult, true)
+            if (calendar == null) {
+                finishWithError(NOT_FOUND, "Couldn't retrieve the Calendar with ID $calendarId", pendingChannelResult)
+                return
+            }
+
+            val contentResolver: ContentResolver? = _context?.contentResolver
+            val eventsUriBuilder = CalendarContract.Instances.CONTENT_URI.buildUpon()
+            ContentUris.appendId(eventsUriBuilder, startDate ?: Date(0).time)
+            ContentUris.appendId(eventsUriBuilder, endDate ?: Date(Long.MAX_VALUE).time)
+
+            val eventsUri = eventsUriBuilder.build()
+            val eventsCalendarQuery = "(${Events.CALENDAR_ID} = $calendarId)"
+            val eventsNotDeletedQuery = "(${Events.DELETED} != 1)"
+            // val eventsIdsQueryElements = eventIds.map { "(${CalendarContract.Instances.EVENT_ID} = $it)" }
+            // val eventsIdsQuery = eventsIdsQueryElements.joinToString(" OR ")
+            val eventsIdsQuery ="(${CalendarContract.Instances.EVENT_ID} IN (${eventIds.joinToString()}))"
+
+            var eventsSelectionQuery = "$eventsCalendarQuery AND $eventsNotDeletedQuery"
+            if (eventIds.isNotEmpty()) {
+                eventsSelectionQuery += " AND ($eventsIdsQuery)"
+            }
+            val eventsSortOrder = Events.DTSTART + " DESC"
+
+            val eventsCursor = contentResolver?.query(eventsUri, EVENT_PROJECTION, eventsSelectionQuery, null, eventsSortOrder)
+
+            val events: MutableList<Event> = mutableListOf()
+
+            try {
+                GlobalScope.launch(Dispatchers.IO) {
+                    while (eventsCursor?.moveToNext() == true) {
+                        val event = parseEvent(calendarId, eventsCursor) ?: continue
+                        events.add(event)
+                    }
+
+                    for (event in events) {
+                        val attendees = retrieveAttendees(event.eventId!!, contentResolver)
+                        event.organizer = attendees.firstOrNull { it.isOrganizer != null && it.isOrganizer }
+                        event.attendees = attendees
+                        event.reminders = retrieveReminders(event.eventId!!, contentResolver)
+                    }
+                }.invokeOnCompletion {
+                    eventsCursor?.close()
+                    _registrar!!.activity().runOnUiThread {
+                        finishWithSuccess(_gson?.toJson(events), pendingChannelResult)
+                    }
+                }
+            } catch (e: Exception) {
+                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
+            }
         } else {
             val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_EVENTS_REQUEST_CODE, calendarId, startDate, endDate)
             requestPermissions(parameters)
