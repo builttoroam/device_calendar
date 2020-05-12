@@ -161,7 +161,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 calendar.cgColor = UIColor(red: 255, green: 0, blue: 0, alpha: 0).cgColor // Red colour as a default
             }
             
-            let localSources = eventStore.sources.filter { $0.sourceType == .local }
+            let localSources = eventStore.sources.filter { $0.sourceType == .local || ($0.sourceType == .calDAV && $0.title == "iCloud") }
             
             if (!localSources.isEmpty) {
                 calendar.source = localSources.first
