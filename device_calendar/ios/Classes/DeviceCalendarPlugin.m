@@ -11,7 +11,6 @@
 #import "models/Department.h"
 #import "Date+Utilities.h"
 #import "UIColor+Utilities.h"
-#import "EKParticipant+Utilities.h"
 #import <objc/runtime.h>
 
 @implementation DeviceCalendarPlugin
@@ -298,12 +297,12 @@ EKEventStore *eventStore;
 }
 
 -(Attendee*)convertEkParticipantToAttendee: (EKParticipant *)ekParticipant {
-    if (ekParticipant == nil || [ekParticipant emailAddress] == nil) {
+    if (ekParticipant == nil || [[ekParticipant URL] resourceSpecifier] == nil) {
         return nil;
     }
     Attendee *attendee = [Attendee new];
     attendee.name = [ekParticipant name];
-    attendee.emailAddress = [ekParticipant emailAddress];
+    attendee.emailAddress = [[ekParticipant URL] resourceSpecifier];
     attendee.role = [ekParticipant participantRole];
     return attendee;
 }
@@ -465,15 +464,15 @@ EKEventStore *eventStore;
         NSString *emailAddress = [attendeeArguments valueForKey:emailAddressArgument];
         NSNumber *role = [attendeeArguments valueForKey:roleArgument];
         if ([ekEvent attendees] != nil) {
-            NSArray<EKParticipant*> *participants = [ekEvent attendees];
+            NSArray *participants = [ekEvent attendees];
             EKParticipant *existingAttendee;
             for(EKParticipant* participant in participants) {
-                if ([participant emailAddress] == emailAddress) {
+                if ([[participant URL] resourceSpecifier] == emailAddress) {
                     existingAttendee = participant;
                     break;
                 }
             }
-            if (existingAttendee != nil && [[ekEvent organizer] emailAddress] != [existingAttendee emailAddress]) {
+            if (existingAttendee != nil && [[[ekEvent organizer] URL] resourceSpecifier] != [[existingAttendee URL] resourceSpecifier]) {
                 [attendees addObject: existingAttendee];
                 continue;
             }
@@ -481,7 +480,16 @@ EKEventStore *eventStore;
             if (attendee == nil) {
                 continue;
             }
+            if (existingAttendee != nil && [[[ekEvent organizer] URL] resourceSpecifier] != [[existingAttendee URL] resourceSpecifier]) {
+                [attendees addObject: existingAttendee];
+                continue;
+            }
         }
+        EKParticipant *attendee = [self createParticipant:emailAddress name:name role:role];
+        if (attendee == nil) {
+            continue;
+        }
+        [attendees addObject: attendee];
     }
     [ekEvent setValue:attendees forKey:@"attendees"];
 }
@@ -503,7 +511,7 @@ EKEventStore *eventStore;
 
 -(void)createOrUpdateEvent: (FlutterMethodCall *)call result:(FlutterResult)result{
     [self checkPermissionsThenExecute:nil permissionsGrantedAction:^{
-        NSDictionary<NSString*, id> *arguments = [call arguments];
+        NSDictionary *arguments = [call arguments];
         NSString *calendarId = [arguments valueForKey:calendarIdArgument];
         NSString *eventId = [arguments valueForKey:eventIdArgument];
         BOOL isAllDay = [[arguments valueForKey:eventAllDayArgument] boolValue];
@@ -568,14 +576,11 @@ EKEventStore *eventStore;
 
 -(EKParticipant *)createParticipant:(NSString *)emailAddress name:(NSString *)name role:(NSNumber *)role {
     Class ekAttendeeClass = NSClassFromString(@"EKAttendee");
-    if ([ekAttendeeClass isSubclassOfClass:[NSObject class]]) {
-        NSObject *participant = [[ekAttendeeClass alloc] init];
-        [participant setValue:emailAddress forKey:@"emailAddress"];
-        [participant setValue:name forKey:@"displayName"];
-        [participant setValue:role forKey:@"participantRole"];
-        return (EKParticipant *)participant;
-    }
-    return nil;
+    id participant = [ekAttendeeClass new];
+    [participant setValue:emailAddress forKey:@"emailAddress"];
+    [participant setValue:name forKey:@"displayName"];
+    [participant setValue:role forKey:@"participantRole"];
+    return participant;
 }
 
 -(void)deleteEvent:(FlutterMethodCall *)call result:(FlutterResult)result {
@@ -666,6 +671,11 @@ EKEventStore *eventStore;
             for (Reminder *remeinder in event.reminders) {
                 [reminders addObject:[remeinder toDictionary]];
             }
+            NSMutableArray *attendees = [NSMutableArray new];
+            for (Attendee *attendee in event.attendees) {
+                [attendees addObject:[attendee toDictionary]];
+            }
+            event.attendees = attendees;
             event.reminders = reminders;
             [resultArr addObject:[event toJSONString]];
         }
