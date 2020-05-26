@@ -38,6 +38,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let recurrenceRule: RecurrenceRule?
         let organizer: Attendee?
         let reminders: [Reminder]
+        let availability: String?
     }
     
     struct RecurrenceRule: Codable {
@@ -94,6 +95,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let eventStartTimeZoneArgument = "eventStartTimeZone"
     let eventLocationArgument = "eventLocation"
     let eventURLArgument = "eventURL"
+    let eventAvailabilityArgument = "eventAvailabilityArgument"
     let attendeesArgument = "attendees"
     let recurrenceRuleArgument = "recurrenceRule"
     let recurrenceFrequencyArgument = "recurrenceFrequency"
@@ -303,7 +305,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             url: ekEvent.url?.absoluteString,
             recurrenceRule: recurrenceRule,
             organizer: convertEkParticipantToAttendee(ekParticipant: ekEvent.organizer),
-            reminders: reminders
+            reminders: reminders,
+            availability: convertEkEventAvailabilityToString(ekEventAvailability: ekEvent.availability)
         )
         return event
     }
@@ -315,6 +318,17 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         
         let attendee = Attendee(name: ekParticipant!.name, emailAddress:  ekParticipant!.emailAddress!, role: ekParticipant!.participantRole.rawValue, attendanceStatus: ekParticipant!.participantStatus.rawValue)
         return attendee
+    }
+    
+    private func convertEkEventAvailabilityToString(ekEventAvailability: EKEventAvailability?) -> String? {
+        switch ekEventAvailability {
+        case .busy:
+            return "BUSY"
+        case .free:
+            return "FREE"
+        default:
+            return nil
+        }
     }
     
     private func parseEKRecurrenceRules(_ ekEvent: EKEvent) -> RecurrenceRule? {
@@ -539,6 +553,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let description = arguments[self.eventDescriptionArgument] as? String
             let location = arguments[self.eventLocationArgument] as? String
             let url = arguments[self.eventURLArgument] as? String
+            let availability = arguments[eventAvailabilityArgument] as? String
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
@@ -582,6 +597,15 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             }
             else {
                 ekEvent!.url = nil
+            }
+
+            if let _availability = availability {
+                if _availability == "BUSY" {
+                    ekEvent!.availability = .busy
+                }
+                else if _availability == "FREE" {
+                     ekEvent!.availability = .free
+                }
             }
 
             ekEvent!.recurrenceRules = createEKRecurrenceRules(arguments)
