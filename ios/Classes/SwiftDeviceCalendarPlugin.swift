@@ -95,7 +95,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let eventStartTimeZoneArgument = "eventStartTimeZone"
     let eventLocationArgument = "eventLocation"
     let eventURLArgument = "eventURL"
-    let eventAvailabilityArgument = "eventAvailabilityArgument"
+    let eventAvailabilityArgument = "availability"
     let attendeesArgument = "attendees"
     let recurrenceRuleArgument = "recurrenceRule"
     let recurrenceFrequencyArgument = "recurrenceFrequency"
@@ -553,7 +553,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let description = arguments[self.eventDescriptionArgument] as? String
             let location = arguments[self.eventLocationArgument] as? String
             let url = arguments[self.eventURLArgument] as? String
-            let availability = arguments[eventAvailabilityArgument] as? String
+            let availability = arguments[self.eventAvailabilityArgument] as? String
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)

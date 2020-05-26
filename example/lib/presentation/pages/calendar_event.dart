@@ -207,6 +207,25 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         },
                       ),
                     ),
+                    ListTile(
+                      leading: Text('Availability', style: TextStyle(fontSize: 16),),
+                      trailing: DropdownButton<String>(
+                        value: _event.availability ?? 'null',
+                          onChanged: (String newValue) {
+                            setState(() {
+                              _event.availability = newValue;
+                            });
+                          },
+                          items: <String>['BUSY', 'FREE', 'null']
+                            .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            })
+                            .toList(),
+                      ),
+                    ),
                     SwitchListTile(
                       value: _event.allDay,
                       onChanged: (value) =>
