@@ -13,7 +13,7 @@
 @property NSInteger start;
 @property NSInteger end;
 @property BOOL allDay;
-@property NSArray *attendees;
+@property NSMutableArray *attendees;
 @property NSString *location;
 @property RecurrenceRule *recurrenceRule;
 @property Attendee *organizer;
