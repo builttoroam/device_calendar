@@ -13,6 +13,7 @@ import android.provider.CalendarContract
 import android.provider.CalendarContract.CALLER_IS_SYNCADAPTER
 import android.provider.CalendarContract.Events
 import android.text.format.DateUtils
+import com.builttoroam.devicecalendar.common.Constants
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EMAIL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
@@ -36,6 +37,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_RRULE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ALL_DAY_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_AVAILABILITY_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_BEGIN_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_CUSTOM_APP_URI_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
@@ -652,6 +654,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val url = cursor.getString(EVENT_PROJECTION_CUSTOM_APP_URI_INDEX)
         val startTimeZone = cursor.getString(EVENT_PROJECTION_START_TIMEZONE_INDEX)
         val endTimeZone = cursor.getString(EVENT_PROJECTION_END_TIMEZONE_INDEX)
+        val availability = parseAvailability(cursor.getInt(EVENT_PROJECTION_AVAILABILITY_INDEX))
 
         val event = Event()
         event.title = title ?: "New Event"
@@ -666,6 +669,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         event.recurrenceRule = parseRecurrenceRuleString(recurringRule)
         event.startTimeZone = startTimeZone
         event.endTimeZone = endTimeZone
+        event.availability = availability
+
         return event
     }
 
@@ -894,5 +899,11 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
         return this
+    }
+
+    private fun parseAvailability(availability : Int) : String? = when (availability){
+        Events.AVAILABILITY_BUSY -> Constants.AVAILABILITY_BUSY
+        Events.AVAILABILITY_FREE -> Constants.AVAILABILITY_FREE
+        else -> null
     }
 }
