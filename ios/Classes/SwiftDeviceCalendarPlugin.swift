@@ -543,12 +543,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     private func setAvailability(_ arguments: [String : AnyObject]) -> EKEventAvailability {
-        let availabilityArguments = arguments[availabilityArgument] as? Dictionary<String, AnyObject>
-        if availabilityArguments == nil {
-            return .unavailable
-        }
-        
-        guard let availabilityValue = availabilityArguments![availabilityArgument] as? String else { return .unavailable }
+        guard let availabilityValue = arguments[availabilityArgument] as? String else { return .busy }
         
         switch availabilityValue {
         case Availability.BUSY.rawValue:
@@ -556,7 +551,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         case Availability.FREE.rawValue:
             return .free
         default:
-            return .unavailable
+            return .busy
         }
     }
     

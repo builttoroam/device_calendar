@@ -210,13 +210,13 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     ListTile(
                       leading: Text('Availability', style: TextStyle(fontSize: 16),),
                       trailing: DropdownButton<String>(
-                        value: _event.availability ?? 'null',
+                        value: _event.availability ?? 'BUSY',
                           onChanged: (String newValue) {
                             setState(() {
                               _event.availability = newValue;
                             });
                           },
-                          items: <String>['BUSY', 'FREE', 'null']
+                          items: <String>['BUSY', 'FREE']
                             .map<DropdownMenuItem<String>>((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
