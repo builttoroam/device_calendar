@@ -17,5 +17,4 @@ class Event {
     var organizer: Attendee? = null
     var reminders: MutableList<Reminder> = mutableListOf()
     var availability: String? = null
-    var status : Int? = null
 }
