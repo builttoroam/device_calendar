@@ -673,7 +673,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         event.startTimeZone = startTimeZone
         event.endTimeZone = endTimeZone
         event.availability = availability
-        event.status = status
 
         return event
     }
