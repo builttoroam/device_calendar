@@ -59,6 +59,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val FOLLOWING_INSTANCES = "followingInstances"
     private val CALENDAR_COLOR_ARGUMENT = "calendarColor"
     private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
+    private val EVENT_AVAILABILITY_ARGUMENT = "availability"
+
 
     private lateinit var _registrar: Registrar
     private lateinit var _calendarDelegate: CalendarDelegate
@@ -149,6 +151,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         event.endTimeZone = call.argument<String>(EVENT_END_TIMEZONE_ARGUMENT)
         event.location = call.argument<String>(EVENT_LOCATION_ARGUMENT)
         event.url = call.argument<String>(EVENT_URL_ARGUMENT)
+        event.availability = call.argument<String>(EVENT_AVAILABILITY_ARGUMENT)
 
         if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)
