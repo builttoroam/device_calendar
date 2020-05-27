@@ -38,7 +38,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let recurrenceRule: RecurrenceRule?
         let organizer: Attendee?
         let reminders: [Reminder]
-        let availability: String?
+        let availability: Availability?
     }
     
     struct RecurrenceRule: Codable {
@@ -61,6 +61,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     
     struct Reminder: Codable {
         let minutes: Int
+    }
+    
+    enum Availability: String, Codable {
+        case BUSY, FREE
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
@@ -95,7 +99,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let eventStartTimeZoneArgument = "eventStartTimeZone"
     let eventLocationArgument = "eventLocation"
     let eventURLArgument = "eventURL"
-    let eventAvailabilityArgument = "availability"
     let attendeesArgument = "attendees"
     let recurrenceRuleArgument = "recurrenceRule"
     let recurrenceFrequencyArgument = "recurrenceFrequency"
@@ -113,6 +116,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let followingInstancesArgument = "followingInstances"
     let calendarNameArgument = "calendarName"
     let calendarColorArgument = "calendarColor"
+    let availabilityArgument = "availability"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -320,12 +324,12 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         return attendee
     }
     
-    private func convertEkEventAvailabilityToString(ekEventAvailability: EKEventAvailability?) -> String? {
+    private func convertEkEventAvailabilityToString(ekEventAvailability: EKEventAvailability?) -> Availability? {
         switch ekEventAvailability {
         case .busy:
-            return "BUSY"
+            return Availability.BUSY
         case .free:
-            return "FREE"
+            return Availability.FREE
         default:
             return nil
         }
@@ -538,6 +542,24 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         return reminders
     }
     
+    private func setAvailability(_ arguments: [String : AnyObject]) -> EKEventAvailability {
+        let availabilityArguments = arguments[availabilityArgument] as? Dictionary<String, AnyObject>
+        if availabilityArguments == nil {
+            return .unavailable
+        }
+        
+        guard let availabilityValue = availabilityArguments![availabilityArgument] as? String else { return .unavailable }
+        
+        switch availabilityValue {
+        case Availability.BUSY.rawValue:
+            return .busy
+        case Availability.FREE.rawValue:
+            return .free
+        default:
+            return .unavailable
+        }
+    }
+    
     private func createOrUpdateEvent(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
         checkPermissionsThenExecute(permissionsGrantedAction: {
             let arguments = call.arguments as! Dictionary<String, AnyObject>
@@ -553,7 +575,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let description = arguments[self.eventDescriptionArgument] as? String
             let location = arguments[self.eventLocationArgument] as? String
             let url = arguments[self.eventURLArgument] as? String
-            let availability = arguments[self.eventAvailabilityArgument] as? String
             let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
             if (ekCalendar == nil) {
                 self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
@@ -598,19 +619,11 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             else {
                 ekEvent!.url = nil
             }
-
-            if let _availability = availability {
-                if _availability == "BUSY" {
-                    ekEvent!.availability = .busy
-                }
-                else if _availability == "FREE" {
-                     ekEvent!.availability = .free
-                }
-            }
-
+            
             ekEvent!.recurrenceRules = createEKRecurrenceRules(arguments)
             setAttendees(arguments, ekEvent)
             ekEvent!.alarms = createReminders(arguments)
+            ekEvent!.availability = setAvailability(arguments)
             
             do {
                 try self.eventStore.save(ekEvent!, span: .futureEvents)
