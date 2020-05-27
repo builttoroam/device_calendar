@@ -49,8 +49,6 @@ class Constants {
         const val EVENT_PROJECTION_START_TIMEZONE_INDEX: Int = 11
         const val EVENT_PROJECTION_END_TIMEZONE_INDEX: Int = 12
         const val EVENT_PROJECTION_AVAILABILITY_INDEX: Int = 13
-        const val EVENT_PROJECTION_STATUS_INDEX: Int = 14
-
 
         val EVENT_PROJECTION: Array<String> = arrayOf(
                 CalendarContract.Instances.EVENT_ID,
