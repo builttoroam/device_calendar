@@ -1,6 +1,7 @@
 package com.builttoroam.devicecalendar
 
 import android.Manifest
+import android.graphics.Color;
 import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentUris
@@ -249,8 +250,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         values.put(CalendarContract.Calendars.ACCOUNT_NAME, localAccountName)
         values.put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
         values.put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
-        values.put(CalendarContract.Calendars.CALENDAR_COLOR, calendarColor
-                ?: "0xFFFF0000") // Red colour as a default
+        values.put(CalendarContract.Calendars.CALENDAR_COLOR, Color.parseColor((calendarColor?:"0xFFFF0000").replace("0x","#"))) // Red colour as a default
         values.put(CalendarContract.Calendars.OWNER_ACCOUNT, localAccountName)
         values.put(CalendarContract.Calendars.CALENDAR_TIME_ZONE, java.util.Calendar.getInstance().timeZone.id)
 
