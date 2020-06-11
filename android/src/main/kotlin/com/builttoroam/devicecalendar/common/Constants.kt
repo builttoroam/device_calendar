@@ -64,8 +64,7 @@ class Constants {
                 CalendarContract.Events.CUSTOM_APP_URI,
                 CalendarContract.Events.EVENT_TIMEZONE,
                 CalendarContract.Events.EVENT_END_TIMEZONE,
-                CalendarContract.Events.AVAILABILITY,
-                CalendarContract.Events.STATUS
+                CalendarContract.Events.AVAILABILITY
         )
 
         const val EVENT_INSTANCE_DELETION_ID_INDEX: Int = 0
