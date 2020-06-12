@@ -67,6 +67,7 @@ import com.google.gson.GsonBuilder
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugin.common.PluginRegistry.Registrar
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -295,27 +296,31 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             val events: MutableList<Event> = mutableListOf()
 
-            try {
-                GlobalScope.launch(Dispatchers.IO) {
-                    while (eventsCursor?.moveToNext() == true) {
-                        val event = parseEvent(calendarId, eventsCursor) ?: continue
-                        events.add(event)
-                    }
-
-                    for (event in events) {
-                        val attendees = retrieveAttendees(event.eventId!!, contentResolver)
-                        event.organizer = attendees.firstOrNull { it.isOrganizer != null && it.isOrganizer }
-                        event.attendees = attendees
-                        event.reminders = retrieveReminders(event.eventId!!, contentResolver)
-                    }
-                }.invokeOnCompletion {
-                    eventsCursor?.close()
-                    _registrar!!.activity().runOnUiThread {
-                        finishWithSuccess(_gson?.toJson(events), pendingChannelResult)
-                    }
+            val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+                _registrar!!.activity().runOnUiThread {
+                    finishWithError(GENERIC_ERROR, exception.message, pendingChannelResult)
                 }
-            } catch (e: Exception) {
-                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
+            }
+
+            GlobalScope.launch(Dispatchers.IO + exceptionHandler) {
+                while (eventsCursor?.moveToNext() == true) {
+                    val event = parseEvent(calendarId, eventsCursor) ?: continue
+                    events.add(event)
+                }
+                for (event in events) {
+                    val attendees = retrieveAttendees(event.eventId!!, contentResolver)
+                    event.organizer = attendees.firstOrNull { it.isOrganizer != null && it.isOrganizer }
+                    event.attendees = attendees
+                    event.reminders = retrieveReminders(event.eventId!!, contentResolver)
+                }
+            }.invokeOnCompletion {
+                cause ->
+                    eventsCursor?.close()
+                    if (cause == null) {
+                        _registrar!!.activity().runOnUiThread {
+                            finishWithSuccess(_gson?.toJson(events), pendingChannelResult)
+                        }
+                    }
             }
         } else {
             val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_EVENTS_REQUEST_CODE, calendarId, startDate, endDate)
