@@ -49,6 +49,9 @@ class Event {
   /// A list of reminders (by minutes) for this event
   List<Reminder> reminders;
 
+  /// If this event counts as busy time or is still free time
+  String availability;
+
   Event(this.calendarId,
       {this.eventId,
       this.title,
@@ -60,6 +63,7 @@ class Event {
       this.attendees,
       this.recurrenceRule,
       this.reminders,
+      this.availability,
       this.allDay = false});
 
   Event.fromJson(Map<String, dynamic> json) {
@@ -117,6 +121,9 @@ class Event {
         return Reminder.fromJson(decodedReminder);
       }).toList();
     }
+
+    availability = json['availability'];
+
   }
 
   Map<String, dynamic> toJson() {
@@ -142,6 +149,7 @@ class Event {
     if (reminders != null) {
       data['reminders'] = reminders.map((r) => r.toJson()).toList();
     }
+    data['availability'] = availability;
 
     return data;
   }

@@ -161,6 +161,26 @@ class EventItem extends StatelessWidget {
                       ],
                     ),
                   ),
+                  SizedBox(
+                    height: 10.0,
+                  ),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: _eventFieldNameWidth,
+                          child: Text('Availability'),
+                        ),
+                        Expanded(
+                          child: Text(
+                            _calendarEvent?.availability ?? '',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
