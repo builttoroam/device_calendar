@@ -31,13 +31,13 @@ stages:
           displayName: 'Flutter build - Android'
           inputs:
             target: 'aab'
-            projectDirectory: 'device_calendar/example'
+            projectDirectory: 'example'
 
         - task: FlutterBuild@0
           displayName: 'Flutter build - iOS'
           inputs:
             target: 'ios'
-            projectDirectory: 'device_calendar/example'
+            projectDirectory: 'example'
             iosCodesign: false
             
   # -----------CD Pre-release -----------
@@ -60,10 +60,10 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "$(versionNumberRegex)" | %{ $_.Matches[0].Value }
+              [string] $version = select-string -path "$(Build.SourcesDirectory)/pubspec.yaml" -pattern "$(versionNumberRegex)" | %{ $_.Matches[0].Value }
               Write-Host "##vso[task.setvariable variable=currentVersion]$version"
 
-              [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -Raw
+              [string] $pubspecContent = Get-Content -Path "$(Build.SourcesDirectory)/pubspec.yaml" -Raw
 
               Write-Host " (i) Current version: $version"
               Write-Host " (i) Original pubspec.yaml content: $pubspecContent"
@@ -74,14 +74,14 @@ stages:
 
               Write-Host " (i) Updated pubspec.yaml content: $newPubspecContent"
 
-              $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml"
+              $newPubspecContent | Set-Content -Path "$(Build.SourcesDirectory)/pubspec.yaml"
 
         - task: PowerShell@2
           displayName: 'Pre-release versioning - CHANGELOG.md'
           inputs:
             targetType: 'inline'
             script: |
-              [string] $changelogContent = Get-Content -Path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md" -Raw
+              [string] $changelogContent = Get-Content -Path "$(Build.SourcesDirectory)/CHANGELOG.md" -Raw
 
               Write-Host " (i) Current version: $env.currentVersion"
               Write-Host " (i) Original CHANGELOG.md content: $changelogContent"
@@ -90,7 +90,7 @@ stages:
 
               Write-Host " (i) Updated CHANGELOG.md content: $newChangelogContent"
 
-              $newChangelogContent | Set-Content -Path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md"
+              $newChangelogContent | Set-Content -Path "$(Build.SourcesDirectory)/CHANGELOG.md"
               
         - task: PowerShell@2
           displayName: 'Create publisher credentials file'
@@ -112,13 +112,13 @@ stages:
         - task: CmdLine@2
           displayName: 'Dry run publish'
           inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            workingDirectory: '$(Build.SourcesDirectory)'
             script: '$(flutterExecPath) pub publish --dry-run'
 
         - task: CmdLine@2
           displayName: 'Publish'
           inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            workingDirectory: '$(Build.SourcesDirectory)'
             script: '$(flutterExecPath) pub publish --force'
             
   # ----------- CD Production -----------
@@ -141,7 +141,7 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              [string] $version = select-string -path "$(Build.SourcesDirectory)/device_calendar/pubspec.yaml" -pattern "$(versionNumberRegex)" | %{ $_.Matches[0].Value }
+              [string] $version = select-string -path "$(Build.SourcesDirectory)/pubspec.yaml" -pattern "$(versionNumberRegex)" | %{ $_.Matches[0].Value }
               
               Write-Host "##vso[task.setvariable variable=currentVersion]$version"
 
@@ -150,7 +150,7 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              [string] $summary = select-string -path "$(Build.SourcesDirectory)/device_calendar/CHANGELOG.md" -pattern "($([regex]::escape($env:currentVersion))).*" | %{ $_.Matches[0].Value }
+              [string] $summary = select-string -path "$(Build.SourcesDirectory)/CHANGELOG.md" -pattern "($([regex]::escape($env:currentVersion))).*" | %{ $_.Matches[0].Value }
               
               Write-Host "##vso[task.setvariable variable=versionSummary]$summary"
 
@@ -174,13 +174,13 @@ stages:
         - task: CmdLine@2
           displayName: 'Dry run publish'
           inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            workingDirectory: '$(Build.SourcesDirectory)'
             script: '$(flutterExecPath) pub publish --dry-run'
 
         - task: CmdLine@2
           displayName: 'Publish'
           inputs:
-            workingDirectory: '$(Build.SourcesDirectory)/device_calendar'
+            workingDirectory: '$(Build.SourcesDirectory)'
             script: '$(flutterExecPath) pub publish --force'
 
         - task: GitHubReleasePublish@1
@@ -188,7 +188,7 @@ stages:
           inputs:
             githubEndpoint: 'GitHub Tagging'
             manuallySetRepository: false
-            githubRepository: 'builttoroam/flutter_plugins'
+            githubRepository: 'builttoroam/device_calendar'
             githubTag: 'v$(currentVersion)'
             githubReleaseTitle: '$(versionSummary)'
             githubReleaseDraft: false
