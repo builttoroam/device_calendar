@@ -48,6 +48,7 @@ class Constants {
         const val EVENT_PROJECTION_CUSTOM_APP_URI_INDEX: Int = 10
         const val EVENT_PROJECTION_START_TIMEZONE_INDEX: Int = 11
         const val EVENT_PROJECTION_END_TIMEZONE_INDEX: Int = 12
+        const val EVENT_PROJECTION_AVAILABILITY_INDEX: Int = 13
 
         val EVENT_PROJECTION: Array<String> = arrayOf(
                 CalendarContract.Instances.EVENT_ID,
@@ -62,7 +63,8 @@ class Constants {
                 CalendarContract.Events.EVENT_LOCATION,
                 CalendarContract.Events.CUSTOM_APP_URI,
                 CalendarContract.Events.EVENT_TIMEZONE,
-                CalendarContract.Events.EVENT_END_TIMEZONE
+                CalendarContract.Events.EVENT_END_TIMEZONE,
+                CalendarContract.Events.AVAILABILITY
         )
 
         const val EVENT_INSTANCE_DELETION_ID_INDEX: Int = 0
@@ -102,5 +104,8 @@ class Constants {
                 CalendarContract.Reminders.EVENT_ID,
                 CalendarContract.Reminders.MINUTES
         )
+
+        const val AVAILABILITY_BUSY : String = "BUSY"
+        const val AVAILABILITY_FREE : String = "FREE"
     }
 }
