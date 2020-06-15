@@ -174,7 +174,7 @@ class EventItem extends StatelessWidget {
                         ),
                         Expanded(
                           child: Text(
-                            _calendarEvent?.availability ?? '',
+                            _calendarEvent?.availability.enumToString ?? '',
                             overflow: TextOverflow.ellipsis,
                           ),
                         )
