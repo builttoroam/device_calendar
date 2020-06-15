@@ -64,7 +64,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     enum Availability: String, Codable {
-        case BUSY, FREE
+        case BUSY = "BUSY"
+		case FREE = "FREE"
+		case TENTATIVE = "TENTATIVE"
+		case UNAVAILABLE = "UNAVAILABLE"
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
@@ -310,7 +313,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             recurrenceRule: recurrenceRule,
             organizer: convertEkParticipantToAttendee(ekParticipant: ekEvent.organizer),
             reminders: reminders,
-            availability: convertEkEventAvailabilityToString(ekEventAvailability: ekEvent.availability)
+            availability: convertEkEventAvailability(ekEventAvailability: ekEvent.availability)
         )
         return event
     }
@@ -324,12 +327,16 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         return attendee
     }
     
-    private func convertEkEventAvailabilityToString(ekEventAvailability: EKEventAvailability?) -> Availability? {
+    private func convertEkEventAvailability(ekEventAvailability: EKEventAvailability?) -> Availability? {
         switch ekEventAvailability {
         case .busy:
             return Availability.BUSY
         case .free:
             return Availability.FREE
+		case .tentative:
+			return Availability.TENTATIVE
+		case .unavailable:
+			return Availability.UNAVAILABLE
         default:
             return nil
         }
@@ -543,15 +550,17 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     private func setAvailability(_ arguments: [String : AnyObject]) -> EKEventAvailability {
-        guard let availabilityValue = arguments[availabilityArgument] as? String else { return .busy }
+        guard let availabilityValue = arguments[availabilityArgument] as? String else { return .unavailable }
         
         switch availabilityValue {
-        case Availability.BUSY.rawValue:
+			case Availability.BUSY.rawValue:
             return .busy
         case Availability.FREE.rawValue:
             return .free
-        default:
-            return .busy
+		case Availability.TENTATIVE.rawValue:
+			return .tentative
+		default:
+            return .unavailable
         }
     }
     
