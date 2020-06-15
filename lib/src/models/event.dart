@@ -1,5 +1,6 @@
 import '../../device_calendar.dart';
 import '../common/error_messages.dart';
+import '../common/calendar_enums.dart';
 import 'attendee.dart';
 import 'recurrence_rule.dart';
 
@@ -49,8 +50,8 @@ class Event {
   /// A list of reminders (by minutes) for this event
   List<Reminder> reminders;
 
-  /// If this event counts as busy time or is still free time
-  String availability;
+  /// Indicates if this event counts as busy time, tentative, unavaiable or is still free time
+  Availability availability;
 
   Event(this.calendarId,
       {this.eventId,
