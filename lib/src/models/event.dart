@@ -1,6 +1,6 @@
 import '../../device_calendar.dart';
-import '../common/error_messages.dart';
 import '../common/calendar_enums.dart';
+import '../common/error_messages.dart';
 import 'attendee.dart';
 import 'recurrence_rule.dart';
 
@@ -123,8 +123,7 @@ class Event {
       }).toList();
     }
 
-    availability = json['availability'];
-
+    availability = parseStringToAvailability(json['availability']);
   }
 
   Map<String, dynamic> toJson() {
@@ -153,5 +152,26 @@ class Event {
     data['availability'] = availability;
 
     return data;
+  }
+
+  Availability parseStringToAvailability(String value) {
+    switch (value) {
+      case 'Busy':
+        return Availability.Busy;
+        break;
+
+      case 'Free':
+        return Availability.Free;
+        break;
+
+      case 'Tentative':
+        return Availability.Tentative;
+        break;
+
+      case 'Unavailable':
+        return Availability.Unavailable;
+        break;
+    }
+    return null;
   }
 }
