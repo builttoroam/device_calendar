@@ -52,6 +52,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTIO
 import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_MINUTES_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_PROJECTION
 import com.builttoroam.devicecalendar.common.DayOfWeek
+import com.builttoroam.devicecalendar.common.Availiability
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.GENERIC_ERROR
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_ALLOWED
@@ -103,6 +104,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val gsonBuilder = GsonBuilder()
         gsonBuilder.registerTypeAdapter(RecurrenceFrequency::class.java, RecurrenceFrequencySerializer())
         gsonBuilder.registerTypeAdapter(DayOfWeek::class.java, DayOfWeekSerializer())
+        gsonBuilder.registerTypeAdapter(Availiability::class.java, AvailabilitySerializer())
         _gson = gsonBuilder.create()
     }
 
@@ -467,7 +469,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         return timeZone
     }
 
-    private fun getAvailability(availability: String?): Int? = when (availability) {
+    private fun getAvailability(availability: Availability?): Int? = when (availability) {
         Constants.AVAILABILITY_BUSY -> Events.AVAILABILITY_BUSY
         Constants.AVAILABILITY_FREE -> Events.AVAILABILITY_FREE
         else -> null
@@ -909,7 +911,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         return this
     }
 
-    private fun parseAvailability(availability: Int): String? = when (availability) {
+    // TODO!!!!
+    private fun parseAvailability(availability: Int): Availiability? = when (availability) {
         Events.AVAILABILITY_BUSY -> Constants.AVAILABILITY_BUSY
         Events.AVAILABILITY_FREE -> Constants.AVAILABILITY_FREE
         else -> null

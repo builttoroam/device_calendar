@@ -104,8 +104,5 @@ class Constants {
                 CalendarContract.Reminders.EVENT_ID,
                 CalendarContract.Reminders.MINUTES
         )
-
-        const val AVAILABILITY_BUSY : String = "BUSY"
-        const val AVAILABILITY_FREE : String = "FREE"
     }
 }
