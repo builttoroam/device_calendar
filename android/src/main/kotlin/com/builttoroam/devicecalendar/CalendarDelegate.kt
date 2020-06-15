@@ -1,7 +1,6 @@
 package com.builttoroam.devicecalendar
 
 import android.Manifest
-import android.graphics.Color;
 import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentUris
@@ -9,12 +8,13 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.database.Cursor
+import android.graphics.Color
 import android.net.Uri
 import android.provider.CalendarContract
 import android.provider.CalendarContract.CALLER_IS_SYNCADAPTER
 import android.provider.CalendarContract.Events
 import android.text.format.DateUtils
-import com.builttoroam.devicecalendar.common.Constants
+import com.builttoroam.devicecalendar.common.*
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EMAIL_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
@@ -51,19 +51,15 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTIO
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_MINUTES_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_PROJECTION
-import com.builttoroam.devicecalendar.common.DayOfWeek
-import com.builttoroam.devicecalendar.common.Availiability
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.GENERIC_ERROR
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_ALLOWED
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_AUTHORIZED
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_FOUND
-import com.builttoroam.devicecalendar.common.ErrorMessages
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.EVENT_ID_CANNOT_BE_NULL_ON_DELETION_MESSAGE
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.NOT_AUTHORIZED_MESSAGE
-import com.builttoroam.devicecalendar.common.RecurrenceFrequency
 import com.builttoroam.devicecalendar.models.*
 import com.builttoroam.devicecalendar.models.Calendar
 import com.google.gson.Gson
@@ -104,7 +100,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val gsonBuilder = GsonBuilder()
         gsonBuilder.registerTypeAdapter(RecurrenceFrequency::class.java, RecurrenceFrequencySerializer())
         gsonBuilder.registerTypeAdapter(DayOfWeek::class.java, DayOfWeekSerializer())
-        gsonBuilder.registerTypeAdapter(Availiability::class.java, AvailabilitySerializer())
+        gsonBuilder.registerTypeAdapter(Availability::class.java, AvailabilitySerializer())
         _gson = gsonBuilder.create()
     }
 
@@ -256,7 +252,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         values.put(CalendarContract.Calendars.ACCOUNT_NAME, localAccountName)
         values.put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
         values.put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
-        values.put(CalendarContract.Calendars.CALENDAR_COLOR, Color.parseColor((calendarColor?:"0xFFFF0000").replace("0x","#"))) // Red colour as a default
+        values.put(CalendarContract.Calendars.CALENDAR_COLOR, Color.parseColor((calendarColor
+                ?: "0xFFFF0000").replace("0x", "#"))) // Red colour as a default
         values.put(CalendarContract.Calendars.OWNER_ACCOUNT, localAccountName)
         values.put(CalendarContract.Calendars.CALENDAR_TIME_ZONE, java.util.Calendar.getInstance().timeZone.id)
 
@@ -288,7 +285,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             val eventsUri = eventsUriBuilder.build()
             val eventsCalendarQuery = "(${Events.CALENDAR_ID} = $calendarId)"
             val eventsNotDeletedQuery = "(${Events.DELETED} != 1)"
-            val eventsIdsQuery ="(${CalendarContract.Instances.EVENT_ID} IN (${eventIds.joinToString()}))"
+            val eventsIdsQuery = "(${CalendarContract.Instances.EVENT_ID} IN (${eventIds.joinToString()}))"
 
             var eventsSelectionQuery = "$eventsCalendarQuery AND $eventsNotDeletedQuery"
             if (eventIds.isNotEmpty()) {
@@ -317,14 +314,13 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     event.attendees = attendees
                     event.reminders = retrieveReminders(event.eventId!!, contentResolver)
                 }
-            }.invokeOnCompletion {
-                cause ->
-                    eventsCursor?.close()
-                    if (cause == null) {
-                        _registrar!!.activity().runOnUiThread {
-                            finishWithSuccess(_gson?.toJson(events), pendingChannelResult)
-                        }
+            }.invokeOnCompletion { cause ->
+                eventsCursor?.close()
+                if (cause == null) {
+                    _registrar!!.activity().runOnUiThread {
+                        finishWithSuccess(_gson?.toJson(events), pendingChannelResult)
                     }
+                }
             }
         } else {
             val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_EVENTS_REQUEST_CODE, calendarId, startDate, endDate)
@@ -470,8 +466,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     }
 
     private fun getAvailability(availability: Availability?): Int? = when (availability) {
-        Constants.AVAILABILITY_BUSY -> Events.AVAILABILITY_BUSY
-        Constants.AVAILABILITY_FREE -> Events.AVAILABILITY_FREE
+        Availability.BUSY -> Events.AVAILABILITY_BUSY
+        Availability.FREE -> Events.AVAILABILITY_FREE
+        Availability.TENTATIVE -> Events.AVAILABILITY_TENTATIVE
         else -> null
     }
 
@@ -911,10 +908,11 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         return this
     }
 
-    // TODO!!!!
-    private fun parseAvailability(availability: Int): Availiability? = when (availability) {
-        Events.AVAILABILITY_BUSY -> Constants.AVAILABILITY_BUSY
-        Events.AVAILABILITY_FREE -> Constants.AVAILABILITY_FREE
+
+    private fun parseAvailability(availability: Int): Availability? = when (availability) {
+        Events.AVAILABILITY_BUSY -> Availability.BUSY
+        Events.AVAILABILITY_FREE -> Availability.FREE
+        Events.AVAILABILITY_TENTATIVE -> Availability.TENTATIVE
         else -> null
     }
 
