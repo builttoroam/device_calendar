@@ -209,18 +209,22 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     ),
                     ListTile(
                       leading: Text('Availability', style: TextStyle(fontSize: 16),),
-                      trailing: DropdownButton<String>(
-                        value: _event.availability ?? 'BUSY',
-                          onChanged: (String newValue) {
+                      trailing: DropdownButton<Availability>(
+                        value: _event.availability ?? Availability.Busy,
+                          onChanged: (Availability newValue) {
                             setState(() {
                               _event.availability = newValue;
                             });
                           },
-                          items: <String>['BUSY', 'FREE']
-                            .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
+                          items: <Availability>[
+                            Availability.Busy, 
+                            Availability.Free, 
+                            Availability.Tentative, 
+                            Availability.Unavailable]
+                            .map<DropdownMenuItem<Availability>>((Availability value) {
+                              return DropdownMenuItem<Availability>(
                                 value: value,
-                                child: Text(value),
+                                child: _availabilityToText(value),
                               );
                             })
                             .toList(),
@@ -838,6 +842,21 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         return Text('After a set number of times');
       case RecurrenceRuleEndType.SpecifiedEndDate:
         return Text('Continues until a specified date');
+      default:
+        return Text('');
+    }
+  }
+
+  Text _availabilityToText(Availability availability) {
+    switch (availability) {
+      case Availability.Busy:
+        return Text('Busy');
+      case Availability.Free:
+        return Text('Free');
+      case Availability.Tentative:
+        return Text('Tentative');
+      case Availability.Unavailable:
+        return Text('Unavailable');
       default:
         return Text('');
     }
