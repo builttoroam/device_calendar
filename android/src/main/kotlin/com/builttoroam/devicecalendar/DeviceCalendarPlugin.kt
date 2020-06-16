@@ -148,7 +148,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         event.endTimeZone = call.argument<String>(EVENT_END_TIMEZONE_ARGUMENT)
         event.location = call.argument<String>(EVENT_LOCATION_ARGUMENT)
         event.url = call.argument<String>(EVENT_URL_ARGUMENT)
-        event.availability = call.argument<String>(EVENT_AVAILABILITY_ARGUMENT)?.let { Availability.valueOf(it) }
+        event.availability = parseAvailability(call.argument<String>(EVENT_AVAILABILITY_ARGUMENT))
 
         if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)
@@ -220,4 +220,11 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private inline fun <reified T : Any> Any?.toMutableListOf(): MutableList<T>? {
         return this?.toListOf<T>()?.toMutableList()
     }
+
+    private fun parseAvailability(value: String?): Availability? =
+            if (value == null || value == "UNAVAILABLE") {
+                null
+            } else {
+                Availability.valueOf(value)
+            }
 }
