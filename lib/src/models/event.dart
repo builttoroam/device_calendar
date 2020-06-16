@@ -90,6 +90,9 @@ class Event {
     location = json['location'];
     availability = parseStringToAvailability(json['availability']);
 
+    print('DATA fromJSON 0: $json');
+    print('DATA fromJSON 1: $availability');
+
     var foundUrl = json['url']?.toString();
     if (foundUrl?.isEmpty ?? true) {
       url = null;
@@ -150,6 +153,8 @@ class Event {
     if (reminders != null) {
       data['reminders'] = reminders.map((r) => r.toJson()).toList();
     }
+
+    print('DATA toJSON: $data');
 
     return data;
   }
