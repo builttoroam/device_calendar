@@ -155,9 +155,7 @@ class Event {
   }
 
   Availability parseStringToAvailability(String value) {
-    if (value == null) { return null; }
-    
-    switch (value.toUpperCase()) {
+    switch (value) {
       case 'BUSY':
         return Availability.Busy;
         break;
