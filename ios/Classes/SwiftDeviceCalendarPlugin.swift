@@ -38,7 +38,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let recurrenceRule: RecurrenceRule?
         let organizer: Attendee?
         let reminders: [Reminder]
-        let availability: Availability?
+        let availability: String?
     }
     
     struct RecurrenceRule: Codable {
@@ -64,10 +64,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     enum Availability: String, Codable {
-        case BUSY = "BUSY"
-		case FREE = "FREE"
-		case TENTATIVE = "TENTATIVE"
-		case UNAVAILABLE = "UNAVAILABLE"
+        case BUSY
+		case FREE
+		case TENTATIVE
+		case UNAVAILABLE
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
@@ -327,16 +327,16 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         return attendee
     }
     
-    private func convertEkEventAvailability(ekEventAvailability: EKEventAvailability?) -> Availability? {
+    private func convertEkEventAvailability(ekEventAvailability: EKEventAvailability?) -> String? {
         switch ekEventAvailability {
         case .busy:
-            return Availability.BUSY
+			return Availability.BUSY.rawValue
         case .free:
-            return Availability.FREE
+            return Availability.FREE.rawValue
 		case .tentative:
-			return Availability.TENTATIVE
+			return Availability.TENTATIVE.rawValue
 		case .unavailable:
-			return Availability.UNAVAILABLE
+			return Availability.UNAVAILABLE.rawValue
         default:
             return nil
         }

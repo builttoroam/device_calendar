@@ -88,6 +88,7 @@ class Event {
     endTimeZone = json['endTimeZone'];
     allDay = json['allDay'];
     location = json['location'];
+    availability = parseStringToAvailability(json['availability']);
 
     var foundUrl = json['url']?.toString();
     if (foundUrl?.isEmpty ?? true) {
@@ -122,8 +123,6 @@ class Event {
         return Reminder.fromJson(decodedReminder);
       }).toList();
     }
-
-    availability = parseStringToAvailability(json['availability']);
   }
 
   Map<String, dynamic> toJson() {
@@ -140,6 +139,8 @@ class Event {
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
     data['eventURL'] = url?.data?.contentText;
+    data['availability'] = availability.enumToString;
+    
     if (attendees != null) {
       data['attendees'] = attendees.map((a) => a.toJson()).toList();
     }
@@ -149,26 +150,27 @@ class Event {
     if (reminders != null) {
       data['reminders'] = reminders.map((r) => r.toJson()).toList();
     }
-    data['availability'] = availability;
 
     return data;
   }
 
   Availability parseStringToAvailability(String value) {
-    switch (value) {
-      case 'Busy':
+    if (value == null) { return null; }
+    
+    switch (value.toUpperCase()) {
+      case 'BUSY':
         return Availability.Busy;
         break;
 
-      case 'Free':
+      case 'FREE':
         return Availability.Free;
         break;
 
-      case 'Tentative':
+      case 'TENTATIVA':
         return Availability.Tentative;
         break;
 
-      case 'Unavailable':
+      case 'UNAVAILABLE':
         return Availability.Unavailable;
         break;
     }

@@ -216,11 +216,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               _event.availability = newValue;
                             });
                           },
-                          items: <Availability>[
-                            Availability.Busy, 
-                            Availability.Free, 
-                            Availability.Tentative, 
-                            Availability.Unavailable]
+                          items: Availability.values
                             .map<DropdownMenuItem<Availability>>((Availability value) {
                               return DropdownMenuItem<Availability>(
                                 value: value,
