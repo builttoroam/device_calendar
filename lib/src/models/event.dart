@@ -166,7 +166,7 @@ class Event {
         return Availability.Free;
         break;
 
-      case 'TENTATIVA':
+      case 'TENTATIVE':
         return Availability.Tentative;
         break;
 
