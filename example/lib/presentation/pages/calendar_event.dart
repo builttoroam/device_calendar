@@ -57,6 +57,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   MonthOfYear _monthOfYear;
   WeekNumber _weekOfMonth;
   DayOfWeek _selectedDayOfWeek = DayOfWeek.Monday;
+  Availability _availability = Availability.Busy;
 
   List<Attendee> _attendees = List<Attendee>();
   List<Reminder> _reminders = List<Reminder>();
@@ -79,6 +80,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _dayOfMonth = 1;
       _monthOfYear = MonthOfYear.January;
       _weekOfMonth = WeekNumber.First;
+      _availability = Availability.Busy;
     } else {
       _startDate = _event.start;
       _endDate = _event.end;
@@ -118,6 +120,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           _updateDaysOfWeekGroup();
         }
       }
+
+      _availability = _event.availability;
     }
 
     _startTime = TimeOfDay(hour: _startDate.hour, minute: _startDate.minute);
@@ -210,9 +214,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     ListTile(
                       leading: Text('Availability', style: TextStyle(fontSize: 16),),
                       trailing: DropdownButton<Availability>(
-                        value: _event.availability ?? Availability.Busy,
+                        value: _availability,
                           onChanged: (Availability newValue) {
                             setState(() {
+                              _availability = newValue;
                               _event.availability = newValue;
                             });
                           },
@@ -784,6 +789,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
               }
               _event.attendees = _attendees;
               _event.reminders = _reminders;
+              _event.availability = _availability;
               var createEventResult =
                   await _deviceCalendarPlugin.createOrUpdateEvent(_event);
               if (createEventResult.isSuccess) {

@@ -64,10 +64,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     enum Availability: String, Codable {
-        case BUSY = "BUSY"
-		case FREE = "FREE"
-		case TENTATIVE = "TENTATIVE"
-		case UNAVAILABLE = "UNAVAILABLE"
+        case BUSY
+		case FREE
+		case TENTATIVE
+		case UNAVAILABLE
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
@@ -296,8 +296,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 reminders.append(Reminder(minutes: Int(-alarm.relativeOffset / 60)))
             }
         }
-
-        NSLog("ekEvent createEventFromEkEvent: \(ekEvent)")
         
         let recurrenceRule = parseEKRecurrenceRules(ekEvent)
         let event = Event(
@@ -317,7 +315,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             reminders: reminders,
             availability: convertEkEventAvailability(ekEventAvailability: ekEvent.availability)
         )
-        NSLog("\n3. Event: \(event)");
+
         return event
     }
     
@@ -333,19 +331,14 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     private func convertEkEventAvailability(ekEventAvailability: EKEventAvailability?) -> Availability? {
         switch ekEventAvailability {
         case .busy:
-            NSLog("\n2.1convertEkEventAvailability busy");
 			return Availability.BUSY
         case .free:
-            NSLog("\n2.1convertEkEventAvailability free");
             return Availability.FREE
 		case .tentative:
-            NSLog("\n2.1convertEkEventAvailability tentative");
 			return Availability.TENTATIVE
 		case .unavailable:
-            NSLog("\n2.1convertEkEventAvailability unavailable");
 			return Availability.UNAVAILABLE
         default:
-            NSLog("\n2.1convertEkEventAvailability nil");
             return nil
         }
     }
@@ -557,29 +550,22 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         return reminders
     }
     
-    private func setAvailability(_ arguments: [String : AnyObject]) -> EKEventAvailability {
-        NSLog("\nsetAvailability \(arguments)")
-        
+    private func setAvailability(_ arguments: [String : AnyObject]) -> EKEventAvailability? {
         guard let availabilityValue = arguments[availabilityArgument] as? String else { 
-            NSLog("\nAvailability.unavailable.rawValue NILLLLLLL")
             return .unavailable 
         }
 
-        NSLog("\nsetAvailabilityValue \(availabilityValue)")
-
-		switch availabilityValue.uppercased() {
+        switch availabilityValue.uppercased() {
         case Availability.BUSY.rawValue:
-            NSLog("\nAvailability.BUSY.rawValue")
             return .busy
         case Availability.FREE.rawValue:
-            NSLog("\nAvailability.FREE.rawValue")
             return .free
 		case Availability.TENTATIVE.rawValue:
-            NSLog("\nAvailability.TENTATIVE.rawValue")
-			return .tentative
-		default:
-            NSLog("\nAvailability.unavailable.rawValue")
+        	return .tentative
+        case Availability.UNAVAILABLE.rawValue:
             return .unavailable
+        default:
+            return nil
         }
     }
     
@@ -646,14 +632,11 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.recurrenceRules = createEKRecurrenceRules(arguments)
             setAttendees(arguments, ekEvent)
             ekEvent!.alarms = createReminders(arguments)
-            let newAvailability = setAvailability(arguments)
             
-            NSLog("\n4.1 newAvailability: \(newAvailability.rawValue)")
-
-            ekEvent!.availability = newAvailability
-            NSLog("\n4.0 ekEvent!.availability!: \(ekEvent!.availability.rawValue)")
-            NSLog("\n4.00 ekEvent!: \(ekEvent)")
-
+            if let availability = setAvailability(arguments) {
+                ekEvent!.availability = availability
+            }
+            
             do {
                 try self.eventStore.save(ekEvent!, span: .futureEvents)
                 result(ekEvent!.eventIdentifier)
