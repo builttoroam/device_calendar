@@ -6,5 +6,5 @@ enum IosAttendanceStatus {
   Tentative,
   Delegated,
   Completed,
-  InProcess
+  InProcess,
 }
