@@ -1,6 +1,7 @@
 package com.builttoroam.devicecalendar
 
 import android.content.Context
+import com.builttoroam.devicecalendar.common.Constants
 import com.builttoroam.devicecalendar.common.DayOfWeek
 import com.builttoroam.devicecalendar.common.RecurrenceFrequency
 import com.builttoroam.devicecalendar.models.*
@@ -222,7 +223,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     }
 
     private fun parseAvailability(value: String?): Availability? =
-            if (value == null || value == "UNAVAILABLE") {
+            if (value == null || value == Constants.AVAILABILITY_UNAVAILABLE) {
                 null
             } else {
                 Availability.valueOf(value)

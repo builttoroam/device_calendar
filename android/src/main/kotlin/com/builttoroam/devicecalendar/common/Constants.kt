@@ -104,5 +104,7 @@ class Constants {
                 CalendarContract.Reminders.EVENT_ID,
                 CalendarContract.Reminders.MINUTES
         )
+
+        const val AVAILABILITY_UNAVAILABLE = "UNAVAILABLE"
     }
 }
