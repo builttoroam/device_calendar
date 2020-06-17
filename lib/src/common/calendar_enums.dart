@@ -250,6 +250,7 @@ extension RoleExtensions on AttendeeRole {
 
 extension AvailabilityExtensions on Availability {
   String _enumToString(Availability enumValue) {
+    
     switch (enumValue){
       case Availability.Busy:
         return 'BUSY';
