@@ -67,10 +67,7 @@ import com.google.gson.GsonBuilder
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugin.common.PluginRegistry.Registrar
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.dmfs.rfc5545.DateTime
 import org.dmfs.rfc5545.Weekday
 import org.dmfs.rfc5545.recur.Freq
@@ -330,7 +327,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         return
     }
 
-    @SuppressLint("MissingPermission")
     fun createOrUpdateEvent(calendarId: String, event: Event?, pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             if (event == null) {
@@ -346,15 +342,25 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             val contentResolver: ContentResolver? = _context?.contentResolver
             val values = buildEventContentValues(event, calendarId)
-            try {
-                var eventId: Long? = event.eventId?.toLongOrNull()
-                if (eventId == null) {
-                    val uri = contentResolver?.insert(Events.CONTENT_URI, values)
-                    // get the event ID that is the last element in the Uri
-                    eventId = java.lang.Long.parseLong(uri?.lastPathSegment!!)
+
+            val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+                _registrar!!.activity().runOnUiThread {
+                    finishWithError(GENERIC_ERROR, exception.message, pendingChannelResult)
+                }
+            }
+
+            val job: Job
+            var eventId: Long? = event.eventId?.toLongOrNull()
+            if (eventId == null) {
+                val uri = contentResolver?.insert(Events.CONTENT_URI, values)
+                // get the event ID that is the last element in the Uri
+                eventId = java.lang.Long.parseLong(uri?.lastPathSegment!!)
+                job = GlobalScope.launch(Dispatchers.IO + exceptionHandler) {
                     insertAttendees(event.attendees, eventId, contentResolver)
                     insertReminders(event.reminders, eventId, contentResolver)
-                } else {
+                }
+            } else {
+                job = GlobalScope.launch(Dispatchers.IO + exceptionHandler) {
                     contentResolver?.update(ContentUris.withAppendedId(Events.CONTENT_URI, eventId), values, null, null)
                     val existingAttendees = retrieveAttendees(eventId.toString(), contentResolver)
                     val attendeesToDelete = if (event.attendees.isNotEmpty()) existingAttendees.filter { existingAttendee -> event.attendees.all { it.emailAddress != existingAttendee.emailAddress } } else existingAttendees
@@ -367,10 +373,14 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     deleteExistingReminders(contentResolver, eventId)
                     insertReminders(event.reminders, eventId, contentResolver!!)
                 }
-
-                finishWithSuccess(eventId.toString(), pendingChannelResult)
-            } catch (e: Exception) {
-                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
+            }
+            job.invokeOnCompletion {
+                cause ->
+                if (cause == null) {
+                    _registrar!!.activity().runOnUiThread {
+                        finishWithSuccess(eventId.toString(), pendingChannelResult)
+                    }
+                }
             }
         } else {
             val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, CREATE_OR_UPDATE_EVENT_REQUEST_CODE, calendarId)
