@@ -1,14 +1,14 @@
 import 'dart:io';
 
-import 'package:device_calendar/device_calendar.dart';
-import 'package:flutter/services.dart';
-import 'event_attendee.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
+import 'package:device_calendar/device_calendar.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 import '../date_time_picker.dart';
 import '../recurring_event_dialog.dart';
+import 'event_attendee.dart';
 import 'event_reminders.dart';
 
 enum RecurrenceRuleEndType { Indefinite, MaxOccurrences, SpecifiedEndDate }
@@ -212,23 +212,26 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       ),
                     ),
                     ListTile(
-                      leading: Text('Availability', style: TextStyle(fontSize: 16),),
+                      leading: Text(
+                        'Availability',
+                        style: TextStyle(fontSize: 16),
+                      ),
                       trailing: DropdownButton<Availability>(
                         value: _availability,
-                          onChanged: (Availability newValue) {
-                            setState(() {
-                              _availability = newValue;
-                              _event.availability = newValue;
-                            });
-                          },
-                          items: Availability.values
-                            .map<DropdownMenuItem<Availability>>((Availability value) {
-                              return DropdownMenuItem<Availability>(
-                                value: value,
-                                child: _availabilityToText(value),
-                              );
-                            })
-                            .toList(),
+                        onChanged: (Availability newValue) {
+                          setState(() {
+                            _availability = newValue;
+                            _event.availability = newValue;
+                          });
+                        },
+                        items: Availability.values
+                            .map<DropdownMenuItem<Availability>>(
+                                (Availability value) {
+                          return DropdownMenuItem<Availability>(
+                            value: value,
+                            child: _availabilityToText(value),
+                          );
+                        }).toList(),
                       ),
                     ),
                     SwitchListTile(
@@ -850,18 +853,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   }
 
   Text _availabilityToText(Availability availability) {
-    switch (availability) {
-      case Availability.Busy:
-        return Text('Busy');
-      case Availability.Free:
-        return Text('Free');
-      case Availability.Tentative:
-        return Text('Tentative');
-      case Availability.Unavailable:
-        return Text('Unavailable');
-      default:
-        return Text('');
+    String value = availability.enumToString;
+    if (value == null) {
+      value = "";
     }
+
+    return Text(value);
   }
 
   // Get total days of a month
