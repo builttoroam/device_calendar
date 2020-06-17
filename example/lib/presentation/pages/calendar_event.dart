@@ -853,10 +853,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   }
 
   Text _availabilityToText(Availability availability) {
-    String value = availability.enumToString;
-    if (value == null) {
-      value = "";
-    }
+    var value = availability.enumToString;
+    value ??= '';
 
     return Text(value);
   }
