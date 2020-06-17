@@ -20,3 +20,4 @@ example/ios/Flutter/Flutter.podspec
 **/.settings
 **/.project
 **/.classpath
+.vscode
