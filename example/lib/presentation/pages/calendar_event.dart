@@ -229,7 +229,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 (Availability value) {
                           return DropdownMenuItem<Availability>(
                             value: value,
-                            child: _availabilityToText(value),
+                            child: Text(value.enumToString ?? ''),
                           );
                         }).toList(),
                       ),
@@ -850,13 +850,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       default:
         return Text('');
     }
-  }
-
-  Text _availabilityToText(Availability availability) {
-    var value = availability.enumToString;
-    value ??= '';
-
-    return Text(value);
   }
 
   // Get total days of a month
