@@ -123,6 +123,9 @@ class Event {
         return Reminder.fromJson(decodedReminder);
       }).toList();
     }
+
+    availability = json['availability'];
+
   }
 
   Map<String, dynamic> toJson() {
