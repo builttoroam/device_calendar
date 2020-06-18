@@ -45,7 +45,12 @@ enum AttendeeRole {
   Resource,
 }
 
-enum Availability { Free, Busy, Tentative, Unavailable ,}
+enum Availability {
+  Free,
+  Busy,
+  Tentative,
+  Unavailable,
+}
 
 extension DayOfWeekExtension on DayOfWeek {
   static int _value(DayOfWeek val) {
@@ -264,8 +269,7 @@ extension RoleExtensions on AttendeeRole {
 
 extension AvailabilityExtensions on Availability {
   String _enumToString(Availability enumValue) {
-    
-    switch (enumValue){
+    switch (enumValue) {
       case Availability.Busy:
         return 'BUSY';
         break;
@@ -283,5 +287,4 @@ extension AvailabilityExtensions on Availability {
   }
 
   String get enumToString => _enumToString(this);
-
 }
