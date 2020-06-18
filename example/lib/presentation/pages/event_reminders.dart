@@ -5,6 +5,7 @@ class EventRemindersPage extends StatefulWidget {
   final List<Reminder> _reminders;
   EventRemindersPage(this._reminders, {Key key}) : super(key: key);
 
+  @override
   _EventRemindersPageState createState() =>
       _EventRemindersPageState(_reminders);
 }
@@ -15,7 +16,7 @@ class _EventRemindersPageState extends State<EventRemindersPage> {
   final _minutesController = TextEditingController();
 
   _EventRemindersPageState(List<Reminder> reminders) {
-    _reminders = List<Reminder>()..addAll(reminders);
+    _reminders = <Reminder>[...reminders];
   }
 
   @override
