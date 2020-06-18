@@ -455,9 +455,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                             weekNumber: weekOfMonth
                         ))
                     }
-                }
-                
-                if daysOfWeek?.isEmpty == true {
+                } else {
                     daysOfWeek!.append(EKRecurrenceDayOfWeek.init(EKWeekday.init(rawValue: dayOfWeekIndex + 1)!))
                 }
             }
