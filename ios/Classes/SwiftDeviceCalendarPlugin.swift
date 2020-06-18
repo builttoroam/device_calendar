@@ -363,7 +363,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             
             var totalOccurrences: Int?
             var endDate: Int64?
-            if(ekRecurrenceRule.recurrenceEnd?.occurrenceCount != nil) {
+            if(ekRecurrenceRule.recurrenceEnd?.occurrenceCount != nil  && ekRecurrenceRule.recurrenceEnd?.occurrenceCount != 0) {
                 totalOccurrences = ekRecurrenceRule.recurrenceEnd?.occurrenceCount
             }
             
