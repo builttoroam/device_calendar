@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
+import 'package:sprintf/sprintf.dart';
 
 import 'common/channel_constants.dart';
 import 'common/error_codes.dart';
@@ -55,7 +56,8 @@ class DeviceCalendarPlugin {
       ChannelConstants.methodNameRetrieveCalendars,
       evaluateResponse: (rawData) => UnmodifiableListView(
         json.decode(rawData).map<Calendar>(
-            (decodedCalendar) => Calendar.fromJson(decodedCalendar)),
+              (decodedCalendar) => Calendar.fromJson(decodedCalendar),
+            ),
       ),
     );
   }
@@ -95,14 +97,18 @@ class DeviceCalendarPlugin {
         );
       },
       arguments: () => <String, Object>{
-        'calendarId': calendarId,
-        'startDate': retrieveEventsParams.startDate?.millisecondsSinceEpoch,
-        'endDate': retrieveEventsParams.endDate?.millisecondsSinceEpoch,
-        'eventIds': retrieveEventsParams.eventIds,
+        ChannelConstants.parameterNameCalendarId: calendarId,
+        ChannelConstants.parameterNameStartDate:
+            retrieveEventsParams.startDate?.millisecondsSinceEpoch,
+        ChannelConstants.parameterNameEndDate:
+            retrieveEventsParams.endDate?.millisecondsSinceEpoch,
+        ChannelConstants.parameterNameEventIds: retrieveEventsParams.eventIds,
       },
-      evaluateResponse: (rawData) => UnmodifiableListView(json
-          .decode(rawData)
-          .map<Event>((decodedEvent) => Event.fromJson(decodedEvent))),
+      evaluateResponse: (rawData) => UnmodifiableListView(
+        json
+            .decode(rawData)
+            .map<Event>((decodedEvent) => Event.fromJson(decodedEvent)),
+      ),
     );
   }
 
@@ -133,8 +139,8 @@ class DeviceCalendarPlugin {
         );
       },
       arguments: () => <String, Object>{
-        'calendarId': calendarId,
-        'eventId': eventId,
+        ChannelConstants.parameterNameCalendarId: calendarId,
+        ChannelConstants.parameterNameEventId: eventId,
       },
     );
   }
@@ -172,11 +178,12 @@ class DeviceCalendarPlugin {
         );
       },
       arguments: () => <String, Object>{
-        'calendarId': calendarId,
-        'eventId': eventId,
-        'eventStartDate': startDate,
-        'eventEndDate': endDate,
-        'followingInstances': deleteFollowingInstances,
+        ChannelConstants.parameterNameCalendarId: calendarId,
+        ChannelConstants.parameterNameEventId: eventId,
+        ChannelConstants.parameterNameEventStartDate: startDate,
+        ChannelConstants.parameterNameEventEndDate: endDate,
+        ChannelConstants.parameterNameFollowingInstances:
+            deleteFollowingInstances,
       },
     );
   }
@@ -254,11 +261,13 @@ class DeviceCalendarPlugin {
         );
       },
       arguments: () => <String, Object>{
-        'calendarName': calendarName,
-        'calendarColor': '0x${calendarColor.value.toRadixString(16)}',
-        'localAccountName': localAccountName?.isEmpty ?? true
-            ? 'Device Calendar'
-            : localAccountName
+        ChannelConstants.parameterNameCalendarName: calendarName,
+        ChannelConstants.parameterNameCalendarColor:
+            '0x${calendarColor.value.toRadixString(16)}',
+        ChannelConstants.parameterNameLocalAccountName:
+            localAccountName?.isEmpty ?? true
+                ? 'Device Calendar'
+                : localAccountName
       },
     );
   }
@@ -302,7 +311,7 @@ class DeviceCalendarPlugin {
       result.errors.add(
         ResultError(
           ErrorCodes.unknown,
-          'Device calendar plugin ran into an unknown issue',
+          ErrorMessages.unknownDeviceIssue,
         ),
       );
       return;
@@ -314,14 +323,16 @@ class DeviceCalendarPlugin {
       result.errors.add(
         ResultError(
           ErrorCodes.platformSpecific,
-          'Device calendar plugin ran into an issue. Platform specific exception [${exception.code}], with message :\"${exception.message}\", has been thrown.',
+          sprintf(ErrorMessages.unknownDeviceExceptionTemplate,
+              [exception.code, exception.message]),
         ),
       );
     } else {
       result.errors.add(
         ResultError(
           ErrorCodes.generic,
-          'Device calendar plugin ran into an issue, with message \"${exception.toString()}\"',
+          sprintf(ErrorMessages.unknownDeviceGenericExceptionTemplate,
+              [exception.toString()]),
         ),
       );
     }
