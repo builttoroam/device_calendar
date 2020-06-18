@@ -5,10 +5,15 @@ enum DayOfWeek {
   Thursday,
   Friday,
   Saturday,
-  Sunday
+  Sunday,
 }
 
-enum DayOfWeekGroup { None, Weekday, Weekend, AllDays }
+enum DayOfWeekGroup {
+  None,
+  Weekday,
+  Weekend,
+  AllDays,
+}
 
 enum MonthOfYear {
   January,
@@ -22,15 +27,31 @@ enum MonthOfYear {
   September,
   October,
   November,
-  December
+  December,
 }
 
-enum WeekNumber { First, Second, Third, Fourth, Last }
+enum WeekNumber {
+  First,
+  Second,
+  Third,
+  Fourth,
+  Last,
+}
 
-enum AttendeeRole { None, Required, Optional, Resource }
+enum AttendeeRole {
+  None,
+  Required,
+  Optional,
+  Resource,
+}
 
-// Adding extensions for enum values as Flutter does not support it yet
-// TODO: Replace this to enum values when introduced. Ref: https://github.com/dart-lang/language/issues/158
+enum Availability {
+  Free,
+  Busy,
+  Tentative,
+  Unavailable,
+}
+
 extension DayOfWeekExtension on DayOfWeek {
   static int _value(DayOfWeek val) {
     switch (val) {
@@ -241,6 +262,28 @@ extension IntExtensions on int {
 extension RoleExtensions on AttendeeRole {
   String _enumToString(AttendeeRole enumValue) {
     return enumValue.toString().split('.').last;
+  }
+
+  String get enumToString => _enumToString(this);
+}
+
+extension AvailabilityExtensions on Availability {
+  String _enumToString(Availability enumValue) {
+    switch (enumValue) {
+      case Availability.Busy:
+        return 'BUSY';
+        break;
+      case Availability.Free:
+        return 'FREE';
+        break;
+      case Availability.Tentative:
+        return 'TENTATIVE';
+        break;
+      case Availability.Unavailable:
+        return 'UNAVAILABLE';
+        break;
+    }
+    return null;
   }
 
   String get enumToString => _enumToString(this);

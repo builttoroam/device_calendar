@@ -31,7 +31,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   }
 
   @override
-  initState() {
+  void initState() {
     super.initState();
     _retrieveCalendarEvents();
   }

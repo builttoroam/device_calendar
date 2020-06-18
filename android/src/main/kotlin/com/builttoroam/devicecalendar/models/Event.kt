@@ -1,5 +1,6 @@
 package com.builttoroam.devicecalendar.models
 
+
 class Event {
     var title: String? = null
     var eventId: String? = null
@@ -16,5 +17,5 @@ class Event {
     var recurrenceRule: RecurrenceRule? = null
     var organizer: Attendee? = null
     var reminders: MutableList<Reminder> = mutableListOf()
-    var availability: String? = null
+    var availability: Availability? = null
 }

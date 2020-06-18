@@ -15,8 +15,8 @@ void main() {
     setUpAll(() async {
       // workaround for handling permissions based on info taken from https://github.com/flutter/flutter/issues/12561
       // this is to be run in a Mac environment
-      final Map<String, String> envVars = Platform.environment;
-      final String adbPath = envVars['ANDROID_HOME'] + '/platform-tools/adb';
+      final envVars = Platform.environment;
+      final adbPath = envVars['ANDROID_HOME'] + '/platform-tools/adb';
       await Process.run(adbPath, [
         'shell',
         'pm',
