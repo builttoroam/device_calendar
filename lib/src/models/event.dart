@@ -125,7 +125,6 @@ class Event {
     }
 
     availability = json['availability'];
-
   }
 
   Map<String, dynamic> toJson() {
@@ -143,7 +142,7 @@ class Event {
     data['eventLocation'] = location;
     data['eventURL'] = url?.data?.contentText;
     data['availability'] = availability.enumToString;
-    
+
     if (attendees != null) {
       data['attendees'] = attendees.map((a) => a.toJson()).toList();
     }
