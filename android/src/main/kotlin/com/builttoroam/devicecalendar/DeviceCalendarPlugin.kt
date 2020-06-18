@@ -1,12 +1,10 @@
 package com.builttoroam.devicecalendar
 
 import android.content.Context
+import com.builttoroam.devicecalendar.common.Constants
 import com.builttoroam.devicecalendar.common.DayOfWeek
 import com.builttoroam.devicecalendar.common.RecurrenceFrequency
-import com.builttoroam.devicecalendar.models.Attendee
-import com.builttoroam.devicecalendar.models.Event
-import com.builttoroam.devicecalendar.models.RecurrenceRule
-import com.builttoroam.devicecalendar.models.Reminder
+import com.builttoroam.devicecalendar.models.*
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -151,7 +149,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         event.endTimeZone = call.argument<String>(EVENT_END_TIMEZONE_ARGUMENT)
         event.location = call.argument<String>(EVENT_LOCATION_ARGUMENT)
         event.url = call.argument<String>(EVENT_URL_ARGUMENT)
-        event.availability = call.argument<String>(EVENT_AVAILABILITY_ARGUMENT)
+        event.availability = parseAvailability(call.argument<String>(EVENT_AVAILABILITY_ARGUMENT))
 
         if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)
@@ -223,4 +221,11 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private inline fun <reified T : Any> Any?.toMutableListOf(): MutableList<T>? {
         return this?.toListOf<T>()?.toMutableList()
     }
+
+    private fun parseAvailability(value: String?): Availability? =
+            if (value == null || value == Constants.AVAILABILITY_UNAVAILABLE) {
+                null
+            } else {
+                Availability.valueOf(value)
+            }
 }

@@ -13,6 +13,7 @@ class RecurringEventDialog extends StatefulWidget {
       {Key key})
       : super(key: key);
 
+  @override
   _RecurringEventDialogState createState() =>
       _RecurringEventDialogState(_deviceCalendarPlugin, _calendarEvent,
           onLoadingStarted: _onLoadingStarted,

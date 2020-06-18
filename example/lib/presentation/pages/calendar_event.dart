@@ -1,14 +1,14 @@
 import 'dart:io';
 
-import 'package:device_calendar/device_calendar.dart';
-import 'package:flutter/services.dart';
-import 'event_attendee.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
+import 'package:device_calendar/device_calendar.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 import '../date_time_picker.dart';
 import '../recurring_event_dialog.dart';
+import 'event_attendee.dart';
 import 'event_reminders.dart';
 
 enum RecurrenceRuleEndType { Indefinite, MaxOccurrences, SpecifiedEndDate }
@@ -33,7 +33,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   Event _event;
   DeviceCalendarPlugin _deviceCalendarPlugin;
-  RecurringEventDialog _recurringEventDialog;
+  final RecurringEventDialog _recurringEventDialog;
 
   DateTime _startDate;
   TimeOfDay _startTime;
@@ -57,28 +57,29 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   MonthOfYear _monthOfYear;
   WeekNumber _weekOfMonth;
   DayOfWeek _selectedDayOfWeek = DayOfWeek.Monday;
+  Availability _availability = Availability.Busy;
 
-  List<Attendee> _attendees = List<Attendee>();
-  List<Reminder> _reminders = List<Reminder>();
+  List<Attendee> _attendees = <Attendee>[];
+  List<Reminder> _reminders = <Reminder>[];
 
   _CalendarEventPageState(
       this._calendar, this._event, this._recurringEventDialog) {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
-    _recurringEventDialog = this._recurringEventDialog;
 
-    _attendees = List<Attendee>();
-    _reminders = List<Reminder>();
+    _attendees = <Attendee>[];
+    _reminders = <Reminder>[];
     _recurrenceRuleEndType = RecurrenceRuleEndType.Indefinite;
 
-    if (this._event == null) {
+    if (_event == null) {
       _startDate = DateTime.now();
       _endDate = DateTime.now().add(Duration(hours: 1));
-      _event = Event(this._calendar.id, start: _startDate, end: _endDate);
+      _event = Event(_calendar.id, start: _startDate, end: _endDate);
 
       _recurrenceEndDate = _endDate;
       _dayOfMonth = 1;
       _monthOfYear = MonthOfYear.January;
       _weekOfMonth = WeekNumber.First;
+      _availability = Availability.Busy;
     } else {
       _startDate = _event.start;
       _endDate = _event.end;
@@ -107,7 +108,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         }
 
         _isByDayOfMonth = _event.recurrenceRule.weekOfMonth == null;
-        _daysOfWeek = _event.recurrenceRule.daysOfWeek ?? List<DayOfWeek>();
+        _daysOfWeek = _event.recurrenceRule.daysOfWeek ?? <DayOfWeek>[];
         _monthOfYear = _event.recurrenceRule.monthOfYear ?? MonthOfYear.January;
         _weekOfMonth = _event.recurrenceRule.weekOfMonth ?? WeekNumber.First;
         _selectedDayOfWeek =
@@ -118,6 +119,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           _updateDaysOfWeekGroup();
         }
       }
+
+      _availability = _event.availability;
     }
 
     _startTime = TimeOfDay(hour: _startDate.hour, minute: _startDate.minute);
@@ -208,22 +211,26 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       ),
                     ),
                     ListTile(
-                      leading: Text('Availability', style: TextStyle(fontSize: 16),),
-                      trailing: DropdownButton<String>(
-                        value: _event.availability ?? 'BUSY',
-                          onChanged: (String newValue) {
-                            setState(() {
-                              _event.availability = newValue;
-                            });
-                          },
-                          items: <String>['BUSY', 'FREE']
-                            .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            })
-                            .toList(),
+                      leading: Text(
+                        'Availability',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      trailing: DropdownButton<Availability>(
+                        value: _availability,
+                        onChanged: (Availability newValue) {
+                          setState(() {
+                            _availability = newValue;
+                            _event.availability = newValue;
+                          });
+                        },
+                        items: Availability.values
+                            .map<DropdownMenuItem<Availability>>(
+                                (Availability value) {
+                          return DropdownMenuItem<Availability>(
+                            value: value,
+                            child: Text(value.enumToString ?? ''),
+                          );
+                        }).toList(),
                       ),
                     ),
                     SwitchListTile(
@@ -316,7 +323,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     ],
                     GestureDetector(
                       onTap: () async {
-                        Attendee result = await Navigator.push(
+                        var result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => EventAttendeePage()));
@@ -354,7 +361,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 child:
                                     Text('${_attendees[index].emailAddress}'),
                                 onTap: () async {
-                                  Attendee result = await Navigator.push(
+                                  var result = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) =>
@@ -396,7 +403,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     ),
                     GestureDetector(
                       onTap: () async {
-                        List<Reminder> result = await Navigator.push(
+                        var result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
@@ -753,7 +760,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         child: FloatingActionButton(
           key: Key('saveEventButton'),
           onPressed: () async {
-            final FormState form = _formKey.currentState;
+            final form = _formKey.currentState;
             if (!form.validate()) {
               _autovalidate = true; // Start validating on every change.
               showInSnackBar('Please fix the errors in red before submitting.');
@@ -784,12 +791,15 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
               }
               _event.attendees = _attendees;
               _event.reminders = _reminders;
+              _event.availability = _availability;
               var createEventResult =
                   await _deviceCalendarPlugin.createOrUpdateEvent(_event);
               if (createEventResult.isSuccess) {
                 Navigator.pop(context, true);
               } else {
-                showInSnackBar(createEventResult.errorMessages.join(' | '));
+                showInSnackBar(createEventResult.errors
+                    .map((err) => '[${err.errorCode}] ${err.errorMessage}')
+                    .join(' | '));
               }
             }
           },
@@ -933,7 +943,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       return null;
     }
     final dateWithoutTime =
-        DateTime.parse(DateFormat("y-MM-dd 00:00:00").format(date));
+        DateTime.parse(DateFormat('y-MM-dd 00:00:00').format(date));
     return dateWithoutTime
         .add(Duration(hours: time.hour, minutes: time.minute));
   }

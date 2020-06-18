@@ -64,7 +64,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     }
     
     enum Availability: String, Codable {
-        case BUSY, FREE
+        case BUSY
+		case FREE
+		case TENTATIVE
+		case UNAVAILABLE
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
@@ -310,8 +313,9 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             recurrenceRule: recurrenceRule,
             organizer: convertEkParticipantToAttendee(ekParticipant: ekEvent.organizer),
             reminders: reminders,
-            availability: convertEkEventAvailabilityToString(ekEventAvailability: ekEvent.availability)
+            availability: convertEkEventAvailability(ekEventAvailability: ekEvent.availability)
         )
+
         return event
     }
     
@@ -324,12 +328,16 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         return attendee
     }
     
-    private func convertEkEventAvailabilityToString(ekEventAvailability: EKEventAvailability?) -> Availability? {
+    private func convertEkEventAvailability(ekEventAvailability: EKEventAvailability?) -> Availability? {
         switch ekEventAvailability {
         case .busy:
-            return Availability.BUSY
+			return Availability.BUSY
         case .free:
             return Availability.FREE
+		case .tentative:
+			return Availability.TENTATIVE
+		case .unavailable:
+			return Availability.UNAVAILABLE
         default:
             return nil
         }
@@ -355,7 +363,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             
             var totalOccurrences: Int?
             var endDate: Int64?
-            if(ekRecurrenceRule.recurrenceEnd?.occurrenceCount != nil) {
+            if(ekRecurrenceRule.recurrenceEnd?.occurrenceCount != nil  && ekRecurrenceRule.recurrenceEnd?.occurrenceCount != 0) {
                 totalOccurrences = ekRecurrenceRule.recurrenceEnd?.occurrenceCount
             }
             
@@ -447,9 +455,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                             weekNumber: weekOfMonth
                         ))
                     }
-                }
-                
-                if daysOfWeek?.isEmpty == true {
+                } else {
                     daysOfWeek!.append(EKRecurrenceDayOfWeek.init(EKWeekday.init(rawValue: dayOfWeekIndex + 1)!))
                 }
             }
@@ -542,16 +548,22 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         return reminders
     }
     
-    private func setAvailability(_ arguments: [String : AnyObject]) -> EKEventAvailability {
-        guard let availabilityValue = arguments[availabilityArgument] as? String else { return .busy }
-        
-        switch availabilityValue {
+    private func setAvailability(_ arguments: [String : AnyObject]) -> EKEventAvailability? {
+        guard let availabilityValue = arguments[availabilityArgument] as? String else { 
+            return .unavailable 
+        }
+
+        switch availabilityValue.uppercased() {
         case Availability.BUSY.rawValue:
             return .busy
         case Availability.FREE.rawValue:
             return .free
+		case Availability.TENTATIVE.rawValue:
+        	return .tentative
+        case Availability.UNAVAILABLE.rawValue:
+            return .unavailable
         default:
-            return .busy
+            return nil
         }
     }
     
@@ -618,7 +630,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             ekEvent!.recurrenceRules = createEKRecurrenceRules(arguments)
             setAttendees(arguments, ekEvent)
             ekEvent!.alarms = createReminders(arguments)
-            ekEvent!.availability = setAvailability(arguments)
+            
+            if let availability = setAvailability(arguments) {
+                ekEvent!.availability = availability
+            }
             
             do {
                 try self.eventStore.save(ekEvent!, span: .futureEvents)

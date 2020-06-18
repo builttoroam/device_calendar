@@ -18,17 +18,17 @@ class _CalendarsPageState extends State<CalendarsPage> {
   DeviceCalendarPlugin _deviceCalendarPlugin;
   List<Calendar> _calendars;
   List<Calendar> get _writableCalendars =>
-      _calendars?.where((c) => !c.isReadOnly)?.toList() ?? List<Calendar>();
+      _calendars?.where((c) => !c.isReadOnly)?.toList() ?? <Calendar>[];
 
   List<Calendar> get _readOnlyCalendars =>
-      _calendars?.where((c) => c.isReadOnly)?.toList() ?? List<Calendar>();
+      _calendars?.where((c) => c.isReadOnly)?.toList() ?? <Calendar>[];
 
   _CalendarsPageState() {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
   }
 
   @override
-  initState() {
+  void initState() {
     super.initState();
     _retrieveCalendars();
   }
@@ -45,7 +45,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
             padding: const EdgeInsets.all(10.0),
             child: Text(
               'WARNING: some aspects of saving events are hardcoded in this example app. As such we recommend you do not modify existing events as this may result in loss of information',
-              style: Theme.of(context).textTheme.title,
+              style: Theme.of(context).textTheme.headline6,
             ),
           ),
           Expanded(
@@ -72,7 +72,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
                           flex: 1,
                           child: Text(
                             _calendars[index].name,
-                            style: Theme.of(context).textTheme.subhead,
+                            style: Theme.of(context).textTheme.subtitle1,
                           ),
                         ),
                         Container(

@@ -1,4 +1,5 @@
 import '../../device_calendar.dart';
+import '../common/calendar_enums.dart';
 import '../common/error_messages.dart';
 import 'attendee.dart';
 import 'recurrence_rule.dart';
@@ -49,8 +50,8 @@ class Event {
   /// A list of reminders (by minutes) for this event
   List<Reminder> reminders;
 
-  /// If this event counts as busy time or is still free time
-  String availability;
+  /// Indicates if this event counts as busy time, tentative, unavaiable or is still free time
+  Availability availability;
 
   Event(this.calendarId,
       {this.eventId,
@@ -87,6 +88,7 @@ class Event {
     endTimeZone = json['endTimeZone'];
     allDay = json['allDay'];
     location = json['location'];
+    availability = parseStringToAvailability(json['availability']);
 
     var foundUrl = json['url']?.toString();
     if (foundUrl?.isEmpty ?? true) {
@@ -123,7 +125,6 @@ class Event {
     }
 
     availability = json['availability'];
-
   }
 
   Map<String, dynamic> toJson() {
@@ -140,6 +141,8 @@ class Event {
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
     data['eventURL'] = url?.data?.contentText;
+    data['availability'] = availability.enumToString;
+
     if (attendees != null) {
       data['attendees'] = attendees.map((a) => a.toJson()).toList();
     }
@@ -149,8 +152,28 @@ class Event {
     if (reminders != null) {
       data['reminders'] = reminders.map((r) => r.toJson()).toList();
     }
-    data['availability'] = availability;
 
     return data;
+  }
+
+  Availability parseStringToAvailability(String value) {
+    switch (value) {
+      case 'BUSY':
+        return Availability.Busy;
+        break;
+
+      case 'FREE':
+        return Availability.Free;
+        break;
+
+      case 'TENTATIVE':
+        return Availability.Tentative;
+        break;
+
+      case 'UNAVAILABLE':
+        return Availability.Unavailable;
+        break;
+    }
+    return null;
   }
 }

@@ -1,1 +1,7 @@
-enum AndroidAttendanceStatus { None, Accepted, Declined, Invited, Tentative }
+enum AndroidAttendanceStatus {
+  None,
+  Accepted,
+  Declined,
+  Invited,
+  Tentative,
+}

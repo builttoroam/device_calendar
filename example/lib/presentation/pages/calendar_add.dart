@@ -80,7 +80,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.check),
         onPressed: () async {
-          final FormState form = _formKey.currentState;
+          final form = _formKey.currentState;
           if (!form.validate()) {
             _autovalidate = true; // Start validating on every change.
             showInSnackBar('Please fix the errors in red before submitting.');
@@ -95,7 +95,9 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
             if (result.isSuccess) {
               Navigator.pop(context, true);
             } else {
-              showInSnackBar(result.errorMessages.join(' | '));
+              showInSnackBar(result.errors
+                  .map((err) => '[${err.errorCode}] ${err.errorMessage}')
+                  .join(' | '));
             }
           }
         },

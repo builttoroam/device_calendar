@@ -15,3 +15,9 @@ device_calendar.code-workspace
 example/.flutter-plugins-dependencies
 example/ios/Flutter/flutter_export_environment.sh
 example/ios/Flutter/Flutter.podspec
+**/.idea/
+**/.vs/
+**/.settings
+**/.project
+**/.classpath
+.vscode

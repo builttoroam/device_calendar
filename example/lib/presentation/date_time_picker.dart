@@ -24,7 +24,7 @@ class DateTimePicker extends StatelessWidget {
   final bool enableTime;
 
   Future<Null> _selectDate(BuildContext context) async {
-    final DateTime picked = await showDatePicker(
+    final picked = await showDatePicker(
         context: context,
         initialDate: selectedDate,
         firstDate: DateTime(2015, 8),
@@ -33,14 +33,14 @@ class DateTimePicker extends StatelessWidget {
   }
 
   Future<Null> _selectTime(BuildContext context) async {
-    final TimeOfDay picked =
+    final picked =
         await showTimePicker(context: context, initialTime: selectedTime);
     if (picked != null && picked != selectedTime) selectTime(picked);
   }
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle valueStyle = Theme.of(context).textTheme.title;
+    final valueStyle = Theme.of(context).textTheme.headline6;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
