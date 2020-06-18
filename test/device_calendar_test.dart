@@ -28,7 +28,7 @@ void main() {
 
     final result = await deviceCalendarPlugin.hasPermissions();
     expect(result.isSuccess, true);
-    expect(result.errorMessages, isEmpty);
+    expect(result.errors, isEmpty);
     expect(result.data, true);
   });
 
@@ -39,7 +39,7 @@ void main() {
 
     final result = await deviceCalendarPlugin.requestPermissions();
     expect(result.isSuccess, true);
-    expect(result.errorMessages, isEmpty);
+    expect(result.errors, isEmpty);
     expect(result.data, true);
   });
 
@@ -51,7 +51,7 @@ void main() {
 
     final result = await deviceCalendarPlugin.retrieveCalendars();
     expect(result.isSuccess, true);
-    expect(result.errorMessages, isEmpty);
+    expect(result.errors, isEmpty);
     expect(result.data, isNotNull);
     expect(result.data, isNotEmpty);
     expect(result.data[0].name, fakeCalendarName);
@@ -64,9 +64,8 @@ void main() {
     final result =
         await deviceCalendarPlugin.retrieveEvents(calendarId, params);
     expect(result.isSuccess, false);
-    expect(result.errorMessages.length, greaterThan(0));
-    expect(result.errorMessages[0],
-        contains(ErrorCodes.invalidArguments.toString()));
+    expect(result.errors.length, greaterThan(0));
+    expect(result.errors[0], contains(ErrorCodes.invalidArguments.toString()));
   });
 
   test('DeleteEvent_CalendarId_IsRequired', () async {
@@ -75,9 +74,8 @@ void main() {
 
     final result = await deviceCalendarPlugin.deleteEvent(calendarId, eventId);
     expect(result.isSuccess, false);
-    expect(result.errorMessages.length, greaterThan(0));
-    expect(result.errorMessages[0],
-        contains(ErrorCodes.invalidArguments.toString()));
+    expect(result.errors.length, greaterThan(0));
+    expect(result.errors[0], contains(ErrorCodes.invalidArguments.toString()));
   });
 
   test('DeleteEvent_EventId_IsRequired', () async {
@@ -86,9 +84,8 @@ void main() {
 
     final result = await deviceCalendarPlugin.deleteEvent(calendarId, eventId);
     expect(result.isSuccess, false);
-    expect(result.errorMessages.length, greaterThan(0));
-    expect(result.errorMessages[0],
-        contains(ErrorCodes.invalidArguments.toString()));
+    expect(result.errors.length, greaterThan(0));
+    expect(result.errors[0], contains(ErrorCodes.invalidArguments.toString()));
   });
 
   test('DeleteEvent_PassesArguments_Correctly', () async {
@@ -110,9 +107,8 @@ void main() {
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result.isSuccess, false);
-    expect(result.errorMessages, isNotEmpty);
-    expect(result.errorMessages[0],
-        contains(ErrorCodes.invalidArguments.toString()));
+    expect(result.errors, isNotEmpty);
+    expect(result.errors[0], contains(ErrorCodes.invalidArguments.toString()));
   });
 
   test('CreateEvent_Returns_Successfully', () async {
@@ -129,7 +125,7 @@ void main() {
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result.isSuccess, true);
-    expect(result.errorMessages, isEmpty);
+    expect(result.errors, isEmpty);
     expect(result.data, isNotEmpty);
     expect(result.data, fakeNewEventId);
   });
@@ -154,7 +150,7 @@ void main() {
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result.isSuccess, true);
-    expect(result.errorMessages, isEmpty);
+    expect(result.errors, isEmpty);
     expect(result.data, isNotEmpty);
     expect(result.data, fakeNewEventId);
   });

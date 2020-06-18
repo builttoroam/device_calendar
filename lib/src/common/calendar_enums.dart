@@ -45,10 +45,8 @@ enum AttendeeRole {
   Resource,
 }
 
-enum Availability { Free, Busy, Tentative, Unavailable }
+enum Availability { Free, Busy, Tentative, Unavailable ,}
 
-// Adding extensions for enum values as Flutter does not support it yet
-// TODO: Replace this to enum values when introduced. Ref: https://github.com/dart-lang/language/issues/158
 extension DayOfWeekExtension on DayOfWeek {
   static int _value(DayOfWeek val) {
     switch (val) {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 
+import 'common/channel_constants.dart';
 import 'common/error_codes.dart';
 import 'common/error_messages.dart';
 import 'models/calendar.dart';
@@ -15,7 +16,7 @@ import 'models/retrieve_events_params.dart';
 /// Provides functionality for working with device calendar(s)
 class DeviceCalendarPlugin {
   static const MethodChannel channel =
-      MethodChannel('plugins.builttoroam.com/device_calendar');
+      MethodChannel(ChannelConstants.channelName);
 
   static final DeviceCalendarPlugin _instance = DeviceCalendarPlugin.private();
 
@@ -31,7 +32,9 @@ class DeviceCalendarPlugin {
   /// Returns a [Result] indicating if calendar READ and WRITE permissions
   /// have (true) or have not (false) been granted
   Future<Result<bool>> requestPermissions() async {
-    return _invokeChannelMethod('requestPermissions');
+    return _invokeChannelMethod(
+      ChannelConstants.methodNameRequestPermissions,
+    );
   }
 
   /// Checks if permissions for modifying the device calendars have been granted
@@ -39,7 +42,9 @@ class DeviceCalendarPlugin {
   /// Returns a [Result] indicating if calendar READ and WRITE permissions
   /// have (true) or have not (false) been granted
   Future<Result<bool>> hasPermissions() async {
-    return _invokeChannelMethod('hasPermissions');
+    return _invokeChannelMethod(
+      ChannelConstants.methodNameHasPermissions,
+    );
   }
 
   /// Retrieves all of the device defined calendars
@@ -47,7 +52,7 @@ class DeviceCalendarPlugin {
   /// Returns a [Result] containing a list of device [Calendar]
   Future<Result<UnmodifiableListView<Calendar>>> retrieveCalendars() async {
     return _invokeChannelMethod(
-      'retrieveCalendars',
+      ChannelConstants.methodNameRetrieveCalendars,
       evaluateResponse: (rawData) => UnmodifiableListView(
         json.decode(rawData).map<Calendar>(
             (decodedCalendar) => Calendar.fromJson(decodedCalendar)),
@@ -69,7 +74,7 @@ class DeviceCalendarPlugin {
     RetrieveEventsParams retrieveEventsParams,
   ) async {
     return _invokeChannelMethod(
-      'retrieveEvents',
+      ChannelConstants.methodNameRetrieveEvents,
       assertParameters: (result) {
         _validateCalendarIdParameter(
           result,
@@ -85,7 +90,8 @@ class DeviceCalendarPlugin {
                       retrieveEventsParams.endDate != null &&
                       retrieveEventsParams.startDate
                           .isAfter(retrieveEventsParams.endDate)))),
-          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidRetrieveEventsParams}',
+          ErrorCodes.invalidArguments,
+          ErrorMessages.invalidRetrieveEventsParams,
         );
       },
       arguments: () => <String, Object>{
@@ -112,7 +118,7 @@ class DeviceCalendarPlugin {
     String eventId,
   ) async {
     return _invokeChannelMethod(
-      'deleteEvent',
+      ChannelConstants.methodNameDeleteEvent,
       assertParameters: (result) {
         _validateCalendarIdParameter(
           result,
@@ -122,7 +128,8 @@ class DeviceCalendarPlugin {
         _assertParameter(
           result,
           eventId?.isNotEmpty ?? false,
-          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.deleteEventInvalidArgumentsMessage}',
+          ErrorCodes.invalidArguments,
+          ErrorMessages.deleteEventInvalidArgumentsMessage,
         );
       },
       arguments: () => <String, Object>{
@@ -150,7 +157,7 @@ class DeviceCalendarPlugin {
     bool deleteFollowingInstances,
   ) async {
     return _invokeChannelMethod(
-      'deleteEventInstance',
+      ChannelConstants.methodNameDeleteEventInstance,
       assertParameters: (result) {
         _validateCalendarIdParameter(
           result,
@@ -160,7 +167,8 @@ class DeviceCalendarPlugin {
         _assertParameter(
           result,
           eventId?.isNotEmpty ?? false,
-          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.deleteEventInvalidArgumentsMessage}',
+          ErrorCodes.invalidArguments,
+          ErrorMessages.deleteEventInvalidArgumentsMessage,
         );
       },
       arguments: () => <String, Object>{
@@ -182,7 +190,7 @@ class DeviceCalendarPlugin {
   /// Returns a [Result] with the newly created or updated [Event.eventId]
   Future<Result<String>> createOrUpdateEvent(Event event) async {
     return _invokeChannelMethod(
-      'createOrUpdateEvent',
+      ChannelConstants.methodNameCreateOrUpdateEvent,
       assertParameters: (result) {
         // Setting time to 0 for all day events
         if (event.allDay == true) {
@@ -197,7 +205,8 @@ class DeviceCalendarPlugin {
           !(event.allDay == true && (event?.calendarId?.isEmpty ?? true) ||
               event.start == null ||
               event.end == null),
-          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay}',
+          ErrorCodes.invalidArguments,
+          ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay,
         );
 
         _assertParameter(
@@ -207,7 +216,8 @@ class DeviceCalendarPlugin {
                   event.start == null ||
                   event.end == null ||
                   event.start.isAfter(event.end))),
-          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.createOrUpdateEventInvalidArgumentsMessage}',
+          ErrorCodes.invalidArguments,
+          ErrorMessages.createOrUpdateEventInvalidArgumentsMessage,
         );
       },
       arguments: () => event.toJson(),
@@ -232,14 +242,15 @@ class DeviceCalendarPlugin {
     String localAccountName,
   }) async {
     return _invokeChannelMethod(
-      'createCalendar',
+      ChannelConstants.methodNameCreateCalendar,
       assertParameters: (result) {
         calendarColor ??= Colors.red;
 
         _assertParameter(
           result,
           calendarName?.isNotEmpty == true,
-          '[${ErrorCodes.invalidArguments}] ${ErrorMessages.createCalendarInvalidCalendarNameMessage}',
+          ErrorCodes.invalidArguments,
+          ErrorMessages.createCalendarInvalidCalendarNameMessage,
         );
       },
       arguments: () => <String, Object>{
@@ -288,26 +299,44 @@ class DeviceCalendarPlugin {
   void _parsePlatformExceptionAndUpdateResult<T>(
       Exception exception, Result<T> result) {
     if (exception == null) {
-      result.errorMessages.add(
-          '[${ErrorCodes.unknown}] Device calendar plugin ran into an unknown issue');
+      result.errors.add(
+        ResultError(
+          ErrorCodes.unknown,
+          'Device calendar plugin ran into an unknown issue',
+        ),
+      );
       return;
     }
 
     print(exception);
 
     if (exception is PlatformException) {
-      result.errorMessages.add(
-          '[${ErrorCodes.platformSpecific}] Device calendar plugin ran into an issue. Platform specific exception [${exception.code}], with message :\"${exception.message}\", has been thrown.');
+      result.errors.add(
+        ResultError(
+          ErrorCodes.platformSpecific,
+          'Device calendar plugin ran into an issue. Platform specific exception [${exception.code}], with message :\"${exception.message}\", has been thrown.',
+        ),
+      );
     } else {
-      result.errorMessages.add(
-          '[${ErrorCodes.generic}] Device calendar plugin ran into an issue, with message \"${exception.toString()}\"');
+      result.errors.add(
+        ResultError(
+          ErrorCodes.generic,
+          'Device calendar plugin ran into an issue, with message \"${exception.toString()}\"',
+        ),
+      );
     }
   }
 
   void _assertParameter<T>(
-      Result<T> result, bool predicate, String errorMessage) {
+    Result<T> result,
+    bool predicate,
+    int errorCode,
+    String errorMessage,
+  ) {
     if (!predicate) {
-      result.errorMessages.add(errorMessage);
+      result.errors.add(
+        ResultError(errorCode, errorMessage),
+      );
     }
   }
 
@@ -315,7 +344,11 @@ class DeviceCalendarPlugin {
     Result<T> result,
     String calendarId,
   ) {
-    _assertParameter(result, calendarId?.isNotEmpty ?? false,
-        '[${ErrorCodes.invalidArguments}] ${ErrorMessages.invalidMissingCalendarId}');
+    _assertParameter(
+      result,
+      calendarId?.isNotEmpty ?? false,
+      ErrorCodes.invalidArguments,
+      ErrorMessages.invalidMissingCalendarId,
+    );
   }
 }
