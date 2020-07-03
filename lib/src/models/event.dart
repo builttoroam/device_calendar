@@ -132,10 +132,10 @@ class Event {
     data['calendarId'] = calendarId;
     data['title'] = title;
     data['description'] = description;
-    data['startAsIso8601String'] = start.toIso8601String();
-    data['startLocation'] = start.location.name;
-    data['endAsIso8601String'] = end.toIso8601String();
-    data['endLocation'] = end.location.name;
+    data['startAsIso8601String'] = start?.toIso8601String();
+    data['startLocation'] = start?.location?.name;
+    data['endAsIso8601String'] = end?.toIso8601String();
+    data['endLocation'] = end?.location?.name;
     data['isAllDay'] = allDay;
     data['location'] = location;
     data['url'] = url?.data?.contentText;
@@ -161,7 +161,7 @@ class Event {
   }
 
   Availability parseStringToAvailability(String value) {
-    var testValue = value.toUpperCase();
+    var testValue = value?.toUpperCase();
     switch (testValue) {
       case 'BUSY':
         return Availability.Busy;

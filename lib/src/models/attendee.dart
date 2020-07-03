@@ -46,10 +46,9 @@ class Attendee {
     name = json['name'];
     emailAddress = json['emailAddress'];
     role = AttendeeRole.values[json['role'] ?? 0];
+    isOrganiser = json['isOrganizer']; // Getting and setting an organiser for Android
 
     if (Platform.isAndroid) {
-      isOrganiser =
-          json['isOrganizer']; // Getting and setting an organiser for Android
       androidAttendeeDetails = AndroidAttendeeDetails.fromJson(json);
     }
 
@@ -62,7 +61,8 @@ class Attendee {
     final data = {
       'name': name,
       'emailAddress': emailAddress,
-      'role': role?.index
+      'role': role?.index,
+      'isOrganizer': isOrganiser
     };
 
     if (iosAttendeeDetails != null) {

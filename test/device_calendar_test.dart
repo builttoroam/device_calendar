@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/timezone.dart';
 
 void main() {
-
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final channel =
@@ -156,5 +155,35 @@ void main() {
     expect(result?.errors, isEmpty);
     expect(result?.data, isNotEmpty);
     expect(result?.data, fakeNewEventId);
+  });
+
+  test('Attendee_Serialises_Correctly', () async {
+    final attendee = Attendee(
+        name: 'Test Attendee',
+        emailAddress: 'test@t.com',
+        role: AttendeeRole.Required,
+        isOrganiser: true);
+    final stringAttendee = attendee.toJson();
+    expect(stringAttendee, isNotNull);
+    final newAttendee = Attendee.fromJson(stringAttendee);
+    expect(newAttendee, isNotNull);
+    expect(newAttendee.name, equals(attendee.name));
+    expect(newAttendee.emailAddress, equals(attendee.emailAddress));
+    expect(newAttendee.role, equals(attendee.role));
+    expect(newAttendee.isOrganiser, equals(attendee.isOrganiser));
+    expect(newAttendee.iosAttendeeDetails, isNull);
+    expect(newAttendee.androidAttendeeDetails, isNull);
+  });
+
+  test('Event_Serialises_Correctly', () async {
+    final event = Event('calendarId',eventId: 'eventId',start: TZDateTime(
+      timeZoneDatabase.locations.entries.skip(20).first.value, 1980, 10,1,0,0,0));
+    final stringEvent = event.toJson();
+    expect(stringEvent, isNotNull);
+    final newEvent = Event.fromJson(stringEvent);
+    expect(newEvent, isNotNull);
+    expect(newEvent.calendarId, equals(event.calendarId));
+    expect(newEvent.eventId, equals(event.eventId));
+    expect(newEvent.start, equals(event.start));
   });
 }
