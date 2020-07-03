@@ -28,12 +28,15 @@ class Attendee {
   AndroidAttendeeDetails? androidAttendeeDetails;
 
   Attendee(
-      {this.name,
-      this.emailAddress,
-      this.role,
-      this.isOrganiser = false,
-      this.iosAttendeeDetails,
-      this.androidAttendeeDetails});
+      {this.name, this.emailAddress, this.role, this.isOrganiser = false}) {
+    if (Platform.isAndroid) {
+      androidAttendeeDetails = AndroidAttendeeDetails();
+    }
+
+    if (Platform.isIOS) {
+      iosAttendeeDetails = IosAttendeeDetails();
+    }
+  }
 
   Attendee.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
@@ -62,15 +65,11 @@ class Attendee {
       'role': role?.index
     };
 
-    if (Platform.isIOS && iosAttendeeDetails != null) {
-      data.addEntries(iosAttendeeDetails!.toJson().entries);
+    if (iosAttendeeDetails != null) {
+      data.addEntries(iosAttendeeDetails.toJson().entries);
     }
-    if (Platform.isAndroid && androidAttendeeDetails != null) {
-      data.addEntries(androidAttendeeDetails!.toJson().entries);
-    }
-
-    if (Platform.isIOS && iosAttendeeDetails != null) {
-      data.addEntries(iosAttendeeDetails!.toJson().entries);
+    if (androidAttendeeDetails != null) {
+      data.addEntries(androidAttendeeDetails.toJson().entries);
     }
 
     return data;
