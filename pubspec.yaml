@@ -9,6 +9,7 @@ dependencies:
   meta: ^1.1.8
   collection: ^1.15.0
   sprintf: ^6.0.0
+  timezone: ^0.5.7
 
 dev_dependencies:
   flutter_test:
