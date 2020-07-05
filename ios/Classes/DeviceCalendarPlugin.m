@@ -308,6 +308,8 @@ EKEventStore *eventStore;
         return @"TENTATIVE";
     } else if (ekEventAvailability == EKEventAvailabilityUnavailable) {
         return @"UNAVAILABLE";
+    } else {
+        return nil;
     }
 }
 

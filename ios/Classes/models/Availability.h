@@ -2,10 +2,10 @@
 #import "JSONModel/JSONModel.h"
 
 typedef enum{
-    BUSY = @"BUSY",
-    FREE = @"FREE",
-    TENTATIVE = @"TENTATIVE",
-    UNAVAILABLE = @"UNAVAILABLE";
+    BUSY = 1,
+    FREE = 2,
+    TENTATIVE = 3,
+    UNAVAILABLE = 4
 } Availability;
 
 
