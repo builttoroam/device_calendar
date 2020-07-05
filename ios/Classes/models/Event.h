@@ -3,7 +3,6 @@
 #import "Attendee.h"
 #import "Reminder.h"
 #import "JSONModel/JSONModel.h"
-#import "Availability.h"
 
 @interface Event : JSONModel
 

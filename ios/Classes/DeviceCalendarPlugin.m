@@ -12,7 +12,6 @@
 #import "Date+Utilities.h"
 #import "UIColor+Utilities.h"
 #import <objc/runtime.h>
-#import "Availability.h"
 
 @implementation DeviceCalendarPlugin
 NSString *streamName = @"calendarChangeEvent/stream";
