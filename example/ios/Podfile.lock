@@ -1,0 +1,30 @@
+PODS:
+  - device_calendar (0.0.1):
+    - Flutter
+    - JSONModel
+  - Flutter (1.0.0)
+  - JSONModel (1.8.0)
+
+DEPENDENCIES:
+  - device_calendar (from `Pods/.symlinks/plugins/device_calendar/ios`)
+  - Flutter (from `Pods/.symlinks/flutter/ios`)
+  - JSONModel
+
+SPEC REPOS:
+  trunk:
+    - JSONModel
+
+EXTERNAL SOURCES:
+  device_calendar:
+    :path: Pods/.symlinks/plugins/device_calendar/ios
+  Flutter:
+    :path: Pods/.symlinks/flutter/ios
+
+SPEC CHECKSUMS:
+  device_calendar: fb103d17cdd72b294a9c464b811e903566f04e67
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  JSONModel: 02ab723958366a3fd27da57ea2af2113658762e9
+
+PODFILE CHECKSUM: d833004bd9a416c1f9c3fb12831e1203a373fbfb
+
+COCOAPODS: 1.9.3
