@@ -779,7 +779,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
                 _event.recurrenceRule = RecurrenceRule(_recurrenceFrequency,
                     interval: _interval,
-                    totalOccurrences: _totalOccurrences,
+                    totalOccurrences: (_recurrenceRuleEndType ==
+                        RecurrenceRuleEndType.MaxOccurrences)
+                        ? _totalOccurrences
+                        : null,
                     endDate: _recurrenceRuleEndType ==
                             RecurrenceRuleEndType.SpecifiedEndDate
                         ? _recurrenceEndDate
@@ -789,6 +792,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     monthOfYear: _monthOfYear,
                     weekOfMonth: _weekOfMonth);
               }
+
               _event.attendees = _attendees;
               _event.reminders = _reminders;
               _event.availability = _availability;
