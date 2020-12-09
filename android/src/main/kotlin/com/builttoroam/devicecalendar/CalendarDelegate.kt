@@ -10,6 +10,8 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.graphics.Color
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.provider.CalendarContract
 import android.provider.CalendarContract.CALLER_IS_SYNCADAPTER
 import android.provider.CalendarContract.Events
@@ -93,8 +95,10 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private var _context: Context? = null
     private var _gson: Gson? = null
 
-    constructor(activity: Registrar?, context: Context) {
-        _registrar = activity
+    private val uiThreadHandler = Handler(Looper.getMainLooper())
+
+    constructor(registrar: Registrar?, context: Context) {
+        _registrar = registrar
         _context = context
         val gsonBuilder = GsonBuilder()
         gsonBuilder.registerTypeAdapter(RecurrenceFrequency::class.java, RecurrenceFrequencySerializer())
@@ -297,7 +301,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             val events: MutableList<Event> = mutableListOf()
 
             val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-                _registrar!!.activity().runOnUiThread {
+                uiThreadHandler.post {
                     finishWithError(GENERIC_ERROR, exception.message, pendingChannelResult)
                 }
             }
@@ -316,7 +320,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             }.invokeOnCompletion { cause ->
                 eventsCursor?.close()
                 if (cause == null) {
-                    _registrar!!.activity().runOnUiThread {
+                    uiThreadHandler.post {
                         finishWithSuccess(_gson?.toJson(events), pendingChannelResult)
                     }
                 }
@@ -346,7 +350,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             val values = buildEventContentValues(event, calendarId)
 
             val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-                _registrar!!.activity().runOnUiThread {
+                uiThreadHandler.post {
                     finishWithError(GENERIC_ERROR, exception.message, pendingChannelResult)
                 }
             }
@@ -379,7 +383,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             job.invokeOnCompletion {
                 cause ->
                 if (cause == null) {
-                    _registrar!!.activity().runOnUiThread {
+                    uiThreadHandler.post {
                         finishWithSuccess(eventId.toString(), pendingChannelResult)
                     }
                 }
@@ -615,8 +619,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
     private fun arePermissionsGranted(): Boolean {
         if (atLeastAPI(23)) {
-            val writeCalendarPermissionGranted = _registrar!!.activity().checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
-            val readCalendarPermissionGranted = _registrar!!.activity().checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
+            val writeCalendarPermissionGranted = _registrar!!.context().checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
+            val readCalendarPermissionGranted = _registrar!!.context().checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
             return writeCalendarPermissionGranted && readCalendarPermissionGranted
         }
 
