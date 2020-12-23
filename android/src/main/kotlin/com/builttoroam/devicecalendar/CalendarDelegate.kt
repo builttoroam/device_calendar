@@ -375,6 +375,20 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     insertAttendees(attendeesToInsert, eventId, contentResolver)
                     deleteExistingReminders(contentResolver, eventId)
                     insertReminders(event.reminders, eventId, contentResolver!!)
+
+                    val existingSelfAttendee = existingAttendees.firstOrNull {
+                        it.emailAddress == calendar.ownerAccount
+                    }
+                    val newSelfAttendee = event.attendees.firstOrNull {
+                        it.emailAddress == calendar.ownerAccount
+                    }
+                    if (existingSelfAttendee != null &&
+                            newSelfAttendee != null &&
+                            newSelfAttendee.attendanceStatus != null &&
+                            existingSelfAttendee.attendanceStatus != newSelfAttendee.attendanceStatus) {
+
+                        updateAttendeeStatus(eventId, newSelfAttendee, contentResolver)
+                    }
                 }
             }
             job.invokeOnCompletion {
@@ -517,6 +531,14 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val selectionArgs = arrayOf(eventId.toString() + "", attendee.emailAddress)
         contentResolver?.delete(CalendarContract.Attendees.CONTENT_URI, selection, selectionArgs)
 
+    }
+
+    private fun updateAttendeeStatus(eventId: Long, attendee: Attendee, contentResolver: ContentResolver?) {
+        val selection = "(" + CalendarContract.Attendees.EVENT_ID + " = ?) AND (" + CalendarContract.Attendees.ATTENDEE_EMAIL + " = ?)"
+        val selectionArgs = arrayOf(eventId.toString() + "", attendee.emailAddress)
+        val values = ContentValues()
+        values.put(CalendarContract.Attendees.ATTENDEE_STATUS, attendee.attendanceStatus)
+        contentResolver?.update(CalendarContract.Attendees.CONTENT_URI, values, selection, selectionArgs)
     }
 
     fun deleteEvent(calendarId: String, eventId: String, pendingChannelResult: MethodChannel.Result, startDate: Long? = null, endDate: Long? = null, followingInstances: Boolean? = null) {
