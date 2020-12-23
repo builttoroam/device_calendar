@@ -164,7 +164,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
                         attendeeArgs[EMAIL_ADDRESS_ARGUMENT] as String,
                         attendeeArgs[NAME_ARGUMENT] as String?,
                         attendeeArgs[ROLE_ARGUMENT] as Int,
-                        null, null))
+                        null, null, null))
             }
         }
 
