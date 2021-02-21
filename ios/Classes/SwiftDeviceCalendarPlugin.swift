@@ -87,6 +87,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let retrieveSourcesMethod = "retrieveSources"
     let createOrUpdateEventMethod = "createOrUpdateEvent"
     let createCalendarMethod = "createCalendar"
+    let deleteCalendarMethod = "deleteCalendar"
     let deleteEventMethod = "deleteEvent"
     let deleteEventInstanceMethod = "deleteEventInstance"
     let calendarIdArgument = "calendarId"
@@ -146,6 +147,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             deleteEvent(call, result)
         case createCalendarMethod:
             createCalendar(call, result)
+        case deleteCalendarMethod:
+            deleteCalendar(call, result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -206,6 +209,32 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             }
             
             self.encodeJsonAndFinish(codable: calendars, result: result)
+        }, result: result)
+    }
+    
+    private func deleteCalendar(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+        checkPermissionsThenExecute(permissionsGrantedAction: {
+            let arguments = call.arguments as! Dictionary<String, AnyObject>
+            let calendarId = arguments[calendarIdArgument] as! String
+            
+            let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
+            if ekCalendar == nil {
+                self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
+                return
+            }
+            
+            if !(ekCalendar!.allowsContentModifications) {
+                self.finishWithCalendarReadOnlyError(result: result, calendarId: calendarId)
+                return
+            }
+            
+            do {
+                try self.eventStore.removeCalendar(ekCalendar!, commit: true)
+                result(true)
+            } catch {
+                self.eventStore.reset()
+                result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
+            }
         }, result: result)
     }
     
