@@ -38,6 +38,9 @@ class _CalendarsPageState extends State<CalendarsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Calendars'),
+        actions: [
+          _getRefreshButton()
+        ],
       ),
       body: Column(
         children: [
@@ -135,5 +138,13 @@ class _CalendarsPageState extends State<CalendarsPage> {
     } on PlatformException catch (e) {
       print(e);
     }
+  }
+
+  Widget _getRefreshButton() {
+    return IconButton(
+        icon: Icon(Icons.refresh),
+        onPressed: () async {
+          _retrieveCalendars();
+        });
   }
 }
