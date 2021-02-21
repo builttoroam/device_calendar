@@ -83,6 +83,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val CREATE_OR_UPDATE_EVENT_REQUEST_CODE = RETRIEVE_CALENDAR_REQUEST_CODE + 1
     private val DELETE_EVENT_REQUEST_CODE = CREATE_OR_UPDATE_EVENT_REQUEST_CODE + 1
     private val REQUEST_PERMISSIONS_REQUEST_CODE = DELETE_EVENT_REQUEST_CODE + 1
+    private val DELETE_CALENDAR_REQUEST_CODE = REQUEST_PERMISSIONS_REQUEST_CODE + 1
     private val PART_TEMPLATE = ";%s="
     private val BYMONTHDAY_PART = "BYMONTHDAY"
     private val BYMONTH_PART = "BYMONTH"
@@ -140,6 +141,9 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 }
                 REQUEST_PERMISSIONS_REQUEST_CODE -> {
                     finishWithSuccess(permissionGranted, cachedValues.pendingChannelResult)
+                }
+                DELETE_CALENDAR_REQUEST_CODE -> {
+                    deleteCalendar(cachedValues.calendarId,cachedValues.pendingChannelResult)
                 }
             }
 
@@ -230,6 +234,39 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             }
         } else {
             val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, RETRIEVE_CALENDAR_REQUEST_CODE, calendarId)
+            requestPermissions(parameters)
+        }
+
+        return null
+    }
+
+    fun deleteCalendar(calendarId: String, pendingChannelResult: MethodChannel.Result, isInternalCall: Boolean = false): Calendar? {
+        if (isInternalCall || arePermissionsGranted()) {
+            val calendarIdNumber = calendarId.toLongOrNull()
+            if (calendarIdNumber == null) {
+                if (!isInternalCall) {
+                    finishWithError(INVALID_ARGUMENT, CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE, pendingChannelResult)
+                }
+                return null
+            }
+
+            val contentResolver: ContentResolver? = _context?.contentResolver
+
+            val calendar = retrieveCalendar(calendarId,pendingChannelResult,true);
+            if(calendar != null) {
+                val calenderUriWithId = ContentUris.withAppendedId(CalendarContract.Calendars.CONTENT_URI, calendarIdNumber)
+                val deleteSucceeded = contentResolver?.delete(calenderUriWithId, null, null) ?: 0
+                finishWithSuccess(deleteSucceeded > 0, pendingChannelResult)
+            }else {
+                if (!isInternalCall) {
+                    finishWithError(NOT_FOUND, "The calendar with the ID $calendarId could not be found", pendingChannelResult)
+                }
+            }
+        } else {
+            val parameters = CalendarMethodsParametersCacheModel(
+                    pendingChannelResult = pendingChannelResult,
+                    calendarDelegateMethodCode = DELETE_CALENDAR_REQUEST_CODE,
+                    calendarId = calendarId)
             requestPermissions(parameters)
         }
 

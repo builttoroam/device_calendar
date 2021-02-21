@@ -40,7 +40,9 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         key: _scaffoldstate,
-        appBar: AppBar(title: Text('${_calendar.name} events')),
+        appBar: AppBar(title: Text('${_calendar.name} events'),actions: [
+          _getDeleteButton()
+        ],),
         body: ((_calendarEvents?.isNotEmpty ?? false) || _isLoading)
             ? Stack(
                 children: [
@@ -137,4 +139,50 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
       _isLoading = false;
     });
   }
+
+  Widget _getDeleteButton() {
+    return IconButton(
+        icon: Icon(Icons.delete),
+        onPressed: () async {
+          _showDeleteDialog();
+        });
+  }
+
+  Future<void> _showDeleteDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Warning'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('This will delete this calendar'),
+                Text('Are you sure?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Delete!'),
+              onPressed: () async {
+                var returnValue = await _deviceCalendarPlugin.deleteCalendar(_calendar.id);
+                print("returnValue: ${returnValue.data}, ${returnValue.errors}");
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
+
+
