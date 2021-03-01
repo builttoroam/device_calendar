@@ -1,4 +1,4 @@
-package com.builttoroam.devicecalendar
+package com.builttoroam.devicecalendar 
 
 import android.Manifest
 import android.annotation.SuppressLint
