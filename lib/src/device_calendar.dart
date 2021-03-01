@@ -272,6 +272,26 @@ class DeviceCalendarPlugin {
     );
   }
 
+  /// Deletes a calendar.
+  /// The `calendarId` parameter is the id of the calendar that plugin will try to delete the event from\///
+  /// Returns a [Result] indicating if the instance of the calendar has (true) or has not (false) been deleted
+  Future<Result<bool>> deleteCalendar(
+      String calendarId,
+      ) async {
+    return _invokeChannelMethod(
+      ChannelConstants.methodNameDeleteCalendar,
+      assertParameters: (result) {
+        _validateCalendarIdParameter(
+          result,
+          calendarId,
+        );
+      },
+      arguments: () => <String, Object>{
+        ChannelConstants.parameterNameCalendarId: calendarId,
+      },
+    );
+  }
+
   Future<Result<T>> _invokeChannelMethod<T>(
     String channelMethodName, {
     Function(Result<T>) assertParameters,
