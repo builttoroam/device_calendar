@@ -31,7 +31,7 @@ stages:
           displayName: 'Flutter build - Android'
           inputs:
             target: 'aab'
-            buildNumber: $(BuildID)
+            buildNumber: $(Build.BuildID)
             projectDirectory: 'example'
 
         - task: FlutterBuild@0
