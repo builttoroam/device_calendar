@@ -38,6 +38,8 @@ If you have Proguard enabled, you may need to add the following to your configur
 
 If you want to enable Proguard, please refer to the guide at [Android Developer](https://developer.android.com/studio/build/shrink-code) page
 
+If you consider to publish the app and build a release version you have to enable Proguard. Follow these steps: [here](https://github.com/builttoroam/device_calendar/issues/99#issuecomment-612449677).
+
 **IMPORTANT**: Since version 0.1.0, this version has migrated to use AndroidX instead of the deprecated Android support libraries. When using version 0.10.0 and onwards for this plugin, please ensure your application has been migrated following the guide [here](https://developer.android.com/jetpack/androidx/migrate)
 
 ## iOS Integration
