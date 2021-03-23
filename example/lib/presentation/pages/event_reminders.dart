@@ -16,6 +16,7 @@ class _EventRemindersPageState extends State<EventRemindersPage> {
   final _minutesController = TextEditingController();
 
   _EventRemindersPageState(List<Reminder> reminders) {
+  List<Reminder> _reminders;
     _reminders = <Reminder>[...reminders];
   }
 

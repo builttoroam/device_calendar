@@ -64,6 +64,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   _CalendarEventPageState(
       this._calendar, this._event, this._recurringEventDialog) {
+    
+      TimeOfDay _startTime;
+
+
     _deviceCalendarPlugin = DeviceCalendarPlugin();
 
     _attendees = <Attendee>[];

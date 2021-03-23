@@ -27,6 +27,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   bool _isLoading = true;
 
   _CalendarEventsPageState(this._calendar) {
+    DeviceCalendarPlugin _deviceCalendarPlugin;
     _deviceCalendarPlugin = DeviceCalendarPlugin();
   }
 

@@ -29,6 +29,7 @@ class _RecurringEventDialogState extends State<RecurringEventDialog> {
   _RecurringEventDialogState(
       DeviceCalendarPlugin deviceCalendarPlugin, Event calendarEvent,
       {VoidCallback onLoadingStarted, Function(bool) onDeleteFinished}) {
+    DeviceCalendarPlugin _deviceCalendarPlugin;
     _deviceCalendarPlugin = deviceCalendarPlugin;
     _calendarEvent = calendarEvent;
     _onLoadingStarted = onLoadingStarted;
