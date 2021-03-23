@@ -24,6 +24,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
       _calendars?.where((c) => c.isReadOnly)?.toList() ?? <Calendar>[];
 
   _CalendarsPageState() {
+    DeviceCalendarPlugin _deviceCalendarPlugin;
     _deviceCalendarPlugin = DeviceCalendarPlugin();
   }
 

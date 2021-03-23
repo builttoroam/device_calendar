@@ -18,6 +18,7 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
 
   _EventAttendeePageState(Attendee attendee) {
     if (attendee != null) {
+      Attendee _attendee;
       _attendee = attendee;
       _nameController.text = _attendee.name;
       _emailAddressController.text = _attendee.emailAddress;

@@ -21,6 +21,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
   String _localAccountName = '';
 
   _CalendarAddPageState() {
+  DeviceCalendarPlugin _deviceCalendarPlugin;
     _deviceCalendarPlugin = DeviceCalendarPlugin();
   }
 
