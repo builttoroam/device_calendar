@@ -3,13 +3,13 @@ import '../../../common/error_messages.dart';
 import 'attendance_status.dart';
 
 class IosAttendeeDetails {
-  IosAttendanceStatus _attendanceStatus;
+  IosAttendanceStatus? _attendanceStatus;
 
   /// An attendee role: None, Optional, Required or Resource
-  AttendeeRole role;
+  AttendeeRole? role;
 
   /// The attendee's status for the event. This is read-only
-  IosAttendanceStatus get attendanceStatus => _attendanceStatus;
+  IosAttendanceStatus? get attendanceStatus => _attendanceStatus;
 
   IosAttendeeDetails({this.role});
 

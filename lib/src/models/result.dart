@@ -21,13 +21,13 @@ class Result<T> {
     return errors.isNotEmpty;
   }
 
-  T data;
+  T? data;
   List<ResultError> errors = <ResultError>[];
 }
 
 class ResultError {
   final int errorCode;
-  final String errorMessage;
+  final String? errorMessage;
 
   const ResultError(this.errorCode, this.errorMessage);
 }
