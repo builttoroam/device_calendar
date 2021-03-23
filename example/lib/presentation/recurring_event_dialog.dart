@@ -10,7 +10,7 @@ class RecurringEventDialog extends StatefulWidget {
 
   RecurringEventDialog(this._deviceCalendarPlugin, this._calendarEvent,
       this._onLoadingStarted, this._onDeleteFinished,
-      {Key key})
+      {Key? key})
       : super(key: key);
 
   @override
@@ -21,14 +21,14 @@ class RecurringEventDialog extends StatefulWidget {
 }
 
 class _RecurringEventDialogState extends State<RecurringEventDialog> {
-  DeviceCalendarPlugin _deviceCalendarPlugin;
-  Event _calendarEvent;
-  VoidCallback _onLoadingStarted;
-  Function(bool) _onDeleteFinished;
+  late DeviceCalendarPlugin _deviceCalendarPlugin;
+  late Event _calendarEvent;
+  VoidCallback? _onLoadingStarted;
+  Function(bool)? _onDeleteFinished;
 
   _RecurringEventDialogState(
       DeviceCalendarPlugin deviceCalendarPlugin, Event calendarEvent,
-      {VoidCallback onLoadingStarted, Function(bool) onDeleteFinished}) {
+      {VoidCallback? onLoadingStarted, Function(bool)? onDeleteFinished}) {
     _deviceCalendarPlugin = deviceCalendarPlugin;
     _calendarEvent = calendarEvent;
     _onLoadingStarted = onLoadingStarted;
@@ -41,50 +41,50 @@ class _RecurringEventDialogState extends State<RecurringEventDialog> {
       title: Text('Are you sure you want to delete this event?'),
       children: <Widget>[
         SimpleDialogOption(
-          child: Text('This instance only'),
           onPressed: () async {
             Navigator.of(context).pop(true);
-            _onLoadingStarted();
+            if(_onLoadingStarted != null) _onLoadingStarted!();
             final deleteResult =
                 await _deviceCalendarPlugin.deleteEventInstance(
                     _calendarEvent.calendarId,
                     _calendarEvent.eventId,
-                    _calendarEvent.start.millisecondsSinceEpoch,
-                    _calendarEvent.end.millisecondsSinceEpoch,
+                    _calendarEvent.start?.millisecondsSinceEpoch,
+                    _calendarEvent.end?.millisecondsSinceEpoch,
                     false);
-            _onDeleteFinished(deleteResult.isSuccess && deleteResult.data);
+            if(_onDeleteFinished != null) _onDeleteFinished!(deleteResult.isSuccess && deleteResult.data != null);
           },
+          child: Text('This instance only'),
         ),
         SimpleDialogOption(
-          child: Text('This and following instances'),
           onPressed: () async {
             Navigator.of(context).pop(true);
-            _onLoadingStarted();
+            if(_onLoadingStarted != null) _onLoadingStarted!();
             final deleteResult =
                 await _deviceCalendarPlugin.deleteEventInstance(
                     _calendarEvent.calendarId,
                     _calendarEvent.eventId,
-                    _calendarEvent.start.millisecondsSinceEpoch,
-                    _calendarEvent.end.millisecondsSinceEpoch,
+                    _calendarEvent.start?.millisecondsSinceEpoch,
+                    _calendarEvent.end?.millisecondsSinceEpoch,
                     true);
-            _onDeleteFinished(deleteResult.isSuccess && deleteResult.data);
+            if(_onDeleteFinished != null) _onDeleteFinished!(deleteResult.isSuccess && deleteResult.data != null);
           },
+          child: Text('This and following instances'),
         ),
         SimpleDialogOption(
-          child: Text('All instances'),
           onPressed: () async {
             Navigator.of(context).pop(true);
-            _onLoadingStarted();
+            if(_onLoadingStarted != null) _onLoadingStarted!();
             final deleteResult = await _deviceCalendarPlugin.deleteEvent(
                 _calendarEvent.calendarId, _calendarEvent.eventId);
-            _onDeleteFinished(deleteResult.isSuccess && deleteResult.data);
+            if(_onDeleteFinished != null) _onDeleteFinished!(deleteResult.isSuccess && deleteResult.data != null);
           },
+          child: Text('All instances'),
         ),
         SimpleDialogOption(
-          child: Text('Cancel'),
           onPressed: () {
             Navigator.of(context).pop(false);
           },
+          child: Text('Cancel'),
         )
       ],
     );

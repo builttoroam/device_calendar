@@ -13,11 +13,11 @@ class CalendarAddPage extends StatefulWidget {
 class _CalendarAddPageState extends State<CalendarAddPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  DeviceCalendarPlugin _deviceCalendarPlugin;
+  late DeviceCalendarPlugin _deviceCalendarPlugin;
 
   bool _autovalidate = false;
   String _calendarName = '';
-  ColorChoice _colorChoice;
+  ColorChoice? _colorChoice;
   String _localAccountName = '';
 
   _CalendarAddPageState() {
@@ -44,7 +44,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
                   hintText: 'My New Calendar',
                 ),
                 validator: _validateCalendarName,
-                onSaved: (String value) => _calendarName = value,
+                onSaved: (String? value) => _calendarName = value ?? '',
               ),
               SizedBox(height: 10),
               Row(
@@ -71,24 +71,23 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
                     labelText: 'Local Account Name',
                     hintText: 'Device Calendar',
                   ),
-                  onSaved: (String value) => _localAccountName = value,
+                  onSaved: (String? value) => _localAccountName = value ?? '',
                 ),
             ],
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.check),
         onPressed: () async {
           final form = _formKey.currentState;
-          if (!form.validate()) {
+          if (form?.validate() == false) {
             _autovalidate = true; // Start validating on every change.
             showInSnackBar('Please fix the errors in red before submitting.');
           } else {
-            form.save();
+            form?.save();
             var result = await _deviceCalendarPlugin.createCalendar(
               _calendarName,
-              calendarColor: _colorChoice.value,
+              calendarColor: _colorChoice?.value,
               localAccountName: _localAccountName,
             );
 
@@ -101,11 +100,13 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
             }
           }
         },
+        child: Icon(Icons.check),
       ),
     );
   }
 
-  String _validateCalendarName(String value) {
+  String? _validateCalendarName(String? value) {
+    if(value == null) return null;
     if (value.isEmpty) {
       return 'Calendar name is required.';
     }
@@ -114,7 +115,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
   }
 
   void showInSnackBar(String value) {
-    _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(value)));
+    _scaffoldKey.currentState?.showSnackBar(SnackBar(content: Text(value)));
   }
 }
 

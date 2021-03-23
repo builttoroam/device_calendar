@@ -8,7 +8,7 @@ dependencies:
     sdk: flutter
   meta: ^1.1.8
   collection: ^1.4.11
-  sprintf: ^4.0.2
+  sprintf: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -30,5 +30,5 @@ flutter:
         pluginClass: DeviceCalendarPlugin
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
   flutter: ">=1.12.13 <2.0.0"

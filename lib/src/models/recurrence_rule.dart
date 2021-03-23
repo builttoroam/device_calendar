@@ -4,28 +4,28 @@ import '../common/error_messages.dart';
 import '../common/recurrence_frequency.dart';
 
 class RecurrenceRule {
-  int totalOccurrences;
+  int? totalOccurrences;
 
   /// The interval between instances of a recurring event
-  int interval;
+  int? interval;
 
   /// The date a series of recurring events should end
-  DateTime endDate;
+  DateTime? endDate;
 
   /// The frequency of recurring events
-  RecurrenceFrequency recurrenceFrequency;
+  RecurrenceFrequency? recurrenceFrequency;
 
   /// The days of the week that this event occurs on. Only applicable to recurrence rules with a weekly, monthly or yearly frequency
-  List<DayOfWeek> daysOfWeek;
+  List<DayOfWeek>? daysOfWeek = [];
 
   /// A day of the month that this event occurs on. Only applicable to recurrence rules with a monthly or yearly frequency
-  int dayOfMonth;
+  int? dayOfMonth;
 
   /// A month of the year that the event occurs on. Only applicable to recurrence rules with a yearly frequency
-  MonthOfYear monthOfYear;
+  MonthOfYear? monthOfYear;
 
   /// Filters which recurrences to include in the recurrence rule’s frequency. Only applicable when _isByDayOfMonth is false
-  WeekNumber weekOfMonth;
+  WeekNumber? weekOfMonth;
 
   final String _totalOccurrencesKey = 'totalOccurrences';
   final String _recurrenceFrequencyKey = 'recurrenceFrequency';
@@ -47,14 +47,13 @@ class RecurrenceRule {
       : assert(!(endDate != null && totalOccurrences != null),
             'Cannot specify both an end date and total occurrences for a recurring event');
 
-  RecurrenceRule.fromJson(Map<String, dynamic> json) {
+  RecurrenceRule.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
 
-    int recurrenceFrequencyIndex = json[_recurrenceFrequencyKey];
-    if (recurrenceFrequencyIndex == null &&
-        recurrenceFrequencyIndex >= RecurrenceFrequency.values.length) {
+    int? recurrenceFrequencyIndex = json[_recurrenceFrequencyKey];
+    if (recurrenceFrequencyIndex == null || recurrenceFrequencyIndex >= RecurrenceFrequency.values.length) {
       throw ArgumentError(ErrorMessages.invalidRecurrencyFrequency);
     }
     recurrenceFrequency = RecurrenceFrequency.values[recurrenceFrequencyIndex];
@@ -63,13 +62,13 @@ class RecurrenceRule {
 
     interval = json[_intervalKey];
 
-    int endDateMillisecondsSinceEpoch = json[_endDateKey];
+    int? endDateMillisecondsSinceEpoch = json[_endDateKey];
     if (endDateMillisecondsSinceEpoch != null) {
       endDate =
           DateTime.fromMillisecondsSinceEpoch(endDateMillisecondsSinceEpoch);
     }
 
-    List<Object> daysOfWeekValues = json[_daysOfWeekKey];
+    List<Object>? daysOfWeekValues = json[_daysOfWeekKey];
     if (daysOfWeekValues != null && daysOfWeekValues is! List<int>) {
       daysOfWeek = daysOfWeekValues
           .cast<int>()
@@ -84,7 +83,7 @@ class RecurrenceRule {
         convertDynamicToInt(json[_weekOfMonthKey])?.getWeekNumberEnumValue;
   }
 
-  int convertDynamicToInt(dynamic value) {
+  int? convertDynamicToInt(dynamic value) {
     value = value?.toString();
     return value != null ? int.tryParse(value) : null;
   }
@@ -101,24 +100,24 @@ class RecurrenceRule {
     }
 
     if (endDate != null) {
-      data[_endDateKey] = endDate.millisecondsSinceEpoch;
+      data[_endDateKey] = endDate!.millisecondsSinceEpoch;
     }
 
-    data[_recurrenceFrequencyKey] = recurrenceFrequency.index;
+    data[_recurrenceFrequencyKey] = recurrenceFrequency?.index;
 
     if (daysOfWeek?.isNotEmpty == true) {
-      data[_daysOfWeekKey] = daysOfWeek.map((d) => d.value).toList();
+      data[_daysOfWeekKey] = daysOfWeek!.map((d) => d.value).toList();
     }
 
     if (monthOfYear != null &&
         recurrenceFrequency == RecurrenceFrequency.Yearly) {
-      data[_monthOfYearKey] = monthOfYear.value;
+      data[_monthOfYearKey] = monthOfYear!.value;
     }
 
     if (recurrenceFrequency == RecurrenceFrequency.Monthly ||
         recurrenceFrequency == RecurrenceFrequency.Yearly) {
       if (weekOfMonth != null) {
-        data[_weekOfMonthKey] = weekOfMonth.value;
+        data[_weekOfMonthKey] = weekOfMonth!.value;
       } else {
         // Days of the month should not be added to the recurrence parameter when WeekOfMonth is used
         if (dayOfMonth != null) {

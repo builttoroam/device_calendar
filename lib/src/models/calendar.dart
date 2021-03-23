@@ -1,25 +1,25 @@
 /// A calendar on the user's device
 class Calendar {
   /// Read-only. The unique identifier for this calendar
-  String id;
+  String? id;
 
   /// The name of this calendar
-  String name;
+  String? name;
 
   /// Read-only. If the calendar is read-only
-  bool isReadOnly;
+  bool? isReadOnly;
 
   /// Read-only. If the calendar is the default
-  bool isDefault;
+  bool? isDefault;
 
   /// Read-only. Color of the calendar
-  int color;
+  int? color;
 
   // Read-only. Account name associated with the calendar
-  String accountName;
+  String? accountName;
 
   // Read-only. Account type associated with the calendar
-  String accountType;
+  String? accountType;
 
   Calendar(
       {this.id,

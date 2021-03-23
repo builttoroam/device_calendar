@@ -3,7 +3,7 @@ import 'package:device_calendar/device_calendar.dart';
 
 class EventRemindersPage extends StatefulWidget {
   final List<Reminder> _reminders;
-  EventRemindersPage(this._reminders, {Key key}) : super(key: key);
+  EventRemindersPage(this._reminders, {Key? key}) : super(key: key);
 
   @override
   _EventRemindersPageState createState() =>
@@ -11,7 +11,7 @@ class EventRemindersPage extends StatefulWidget {
 }
 
 class _EventRemindersPageState extends State<EventRemindersPage> {
-  List<Reminder> _reminders;
+  List<Reminder> _reminders = [];
   final _formKey = GlobalKey<FormState>();
   final _minutesController = TextEditingController();
 
@@ -55,9 +55,8 @@ class _EventRemindersPageState extends State<EventRemindersPage> {
                     ),
                   ),
                   RaisedButton(
-                    child: Text('Add'),
                     onPressed: () {
-                      if (_formKey.currentState.validate()) {
+                      if (_formKey.currentState!.validate()) {
                         setState(() {
                           _reminders.add(Reminder(
                               minutes: int.parse(_minutesController.text)));
@@ -65,6 +64,7 @@ class _EventRemindersPageState extends State<EventRemindersPage> {
                         });
                       }
                     },
+                    child: Text('Add'),
                   ),
                 ],
               ),
