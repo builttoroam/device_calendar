@@ -112,8 +112,7 @@ class Event {
       var attendee = attendees?.firstWhere(
           (at) =>
               at?.name == organiser.name &&
-              at?.emailAddress == organiser.emailAddress,
-          orElse: () => null);
+              at?.emailAddress == organiser.emailAddress);
       if (attendee != null) {
         attendee.isOrganiser = true;
       }

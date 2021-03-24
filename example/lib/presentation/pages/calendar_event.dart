@@ -95,8 +95,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
       if (_isRecurringEvent) {
         _interval = _event!.recurrenceRule!.interval!;
-        _totalOccurrences = _event!.recurrenceRule!.totalOccurrences!;
-        _recurrenceFrequency = _event!.recurrenceRule!.recurrenceFrequency!;
+        _totalOccurrences = _event!.recurrenceRule!.totalOccurrences;
+        _recurrenceFrequency = _event!.recurrenceRule!.recurrenceFrequency;
 
         if (_totalOccurrences != null) {
           _recurrenceRuleEndType = RecurrenceRuleEndType.MaxOccurrences;

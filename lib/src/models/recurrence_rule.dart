@@ -68,7 +68,7 @@ class RecurrenceRule {
           DateTime.fromMillisecondsSinceEpoch(endDateMillisecondsSinceEpoch);
     }
 
-    List<Object>? daysOfWeekValues = json[_daysOfWeekKey];
+    List<dynamic>? daysOfWeekValues = json[_daysOfWeekKey];
     if (daysOfWeekValues != null && daysOfWeekValues is! List<int>) {
       daysOfWeek = daysOfWeekValues
           .cast<int>()
