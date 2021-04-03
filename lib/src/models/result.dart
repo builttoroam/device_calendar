@@ -27,7 +27,7 @@ class Result<T> {
 
 class ResultError {
   final int errorCode;
-  final String? errorMessage;
+  final String errorMessage;
 
   const ResultError(this.errorCode, this.errorMessage);
 }

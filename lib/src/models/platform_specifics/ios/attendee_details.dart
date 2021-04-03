@@ -13,7 +13,7 @@ class IosAttendeeDetails {
 
   IosAttendeeDetails({this.role});
 
-  IosAttendeeDetails.fromJson(Map<String, dynamic> json) {
+  IosAttendeeDetails.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
