@@ -16,7 +16,7 @@ class RecurrenceRule {
   RecurrenceFrequency? recurrenceFrequency;
 
   /// The days of the week that this event occurs on. Only applicable to recurrence rules with a weekly, monthly or yearly frequency
-  List<DayOfWeek>? daysOfWeek;
+  List<DayOfWeek>? daysOfWeek = [];
 
   /// A day of the month that this event occurs on. Only applicable to recurrence rules with a monthly or yearly frequency
   int? dayOfMonth;
@@ -52,9 +52,8 @@ class RecurrenceRule {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
 
-    int recurrenceFrequencyIndex = json[_recurrenceFrequencyKey];
-    if (recurrenceFrequencyIndex == null &&
-        recurrenceFrequencyIndex >= RecurrenceFrequency.values.length) {
+    int? recurrenceFrequencyIndex = json[_recurrenceFrequencyKey];
+    if (recurrenceFrequencyIndex == null || recurrenceFrequencyIndex >= RecurrenceFrequency.values.length) {
       throw ArgumentError(ErrorMessages.invalidRecurrencyFrequency);
     }
     recurrenceFrequency = RecurrenceFrequency.values[recurrenceFrequencyIndex];
@@ -69,7 +68,7 @@ class RecurrenceRule {
           DateTime.fromMillisecondsSinceEpoch(endDateMillisecondsSinceEpoch);
     }
 
-    List<Object>? daysOfWeekValues = json[_daysOfWeekKey];
+    List<dynamic>? daysOfWeekValues = json[_daysOfWeekKey];
     if (daysOfWeekValues != null && daysOfWeekValues is! List<int>) {
       daysOfWeek = daysOfWeekValues
           .cast<int>()
@@ -104,7 +103,7 @@ class RecurrenceRule {
       data[_endDateKey] = endDate!.millisecondsSinceEpoch;
     }
 
-    data[_recurrenceFrequencyKey] = recurrenceFrequency!.index;
+    data[_recurrenceFrequencyKey] = recurrenceFrequency?.index;
 
     if (daysOfWeek?.isNotEmpty == true) {
       data[_daysOfWeekKey] = daysOfWeek!.map((d) => d.value).toList();
@@ -112,13 +111,13 @@ class RecurrenceRule {
 
     if (monthOfYear != null &&
         recurrenceFrequency == RecurrenceFrequency.Yearly) {
-      data[_monthOfYearKey] = monthOfYear.value;
+      data[_monthOfYearKey] = monthOfYear!.value;
     }
 
     if (recurrenceFrequency == RecurrenceFrequency.Monthly ||
         recurrenceFrequency == RecurrenceFrequency.Yearly) {
       if (weekOfMonth != null) {
-        data[_weekOfMonthKey] = weekOfMonth.value;
+        data[_weekOfMonthKey] = weekOfMonth!.value;
       } else {
         // Days of the month should not be added to the recurrence parameter when WeekOfMonth is used
         if (dayOfMonth != null) {
