@@ -17,7 +17,7 @@ class Attendee {
   AttendeeRole? role;
 
   /// Read-only. Returns true if the attendee is an organiser, else false
-  bool? isOrganiser = false;
+  bool isOrganiser = false;
 
   /// Details about the attendee that are specific to iOS.
   /// When reading details for an existing event, this will only be populated on iOS devices.

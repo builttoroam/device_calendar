@@ -13,9 +13,9 @@ class AndroidAttendeeDetails {
   /// The attendee's status for the event. This is read-only
   AndroidAttendanceStatus? get attendanceStatus => _attendanceStatus;
 
-  AndroidAttendeeDetails({required this.role});
+  AndroidAttendeeDetails({@required this.role});
 
-  AndroidAttendeeDetails.fromJson(Map<String, dynamic> json) {
+  AndroidAttendeeDetails.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }

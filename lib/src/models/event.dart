@@ -2,7 +2,6 @@ import '../../device_calendar.dart';
 import '../common/calendar_enums.dart';
 import '../common/error_messages.dart';
 import 'attendee.dart';
-import 'package:collection/collection.dart' show IterableExtension;
 import 'recurrence_rule.dart';
 
 /// An event associated with a calendar
@@ -43,7 +42,7 @@ class Event {
   Uri? url;
 
   /// A list of attendees for this event
-  List<Attendee>? attendees;
+  List<Attendee?>? attendees;
 
   /// The recurrence rule for this event
   RecurrenceRule? recurrenceRule;
@@ -68,7 +67,7 @@ class Event {
       this.availability,
       this.allDay = false});
 
-  Event.fromJson(Map<String, dynamic> json) {
+  Event.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
@@ -95,7 +94,7 @@ class Event {
     if (foundUrl?.isEmpty ?? true) {
       url = null;
     } else {
-      url = Uri.dataFromString(foundUrl!);
+      url = Uri.dataFromString(foundUrl as String);
     }
 
     if (json['attendees'] != null) {
@@ -110,10 +109,10 @@ class Event {
       // Getting and setting an organiser for iOS
       var organiser = Attendee.fromJson(json['organizer']);
 
-      var attendee = attendees!.firstWhereOrNull(
+      var attendee = attendees?.firstWhere(
           (at) =>
-              at.name == organiser.name &&
-              at.emailAddress == organiser.emailAddress);
+              at?.name == organiser.name &&
+              at?.emailAddress == organiser.emailAddress);
       if (attendee != null) {
         attendee.isOrganiser = true;
       }
@@ -132,45 +131,38 @@ class Event {
     data['eventId'] = eventId;
     data['eventTitle'] = title;
     data['eventDescription'] = description;
-    data['eventStartDate'] = start!.millisecondsSinceEpoch;
-    data['eventEndDate'] = end!.millisecondsSinceEpoch;
+    data['eventStartDate'] = start?.millisecondsSinceEpoch;
+    data['eventEndDate'] = end?.millisecondsSinceEpoch;
     data['eventStartTimeZone'] = startTimeZone;
     data['eventEndTimeZone'] = endTimeZone;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
     data['eventURL'] = url?.data?.contentText;
-    data['availability'] = availability.enumToString;
+    data['availability'] = availability?.enumToString;
 
     if (attendees != null) {
-      data['attendees'] = attendees!.map((a) => a.toJson()).toList();
+      data['attendees'] = attendees?.map((a) => a?.toJson()).toList();
     }
     if (recurrenceRule != null) {
-      data['recurrenceRule'] = recurrenceRule!.toJson();
+      data['recurrenceRule'] = recurrenceRule?.toJson();
     }
     if (reminders != null) {
-      data['reminders'] = reminders!.map((r) => r.toJson()).toList();
+      data['reminders'] = reminders?.map((r) => r.toJson()).toList();
     }
 
     return data;
   }
 
-  Availability? parseStringToAvailability(String? value) {
+  Availability? parseStringToAvailability(String value) {
     switch (value) {
       case 'BUSY':
         return Availability.Busy;
-        break;
-
       case 'FREE':
         return Availability.Free;
-        break;
-
       case 'TENTATIVE':
         return Availability.Tentative;
-        break;
-
       case 'UNAVAILABLE':
         return Availability.Unavailable;
-        break;
     }
     return null;
   }

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'calendar_events.dart';
 
 class CalendarsPage extends StatefulWidget {
-  CalendarsPage({Key key}) : super(key: key);
+  CalendarsPage({Key? key}) : super(key: key);
 
   @override
   _CalendarsPageState createState() {
@@ -15,16 +15,15 @@ class CalendarsPage extends StatefulWidget {
 }
 
 class _CalendarsPageState extends State<CalendarsPage> {
-  DeviceCalendarPlugin _deviceCalendarPlugin;
-  List<Calendar> _calendars;
+  late DeviceCalendarPlugin _deviceCalendarPlugin;
+  List<Calendar> _calendars = [];
   List<Calendar> get _writableCalendars =>
-      _calendars?.where((c) => !c.isReadOnly)?.toList() ?? <Calendar>[];
+      _calendars.where((c) => c.isReadOnly == false).toList();
 
   List<Calendar> get _readOnlyCalendars =>
-      _calendars?.where((c) => c.isReadOnly)?.toList() ?? <Calendar>[];
+      _calendars.where((c) => c.isReadOnly == true).toList();
 
   _CalendarsPageState() {
-    DeviceCalendarPlugin _deviceCalendarPlugin;
     _deviceCalendarPlugin = DeviceCalendarPlugin();
   }
 
@@ -55,10 +54,10 @@ class _CalendarsPageState extends State<CalendarsPage> {
           Expanded(
             flex: 1,
             child: ListView.builder(
-              itemCount: _calendars?.length ?? 0,
+              itemCount: _calendars.length,
               itemBuilder: (BuildContext context, int index) {
                 return GestureDetector(
-                  key: Key(_calendars[index].isReadOnly
+                  key: Key(_calendars[index].isReadOnly == true
                       ? 'readOnlyCalendar${_readOnlyCalendars.indexWhere((c) => c.id == _calendars[index].id)}'
                       : 'writableCalendar${_writableCalendars.indexWhere((c) => c.id == _calendars[index].id)}'),
                   onTap: () async {
@@ -75,7 +74,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
                         Expanded(
                           flex: 1,
                           child: Text(
-                            _calendars[index].name,
+                            _calendars[index].name!,
                             style: Theme.of(context).textTheme.subtitle1,
                           ),
                         ),
@@ -84,7 +83,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
                           height: 15,
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Color(_calendars[index].color)),
+                              color: Color(_calendars[index].color!)),
                         ),
                         SizedBox(width: 10),
                         Container(
@@ -94,7 +93,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
                               border: Border.all(color: Colors.blueAccent)),
                           child: Text('Default'),
                         ),
-                        Icon(_calendars[index].isReadOnly
+                        Icon(_calendars[index].isReadOnly == true
                             ? Icons.lock
                             : Icons.lock_open)
                       ],
@@ -125,16 +124,16 @@ class _CalendarsPageState extends State<CalendarsPage> {
   void _retrieveCalendars() async {
     try {
       var permissionsGranted = await _deviceCalendarPlugin.hasPermissions();
-      if (permissionsGranted.isSuccess && !permissionsGranted.data) {
+      if (permissionsGranted.isSuccess && permissionsGranted.data == null) {
         permissionsGranted = await _deviceCalendarPlugin.requestPermissions();
-        if (!permissionsGranted.isSuccess || !permissionsGranted.data) {
+        if (!permissionsGranted.isSuccess || permissionsGranted.data != null) {
           return;
         }
       }
 
       final calendarsResult = await _deviceCalendarPlugin.retrieveCalendars();
       setState(() {
-        _calendars = calendarsResult?.data;
+        _calendars = calendarsResult.data as List<Calendar>;
       });
     } on PlatformException catch (e) {
       print(e);

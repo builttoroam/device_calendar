@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
   final channel =
       const MethodChannel('plugins.builttoroam.com/device_calendar');
   var deviceCalendarPlugin = DeviceCalendarPlugin();
@@ -55,15 +54,14 @@ void main() {
     expect(result.errors, isEmpty);
     expect(result.data, isNotNull);
     expect(result.data, isNotEmpty);
-    expect(result.data![0].name, fakeCalendarName);
+    expect(result.data?[0].name, fakeCalendarName);
   });
 
   test('RetrieveEvents_CalendarId_IsRequired', () async {
     final String? calendarId = null;
     final params = RetrieveEventsParams();
 
-    final result =
-        await deviceCalendarPlugin.retrieveEvents(calendarId, params);
+    final result = await deviceCalendarPlugin.retrieveEvents(calendarId, params);
     expect(result.isSuccess, false);
     expect(result.errors.length, greaterThan(0));
     expect(result.errors[0], contains(ErrorCodes.invalidArguments.toString()));
@@ -107,9 +105,9 @@ void main() {
     final event = Event(fakeCalendarId);
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
-    expect(result.isSuccess, false);
-    expect(result.errors, isNotEmpty);
-    expect(result.errors[0], contains(ErrorCodes.invalidArguments.toString()));
+    expect(result?.isSuccess, false);
+    expect(result?.errors, isNotEmpty);
+    expect(result?.errors[0], contains(ErrorCodes.invalidArguments.toString()));
   });
 
   test('CreateEvent_Returns_Successfully', () async {
@@ -122,13 +120,13 @@ void main() {
     final event = Event(fakeCalendarId);
     event.title = 'fakeEventTitle';
     event.start = DateTime.now();
-    event.end = event.start!.add(Duration(hours: 1));
+    event.end = event.start?.add(Duration(hours: 1));
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
-    expect(result.isSuccess, true);
-    expect(result.errors, isEmpty);
-    expect(result.data, isNotEmpty);
-    expect(result.data, fakeNewEventId);
+    expect(result?.isSuccess, true);
+    expect(result?.errors, isEmpty);
+    expect(result?.data, isNotEmpty);
+    expect(result?.data, fakeNewEventId);
   });
 
   test('UpdateEvent_Returns_Successfully', () async {
@@ -147,12 +145,12 @@ void main() {
     event.eventId = 'fakeEventId';
     event.title = 'fakeEventTitle';
     event.start = DateTime.now();
-    event.end = event.start!.add(Duration(hours: 1));
+    event.end = event.start?.add(Duration(hours: 1));
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
-    expect(result.isSuccess, true);
-    expect(result.errors, isEmpty);
-    expect(result.data, isNotEmpty);
-    expect(result.data, fakeNewEventId);
+    expect(result?.isSuccess, true);
+    expect(result?.errors, isEmpty);
+    expect(result?.data, isNotEmpty);
+    expect(result?.data, fakeNewEventId);
   });
 }

@@ -118,8 +118,8 @@ extension DaysOfWeekGroupExtension on DayOfWeekGroup {
   String get enumToString => _enumToString(this);
 }
 
-extension MonthOfYearExtension on MonthOfYear? {
-  static int _value(MonthOfYear? val) {
+extension MonthOfYearExtension on MonthOfYear {
+  static int _value(MonthOfYear val) {
     switch (val) {
       case MonthOfYear.January:
         return 1;
@@ -150,7 +150,7 @@ extension MonthOfYearExtension on MonthOfYear? {
     }
   }
 
-  String _enumToString(MonthOfYear? enumValue) {
+  String _enumToString(MonthOfYear enumValue) {
     return enumValue.toString().split('.').last;
   }
 
@@ -158,8 +158,8 @@ extension MonthOfYearExtension on MonthOfYear? {
   String get enumToString => _enumToString(this);
 }
 
-extension WeekNumberExtension on WeekNumber? {
-  static int _value(WeekNumber? val) {
+extension WeekNumberExtension on WeekNumber {
+  static int _value(WeekNumber val) {
     switch (val) {
       case WeekNumber.First:
         return 1;
@@ -176,7 +176,7 @@ extension WeekNumberExtension on WeekNumber? {
     }
   }
 
-  String _enumToString(WeekNumber? enumValue) {
+  String _enumToString(WeekNumber enumValue) {
     return enumValue.toString().split('.').last;
   }
 
@@ -267,24 +267,19 @@ extension RoleExtensions on AttendeeRole {
   String get enumToString => _enumToString(this);
 }
 
-extension AvailabilityExtensions on Availability? {
-  String? _enumToString(Availability? enumValue) {
+extension AvailabilityExtensions on Availability {
+  String _enumToString(Availability enumValue) {
     switch (enumValue) {
       case Availability.Busy:
         return 'BUSY';
-        break;
       case Availability.Free:
         return 'FREE';
-        break;
       case Availability.Tentative:
         return 'TENTATIVE';
-        break;
       case Availability.Unavailable:
         return 'UNAVAILABLE';
-        break;
     }
-    return null;
   }
 
-  String? get enumToString => _enumToString(this);
+  String get enumToString => _enumToString(this);
 }
