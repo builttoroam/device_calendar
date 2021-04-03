@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -7,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'recurring_event_dialog.dart';
 
 class EventItem extends StatelessWidget {
-  final Event _calendarEvent;
+  final Event? _calendarEvent;
   final DeviceCalendarPlugin _deviceCalendarPlugin;
   final bool _isReadOnly;
 
@@ -27,10 +25,9 @@ class EventItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(_calendarEvent.title);
     return GestureDetector(
       onTap: () {
-        _onTapped(_calendarEvent);
+        if(_calendarEvent != null) _onTapped(_calendarEvent as Event);
       },
       child: Card(
         child: Column(
@@ -41,8 +38,8 @@ class EventItem extends StatelessWidget {
               child: FlutterLogo(),
             ),
             ListTile(
-                title: Text(_calendarEvent.title ?? ''),
-                subtitle: Text(_calendarEvent.description ?? '')),
+                title: Text(_calendarEvent?.title ?? ''),
+                subtitle: Text(_calendarEvent?.description ?? '')),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
@@ -57,7 +54,9 @@ class EventItem extends StatelessWidget {
                         ),
                         Text(_calendarEvent == null
                             ? ''
-                            : _formatDateTime(dateTime: _calendarEvent.start)),
+                            : DateFormat.yMd()
+                                .add_jm()
+                                .format(_calendarEvent?.start as DateTime)),
                       ],
                     ),
                   ),
@@ -72,10 +71,11 @@ class EventItem extends StatelessWidget {
                           width: _eventFieldNameWidth,
                           child: Text('Ends'),
                         ),
-                        Text(_calendarEvent.end == null
+                        Text(_calendarEvent?.end == null
                             ? ''
-                            : _formatDateTime(
-                                dateTime: _calendarEvent.end, isEndDate: true)),
+                            : DateFormat.yMd()
+                                .add_jm()
+                                .format(_calendarEvent?.end as DateTime)),
                       ],
                     ),
                   ),
@@ -90,8 +90,8 @@ class EventItem extends StatelessWidget {
                           width: _eventFieldNameWidth,
                           child: Text('All day?'),
                         ),
-                        Text(_calendarEvent.allDay != null &&
-                                _calendarEvent.allDay
+                        Text(_calendarEvent?.allDay != null &&
+                                _calendarEvent?.allDay == true
                             ? 'Yes'
                             : 'No')
                       ],
@@ -150,11 +150,8 @@ class EventItem extends StatelessWidget {
                         ),
                         Expanded(
                           child: Text(
-                            _calendarEvent?.attendees
-                                    ?.where((a) => a.name?.isNotEmpty ?? false)
-                                    ?.map((a) => a.name)
-                                    ?.join(', ') ??
-                                '',
+                            _calendarEvent?.attendees?.where((a) => a?.name?.isNotEmpty ?? false).map((a) => a?.name).join(', ')
+                             ?? '',
                             overflow: TextOverflow.ellipsis,
                           ),
                         )
@@ -174,7 +171,7 @@ class EventItem extends StatelessWidget {
                         ),
                         Expanded(
                           child: Text(
-                            _calendarEvent?.availability.enumToString ?? '',
+                            _calendarEvent?.availability?.enumToString ?? '',
                             overflow: TextOverflow.ellipsis,
                           ),
                         )
@@ -189,7 +186,7 @@ class EventItem extends StatelessWidget {
                 if (!_isReadOnly) ...[
                   IconButton(
                     onPressed: () {
-                      _onTapped(_calendarEvent);
+                      if(_calendarEvent != null) _onTapped(_calendarEvent as Event);
                     },
                     icon: Icon(Icons.edit),
                   ),
@@ -199,36 +196,37 @@ class EventItem extends StatelessWidget {
                         context: context,
                         barrierDismissible: false,
                         builder: (BuildContext context) {
-                          if (_calendarEvent.recurrenceRule == null) {
+                          if (_calendarEvent?.recurrenceRule == null) {
                             return AlertDialog(
                               title: Text(
                                   'Are you sure you want to delete this event?'),
                               actions: [
-                                FlatButton(
+                                TextButton(
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                   },
                                   child: Text('Cancel'),
                                 ),
-                                FlatButton(
+                                TextButton(
                                   onPressed: () async {
                                     Navigator.of(context).pop();
                                     _onLoadingStarted();
                                     final deleteResult =
                                         await _deviceCalendarPlugin.deleteEvent(
-                                            _calendarEvent.calendarId,
-                                            _calendarEvent.eventId);
+                                            _calendarEvent?.calendarId,
+                                            _calendarEvent?.eventId);
                                     _onDeleteFinished(deleteResult.isSuccess &&
-                                        deleteResult.data);
+                                        deleteResult.data != null);
                                   },
                                   child: Text('Delete'),
                                 ),
                               ],
                             );
                           } else {
+                            if(_calendarEvent == null) return SizedBox();
                             return RecurringEventDialog(
                                 _deviceCalendarPlugin,
-                                _calendarEvent,
+                                _calendarEvent!,
                                 _onLoadingStarted,
                                 _onDeleteFinished);
                           }
@@ -240,7 +238,7 @@ class EventItem extends StatelessWidget {
                 ] else ...[
                   IconButton(
                     onPressed: () {
-                      _onTapped(_calendarEvent);
+                      if(_calendarEvent != null) _onTapped(_calendarEvent!);
                     },
                     icon: Icon(Icons.remove_red_eye),
                   ),
@@ -251,38 +249,5 @@ class EventItem extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  /// Formats [dateTime] into a human-readable string.
-  /// If [_calendarEvent] is an allDay event, then the output will omit the time.
-  /// For Android allDay events, the Calendar Provider returns the time
-  /// adjusted into local time, which may change the date. In that case
-  /// (Android allDay event), the time is adjusted back to UTC before
-  /// formatting the date.
-  /// Also, for Android allDay events, the End Date falls on midnight at the
-  /// beginning of the day after the End Date, so this function subtracts a
-  /// day before printing the date when [isEndDate] = true
-  String _formatDateTime({DateTime dateTime, bool isEndDate = false}) {
-    if (dateTime == null) {
-      return 'Error';
-    }
-    var output = '';
-    if (Platform.isAndroid &&
-        _calendarEvent.allDay != null &&
-        _calendarEvent.allDay) {
-      var offset = dateTime.timeZoneOffset.inMilliseconds;
-      // subtract the offset to get back to midnight on the correct date
-      dateTime = dateTime.subtract(Duration(milliseconds: offset));
-      if (isEndDate) {
-        // The Event End Date for allDay events is midnight of the next day, so
-        // subtract one day
-        dateTime = dateTime.subtract(Duration(days: 1));
-      }
-      // just the dates, no times
-      output = DateFormat.yMd().format(dateTime);
-    } else {
-      output = DateFormat.yMd().add_jm().format(dateTime);
-    }
-    return output;
   }
 }

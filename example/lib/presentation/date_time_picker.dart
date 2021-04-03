@@ -7,7 +7,7 @@ import 'input_dropdown.dart';
 
 class DateTimePicker extends StatelessWidget {
   const DateTimePicker(
-      {Key key,
+      {Key? key,
       this.labelText,
       this.selectedDate,
       this.selectedTime,
@@ -16,26 +16,26 @@ class DateTimePicker extends StatelessWidget {
       this.enableTime = true})
       : super(key: key);
 
-  final String labelText;
-  final DateTime selectedDate;
-  final TimeOfDay selectedTime;
-  final ValueChanged<DateTime> selectDate;
-  final ValueChanged<TimeOfDay> selectTime;
+  final String? labelText;
+  final DateTime? selectedDate;
+  final TimeOfDay? selectedTime;
+  final ValueChanged<DateTime>? selectDate;
+  final ValueChanged<TimeOfDay>? selectTime;
   final bool enableTime;
 
   Future<Null> _selectDate(BuildContext context) async {
     final picked = await showDatePicker(
         context: context,
-        initialDate: selectedDate,
+        initialDate: selectedDate != null ? selectDate as DateTime : DateTime.now(),
         firstDate: DateTime(2015, 8),
         lastDate: DateTime(2101));
-    if (picked != null && picked != selectedDate) selectDate(picked);
+    if (picked != null && picked != selectedDate && selectDate != null) selectDate!(picked);
   }
 
   Future<Null> _selectTime(BuildContext context) async {
-    final picked =
-        await showTimePicker(context: context, initialTime: selectedTime);
-    if (picked != null && picked != selectedTime) selectTime(picked);
+    if(selectedTime == null) return;
+    final picked = await showTimePicker(context: context, initialTime: selectedTime!);
+    if (picked != null && picked != selectedTime) selectTime!(picked);
   }
 
   @override
@@ -50,7 +50,7 @@ class DateTimePicker extends StatelessWidget {
             labelText: labelText,
             valueText: selectedDate == null
                 ? ''
-                : DateFormat.yMMMd().format(selectedDate),
+                : DateFormat.yMMMd().format(selectedDate as DateTime),
             valueStyle: valueStyle,
             onPressed: () {
               _selectDate(context);
