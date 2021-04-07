@@ -29,17 +29,20 @@ The following will need to be added to the manifest file for your application to
 <uses-permission android:name="android.permission.READ_CALENDAR" />
 <uses-permission android:name="android.permission.WRITE_CALENDAR" />
 ```
+### Proguard / R8 exceptions
+By default, all android apps go through R8 for file shrinking when building a release version. Currently, it interferes with some functions such as `retrieveCalendars()`.
 
-If you have Proguard enabled, you may need to add the following to your configuration (thanks to [Britannio Jarrett](https://github.com/britannio) who posted about it [here](https://github.com/builttoroam/device_calendar/issues/99))
+You may add the following setting to the ProGuard rules file (thanks to [Britannio Jarrett](https://github.com/britannio)). Read more about the issue [here](https://github.com/builttoroam/device_calendar/issues/99)
 
 ```
 -keep class com.builttoroam.devicecalendar.** { *; }
 ```
 
-If you want to enable Proguard, please refer to the guide at [Android Developer](https://developer.android.com/studio/build/shrink-code) page
+See [here](https://github.com/builttoroam/device_calendar/issues/99#issuecomment-612449677) for an example setup.
 
-If you consider to publish the app and build a release version you have to enable Proguard. Follow these steps: [here](https://github.com/builttoroam/device_calendar/issues/99#issuecomment-612449677).
+For more information, refer to the guide at [Android Developer](https://developer.android.com/studio/build/shrink-code#keep-code)
 
+### AndroidX migration
 **IMPORTANT**: Since version 0.1.0, this version has migrated to use AndroidX instead of the deprecated Android support libraries. When using version 0.10.0 and onwards for this plugin, please ensure your application has been migrated following the guide [here](https://developer.android.com/jetpack/androidx/migrate)
 
 ## iOS Integration
