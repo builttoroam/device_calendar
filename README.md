@@ -6,20 +6,27 @@ A cross platform plugin for modifying calendars on the user's device.
 
 ## Features
 
-* Ability to request permissions to modify calendars on the user's device
-* Ability to check if permissions to modify the calendars on the user's device have been granted
-* Ability to add or retrieve calendars on the user's device
+* Request permissions to modify calendars on the user's device
+* Check if permissions to modify the calendars on the user's device have been granted
+* Add or retrieve calendars on the user's device
 * Retrieve events associated with a calendar
-* Ability to add, update or delete events from a calendar
-* Ability to set up, edit or delete recurring events
+* Add, update or delete events from a calendar
+* Set up, edit or delete recurring events
   * **NOTE**: Editing a recurring event will currently edit all instances of it
   * **NOTE**: Deleting multiple instances in **Android** takes time to update, you'll see the changes after a few seconds
-* Ability to add, modify or remove attendees and receive if an attendee is an organiser for an event
-* Ability to setup reminders for an event
-* Ability to specify a time zone for event start and end date
+* Add, modify or remove attendees and receive if an attendee is an organiser for an event
+* Setup reminders for an event
+* Specify a time zone for event start and end date
   * **NOTE**: Due to a limitation of iOS API, single time zone property is used for iOS (`event.startTimeZone`)
   * **NOTE**: For the time zone list, please refer to the `TZ database name` column on [Wikipedia](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
   * **NOTE**: If the time zone values are null or invalid, it will be defaulted to the device's current time zone.
+
+## Null migration
+
+From v4.0.0, device_calendar fits null safety. However, not all workflow had been checked and bugs from 3.2 still presists.
+
+You are strongly advised to test your workflow with the new package before shipping. 
+Better yet, please leave a note for what works and what doesn't, or contribute some bug fixes!
 
 ## Android Integration
 
