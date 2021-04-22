@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.0
+
+* Migrated to null safety
+
 ## 3.2.0
 
 * Added time zone support
