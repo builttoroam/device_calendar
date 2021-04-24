@@ -272,18 +272,13 @@ extension AvailabilityExtensions on Availability {
     switch (enumValue) {
       case Availability.Busy:
         return 'BUSY';
-        break;
       case Availability.Free:
         return 'FREE';
-        break;
       case Availability.Tentative:
         return 'TENTATIVE';
-        break;
       case Availability.Unavailable:
         return 'UNAVAILABLE';
-        break;
     }
-    return null;
   }
 
   String get enumToString => _enumToString(this);

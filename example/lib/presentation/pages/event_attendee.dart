@@ -2,26 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:device_calendar/device_calendar.dart';
 
 class EventAttendeePage extends StatefulWidget {
-  final Attendee attendee;
-  const EventAttendeePage({Key key, this.attendee}) : super(key: key);
+  final Attendee? attendee;
+  const EventAttendeePage({Key? key, this.attendee}) : super(key: key);
 
   @override
   _EventAttendeePageState createState() => _EventAttendeePageState(attendee);
 }
 
 class _EventAttendeePageState extends State<EventAttendeePage> {
-  Attendee _attendee;
+  Attendee? _attendee;
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailAddressController = TextEditingController();
   var _role = AttendeeRole.None;
 
-  _EventAttendeePageState(Attendee attendee) {
+  _EventAttendeePageState(Attendee? attendee) {
     if (attendee != null) {
       _attendee = attendee;
-      _nameController.text = _attendee.name;
-      _emailAddressController.text = _attendee.emailAddress;
-      _role = _attendee.role;
+      _nameController.text = _attendee!.name!;
+      _emailAddressController.text = _attendee!.emailAddress!;
+      _role = _attendee!.role!;
     }
   }
 
@@ -37,7 +37,7 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_attendee != null
-            ? 'Edit attendee ${_attendee.name}'
+            ? 'Edit attendee ${_attendee!.name}'
             : 'Add an Attendee'),
       ),
       body: Column(
@@ -80,7 +80,7 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
                   trailing: DropdownButton<AttendeeRole>(
                     onChanged: (value) {
                       setState(() {
-                        _role = value;
+                        _role = value as AttendeeRole;
                       });
                     },
                     value: _role,
@@ -95,10 +95,9 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
               ],
             ),
           ),
-          RaisedButton(
-            child: Text(_attendee != null ? 'Update' : 'Add'),
+          ElevatedButton(
             onPressed: () {
-              if (_formKey.currentState.validate()) {
+              if (_formKey.currentState!.validate()) {
                 setState(() {
                   _attendee = Attendee(
                     name: _nameController.text,
@@ -112,6 +111,7 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
                 Navigator.pop(context, _attendee);
               }
             },
+            child: Text(_attendee != null ? 'Update' : 'Add'),
           )
         ],
       ),

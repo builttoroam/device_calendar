@@ -5,17 +5,17 @@ import '../../../common/error_messages.dart';
 import 'attendance_status.dart';
 
 class AndroidAttendeeDetails {
-  AndroidAttendanceStatus _attendanceStatus;
+  AndroidAttendanceStatus? _attendanceStatus;
 
   /// An attendee role: None, Optional, Required or Resource
-  AttendeeRole role;
+  AttendeeRole? role;
 
   /// The attendee's status for the event. This is read-only
-  AndroidAttendanceStatus get attendanceStatus => _attendanceStatus;
+  AndroidAttendanceStatus? get attendanceStatus => _attendanceStatus;
 
   AndroidAttendeeDetails({@required this.role});
 
-  AndroidAttendeeDetails.fromJson(Map<String, dynamic> json) {
+  AndroidAttendeeDetails.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }

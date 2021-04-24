@@ -21,7 +21,7 @@ class Result<T> {
     return errors.isNotEmpty;
   }
 
-  T data;
+  T? data;
   List<ResultError> errors = <ResultError>[];
 }
 
