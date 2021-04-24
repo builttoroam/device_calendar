@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.0.0
+
+* Migrated to null safety
+* Updated multiple underlying dependencies
+* Rebuilt iOS podfile
+* Upgraded to new Android plugins APIs for flutter
+
 ## 3.2.0
 
 * Added time zone support

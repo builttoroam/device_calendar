@@ -8,24 +8,24 @@ import 'platform_specifics/ios/attendee_details.dart';
 /// A person attending an event
 class Attendee {
   /// The name of the attendee
-  String name;
+  String? name;
 
   /// The email address of the attendee
-  String emailAddress;
+  String? emailAddress;
 
   /// An attendee role: None, Optional, Required or Resource
-  AttendeeRole role;
+  AttendeeRole? role;
 
   /// Read-only. Returns true if the attendee is an organiser, else false
   bool isOrganiser = false;
 
   /// Details about the attendee that are specific to iOS.
   /// When reading details for an existing event, this will only be populated on iOS devices.
-  IosAttendeeDetails iosAttendeeDetails;
+  IosAttendeeDetails? iosAttendeeDetails;
 
   /// Details about the attendee that are specific to Android.
   /// When reading details for an existing event, this will only be populated on Android devices.
-  AndroidAttendeeDetails androidAttendeeDetails;
+  AndroidAttendeeDetails? androidAttendeeDetails;
 
   Attendee(
       {this.name,
@@ -35,7 +35,7 @@ class Attendee {
       this.iosAttendeeDetails,
       this.androidAttendeeDetails});
 
-  Attendee.fromJson(Map<String, dynamic> json) {
+  Attendee.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
@@ -63,14 +63,14 @@ class Attendee {
     };
 
     if (Platform.isIOS && iosAttendeeDetails != null) {
-      data.addEntries(iosAttendeeDetails.toJson().entries);
+      data.addEntries(iosAttendeeDetails!.toJson().entries);
     }
     if (Platform.isAndroid && androidAttendeeDetails != null) {
-      data.addEntries(androidAttendeeDetails.toJson().entries);
+      data.addEntries(androidAttendeeDetails!.toJson().entries);
     }
 
     if (Platform.isIOS && iosAttendeeDetails != null) {
-      data.addEntries(iosAttendeeDetails.toJson().entries);
+      data.addEntries(iosAttendeeDetails!.toJson().entries);
     }
 
     return data;

@@ -72,8 +72,8 @@ class DeviceCalendarPlugin {
   /// Returns a [Result] containing a list [Event], that fall
   /// into the specified parameters
   Future<Result<UnmodifiableListView<Event>>> retrieveEvents(
-    String calendarId,
-    RetrieveEventsParams retrieveEventsParams,
+    String? calendarId,
+    RetrieveEventsParams? retrieveEventsParams,
   ) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameRetrieveEvents,
@@ -88,21 +88,18 @@ class DeviceCalendarPlugin {
           !((retrieveEventsParams?.eventIds?.isEmpty ?? true) &&
               ((retrieveEventsParams?.startDate == null ||
                       retrieveEventsParams?.endDate == null) ||
-                  (retrieveEventsParams.startDate != null &&
-                      retrieveEventsParams.endDate != null &&
-                      retrieveEventsParams.startDate
-                          .isAfter(retrieveEventsParams.endDate)))),
+                  (retrieveEventsParams?.startDate != null &&
+                      retrieveEventsParams?.endDate != null &&
+                      (retrieveEventsParams != null && retrieveEventsParams.startDate!.isAfter(retrieveEventsParams.endDate!))))),
           ErrorCodes.invalidArguments,
           ErrorMessages.invalidRetrieveEventsParams,
         );
       },
-      arguments: () => <String, Object>{
+      arguments: () => <String, Object?>{
         ChannelConstants.parameterNameCalendarId: calendarId,
-        ChannelConstants.parameterNameStartDate:
-            retrieveEventsParams.startDate?.millisecondsSinceEpoch,
-        ChannelConstants.parameterNameEndDate:
-            retrieveEventsParams.endDate?.millisecondsSinceEpoch,
-        ChannelConstants.parameterNameEventIds: retrieveEventsParams.eventIds,
+        ChannelConstants.parameterNameStartDate: retrieveEventsParams?.startDate?.millisecondsSinceEpoch,
+        ChannelConstants.parameterNameEndDate: retrieveEventsParams?.endDate?.millisecondsSinceEpoch,
+        ChannelConstants.parameterNameEventIds: retrieveEventsParams?.eventIds,
       },
       evaluateResponse: (rawData) => UnmodifiableListView(
         json
@@ -120,8 +117,8 @@ class DeviceCalendarPlugin {
   ///
   /// Returns a [Result] indicating if the event has (true) or has not (false) been deleted from the calendar
   Future<Result<bool>> deleteEvent(
-    String calendarId,
-    String eventId,
+    String? calendarId,
+    String? eventId,
   ) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameDeleteEvent,
@@ -138,7 +135,7 @@ class DeviceCalendarPlugin {
           ErrorMessages.deleteEventInvalidArgumentsMessage,
         );
       },
-      arguments: () => <String, Object>{
+      arguments: () => <String, Object?>{
         ChannelConstants.parameterNameCalendarId: calendarId,
         ChannelConstants.parameterNameEventId: eventId,
       },
@@ -156,10 +153,10 @@ class DeviceCalendarPlugin {
   ///
   /// Returns a [Result] indicating if the instance of the event has (true) or has not (false) been deleted from the calendar
   Future<Result<bool>> deleteEventInstance(
-    String calendarId,
-    String eventId,
-    int startDate,
-    int endDate,
+    String? calendarId,
+    String? eventId,
+    int? startDate,
+    int? endDate,
     bool deleteFollowingInstances,
   ) async {
     return _invokeChannelMethod(
@@ -177,7 +174,7 @@ class DeviceCalendarPlugin {
           ErrorMessages.deleteEventInvalidArgumentsMessage,
         );
       },
-      arguments: () => <String, Object>{
+      arguments: () => <String, Object?>{
         ChannelConstants.parameterNameCalendarId: calendarId,
         ChannelConstants.parameterNameEventId: eventId,
         ChannelConstants.parameterNameEventStartDate: startDate,
@@ -195,21 +192,20 @@ class DeviceCalendarPlugin {
   /// it should create or update the event.
   ///
   /// Returns a [Result] with the newly created or updated [Event.eventId]
-  Future<Result<String>> createOrUpdateEvent(Event event) async {
+  Future<Result<String>?> createOrUpdateEvent(Event? event) async {
+    if(event == null) return null;
     return _invokeChannelMethod(
       ChannelConstants.methodNameCreateOrUpdateEvent,
       assertParameters: (result) {
         // Setting time to 0 for all day events
         if (event.allDay == true) {
-          event.start = DateTime(
-              event.start.year, event.start.month, event.start.day, 0, 0, 0);
-          event.end =
-              DateTime(event.end.year, event.end.month, event.end.day, 0, 0, 0);
+          if(event.start != null) {event.start = DateTime(event.start!.year, event.start!.month, event.start!.day, 0, 0, 0);};
+          if(event.end != null) {event.end = DateTime(event.end!.year, event.end!.month, event.end!.day, 0, 0, 0);}
         }
 
         _assertParameter(
           result,
-          !(event.allDay == true && (event?.calendarId?.isEmpty ?? true) ||
+          !(event.allDay == true && (event.calendarId?.isEmpty ?? true) ||
               event.start == null ||
               event.end == null),
           ErrorCodes.invalidArguments,
@@ -219,10 +215,10 @@ class DeviceCalendarPlugin {
         _assertParameter(
           result,
           !(event.allDay != true &&
-              ((event?.calendarId?.isEmpty ?? true) ||
+              ((event.calendarId?.isEmpty ?? true) ||
                   event.start == null ||
                   event.end == null ||
-                  event.start.isAfter(event.end))),
+                  (event.start != null && event.end != null && event.start!.isAfter(event.end!)))),
           ErrorCodes.invalidArguments,
           ErrorMessages.createOrUpdateEventInvalidArgumentsMessage,
         );
@@ -244,9 +240,9 @@ class DeviceCalendarPlugin {
   ///
   /// Returns a [Result] with the newly created [Calendar.id]
   Future<Result<String>> createCalendar(
-    String calendarName, {
-    Color calendarColor,
-    String localAccountName,
+    String? calendarName, {
+    Color? calendarColor,
+    String? localAccountName,
   }) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameCreateCalendar,
@@ -260,12 +256,10 @@ class DeviceCalendarPlugin {
           ErrorMessages.createCalendarInvalidCalendarNameMessage,
         );
       },
-      arguments: () => <String, Object>{
+      arguments: () => <String, Object?>{
         ChannelConstants.parameterNameCalendarName: calendarName,
-        ChannelConstants.parameterNameCalendarColor:
-            '0x${calendarColor.value.toRadixString(16)}',
-        ChannelConstants.parameterNameLocalAccountName:
-            localAccountName?.isEmpty ?? true
+        ChannelConstants.parameterNameCalendarColor: '0x${calendarColor?.value.toRadixString(16)}',
+        ChannelConstants.parameterNameLocalAccountName: localAccountName?.isEmpty ?? true
                 ? 'Device Calendar'
                 : localAccountName
       },
@@ -294,9 +288,9 @@ class DeviceCalendarPlugin {
 
   Future<Result<T>> _invokeChannelMethod<T>(
     String channelMethodName, {
-    Function(Result<T>) assertParameters,
-    Map<String, Object> Function() arguments,
-    T Function(dynamic) evaluateResponse,
+    Function(Result<T>)? assertParameters,
+    Map<String, Object?> Function()? arguments,
+    T Function(dynamic)? evaluateResponse,
   }) async {
     final result = Result<T>();
 
@@ -319,14 +313,14 @@ class DeviceCalendarPlugin {
         result.data = rawData;
       }
     } catch (e) {
-      _parsePlatformExceptionAndUpdateResult<T>(e, result);
+      _parsePlatformExceptionAndUpdateResult<T>(e as Exception?, result);
     }
 
     return result;
   }
 
   void _parsePlatformExceptionAndUpdateResult<T>(
-      Exception exception, Result<T> result) {
+      Exception? exception, Result<T> result) {
     if (exception == null) {
       result.errors.add(
         ResultError(
@@ -373,7 +367,7 @@ class DeviceCalendarPlugin {
 
   void _validateCalendarIdParameter<T>(
     Result<T> result,
-    String calendarId,
+    String? calendarId,
   ) {
     _assertParameter(
       result,
