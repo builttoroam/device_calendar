@@ -203,10 +203,14 @@ class DeviceCalendarPlugin {
       assertParameters: (result) {
         // Setting time to 0 for all day events
         if (event.allDay == true) {
-          event.start = TZDateTime.local(
-              event.start.year, event.start.month, event.start.day, 0, 0, 0);
-          event.end =
-              TZDateTime.local(event.end.year, event.end.month, event.end.day, 0, 0, 0);
+          if(event.start != null) {
+            var dateStart = DateTime(event.start!.year, event.start!.month, event.start!.day, 0, 0, 0);
+            event.start = TZDateTime.from(dateStart, timeZoneDatabase.locations[event.start!.location.name]!);
+          }
+          if(event.end != null) {
+            var dateEnd = DateTime(event.end!.year, event.end!.month, event.end!.day, 0, 0, 0);
+            event.end = TZDateTime.from(dateEnd, timeZoneDatabase.locations[event.end!.location.name]!);
+          }
         }
 
         _assertParameter(
