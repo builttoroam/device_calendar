@@ -67,23 +67,20 @@ class Event {
     calendarId = json['calendarId'];
     title = json['title'];
     description = json['description'];
-    final String startAsIso8601String = json['startAsIso8601String'];
-    final String startLocationName = json['startLocation'];
-    var startLocation = timeZoneDatabase.locations[startLocationName];
-    startLocation ??= local;
-    start = (startAsIso8601String?.isNotEmpty == true)
-        ? TZDateTime.parse(startLocation, startAsIso8601String)
-        : TZDateTime.now(local);
 
-    final String endAsIso8601String = json['endAsIso8601String'];
-    final String endLocationName = json['endLocation'];
+    final int? startTimestamp = json['start'];
+    final String? startLocationName = json['startTimeZone'];
+    var startTimeZone = timeZoneDatabase.locations[startLocationName];
+    startTimeZone ??= local;
+    start = startTimestamp != null ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp) : TZDateTime.now(local);
+
+    final int? endTimestamp = json['end'];
+    final String? endLocationName = json['endTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= local;
-    end = (endAsIso8601String?.isNotEmpty == true)
-        ? TZDateTime.parse(endLocation, endAsIso8601String)
-        : TZDateTime.now(local);
+    end = endTimestamp != null ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp) : TZDateTime.now(local);
 
-    allDay = json['isAllDay'];
+    allDay = json['allDay'];
     location = json['location'];
 
     var foundUrl = json['url']?.toString();
@@ -129,17 +126,16 @@ class Event {
     final data = <String, dynamic>{};
 
     data['eventId'] = eventId;
-    data['calendarId'] = calendarId;
-    data['title'] = title;
-    data['description'] = description;
-    data['startAsIso8601String'] = start?.toIso8601String();
-    data['startLocation'] = start?.location?.name;
-    data['endAsIso8601String'] = end?.toIso8601String();
-    data['endLocation'] = end?.location?.name;
-    data['isAllDay'] = allDay;
-    data['location'] = location;
-    data['url'] = url?.data?.contentText;
-    data['availability'] = availability.enumToString;
+    data['eventTitle'] = title;
+    data['eventDescription'] = description;
+    data['eventStartDate'] = start!.millisecondsSinceEpoch;
+    data['eventStartTimeZone'] = start?.location.name;
+    data['eventEndDate'] = end!.millisecondsSinceEpoch;
+    data['eventEndTimeZone'] = end?.location.name;
+    data['eventAllDay'] = allDay;
+    data['eventLocation'] = location;
+    data['eventURL'] = url?.data?.contentText;
+    data['availability'] = availability?.enumToString;
 
     if (attendees != null) {
       data['attendees'] = attendees?.map((a) => a?.toJson()).toList();
