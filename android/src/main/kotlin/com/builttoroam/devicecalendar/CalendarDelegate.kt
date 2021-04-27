@@ -141,7 +141,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     createOrUpdateEvent(cachedValues.calendarId, cachedValues.event, cachedValues.pendingChannelResult)
                 }
                 DELETE_EVENT_REQUEST_CODE -> {
-                    deleteEvent(cachedValues.eventId, cachedValues.calendarId, cachedValues.pendingChannelResult)
+                    deleteEvent(cachedValues.calendarId, cachedValues.eventId, cachedValues.pendingChannelResult)
                 }
                 REQUEST_PERMISSIONS_REQUEST_CODE -> {
                     finishWithSuccess(permissionGranted, cachedValues.pendingChannelResult)
