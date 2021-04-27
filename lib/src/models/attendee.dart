@@ -46,7 +46,7 @@ class Attendee {
     name = json['name'];
     emailAddress = json['emailAddress'];
     role = AttendeeRole.values[json['role'] ?? 0];
-    isOrganiser = json['isOrganizer']; // Getting and setting an organiser for Android
+    isOrganiser = json['isOrganizer'] ?? false; // Getting and setting an organiser for Android
 
     if (Platform.isAndroid) {
       androidAttendeeDetails = AndroidAttendeeDetails.fromJson(json);

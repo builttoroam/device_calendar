@@ -35,8 +35,13 @@ class _EventItemState extends State<EventItem> {
   Location? _currentLocation;
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     setCurentLocation();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
         if(widget._calendarEvent != null) widget._onTapped(widget._calendarEvent as Event);

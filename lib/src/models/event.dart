@@ -102,7 +102,7 @@ class Event {
       // Getting and setting an organiser for iOS
       var organiser = Attendee.fromJson(json['organizer']);
 
-      var attendee = attendees?.firstWhere(
+      var attendee = attendees?.firstWhereOrNull(
           (at) =>
               at?.name == organiser.name &&
               at?.emailAddress == organiser.emailAddress);
