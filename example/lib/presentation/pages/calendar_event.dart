@@ -774,7 +774,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
                 _event?.recurrenceRule = RecurrenceRule(_recurrenceFrequency,
                     interval: _interval,
-                    totalOccurrences: _totalOccurrences,
+                    totalOccurrences: (_recurrenceRuleEndType ==
+                        RecurrenceRuleEndType.MaxOccurrences)
+                        ? _totalOccurrences
+                        : null,
                     endDate: _recurrenceRuleEndType ==
                             RecurrenceRuleEndType.SpecifiedEndDate
                         ? _recurrenceEndDate
