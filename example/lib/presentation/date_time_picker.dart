@@ -26,7 +26,7 @@ class DateTimePicker extends StatelessWidget {
   Future<Null> _selectDate(BuildContext context) async {
     final picked = await showDatePicker(
         context: context,
-        initialDate: selectedDate != null ? selectDate as DateTime : DateTime.now(),
+        initialDate: selectedDate != null ? DateTime.parse(selectedDate.toString()) : DateTime.now(),
         firstDate: DateTime(2015, 8),
         lastDate: DateTime(2101));
     if (picked != null && picked != selectedDate && selectDate != null) selectDate!(picked);
