@@ -72,16 +72,21 @@ class Event {
     final String? startLocationName = json['startTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
-    start = startTimestamp != null ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp) : TZDateTime.now(local);
+    start = startTimestamp != null
+        ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp)
+        : TZDateTime.now(local);
 
     final int? endTimestamp = json['end'];
     final String? endLocationName = json['endTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= local;
-    end = endTimestamp != null ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp) : TZDateTime.now(local);
+    end = endTimestamp != null
+        ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
+        : TZDateTime.now(local);
 
     allDay = json['allDay'];
     location = json['location'];
+    availability = parseStringToAvailability(json['availability']);
 
     var foundUrl = json['url']?.toString();
     if (foundUrl?.isEmpty ?? true) {
@@ -102,10 +107,9 @@ class Event {
       // Getting and setting an organiser for iOS
       var organiser = Attendee.fromJson(json['organizer']);
 
-      var attendee = attendees?.firstWhereOrNull(
-          (at) =>
-              at?.name == organiser.name &&
-              at?.emailAddress == organiser.emailAddress);
+      var attendee = attendees?.firstWhereOrNull((at) =>
+          at?.name == organiser.name &&
+          at?.emailAddress == organiser.emailAddress);
       if (attendee != null) {
         attendee.isOrganiser = true;
       }
@@ -142,7 +146,8 @@ class Event {
     }
 
     if (attendees != null) {
-      data['organizer'] = attendees.firstWhere((a) => a.isOrganiser)?.toJson();
+      data['organizer'] =
+          attendees?.firstWhereOrNull((a) => a!.isOrganiser)?.toJson();
     }
 
     if (recurrenceRule != null) {
