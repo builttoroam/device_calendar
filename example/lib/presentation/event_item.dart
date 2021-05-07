@@ -22,7 +22,8 @@ class EventItem extends StatefulWidget {
       this._onDeleteFinished,
       this._onTapped,
       this._isReadOnly,
-      {Key? key}) : super(key: key);
+      {Key? key})
+      : super(key: key);
 
   @override
   _EventItemState createState() {
@@ -44,7 +45,8 @@ class _EventItemState extends State<EventItem> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if(widget._calendarEvent != null) widget._onTapped(widget._calendarEvent as Event);
+        if (widget._calendarEvent != null)
+          widget._onTapped(widget._calendarEvent as Event);
       },
       child: Card(
         child: Column(
@@ -61,39 +63,48 @@ class _EventItemState extends State<EventItem> {
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 children: [
-                  if(_currentLocation != null) Align(
-                    alignment: Alignment.topLeft,
-                    child: Row(
-                      children: [
-                        Container(
-                          width: _eventFieldNameWidth,
-                          child: Text('Starts'),
-                        ),
-                        Text(widget._calendarEvent == null
-                            ? ''
-                            : DateFormat('yyyy-MM-dd HH:mm:ss').format(TZDateTime.from(widget._calendarEvent!.start!, _currentLocation!)),
-                        )
-                      ],
+                  if (_currentLocation != null)
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: _eventFieldNameWidth,
+                            child: Text('Starts'),
+                          ),
+                          Text(
+                            widget._calendarEvent == null
+                                ? ''
+                                : DateFormat('yyyy-MM-dd HH:mm:ss').format(
+                                    TZDateTime.from(
+                                        widget._calendarEvent!.start!,
+                                        _currentLocation!)),
+                          )
+                        ],
+                      ),
                     ),
-                  ),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 5.0),
                   ),
-                  if(_currentLocation != null) Align(
-                    alignment: Alignment.topLeft,
-                    child: Row(
-                      children: [
-                        Container(
-                          width: _eventFieldNameWidth,
-                          child: Text('Ends'),
-                        ),
-                        Text(widget._calendarEvent?.end == null
-                            ? ''
-                            : DateFormat('yyyy-MM-dd HH:mm:ss').format(TZDateTime.from(widget._calendarEvent!.end!, _currentLocation!)),
-                        ),
-                      ],
+                  if (_currentLocation != null)
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: _eventFieldNameWidth,
+                            child: Text('Ends'),
+                          ),
+                          Text(
+                            widget._calendarEvent?.end == null
+                                ? ''
+                                : DateFormat('yyyy-MM-dd HH:mm:ss').format(
+                                    TZDateTime.from(widget._calendarEvent!.end!,
+                                        _currentLocation!)),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
                   SizedBox(
                     height: 10.0,
                   ),
@@ -106,7 +117,7 @@ class _EventItemState extends State<EventItem> {
                           child: Text('All day?'),
                         ),
                         Text(widget._calendarEvent?.allDay != null &&
-                            widget._calendarEvent?.allDay == true
+                                widget._calendarEvent?.allDay == true
                             ? 'Yes'
                             : 'No')
                       ],
@@ -165,8 +176,11 @@ class _EventItemState extends State<EventItem> {
                         ),
                         Expanded(
                           child: Text(
-                            widget._calendarEvent?.attendees?.where((a) => a?.name?.isNotEmpty ?? false).map((a) => a?.name).join(', ')
-                             ?? '',
+                            widget._calendarEvent?.attendees
+                                    ?.where((a) => a?.name?.isNotEmpty ?? false)
+                                    .map((a) => a?.name)
+                                    .join(', ') ??
+                                '',
                             overflow: TextOverflow.ellipsis,
                           ),
                         )
@@ -186,7 +200,8 @@ class _EventItemState extends State<EventItem> {
                         ),
                         Expanded(
                           child: Text(
-                            widget._calendarEvent?.availability?.enumToString ?? '',
+                            widget._calendarEvent?.availability?.enumToString ??
+                                '',
                             overflow: TextOverflow.ellipsis,
                           ),
                         )
@@ -201,7 +216,8 @@ class _EventItemState extends State<EventItem> {
                 if (!widget._isReadOnly) ...[
                   IconButton(
                     onPressed: () {
-                      if(widget._calendarEvent != null) widget._onTapped(widget._calendarEvent as Event);
+                      if (widget._calendarEvent != null)
+                        widget._onTapped(widget._calendarEvent as Event);
                     },
                     icon: Icon(Icons.edit),
                   ),
@@ -226,19 +242,22 @@ class _EventItemState extends State<EventItem> {
                                   onPressed: () async {
                                     Navigator.of(context).pop();
                                     widget._onLoadingStarted();
-                                    final deleteResult =
-                                        await widget._deviceCalendarPlugin.deleteEvent(
+                                    final deleteResult = await widget
+                                        ._deviceCalendarPlugin
+                                        .deleteEvent(
                                             widget._calendarEvent?.calendarId,
                                             widget._calendarEvent?.eventId);
-                                    widget._onDeleteFinished(deleteResult.isSuccess &&
-                                        deleteResult.data != null);
+                                    widget._onDeleteFinished(
+                                        deleteResult.isSuccess &&
+                                            deleteResult.data != null);
                                   },
                                   child: Text('Delete'),
                                 ),
                               ],
                             );
                           } else {
-                            if(widget._calendarEvent == null) return SizedBox();
+                            if (widget._calendarEvent == null)
+                              return SizedBox();
                             return RecurringEventDialog(
                                 widget._deviceCalendarPlugin,
                                 widget._calendarEvent!,
@@ -253,7 +272,8 @@ class _EventItemState extends State<EventItem> {
                 ] else ...[
                   IconButton(
                     onPressed: () {
-                      if(widget._calendarEvent != null) widget._onTapped(widget._calendarEvent!);
+                      if (widget._calendarEvent != null)
+                        widget._onTapped(widget._calendarEvent!);
                     },
                     icon: Icon(Icons.remove_red_eye),
                   ),
