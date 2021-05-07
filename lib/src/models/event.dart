@@ -44,7 +44,7 @@ class Event {
   List<Reminder>? reminders;
 
   /// Indicates if this event counts as busy time, tentative, unavaiable or is still free time
-  Availability? availability;
+  late Availability availability;
 
   Event(this.calendarId,
       {this.eventId,
@@ -55,7 +55,7 @@ class Event {
       this.attendees,
       this.recurrenceRule,
       this.reminders,
-      this.availability,
+      required this.availability,
       this.allDay = false});
 
   Event.fromJson(Map<String, dynamic>? json) {
@@ -139,7 +139,7 @@ class Event {
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
     data['eventURL'] = url?.data?.contentText;
-    data['availability'] = availability?.enumToString;
+    data['availability'] = availability.enumToString;
 
     if (attendees != null) {
       data['attendees'] = attendees?.map((a) => a?.toJson()).toList();
@@ -161,7 +161,7 @@ class Event {
     return data;
   }
 
-  Availability parseStringToAvailability(String value) {
+  Availability parseStringToAvailability(String? value) {
     var testValue = value?.toUpperCase();
     switch (testValue) {
       case 'BUSY':
@@ -173,7 +173,7 @@ class Event {
       case 'UNAVAILABLE':
         return Availability.Unavailable;
     }
-    return null;
+    return Availability.Busy;
   }
 
   bool updateStartLocation(String newStartLocation) {

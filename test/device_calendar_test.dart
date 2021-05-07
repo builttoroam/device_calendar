@@ -105,7 +105,7 @@ void main() {
 
   test('CreateEvent_Arguments_Invalid', () async {
     final String? fakeCalendarId = null;
-    final event = Event(fakeCalendarId);
+    final event = Event(fakeCalendarId, availability: Availability.Busy);
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result.isSuccess, false);
@@ -120,7 +120,7 @@ void main() {
     });
 
     final fakeCalendarId = 'fakeCalendarId';
-    final event = Event(fakeCalendarId);
+    final event = Event(fakeCalendarId, availability: Availability.Busy);
     event.title = 'fakeEventTitle';
     event.start = TZDateTime.now(local);
     event.end = event.start.add(Duration(hours: 1));
@@ -144,7 +144,7 @@ void main() {
     });
 
     final fakeCalendarId = 'fakeCalendarId';
-    final event = Event(fakeCalendarId);
+    final event = Event(fakeCalendarId, availability: Availability.Busy);
     event.eventId = 'fakeEventId';
     event.title = 'fakeEventTitle';
     event.start = TZDateTime.now(local);
@@ -177,7 +177,7 @@ void main() {
 
   test('Event_Serialises_Correctly', () async {
     final event = Event('calendarId',eventId: 'eventId',start: TZDateTime(
-      timeZoneDatabase.locations.entries.skip(20).first.value, 1980, 10,1,0,0,0));
+      timeZoneDatabase.locations.entries.skip(20).first.value, 1980, 10,1,0,0,0), availability: Availability.Busy);
     final stringEvent = event.toJson();
     expect(stringEvent, isNotNull);
     final newEvent = Event.fromJson(stringEvent);

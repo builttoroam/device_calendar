@@ -46,21 +46,22 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   bool _isRecurringEvent = false;
   bool _isByDayOfMonth = false;
-  RecurrenceRuleEndType _recurrenceRuleEndType;
-  int _totalOccurrences;
-  int _interval;
-  DateTime _recurrenceEndDate;
-  RecurrenceFrequency _recurrenceFrequency = RecurrenceFrequency.Daily;
-  List<DayOfWeek> _daysOfWeek = <DayOfWeek>[];
-  int _dayOfMonth;
-  final List<int> _validDaysOfMonth = <int>[];
-  MonthOfYear _monthOfYear;
-  WeekNumber _weekOfMonth;
-  DayOfWeek _selectedDayOfWeek = DayOfWeek.Monday;
+  RecurrenceRuleEndType? _recurrenceRuleEndType;
+  int? _totalOccurrences;
+  int? _interval;
+  late DateTime _recurrenceEndDate;
+  RecurrenceFrequency? _recurrenceFrequency = RecurrenceFrequency.Daily;
+  List<DayOfWeek> _daysOfWeek = [];
+  int? _dayOfMonth;
+  final List<int> _validDaysOfMonth = [];
+  MonthOfYear? _monthOfYear;
+  WeekNumber? _weekOfMonth;
+  DayOfWeek? _selectedDayOfWeek = DayOfWeek.Monday;
   Availability _availability = Availability.Busy;
 
-  List<Attendee> _attendees = <Attendee>[];
-  List<Reminder> _reminders = <Reminder>[];
+  List<Attendee> _attendees = [];
+  List<Reminder> _reminders = [];
+  String _timezone = 'Etc/UTC';
 
   _CalendarEventPageState(
       this._calendar, this._event, this._recurringEventDialog) {
@@ -81,7 +82,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         _startDate = TZDateTime.now(fallbackLocation!);
         _endDate = TZDateTime.now(fallbackLocation).add(Duration(hours: 1));
       }
-      _event = Event(_calendar.id, start: _startDate, end: _endDate);
+      _event = Event(_calendar.id,
+          start: _startDate, end: _endDate, availability: Availability.Busy);
 
       _recurrenceEndDate = _endDate;
       _dayOfMonth = 1;
@@ -129,7 +131,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         }
       }
 
-      _availability = _event?.availability;
+      _availability = _event!.availability;
     }
 
     _startTime = TimeOfDay(hour: _startDate.hour, minute: _startDate.minute);
@@ -230,8 +232,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         value: _availability,
                         onChanged: (Availability? newValue) {
                           setState(() {
-                            _availability = newValue;
-                            _event?.availability = newValue;
+                            if (newValue != null) {
+                              _availability = newValue;
+                              _event?.availability = newValue;
+                            }
                           });
                         },
                         items: Availability.values
