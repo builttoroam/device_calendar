@@ -1,7 +1,6 @@
 package com.builttoroam.devicecalendar 
 
 import android.Manifest
-import android.graphics.Color;
 import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentUris
