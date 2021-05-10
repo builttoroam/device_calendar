@@ -130,6 +130,7 @@ class Event {
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{};
 
+    data['calendarId'] = calendarId;
     data['eventId'] = eventId;
     data['eventTitle'] = title;
     data['eventDescription'] = description;

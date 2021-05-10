@@ -11,6 +11,7 @@ import '../recurring_event_dialog.dart';
 import 'event_attendee.dart';
 import 'event_reminders.dart';
 import 'package:timezone/timezone.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 
 enum RecurrenceRuleEndType { Indefinite, MaxOccurrences, SpecifiedEndDate }
 
@@ -36,10 +37,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   late DeviceCalendarPlugin _deviceCalendarPlugin;
   final RecurringEventDialog? _recurringEventDialog;
 
-  late TZDateTime _startDate;
+  TZDateTime? _startDate;
   late TimeOfDay _startTime;
 
-  late TZDateTime _endDate;
+  TZDateTime? _endDate;
   late TimeOfDay _endTime;
 
   bool _autovalidate = false;
@@ -66,6 +67,16 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   _CalendarEventPageState(
       this._calendar, this._event, this._recurringEventDialog) {
+    getCurentLocation();
+  }
+
+  void getCurentLocation() async {
+    try {
+      _timezone = await FlutterNativeTimezone.getLocalTimezone();
+    } catch (e) {
+      print('Could not get the local timezone');
+    }
+
     _deviceCalendarPlugin = DeviceCalendarPlugin();
 
     _attendees = <Attendee>[];
@@ -86,7 +97,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _event = Event(_calendar.id,
           start: _startDate, end: _endDate, availability: Availability.Busy);
 
-      _recurrenceEndDate = _endDate;
+      print('DeviceCalendarPlugin calendar id is: ${_calendar.id}');
+
+      _recurrenceEndDate = _endDate as DateTime;
       _dayOfMonth = 1;
       _monthOfYear = MonthOfYear.January;
       _weekOfMonth = WeekNumber.First;
@@ -124,7 +137,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
             _event?.recurrenceRule?.monthOfYear ?? MonthOfYear.January;
         _weekOfMonth = _event?.recurrenceRule?.weekOfMonth ?? WeekNumber.First;
         _selectedDayOfWeek =
-            _daysOfWeek.isNotEmpty ? _daysOfWeek.first : DayOfWeek.Monday;
+        _daysOfWeek.isNotEmpty ? _daysOfWeek.first : DayOfWeek.Monday;
         _dayOfMonth = _event?.recurrenceRule?.dayOfMonth ?? 1;
 
         if (_daysOfWeek.isNotEmpty) {
@@ -135,11 +148,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _availability = _event!.availability;
     }
 
-    _startTime = TimeOfDay(hour: _startDate.hour, minute: _startDate.minute);
-    _endTime = TimeOfDay(hour: _endDate.hour, minute: _endDate.minute);
+    _startTime = TimeOfDay(hour: _startDate!.hour, minute: _startDate!.minute);
+    _endTime = TimeOfDay(hour: _endDate!.hour, minute: _endDate!.minute);
 
     // Getting days of the current month (or a selected month for the yearly recurrence) as a default
     _getValidDaysOfMonth(_recurrenceFrequency);
+    setState(() {});
   }
 
   void printAttendeeDetails(Attendee attendee) {
