@@ -4,6 +4,7 @@ import '../common/error_messages.dart';
 import 'attendee.dart';
 import 'recurrence_rule.dart';
 import 'package:timezone/timezone.dart';
+import 'package:collection/collection.dart';
 
 /// An event associated with a calendar
 class Event {
@@ -20,10 +21,10 @@ class Event {
   String? description;
 
   /// Indicates when the event starts
-  TZDateTime start;
+  TZDateTime? start;
 
   /// Indicates when the event ends
-  TZDateTime end;
+  TZDateTime? end;
 
   /// Indicates if this is an all-day event
   bool? allDay;
@@ -176,22 +177,22 @@ class Event {
     return Availability.Busy;
   }
 
-  bool updateStartLocation(String newStartLocation) {
+  bool updateStartLocation(String? newStartLocation) {
     if (newStartLocation == null) return false;
     try {
       var location = timeZoneDatabase.get(newStartLocation);
-      start = TZDateTime.from(start, location);
+      start = TZDateTime.from(start as TZDateTime, location);
       return true;
     } on LocationNotFoundException {
       return false;
     }
   }
 
-  bool updateEndLocation(String newEndLocation) {
+  bool updateEndLocation(String? newEndLocation) {
     if (newEndLocation == null) return false;
     try {
       var location = timeZoneDatabase.get(newEndLocation);
-      end = TZDateTime.from(end, location);
+      end = TZDateTime.from(end as TZDateTime, location);
       return true;
     } on LocationNotFoundException {
       return false;

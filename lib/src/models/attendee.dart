@@ -67,10 +67,10 @@ class Attendee {
     };
 
     if (iosAttendeeDetails != null) {
-      data.addEntries(iosAttendeeDetails.toJson().entries);
+      data.addEntries(iosAttendeeDetails!.toJson().entries);
     }
     if (androidAttendeeDetails != null) {
-      data.addEntries(androidAttendeeDetails.toJson().entries);
+      data.addEntries(androidAttendeeDetails!.toJson().entries);
     }
 
     return data;
