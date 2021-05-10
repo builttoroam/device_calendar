@@ -10,6 +10,7 @@ import '../date_time_picker.dart';
 import '../recurring_event_dialog.dart';
 import 'event_attendee.dart';
 import 'event_reminders.dart';
+import 'package:timezone/timezone.dart';
 
 enum RecurrenceRuleEndType { Indefinite, MaxOccurrences, SpecifiedEndDate }
 
@@ -35,10 +36,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   late DeviceCalendarPlugin _deviceCalendarPlugin;
   final RecurringEventDialog? _recurringEventDialog;
 
-  late DateTime _startDate;
+  late TZDateTime _startDate;
   late TimeOfDay _startTime;
 
-  late DateTime _endDate;
+  late TZDateTime _endDate;
   late TimeOfDay _endTime;
 
   bool _autovalidate = false;
@@ -290,12 +291,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         Padding(
                           padding: const EdgeInsets.all(10.0),
                           child: TextFormField(
-                            initialValue: _event.start.location.name,
+                            initialValue: _event?.start?.location.name,
                             decoration: const InputDecoration(
                                 labelText: 'Start date time zone',
                                 hintText: 'Australia/Sydney'),
-                            onSaved: (String value) {
-                              _event.updateStartLocation(value);
+                            onSaved: (String? value) {
+                              _event?.updateStartLocation(value);
                             },
                           ),
                         ),
@@ -333,7 +334,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: TextFormField(
-                          initialValue: _event.end.location.name,
+                          initialValue: _event?.end?.location.name,
                           decoration: InputDecoration(
                               labelText: 'End date time zone',
                               hintText: 'Australia/Sydney'),
@@ -980,8 +981,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     return null;
   }
 
-  DateTime? _combineDateWithTime(DateTime? date, TimeOfDay? time) {
+  TZDateTime? _combineDateWithTime(TZDateTime? date, TimeOfDay? time) {
     if (date == null) return null;
+    var currentLocation = timeZoneDatabase.locations[_timezone];
 
     final dateWithoutTime = TZDateTime.from(
         DateTime.parse(DateFormat('y-MM-dd 00:00:00').format(date)),

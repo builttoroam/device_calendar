@@ -108,7 +108,7 @@ void main() {
     final event = Event(fakeCalendarId, availability: Availability.Busy);
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
-    expect(result.isSuccess, false);
+    expect(result!.isSuccess, false);
     expect(result.errors, isNotEmpty);
     expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
   });
@@ -123,7 +123,7 @@ void main() {
     final event = Event(fakeCalendarId, availability: Availability.Busy);
     event.title = 'fakeEventTitle';
     event.start = TZDateTime.now(local);
-    event.end = event.start.add(Duration(hours: 1));
+    event.end = event.start!.add(Duration(hours: 1));
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result?.isSuccess, true);
@@ -148,7 +148,7 @@ void main() {
     event.eventId = 'fakeEventId';
     event.title = 'fakeEventTitle';
     event.start = TZDateTime.now(local);
-    event.end = event.start.add(Duration(hours: 1));
+    event.end = event.start!.add(Duration(hours: 1));
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result?.isSuccess, true);
