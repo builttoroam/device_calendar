@@ -281,36 +281,38 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             let calendarId = arguments[calendarIdArgument] as! String
             let startDateMillisecondsSinceEpoch = arguments[startDateArgument] as? NSNumber
             let endDateDateMillisecondsSinceEpoch = arguments[endDateArgument] as? NSNumber
-            let eventIds = arguments[eventIdsArgument] as? [String]
+            let eventIdArgs = arguments[eventIdsArgument] as? [String]
             var events = [Event]()
             let specifiedStartEndDates = startDateMillisecondsSinceEpoch != nil && endDateDateMillisecondsSinceEpoch != nil
             if specifiedStartEndDates {
                 let startDate = Date (timeIntervalSince1970: startDateMillisecondsSinceEpoch!.doubleValue / 1000.0)
                 let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch!.doubleValue / 1000.0)
-                let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
-                let predicate = self.eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: [ekCalendar!])
-                let ekEvents = self.eventStore.events(matching: predicate)
-                for ekEvent in ekEvents {
-                    let event = createEventFromEkEvent(calendarId: calendarId, ekEvent: ekEvent)
-                    events.append(event)
+                
+                if let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId) {
+                  let predicate = self.eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: [ekCalendar])
+                  let ekEvents = self.eventStore.events(matching: predicate)
+                  for ekEvent in ekEvents {
+                      let event = createEventFromEkEvent(calendarId: calendarId, ekEvent: ekEvent)
+                      events.append(event)
+                  }
                 }
             }
             
-            if eventIds == nil {
-                self.encodeJsonAndFinish(codable: events, result: result)
-                return
+            guard let eventIds = eventIdArgs else {
+              self.encodeJsonAndFinish(codable: events, result: result)
+              return
             }
             
             if specifiedStartEndDates {
                 events = events.filter({ (e) -> Bool in
-                    e.calendarId == calendarId && eventIds!.contains(e.eventId)
+                    e.calendarId == calendarId && eventIds.contains(e.eventId)
                 })
                 
                 self.encodeJsonAndFinish(codable: events, result: result)
                 return
             }
             
-            for eventId in eventIds! {
+            for eventId in eventIds {
                 let ekEvent = self.eventStore.event(withIdentifier: eventId)
                 if ekEvent == nil {
                     continue
