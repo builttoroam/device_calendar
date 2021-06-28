@@ -14,14 +14,14 @@ class IosAttendeeDetails {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
 
-    if (json['iOSAttendanceStatus'] != null &&
-        json['iOSAttendanceStatus'] is int) {
+    if (json['attendanceStatus'] != null &&
+        json['attendanceStatus'] is int) {
       _attendanceStatus =
-          IosAttendanceStatus.values[json['iOSAttendanceStatus']];
+          IosAttendanceStatus.values[json['attendanceStatus']];
     }
   }
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{'iOSAttendanceStatus': _attendanceStatus?.index};
+    return <String, dynamic>{'attendanceStatus': _attendanceStatus?.index};
   }
 }
