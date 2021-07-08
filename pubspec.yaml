@@ -10,7 +10,7 @@ dependencies:
   collection: ^1.15.0
   sprintf: ^6.0.0
   timezone: ^0.7.0
-  flutter_native_timezone: ^1.0.10
+  flutter_native_timezone: ^2.0.0
 
 dev_dependencies:
   flutter_test:
