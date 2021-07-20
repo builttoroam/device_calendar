@@ -66,30 +66,30 @@ class Event {
 
     eventId = json['eventId'];
     calendarId = json['calendarId'];
-    title = json['title'];
-    description = json['description'];
+    title = json['eventTitle'];
+    description = json['eventDescription'];
 
-    final int? startTimestamp = json['start'];
-    final String? startLocationName = json['startTimeZone'];
+    final int? startTimestamp = json['eventStartDate'];
+    final String? startLocationName = json['eventStartTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
     start = startTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp)
         : TZDateTime.now(local);
 
-    final int? endTimestamp = json['end'];
-    final String? endLocationName = json['endTimeZone'];
+    final int? endTimestamp = json['eventEndDate'];
+    final String? endLocationName = json['eventEndTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= local;
     end = endTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
 
-    allDay = json['allDay'];
-    location = json['location'];
+    allDay = json['eventAllDay'];
+    location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
 
-    var foundUrl = json['url']?.toString();
+    var foundUrl = json['eventURL']?.toString();
     if (foundUrl?.isEmpty ?? true) {
       url = null;
     } else {

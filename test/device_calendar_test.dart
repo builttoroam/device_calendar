@@ -176,8 +176,19 @@ void main() {
   });
 
   test('Event_Serialises_Correctly', () async {
-    final event = Event('calendarId',eventId: 'eventId',start: TZDateTime(
-      timeZoneDatabase.locations.entries.skip(20).first.value, 1980, 10,1,0,0,0), availability: Availability.Busy);
+    final startTime = TZDateTime(
+      timeZoneDatabase.locations.entries.skip(20).first.value, 1980, 10,1,0,0,0);
+    final endTime = startTime.add(Duration(hours: 1));
+    var event = Event('calendarId',
+      eventId: 'eventId',
+      title: 'Test Event',
+      start: startTime,
+      end: endTime,
+      description: 'Test description',
+      availability: Availability.Busy);
+    event.location = 'Seattle, Washington';
+    event.url = Uri.dataFromString('http://example.com/');
+
     final stringEvent = event.toJson();
     expect(stringEvent, isNotNull);
     final newEvent = Event.fromJson(stringEvent);
@@ -185,5 +196,10 @@ void main() {
     expect(newEvent.calendarId, equals(event.calendarId));
     expect(newEvent.eventId, equals(event.eventId));
     expect(newEvent.start, equals(event.start));
+    expect(newEvent.end, equals(event.end));
+    expect(newEvent.description, equals(event.description));
+    expect(newEvent.url, equals(event.url));
+    expect(newEvent.location, equals(event.location));
+    expect(newEvent.title, equals(event.title));
   });
 }
