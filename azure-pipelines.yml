@@ -27,6 +27,11 @@ stages:
             channel: 'stable'
             version: 'latest'
 
+        - task: FlutterTest@0
+          displayName: 'Run library tests'
+          inputs:
+            projectDirectory: '.'
+
         - task: FlutterBuild@0
           displayName: 'Flutter build - Android'
           inputs:
