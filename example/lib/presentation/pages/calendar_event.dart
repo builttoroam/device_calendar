@@ -300,26 +300,29 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           },
                         ),
                       ),
-                    if (_event?.allDay == false) ...[
-                      if (Platform.isAndroid)
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: TextFormField(
-                            initialValue: _event?.start?.location.name,
-                            decoration: const InputDecoration(
-                                labelText: 'Start date time zone',
-                                hintText: 'Australia/Sydney'),
-                            onSaved: (String? value) {
-                              _event?.updateStartLocation(value);
-                            },
-                          ),
+                    if ((_event?.allDay == false) && Platform.isAndroid)
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: TextFormField(
+                          initialValue: _event?.start?.location.name,
+                          decoration: const InputDecoration(
+                              labelText: 'Start date time zone',
+                              hintText: 'Australia/Sydney'),
+                          onSaved: (String? value) {
+                            _event?.updateStartLocation(value);
+                          },
                         ),
+                      ),
+                    // Only add the 'To' Date for non-allDay events on all
+                    // platforms except Android (which allows multiple-day allDay events)
+                    if (_event?.allDay == false || Platform.isAndroid)
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: DateTimePicker(
                           labelText: 'To',
                           selectedDate: _endDate,
                           selectedTime: _endTime,
+                          enableTime: _event?.allDay == false,
                           selectDate: (DateTime date) {
                             setState(
                               () {
@@ -345,6 +348,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           },
                         ),
                       ),
+                    if (_event?.allDay == false && Platform.isAndroid)
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: TextFormField(
@@ -356,7 +360,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               _event?.updateEndLocation(value),
                         ),
                       ),
-                    ],
                     GestureDetector(
                       onTap: () async {
                         var result = await Navigator.push(
@@ -1004,6 +1007,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         currentLocation!);
 
     if (time == null) return dateWithoutTime;
+    if (Platform.isAndroid && _event?.allDay == true) return dateWithoutTime;
 
     return dateWithoutTime
         .add(Duration(hours: time.hour, minutes: time.minute));
