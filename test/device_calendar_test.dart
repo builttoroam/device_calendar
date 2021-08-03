@@ -193,14 +193,14 @@ void main() {
         eventId: 'eventId',
         title: 'Test Event',
         start: startTime,
+        location: 'Seattle, Washington',
+        url: Uri.dataFromString('http://www.example.com'),
         end: endTime,
         attendees: [attendee],
         description: 'Test description',
         recurrenceRule: recurrence,
         reminders: [reminder],
         availability: Availability.Busy);
-    event.location = 'Seattle, Washington';
-    event.url = Uri.dataFromString('http://example.com/');
 
     final stringEvent = event.toJson();
     expect(stringEvent, isNotNull);
