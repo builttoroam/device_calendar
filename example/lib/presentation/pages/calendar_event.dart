@@ -43,7 +43,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   TZDateTime? _endDate;
   late TimeOfDay _endTime;
 
-  bool _autovalidate = false;
+  AutovalidateMode _autovalidate = AutovalidateMode.disabled;
   DayOfWeekGroup? _dayOfWeekGroup = DayOfWeekGroup.None;
 
   bool _isRecurringEvent = false;
@@ -74,7 +74,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     try {
       _timezone = await FlutterNativeTimezone.getLocalTimezone();
     } catch (e) {
-      print('Could not get the local timezone');
+      debugPrint('Could not get the local timezone');
     }
 
     _deviceCalendarPlugin = DeviceCalendarPlugin();
@@ -84,7 +84,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     _recurrenceRuleEndType = RecurrenceRuleEndType.Indefinite;
 
     if (_event == null) {
-      print('calendar_event _timezone ------------------------- $_timezone');
+      debugPrint(
+          'calendar_event _timezone ------------------------- $_timezone');
       var currentLocation = timeZoneDatabase.locations[_timezone];
       if (currentLocation != null) {
         _startDate = TZDateTime.now(currentLocation);
@@ -97,7 +98,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _event = Event(_calendar.id,
           start: _startDate, end: _endDate, availability: Availability.Busy);
 
-      print('DeviceCalendarPlugin calendar id is: ${_calendar.id}');
+      debugPrint('DeviceCalendarPlugin calendar id is: ${_calendar.id}');
 
       _recurrenceEndDate = _endDate as DateTime;
       _dayOfMonth = 1;
@@ -137,7 +138,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
             _event?.recurrenceRule?.monthOfYear ?? MonthOfYear.January;
         _weekOfMonth = _event?.recurrenceRule?.weekOfMonth ?? WeekNumber.First;
         _selectedDayOfWeek =
-        _daysOfWeek.isNotEmpty ? _daysOfWeek.first : DayOfWeek.Monday;
+            _daysOfWeek.isNotEmpty ? _daysOfWeek.first : DayOfWeek.Monday;
         _dayOfMonth = _event?.recurrenceRule?.dayOfMonth ?? 1;
 
         if (_daysOfWeek.isNotEmpty) {
@@ -157,11 +158,11 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   }
 
   void printAttendeeDetails(Attendee attendee) {
-    print(
+    debugPrint(
         'attendee name: ${attendee.name}, email address: ${attendee.emailAddress}, type: ${attendee.role?.enumToString}');
-    print(
+    debugPrint(
         'ios specifics - status: ${attendee.iosAttendeeDetails?.attendanceStatus}, type: ${attendee.iosAttendeeDetails?.attendanceStatus?.enumToString}');
-    print(
+    debugPrint(
         'android specifics - status ${attendee.androidAttendeeDetails?.attendanceStatus}, type: ${attendee.androidAttendeeDetails?.attendanceStatus?.enumToString}');
   }
 
@@ -182,7 +183,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           child: Column(
             children: [
               Form(
-                autovalidate: _autovalidate,
+                autovalidateMode: _autovalidate,
                 key: _formKey,
                 child: Column(
                   children: [
@@ -514,8 +515,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 validator: _validateInterval,
                                 textAlign: TextAlign.right,
                                 onSaved: (String? value) {
-                                  if (value != null)
+                                  if (value != null) {
                                     _interval = int.tryParse(value);
+                                  }
                                 },
                               ),
                             ),
@@ -739,8 +741,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                   validator: _validateTotalOccurrences,
                                   textAlign: TextAlign.right,
                                   onSaved: (String? value) {
-                                    if (value != null)
+                                    if (value != null) {
                                       _totalOccurrences = int.tryParse(value);
+                                    }
                                   },
                                 ),
                               ),
@@ -807,8 +810,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           onPressed: () async {
             final form = _formKey.currentState;
             if (form?.validate() == false) {
-              _autovalidate = true; // Start validating on every change.
-              showInSnackBar('Please fix the errors in red before submitting.');
+              _autovalidate =
+                  AutovalidateMode.always; // Start validating on every change.
+              showInSnackBar(
+                  context, 'Please fix the errors in red before submitting.');
             } else {
               form?.save();
               if (_isRecurringEvent) {
@@ -817,8 +822,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         _recurrenceFrequency == RecurrenceFrequency.Yearly)) {
                   // Setting day of the week parameters for WeekNumber to avoid clashing with the weekly recurrence values
                   _daysOfWeek.clear();
-                  if (_selectedDayOfWeek != null)
+                  if (_selectedDayOfWeek != null) {
                     _daysOfWeek.add(_selectedDayOfWeek as DayOfWeek);
+                  }
                 } else {
                   _weekOfMonth = null;
                 }
@@ -846,9 +852,11 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
               if (createEventResult?.isSuccess == true) {
                 Navigator.pop(context, true);
               } else {
-                showInSnackBar(createEventResult?.errors
-                    .map((err) => '[${err.errorCode}] ${err.errorMessage}')
-                    .join(' | ') as String);
+                showInSnackBar(
+                    context,
+                    createEventResult?.errors
+                        .map((err) => '[${err.errorCode}] ${err.errorMessage}')
+                        .join(' | ') as String);
               }
             }
           },
@@ -1009,7 +1017,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         .add(Duration(hours: time.hour, minutes: time.minute));
   }
 
-  void showInSnackBar(String value) {
-    _scaffoldKey.currentState!.showSnackBar(SnackBar(content: Text(value)));
+  void showInSnackBar(BuildContext context, String value) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
   }
 }

@@ -45,8 +45,9 @@ class _EventItemState extends State<EventItem> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (widget._calendarEvent != null)
+        if (widget._calendarEvent != null) {
           widget._onTapped(widget._calendarEvent as Event);
+        }
       },
       child: Card(
         child: Column(
@@ -200,7 +201,7 @@ class _EventItemState extends State<EventItem> {
                         ),
                         Expanded(
                           child: Text(
-                            widget._calendarEvent?.availability?.enumToString ??
+                            widget._calendarEvent?.availability.enumToString ??
                                 '',
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -216,8 +217,9 @@ class _EventItemState extends State<EventItem> {
                 if (!widget._isReadOnly) ...[
                   IconButton(
                     onPressed: () {
-                      if (widget._calendarEvent != null)
+                      if (widget._calendarEvent != null) {
                         widget._onTapped(widget._calendarEvent as Event);
+                      }
                     },
                     icon: Icon(Icons.edit),
                   ),
@@ -256,8 +258,9 @@ class _EventItemState extends State<EventItem> {
                               ],
                             );
                           } else {
-                            if (widget._calendarEvent == null)
+                            if (widget._calendarEvent == null) {
                               return SizedBox();
+                            }
                             return RecurringEventDialog(
                                 widget._deviceCalendarPlugin,
                                 widget._calendarEvent!,
@@ -272,8 +275,9 @@ class _EventItemState extends State<EventItem> {
                 ] else ...[
                   IconButton(
                     onPressed: () {
-                      if (widget._calendarEvent != null)
+                      if (widget._calendarEvent != null) {
                         widget._onTapped(widget._calendarEvent!);
+                      }
                     },
                     icon: Icon(Icons.remove_red_eye),
                   ),
@@ -291,7 +295,7 @@ class _EventItemState extends State<EventItem> {
     try {
       timezone = await FlutterNativeTimezone.getLocalTimezone();
     } catch (e) {
-      print('Could not get the local timezone');
+      debugPrint('Could not get the local timezone');
     }
     timezone ??= 'Etc/UTC';
     _currentLocation = timeZoneDatabase.locations[timezone];

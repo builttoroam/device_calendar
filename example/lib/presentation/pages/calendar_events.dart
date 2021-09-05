@@ -100,7 +100,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
     if (deleteSucceeded) {
       await _retrieveCalendarEvents();
     } else {
-      _scaffoldstate.currentState!.showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Oops, we ran into an issue deleting the event'),
         backgroundColor: Colors.red,
         duration: Duration(seconds: 5),
@@ -169,7 +169,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
               onPressed: () async {
                 var returnValue =
                     await _deviceCalendarPlugin.deleteCalendar(_calendar.id!);
-                print(
+                debugPrint(
                     'returnValue: ${returnValue.data}, ${returnValue.errors}');
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();

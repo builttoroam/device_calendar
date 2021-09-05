@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_driver/flutter_driver.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
@@ -50,7 +51,7 @@ void main() {
 
     test('check flutter driver health', () async {
       final health = await driver?.checkHealth();
-      print('flutter driver status: ${health?.status}');
+      debugPrint('flutter driver status: ${health?.status}');
     });
 
     test('starts on calendars page', () async {
@@ -65,7 +66,7 @@ void main() {
     test('go to add event page', () async {
       final addEventButtonFinder = find.byValueKey('addEventButton');
       await driver?.waitFor(addEventButtonFinder);
-      print('found add event button');
+      debugPrint('found add event button');
       await driver?.tap(addEventButtonFinder);
       await driver?.waitFor(saveEventButtonFinder);
     });
