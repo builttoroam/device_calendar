@@ -2,22 +2,31 @@ package com.builttoroam.devicecalendar
 
 import android.app.Activity
 import android.content.Context
+import androidx.annotation.NonNull
+import com.builttoroam.devicecalendar.common.Constants
 import com.builttoroam.devicecalendar.common.DayOfWeek
 import com.builttoroam.devicecalendar.common.RecurrenceFrequency
-import com.builttoroam.devicecalendar.models.Attendee
-import com.builttoroam.devicecalendar.models.Event
-import com.builttoroam.devicecalendar.models.RecurrenceRule
-import com.builttoroam.devicecalendar.models.Reminder
+import com.builttoroam.devicecalendar.models.*
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
-import org.json.JSONArray
 
 const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar"
 
-class DeviceCalendarPlugin() : MethodCallHandler {
+class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
+
+    /// The MethodChannel that will the communication between Flutter and native Android
+    ///
+    /// This local reference serves to register the plugin with the Flutter Engine and unregister it
+    /// when the Flutter Engine is detached from the Activity
+    private lateinit var channel: MethodChannel
+    private var context: Context? = null
+    private var activity: Activity? = null
+
     // Methods
     private val REQUEST_PERMISSIONS_METHOD = "requestPermissions"
     private val HAS_PERMISSIONS_METHOD = "hasPermissions"
@@ -27,6 +36,7 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val DELETE_EVENT_INSTANCE_METHOD = "deleteEventInstance"
     private val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
     private val CREATE_CALENDAR_METHOD = "createCalendar"
+    private val DELETE_CALENDAR_METHOD = "deleteCalendar"
 
     // Method arguments
     private val CALENDAR_ID_ARGUMENT = "calendarId"
@@ -42,6 +52,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val EVENT_ALL_DAY_ARGUMENT = "eventAllDay"
     private val EVENT_START_DATE_ARGUMENT = "eventStartDate"
     private val EVENT_END_DATE_ARGUMENT = "eventEndDate"
+    private val EVENT_START_TIMEZONE_ARGUMENT = "eventStartTimeZone"
+    private val EVENT_END_TIMEZONE_ARGUMENT = "eventEndTimeZone"
     private val RECURRENCE_RULE_ARGUMENT = "recurrenceRule"
     private val RECURRENCE_FREQUENCY_ARGUMENT = "recurrenceFrequency"
     private val TOTAL_OCCURRENCES_ARGUMENT = "totalOccurrences"
@@ -59,28 +71,38 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val FOLLOWING_INSTANCES = "followingInstances"
     private val CALENDAR_COLOR_ARGUMENT = "calendarColor"
     private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
+    private val EVENT_AVAILABILITY_ARGUMENT = "availability"
 
-    private lateinit var _registrar: Registrar
     private lateinit var _calendarDelegate: CalendarDelegate
 
-    private constructor(registrar: Registrar, calendarDelegate: CalendarDelegate) : this() {
-        _registrar = registrar
-        _calendarDelegate = calendarDelegate
+    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        context = flutterPluginBinding.applicationContext
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, CHANNEL_NAME)
+        channel.setMethodCallHandler(this)
     }
 
-    companion object {
-        @JvmStatic
-        fun registerWith(registrar: Registrar) {
-            val context: Context = registrar.context()
+    override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+        channel.setMethodCallHandler(null)
+    }
 
-            val calendarDelegate = CalendarDelegate(registrar, context)
-            val instance = DeviceCalendarPlugin(registrar, calendarDelegate)
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        activity = binding.activity
+        _calendarDelegate = CalendarDelegate(binding, context!!)
+        binding.addRequestPermissionsResultListener(_calendarDelegate)
+    }
 
-            val calendarsChannel = MethodChannel(registrar.messenger(), CHANNEL_NAME)
-            calendarsChannel.setMethodCallHandler(instance)
+    override fun onDetachedFromActivityForConfigChanges() {
+        activity = null
+    }
 
-            registrar.addRequestPermissionsResultListener(calendarDelegate)
-        }
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        activity = binding.activity
+        _calendarDelegate = CalendarDelegate(binding, context!!)
+        binding.addRequestPermissionsResultListener(_calendarDelegate)
+    }
+
+    override fun onDetachedFromActivity() {
+        activity = null
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -130,6 +152,10 @@ class DeviceCalendarPlugin() : MethodCallHandler {
 
                 _calendarDelegate.createCalendar(calendarName!!, calendarColor, localAccountName!!, result)
             }
+            DELETE_CALENDAR_METHOD -> {
+                val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
+                _calendarDelegate.deleteCalendar(calendarId!!,result)
+            }
             else -> {
                 result.notImplemented()
             }
@@ -145,8 +171,11 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         event.allDay = call.argument<Boolean>(EVENT_ALL_DAY_ARGUMENT) ?: false
         event.start = call.argument<Long>(EVENT_START_DATE_ARGUMENT)!!
         event.end = call.argument<Long>(EVENT_END_DATE_ARGUMENT)!!
+        event.startTimeZone = call.argument<String>(EVENT_START_TIMEZONE_ARGUMENT)
+        event.endTimeZone = call.argument<String>(EVENT_END_TIMEZONE_ARGUMENT)
         event.location = call.argument<String>(EVENT_LOCATION_ARGUMENT)
         event.url = call.argument<String>(EVENT_URL_ARGUMENT)
+        event.availability = parseAvailability(call.argument<String>(EVENT_AVAILABILITY_ARGUMENT))
 
         if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)
@@ -218,4 +247,11 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private inline fun <reified T : Any> Any?.toMutableListOf(): MutableList<T>? {
         return this?.toListOf<T>()?.toMutableList()
     }
+
+    private fun parseAvailability(value: String?): Availability? =
+            if (value == null || value == Constants.AVAILABILITY_UNAVAILABLE) {
+                null
+            } else {
+                Availability.valueOf(value)
+            }
 }
