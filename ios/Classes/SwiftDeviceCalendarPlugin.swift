@@ -1,6 +1,8 @@
-import Flutter
-import UIKit
 import EventKit
+import EventKitUI
+import Flutter
+import Foundation
+import UIKit
 
 extension Date {
     var millisecondsSinceEpoch: Double { return self.timeIntervalSince1970 * 1000.0 }
@@ -12,7 +14,7 @@ extension EKParticipant {
     }
 }
 
-public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
+public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDelegate, UINavigationControllerDelegate {
     struct Calendar: Codable {
         let id: String
         let name: String
@@ -57,6 +59,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let emailAddress: String
         let role: Int
         let attendanceStatus: Int
+        let isCurrentUser: Bool
     }
     
     struct Reminder: Codable {
@@ -90,6 +93,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let deleteCalendarMethod = "deleteCalendar"
     let deleteEventMethod = "deleteEvent"
     let deleteEventInstanceMethod = "deleteEventInstance"
+    let showEventModalMethod = "showiOSEventModal"
     let calendarIdArgument = "calendarId"
     let startDateArgument = "startDate"
     let endDateArgument = "endDate"
@@ -121,8 +125,11 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     let calendarNameArgument = "calendarName"
     let calendarColorArgument = "calendarColor"
     let availabilityArgument = "availability"
+    let attendanceStatusArgument = "attendanceStatus"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
     
+    var flutterResult : FlutterResult?
+
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
         let instance = SwiftDeviceCalendarPlugin()
@@ -149,6 +156,9 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             createCalendar(call, result)
         case deleteCalendarMethod:
             deleteCalendar(call, result)
+        case showEventModalMethod:
+            self.flutterResult = result
+            showEventModal(call, result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -270,11 +280,16 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 let startDate = Date (timeIntervalSince1970: startDateMillisecondsSinceEpoch!.doubleValue / 1000.0)
                 let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch!.doubleValue / 1000.0)
                 let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
-                let predicate = self.eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: [ekCalendar!])
-                let ekEvents = self.eventStore.events(matching: predicate)
-                for ekEvent in ekEvents {
-                    let event = createEventFromEkEvent(calendarId: calendarId, ekEvent: ekEvent)
-                    events.append(event)
+                if ekCalendar != nil {
+                    let predicate = self.eventStore.predicateForEvents(
+                        withStart: startDate,
+                        end: endDate,
+                        calendars: [ekCalendar!])
+                    let ekEvents = self.eventStore.events(matching: predicate)
+                    for ekEvent in ekEvents {
+                        let event = createEventFromEkEvent(calendarId: calendarId, ekEvent: ekEvent)
+                        events.append(event)
+                    }
                 }
             }
             
@@ -353,7 +368,14 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             return nil
         }
         
-        let attendee = Attendee(name: ekParticipant!.name, emailAddress:  ekParticipant!.emailAddress!, role: ekParticipant!.participantRole.rawValue, attendanceStatus: ekParticipant!.participantStatus.rawValue)
+        let attendee = Attendee(
+            name: ekParticipant!.name,
+            emailAddress:  ekParticipant!.emailAddress!,
+            role: ekParticipant!.participantRole.rawValue,
+            attendanceStatus: ekParticipant!.participantStatus.rawValue,
+            isCurrentUser: ekParticipant!.isCurrentUser
+        )
+        
         return attendee
     }
     
@@ -750,6 +772,61 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 }
             }
         }, result: result)
+    }
+
+       private func showEventModal(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+        checkPermissionsThenExecute(permissionsGrantedAction: {
+            let arguments = call.arguments as! Dictionary<String, AnyObject>
+            let eventId = arguments[eventIdArgument] as! String
+            let event = self.eventStore.event(withIdentifier: eventId)
+            
+            if event != nil {
+                let eventController = EKEventViewController()
+                eventController.event = event!
+                eventController.delegate = self
+                eventController.allowsEditing = true
+                eventController.allowsCalendarPreview = true
+                
+                let flutterViewController = getTopMostViewController()
+                let navigationController = UINavigationController(rootViewController: eventController)
+                
+                navigationController.toolbar.isTranslucent = false
+                navigationController.toolbar.tintColor = .blue
+                navigationController.toolbar.backgroundColor = .white
+
+                flutterViewController.present(navigationController, animated: true, completion: nil)
+                
+               
+            } else {
+                result(FlutterError(code: self.genericError, message: self.eventNotFoundErrorMessageFormat, details: nil))
+            }
+        }, result: result)
+    }
+    
+    public func eventViewController(_ controller: EKEventViewController, didCompleteWith action: EKEventViewAction) {
+        controller.dismiss(animated: true, completion: nil)
+        
+        if flutterResult != nil {
+            switch action {
+            case .done:
+                flutterResult!(nil)
+            case .responded:
+                flutterResult!(nil)
+            case .deleted:
+                flutterResult!(nil)
+            @unknown default:
+                flutterResult!(nil)
+            }
+        }
+    }
+    
+    private func getTopMostViewController() -> UIViewController {
+         var topController: UIViewController? = UIApplication.shared.keyWindow?.rootViewController
+         while ((topController?.presentedViewController) != nil) {
+           topController = topController?.presentedViewController
+         }
+        
+         return topController!
     }
     
     private func finishWithUnauthorizedError(result: @escaping FlutterResult) {
