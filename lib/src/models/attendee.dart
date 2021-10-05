@@ -19,6 +19,9 @@ class Attendee {
   /// Read-only. Returns true if the attendee is an organiser, else false
   bool isOrganiser = false;
 
+  /// Read-only. Returns true if the attendee is the current user, else false
+  bool isCurrentUser = false;
+
   /// Details about the attendee that are specific to iOS.
   /// When reading details for an existing event, this will only be populated on iOS devices.
   IosAttendeeDetails? iosAttendeeDetails;
@@ -27,16 +30,15 @@ class Attendee {
   /// When reading details for an existing event, this will only be populated on Android devices.
   AndroidAttendeeDetails? androidAttendeeDetails;
 
-  Attendee(
-      {this.name, this.emailAddress, this.role, this.isOrganiser = false}) {
-    if (Platform.isAndroid) {
-      androidAttendeeDetails = AndroidAttendeeDetails();
-    }
-
-    if (Platform.isIOS) {
-      iosAttendeeDetails = IosAttendeeDetails();
-    }
-  }
+  Attendee({
+    this.name,
+    this.emailAddress,
+    this.role,
+    this.isOrganiser = false,
+    this.isCurrentUser = false,
+    this.iosAttendeeDetails,
+    this.androidAttendeeDetails,
+  });
 
   Attendee.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
@@ -46,8 +48,8 @@ class Attendee {
     name = json['name'];
     emailAddress = json['emailAddress'];
     role = AttendeeRole.values[json['role'] ?? 0];
-    isOrganiser = json['isOrganizer'] ??
-        false; // Getting and setting an organiser for Android
+    isOrganiser = json['isOrganizer'] ?? false; // Getting and setting an organiser for Android
+    isCurrentUser = json['isCurrentUser'];
 
     if (Platform.isAndroid) {
       androidAttendeeDetails = AndroidAttendeeDetails.fromJson(json);
@@ -63,7 +65,7 @@ class Attendee {
       'name': name,
       'emailAddress': emailAddress,
       'role': role?.index,
-      'isOrganizer': isOrganiser
+      'isOrganizer': isOrganiser,
     };
 
     if (iosAttendeeDetails != null) {
