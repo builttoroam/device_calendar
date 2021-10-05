@@ -56,7 +56,10 @@ class Event {
       this.attendees,
       this.recurrenceRule,
       this.reminders,
+      this.url,
       required this.availability,
+      this.location,
+      this.url,
       this.allDay = false});
 
   Event.fromJson(Map<String, dynamic>? json) {
@@ -69,7 +72,7 @@ class Event {
     title = json['title'];
     description = json['description'];
 
-    final int? startTimestamp = json['start'];
+    final int? startTimestamp = json['eventStartDate'];
     final String? startLocationName = json['startTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
@@ -77,7 +80,7 @@ class Event {
         ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp)
         : TZDateTime.now(local);
 
-    final int? endTimestamp = json['end'];
+    final int? endTimestamp = json['eventEndDate'];
     final String? endLocationName = json['endTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= local;
