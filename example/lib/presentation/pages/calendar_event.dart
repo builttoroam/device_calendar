@@ -43,7 +43,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   TZDateTime? _endDate;
   late TimeOfDay _endTime;
 
-  bool _autovalidate = false;
   DayOfWeekGroup? _dayOfWeekGroup = DayOfWeekGroup.None;
 
   bool _isRecurringEvent = false;
@@ -182,7 +181,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           child: Column(
             children: [
               Form(
-                autovalidate: _autovalidate,
                 key: _formKey,
                 child: Column(
                   children: [
@@ -514,8 +512,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 validator: _validateInterval,
                                 textAlign: TextAlign.right,
                                 onSaved: (String? value) {
-                                  if (value != null)
+                                  if (value != null) {
                                     _interval = int.tryParse(value);
+                                  }
                                 },
                               ),
                             ),
@@ -739,8 +738,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                   validator: _validateTotalOccurrences,
                                   textAlign: TextAlign.right,
                                   onSaved: (String? value) {
-                                    if (value != null)
+                                    if (value != null) {
                                       _totalOccurrences = int.tryParse(value);
+                                    }
                                   },
                                 ),
                               ),
@@ -807,7 +807,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           onPressed: () async {
             final form = _formKey.currentState;
             if (form?.validate() == false) {
-              _autovalidate = true; // Start validating on every change.
               showInSnackBar('Please fix the errors in red before submitting.');
             } else {
               form?.save();
@@ -817,8 +816,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         _recurrenceFrequency == RecurrenceFrequency.Yearly)) {
                   // Setting day of the week parameters for WeekNumber to avoid clashing with the weekly recurrence values
                   _daysOfWeek.clear();
-                  if (_selectedDayOfWeek != null)
+                  if (_selectedDayOfWeek != null) {
                     _daysOfWeek.add(_selectedDayOfWeek as DayOfWeek);
+                  }
                 } else {
                   _weekOfMonth = null;
                 }
@@ -1010,6 +1010,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   }
 
   void showInSnackBar(String value) {
-    _scaffoldKey.currentState!.showSnackBar(SnackBar(content: Text(value)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
   }
 }

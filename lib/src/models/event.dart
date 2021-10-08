@@ -47,20 +47,21 @@ class Event {
   /// Indicates if this event counts as busy time, tentative, unavaiable or is still free time
   late Availability availability;
 
-  Event(this.calendarId,
-      {this.eventId,
-      this.title,
-      this.start,
-      this.end,
-      this.description,
-      this.attendees,
-      this.recurrenceRule,
-      this.reminders,
-      this.url,
-      required this.availability,
-      this.location,
-      this.url,
-      this.allDay = false});
+  Event(
+    this.calendarId, {
+    this.eventId,
+    this.title,
+    this.start,
+    this.end,
+    this.description,
+    this.attendees,
+    this.recurrenceRule,
+    this.reminders,
+    this.url,
+    required this.availability,
+    this.location,
+    this.allDay = false,
+  });
 
   Event.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
