@@ -1,19 +1,28 @@
 package com.builttoroam.devicecalendar
 
+import android.app.Activity
 import android.content.Context
+import androidx.annotation.NonNull
 import com.builttoroam.devicecalendar.common.Constants
 import com.builttoroam.devicecalendar.common.DayOfWeek
 import com.builttoroam.devicecalendar.common.RecurrenceFrequency
 import com.builttoroam.devicecalendar.models.*
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
 
 const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar"
 
-class DeviceCalendarPlugin() : MethodCallHandler {
+class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
+
+    private lateinit var channel: MethodChannel
+    private var context: Context? = null
+    private var activity: Activity? = null
+
     // Methods
     private val REQUEST_PERMISSIONS_METHOD = "requestPermissions"
     private val HAS_PERMISSIONS_METHOD = "hasPermissions"
@@ -60,28 +69,36 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
     private val EVENT_AVAILABILITY_ARGUMENT = "availability"
 
-
-    private lateinit var _registrar: Registrar
     private lateinit var _calendarDelegate: CalendarDelegate
 
-    private constructor(registrar: Registrar, calendarDelegate: CalendarDelegate) : this() {
-        _registrar = registrar
-        _calendarDelegate = calendarDelegate
+    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        context = flutterPluginBinding.applicationContext
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, CHANNEL_NAME)
+        channel.setMethodCallHandler(this)
     }
 
-    companion object {
-        @JvmStatic
-        fun registerWith(registrar: Registrar) {
-            val context: Context = registrar.context()
+    override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+        channel.setMethodCallHandler(null)
+    }
 
-            val calendarDelegate = CalendarDelegate(registrar, context)
-            val instance = DeviceCalendarPlugin(registrar, calendarDelegate)
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        activity = binding.activity
+        _calendarDelegate = CalendarDelegate(binding, context!!)
+        binding.addRequestPermissionsResultListener(_calendarDelegate)
+    }
 
-            val calendarsChannel = MethodChannel(registrar.messenger(), CHANNEL_NAME)
-            calendarsChannel.setMethodCallHandler(instance)
+    override fun onDetachedFromActivityForConfigChanges() {
+        activity = null
+    }
 
-            registrar.addRequestPermissionsResultListener(calendarDelegate)
-        }
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        activity = binding.activity
+        _calendarDelegate = CalendarDelegate(binding, context!!)
+        binding.addRequestPermissionsResultListener(_calendarDelegate)
+    }
+
+    override fun onDetachedFromActivity() {
+        activity = null
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -166,10 +183,10 @@ class DeviceCalendarPlugin() : MethodCallHandler {
             val attendeesArgs = call.argument<List<Map<String, Any>>>(ATTENDEES_ARGUMENT)!!
             for (attendeeArgs in attendeesArgs) {
                 event.attendees.add(Attendee(
-                        attendeeArgs[EMAIL_ADDRESS_ARGUMENT] as String,
-                        attendeeArgs[NAME_ARGUMENT] as String?,
-                        attendeeArgs[ROLE_ARGUMENT] as Int,
-                        null, null))
+                    attendeeArgs[EMAIL_ADDRESS_ARGUMENT] as String,
+                    attendeeArgs[NAME_ARGUMENT] as String?,
+                    attendeeArgs[ROLE_ARGUMENT] as Int,
+                    null, null))
             }
         }
 
@@ -223,14 +240,10 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         return (this as List<*>?)?.filterIsInstance<T>()?.toList()
     }
 
-    private inline fun <reified T : Any> Any?.toMutableListOf(): MutableList<T>? {
-        return this?.toListOf<T>()?.toMutableList()
-    }
-
     private fun parseAvailability(value: String?): Availability? =
-            if (value == null || value == Constants.AVAILABILITY_UNAVAILABLE) {
-                null
-            } else {
-                Availability.valueOf(value)
-            }
+        if (value == null || value == Constants.AVAILABILITY_UNAVAILABLE) {
+            null
+        } else {
+            Availability.valueOf(value)
+        }
 }
