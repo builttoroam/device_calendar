@@ -56,7 +56,6 @@ class Event {
       this.attendees,
       this.recurrenceRule,
       this.reminders,
-      this.url,
       required this.availability,
       this.location,
       this.url,
