@@ -38,9 +38,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Calendars'),
-        actions: [
-          _getRefreshButton()
-        ],
+        actions: [_getRefreshButton()],
       ),
       body: Column(
         children: [
