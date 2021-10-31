@@ -21,8 +21,7 @@ jobs:
   # You may pin to the exact commit or the version.
   # uses: subosito/flutter-action@4389e6cbc6cb8a4b18c628ff96ff90be0e926aa8
         uses: subosito/flutter-action@v1.5.3
-        #with:
-    # The Flutter version to make available on the path
-          #flutter-version: # optional
-    # The Flutter build release channel
-          #channel: # optional, default is stable
+        with:
+          channel: 'stable' # or: 'beta', 'dev' or 'master'
+      - run: flutter pub get
+      - run: flutter test
