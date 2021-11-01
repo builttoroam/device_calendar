@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: fetch value
         run: |
-             content=`cat .pub-cache/`
+             content=`cat ~/.pub-cache/credentials.json`
              echo $content
       - name: Publish Dart/Flutter package
   # You may pin to the exact commit or the version.
