@@ -29,7 +29,11 @@ jobs:
       - run: flutter --version
       - name: iOS build
         if: runner.os == 'macOS'
-        run: flutter build ios --release --no-codesign
+        run: |
+          cd example
+          flutter build ios --release --no-codesign
       - name: android build
         if: runner.os == 'Linux'
-        run: flutter build appbundle
+        run: |
+          cd example
+          flutter build appbundle
