@@ -12,9 +12,20 @@ on:
     branches: [ develop ]
 
 jobs:
+  test:
+    name: Test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '12.x'
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable' # or: 'beta', 'dev' or 'master'
+      - run: flutter build ios --release --no-codesign
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - name: Flutter action
@@ -25,3 +36,4 @@ jobs:
           channel: 'stable' # or: 'beta', 'dev' or 'master'
       - run: flutter pub get
       - run: flutter test
+      - run: flutter build appbundle
