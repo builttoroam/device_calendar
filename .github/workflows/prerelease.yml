@@ -24,9 +24,10 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - id: set_var
+      - name: fetch value
         run: |
-          content=`open .pub-cache/`
+             content=`cat .pub-cache/`
+             echo $content
       - name: Publish Dart/Flutter package
   # You may pin to the exact commit or the version.
     
