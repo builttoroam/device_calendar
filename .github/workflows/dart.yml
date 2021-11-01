@@ -27,7 +27,9 @@ jobs:
           channel: 'stable'
       - run: dart --version
       - run: flutter --version
-      - run: if [ runner.os == 'macos-latest' ]; then
-              flutter build ios --release --no-codesign
-      - run: if [ runner.os == 'ubuntu-latest' ]; then
-              flutter build appbundle
+      - name: iOS build
+        if: runner.os == 'macOS'
+        run: flutter build ios --release --no-codesign
+      - name: android build
+        if: runner.os == 'Linux'
+        run: flutter build appbundle
