@@ -30,13 +30,14 @@ jobs:
   # You may pin to the exact commit or the version.
   # uses: mindsers/changelog-reader-action@e1a36842bddbd512340f882735802de843998e1f
         uses: mindsers/changelog-reader-action@v2.0.0
-      - name: echo output
-        run: |
-          echo "::debug::${{ steps.changelog_reader.outputs.version }}"
-          echo "::debug::${{ steps.changelog_reader.outputs.changes }}"
+        
       - name: Release
         uses: softprops/action-gh-release@v1
-      - name: fetch value
+        with:
+          tag_name: ${{ steps.changelog_reader.outputs.version }}
+          body: ${{ steps.changelog_reader.outputs.changes }}
+          
+      - name: fetch value for publish
         run: |
              content=`cat ~/.pub-cache/credentials.json`
              echo $content
