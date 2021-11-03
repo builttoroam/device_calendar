@@ -34,6 +34,8 @@ jobs:
         run: |
           echo "::debug::${{ steps.changelog_reader.outputs.version }}"
           echo "::debug::${{ steps.changelog_reader.outputs.changes }}"
+      - name: Release
+        uses: softprops/action-gh-release@v1
       - name: fetch value
         run: |
              content=`cat ~/.pub-cache/credentials.json`
