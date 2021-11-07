@@ -7,11 +7,18 @@ on:
   # Triggers the workflow on push or pull request events but only for the develop branch
   push:
     branches: [ release, hotfix ]
+  #for testing only, remove before deploy
+  pull_request:
+    branches: [ develop, release, hotfix, master ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
   workflow_run:
-    workflows: ["Build test"]
+    workflows:
+      - build
+    types:
+      - completed
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -31,11 +38,10 @@ jobs:
   # uses: mindsers/changelog-reader-action@e1a36842bddbd512340f882735802de843998e1f
         uses: mindsers/changelog-reader-action@v2.0.0
         
-      - name: Edit pubspec.yml for dev release
+      - name: Edit pubspec.ymal for dev release
         run: |
+            sed  -i "s/version.*/&+$GITHUB_RUN_ID/" pubspec.yaml
             cat pubspec.yaml
-            sed 's/version.*/&+$GITHUB_RUN_ID/' pubspec.yml
-            echo pubspec.yaml
             
       - name: Add entry to Github release
         uses: softprops/action-gh-release@v1
