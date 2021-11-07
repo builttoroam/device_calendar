@@ -3,20 +3,20 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Dart
+name: build
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, release, hotfix, master ]
   pull_request:
-    branches: [ develop ]
+    branches: [ develop, release, hotfix, master ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   test:
-    name: Test on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+    name: Build test
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
@@ -28,12 +28,10 @@ jobs:
       - run: dart --version
       - run: flutter --version
       - name: iOS build
-        if: runner.os == 'macOS'
         run: |
           cd example
           flutter build ios --release --no-codesign
       - name: android build
-        if: runner.os == 'Linux'
         run: |
           cd example
           flutter build appbundle
