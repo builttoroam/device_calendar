@@ -7,18 +7,8 @@ on:
   # Triggers the workflow on push or pull request events but only for the develop branch
   push:
     branches: [ release, hotfix ]
-  #for testing only, remove before deploy
-  pull_request:
-    branches: [ develop, release, hotfix, master ]
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
-  workflow_run:
-    workflows:
-      - build
-    types:
-      - completed
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -27,7 +17,6 @@ jobs:
     name: Development Release
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -35,7 +24,7 @@ jobs:
 
       - name: Get Changelog Entry
         id: changelog_reader
-  # uses: mindsers/changelog-reader-action@e1a36842bddbd512340f882735802de843998e1f
+        # uses: mindsers/changelog-reader-action@e1a36842bddbd512340f882735802de843998e1f
         uses: mindsers/changelog-reader-action@v2.0.0
         
       - name: Edit pubspec.ymal for dev release
