@@ -46,8 +46,9 @@ jobs:
       - name: Add entry to Github release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.changelog_reader.outputs.version }}
+          tag_name: ${{ steps.changelog_reader.outputs.version }}+${{ github.run_id }}
           body: ${{ steps.changelog_reader.outputs.changes }}
+          prerelease: true
           
       - name: fetch credentials for publish
         run: |
