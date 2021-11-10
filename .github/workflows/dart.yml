@@ -7,9 +7,9 @@ name: build
 
 on:
   push:
-    branches: [ develop, release, hotfix, master ]
+    branches: [develop, release, hotfix, master]
   pull_request:
-    branches: [ develop, release, hotfix, master ]
+    branches: [develop, release, hotfix, master]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -21,10 +21,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
-          java-version: '12.x'
+          java-version: "12.x"
       - uses: subosito/flutter-action@v1
         with:
-          channel: 'stable'
+          channel: "stable"
       - run: dart --version
       - run: flutter --version
       - name: iOS build
