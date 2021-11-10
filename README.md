@@ -1,4 +1,5 @@
 # Device Calendar Plugin
+**Your previous code will need to be modified (slightly) otherwise it will not run after update. See Timezone support for more details.**
 
 [![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) [![Build Status](https://dev.azure.com/builttoroam/Flutter%20Plugins/_apis/build/status/Device%20Calendar)](https://dev.azure.com/builttoroam/Flutter%20Plugins/_build/latest?definitionId=111)
 
@@ -19,7 +20,42 @@ A cross platform plugin for modifying calendars on the user's device.
 * Specify a time zone for event start and end date
   * **NOTE**: Due to a limitation of iOS API, single time zone property is used for iOS (`event.startTimeZone`)
   * **NOTE**: For the time zone list, please refer to the `TZ database name` column on [Wikipedia](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
-  * **NOTE**: If the time zone values are null or invalid, it will be defaulted to the device's current time zone.
+
+## Timezone support with TZDateTime
+
+Due to feedback we received, we will be utilizing `timezone` package to better handle all the timezone data. 
+
+This is already included in this package. However, you need to add this line whenever the package is needed.
+
+```dart
+import 'package:timezone/timezone.dart';
+```
+
+If you don't need any timezone specific features in your app, you may use `flutter_native_timezone` to get your devices' current timezone, then convert your previous `DateTime` with it.
+
+```dart 
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+
+//As an example, our default timezone is UTC.
+Location _currentLocation = getLocation('Etc/UTC');
+
+Future setCurentLocation() async {
+  String timezone = 'Etc/UTC';
+  try {
+    timezone = await FlutterNativeTimezone.getLocalTimezone();
+  } catch (e) {
+    print('Could not get the local timezone');
+  }
+  _currentLocation = getLocation(timezone);
+  setLocalLocation(_currentLocation);
+}
+
+...
+
+event.start = TZDateTime.from(oldDateTime, _currentLocation);
+```
+
+For other use cases, feedback or future developments on the feature, feel free to open a discussion on GitHub.
 
 ## Null migration
 
