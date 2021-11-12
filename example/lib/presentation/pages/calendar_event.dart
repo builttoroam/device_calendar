@@ -94,8 +94,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         _startDate = TZDateTime.now(fallbackLocation!);
         _endDate = TZDateTime.now(fallbackLocation).add(Duration(hours: 1));
       }
-      _event = Event(_calendar.id,
-          start: _startDate, end: _endDate, availability: Availability.Busy);
+      _event = Event(_calendar.id, start: _startDate, end: _endDate);
 
       print('DeviceCalendarPlugin calendar id is: ${_calendar.id}');
 

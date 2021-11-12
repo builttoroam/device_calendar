@@ -56,7 +56,7 @@ class Event {
       this.attendees,
       this.recurrenceRule,
       this.reminders,
-      required this.availability,
+      this.availability = Availability.Busy,
       this.location,
       this.url,
       this.allDay = false});
