@@ -51,9 +51,10 @@ class _RecurringEventDialogState extends State<RecurringEventDialog> {
                     _calendarEvent.start?.millisecondsSinceEpoch,
                     _calendarEvent.end?.millisecondsSinceEpoch,
                     false);
-            if (_onDeleteFinished != null)
+            if (_onDeleteFinished != null) {
               _onDeleteFinished!(
                   deleteResult.isSuccess && deleteResult.data != null);
+            }
           },
           child: Text('This instance only'),
         ),
@@ -68,9 +69,10 @@ class _RecurringEventDialogState extends State<RecurringEventDialog> {
                     _calendarEvent.start?.millisecondsSinceEpoch,
                     _calendarEvent.end?.millisecondsSinceEpoch,
                     true);
-            if (_onDeleteFinished != null)
+            if (_onDeleteFinished != null) {
               _onDeleteFinished!(
                   deleteResult.isSuccess && deleteResult.data != null);
+            }
           },
           child: Text('This and following instances'),
         ),
@@ -80,9 +82,10 @@ class _RecurringEventDialogState extends State<RecurringEventDialog> {
             if (_onLoadingStarted != null) _onLoadingStarted!();
             final deleteResult = await _deviceCalendarPlugin.deleteEvent(
                 _calendarEvent.calendarId, _calendarEvent.eventId);
-            if (_onDeleteFinished != null)
+            if (_onDeleteFinished != null) {
               _onDeleteFinished!(
                   deleteResult.isSuccess && deleteResult.data != null);
+            }
           },
           child: Text('All instances'),
         ),

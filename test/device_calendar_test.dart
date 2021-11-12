@@ -64,7 +64,8 @@ void main() {
     final String? calendarId = null;
     final params = RetrieveEventsParams();
 
-    final result = await deviceCalendarPlugin.retrieveEvents(calendarId, params);
+    final result =
+        await deviceCalendarPlugin.retrieveEvents(calendarId, params);
     expect(result.isSuccess, false);
     expect(result.errors.length, greaterThan(0));
     expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
