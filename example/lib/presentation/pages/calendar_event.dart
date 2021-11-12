@@ -136,7 +136,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
             _event?.recurrenceRule?.monthOfYear ?? MonthOfYear.January;
         _weekOfMonth = _event?.recurrenceRule?.weekOfMonth ?? WeekNumber.First;
         _selectedDayOfWeek =
-        _daysOfWeek.isNotEmpty ? _daysOfWeek.first : DayOfWeek.Monday;
+            _daysOfWeek.isNotEmpty ? _daysOfWeek.first : DayOfWeek.Monday;
         _dayOfMonth = _event?.recurrenceRule?.dayOfMonth ?? 1;
 
         if (_daysOfWeek.isNotEmpty) {
@@ -513,8 +513,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 validator: _validateInterval,
                                 textAlign: TextAlign.right,
                                 onSaved: (String? value) {
-                                  if (value != null)
+                                  if (value != null) {
                                     _interval = int.tryParse(value);
+                                  }
                                 },
                               ),
                             ),
@@ -738,8 +739,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                   validator: _validateTotalOccurrences,
                                   textAlign: TextAlign.right,
                                   onSaved: (String? value) {
-                                    if (value != null)
+                                    if (value != null) {
                                       _totalOccurrences = int.tryParse(value);
+                                    }
                                   },
                                 ),
                               ),
@@ -816,8 +818,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         _recurrenceFrequency == RecurrenceFrequency.Yearly)) {
                   // Setting day of the week parameters for WeekNumber to avoid clashing with the weekly recurrence values
                   _daysOfWeek.clear();
-                  if (_selectedDayOfWeek != null)
+                  if (_selectedDayOfWeek != null) {
                     _daysOfWeek.add(_selectedDayOfWeek as DayOfWeek);
+                  }
                 } else {
                   _weekOfMonth = null;
                 }
