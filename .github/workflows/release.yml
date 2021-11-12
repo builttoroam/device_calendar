@@ -20,15 +20,11 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - name: Get Changelog Entry
-        id: changelog_reader
-        # uses: mindsers/changelog-reader-action@e1a36842bddbd512340f882735802de843998e1f
-        uses: mindsers/changelog-reader-action@v2.0.0
-      - name: Add entry to Github release
-        uses: softprops/action-gh-release@v1
+      - uses: subosito/flutter-action@v1
         with:
-          tag_name: ${{ steps.changelog_reader.outputs.version }}
-          body: ${{ steps.changelog_reader.outputs.changes }}
+          channel: "stable"
+      - run: dart --version
+      - run: flutter --version
       - name: Fetch credentials for publish
         run: |
           content=`cat ~/.pub-cache/credentials.json`
@@ -39,3 +35,11 @@ jobs:
           flutter_package: true
           skip_test: false
           dry_run: true
+      - name: Get Changelog Entry
+        id: changelog_reader
+        uses: mindsers/changelog-reader-action@v2.0.0
+      - name: Add entry to Github release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.changelog_reader.outputs.version }}
+          body: ${{ steps.changelog_reader.outputs.changes }}
