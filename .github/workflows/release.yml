@@ -27,7 +27,7 @@ jobs:
       - run: flutter --version
       - name: Fetch credentials for publish
         run: |
-          content=`cat ~/.pub-cache/credentials.json`
+          content= "cat $PUB_CACHE/credentials.json"
       - name: Publish package
         uses: sakebook/actions-flutter-pub-publisher@v1.3.1
         with:
