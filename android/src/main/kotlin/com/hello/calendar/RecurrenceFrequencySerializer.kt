@@ -1,6 +1,6 @@
-package com.builttoroam.devicecalendar
+package com.hello.calendar
 
-import com.builttoroam.devicecalendar.common.RecurrenceFrequency
+import com.hello.calendar.common.RecurrenceFrequency
 import com.google.gson.*
 import java.lang.reflect.Type
 

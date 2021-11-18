@@ -1,12 +1,12 @@
-package com.builttoroam.devicecalendar
+package com.hello.calendar
 
 import android.app.Activity
 import android.content.Context
 import androidx.annotation.NonNull
-import com.builttoroam.devicecalendar.common.Constants
-import com.builttoroam.devicecalendar.common.DayOfWeek
-import com.builttoroam.devicecalendar.common.RecurrenceFrequency
-import com.builttoroam.devicecalendar.models.*
+import com.hello.calendar.common.Constants
+import com.hello.calendar.common.DayOfWeek
+import com.hello.calendar.common.RecurrenceFrequency
+import com.hello.calendar.models.*
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -114,7 +114,8 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
                 _calendarDelegate.hasPermissions(result)
             }
             RETRIEVE_CALENDARS_METHOD -> {
-                _calendarDelegate.retrieveCalendars(result)
+//                _calendarDelegate.retrieveCalendars(result)
+                _calendarDelegate.retriveCalendars2(result)
             }
             RETRIEVE_EVENTS_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)

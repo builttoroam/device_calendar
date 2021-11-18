@@ -1,7 +1,7 @@
-package com.builttoroam.devicecalendar.models
+package com.hello.calendar.models
 
-import com.builttoroam.devicecalendar.common.DayOfWeek
-import com.builttoroam.devicecalendar.common.RecurrenceFrequency
+import com.hello.calendar.common.DayOfWeek
+import com.hello.calendar.common.RecurrenceFrequency
 
 
 class RecurrenceRule(val recurrenceFrequency : RecurrenceFrequency) {

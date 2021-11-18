@@ -19,8 +19,7 @@ import 'package:timezone/data/latest.dart' as tz;
 
 /// Provides functionality for working with device calendar(s)
 class DeviceCalendarPlugin {
-  static const MethodChannel channel =
-      MethodChannel(ChannelConstants.channelName);
+  static const MethodChannel channel = MethodChannel(ChannelConstants.channelName);
 
   static final DeviceCalendarPlugin _instance = DeviceCalendarPlugin.private();
 
@@ -57,14 +56,18 @@ class DeviceCalendarPlugin {
   /// Retrieves all of the device defined calendars
   ///
   /// Returns a [Result] containing a list of device [Calendar]
-  Future<Result<UnmodifiableListView<Calendar>>> retrieveCalendars() async {
+  Future<Result<List<Calendar>>> retrieveCalendars() async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameRetrieveCalendars,
-      evaluateResponse: (rawData) => UnmodifiableListView(
-        json.decode(rawData).map<Calendar>(
-              (decodedCalendar) => Calendar.fromJson(decodedCalendar),
-            ),
-      ),
+      evaluateResponse: (rawData) {
+        // print('data:::: ${rawData}');
+        List decodedData = json.decode(rawData);
+        // print('parsed:::: ${json.encode(decodedData)}');
+
+        List<Calendar> parsedCalendars = decodedData.map<Calendar>((c) => Calendar.fromJson(c)).toList();
+        // print('lenght:::: ${parsedCalendars.length}');
+        return parsedCalendars;
+      },
     );
   }
 
@@ -92,29 +95,23 @@ class DeviceCalendarPlugin {
         _assertParameter(
           result,
           !((retrieveEventsParams?.eventIds?.isEmpty ?? true) &&
-              ((retrieveEventsParams?.startDate == null ||
-                      retrieveEventsParams?.endDate == null) ||
+              ((retrieveEventsParams?.startDate == null || retrieveEventsParams?.endDate == null) ||
                   (retrieveEventsParams?.startDate != null &&
                       retrieveEventsParams?.endDate != null &&
                       (retrieveEventsParams != null &&
-                          retrieveEventsParams.startDate!
-                              .isAfter(retrieveEventsParams.endDate!))))),
+                          retrieveEventsParams.startDate!.isAfter(retrieveEventsParams.endDate!))))),
           ErrorCodes.invalidArguments,
           ErrorMessages.invalidRetrieveEventsParams,
         );
       },
       arguments: () => <String, Object?>{
         ChannelConstants.parameterNameCalendarId: calendarId,
-        ChannelConstants.parameterNameStartDate:
-            retrieveEventsParams?.startDate?.millisecondsSinceEpoch,
-        ChannelConstants.parameterNameEndDate:
-            retrieveEventsParams?.endDate?.millisecondsSinceEpoch,
+        ChannelConstants.parameterNameStartDate: retrieveEventsParams?.startDate?.millisecondsSinceEpoch,
+        ChannelConstants.parameterNameEndDate: retrieveEventsParams?.endDate?.millisecondsSinceEpoch,
         ChannelConstants.parameterNameEventIds: retrieveEventsParams?.eventIds,
       },
       evaluateResponse: (rawData) => UnmodifiableListView(
-        json
-            .decode(rawData)
-            .map<Event>((decodedEvent) => Event.fromJson(decodedEvent)),
+        json.decode(rawData).map<Event>((decodedEvent) => Event.fromJson(decodedEvent)),
       ),
     );
   }
@@ -189,8 +186,7 @@ class DeviceCalendarPlugin {
         ChannelConstants.parameterNameEventId: eventId,
         ChannelConstants.parameterNameEventStartDate: startDate,
         ChannelConstants.parameterNameEventEndDate: endDate,
-        ChannelConstants.parameterNameFollowingInstances:
-            deleteFollowingInstances,
+        ChannelConstants.parameterNameFollowingInstances: deleteFollowingInstances,
       },
     );
   }
@@ -210,24 +206,18 @@ class DeviceCalendarPlugin {
         // Setting time to 0 for all day events
         if (event.allDay == true) {
           if (event.start != null) {
-            var dateStart = DateTime(event.start!.year, event.start!.month,
-                event.start!.day, 0, 0, 0);
-            event.start = TZDateTime.from(dateStart,
-                timeZoneDatabase.locations[event.start!.location.name]!);
+            var dateStart = DateTime(event.start!.year, event.start!.month, event.start!.day, 0, 0, 0);
+            event.start = TZDateTime.from(dateStart, timeZoneDatabase.locations[event.start!.location.name]!);
           }
           if (event.end != null) {
-            var dateEnd = DateTime(
-                event.end!.year, event.end!.month, event.end!.day, 0, 0, 0);
-            event.end = TZDateTime.from(
-                dateEnd, timeZoneDatabase.locations[event.end!.location.name]!);
+            var dateEnd = DateTime(event.end!.year, event.end!.month, event.end!.day, 0, 0, 0);
+            event.end = TZDateTime.from(dateEnd, timeZoneDatabase.locations[event.end!.location.name]!);
           }
         }
 
         _assertParameter(
           result,
-          !(event.allDay == true && (event.calendarId?.isEmpty ?? true) ||
-              event.start == null ||
-              event.end == null),
+          !(event.allDay == true && (event.calendarId?.isEmpty ?? true) || event.start == null || event.end == null),
           ErrorCodes.invalidArguments,
           ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay,
         );
@@ -238,9 +228,7 @@ class DeviceCalendarPlugin {
               ((event.calendarId?.isEmpty ?? true) ||
                   event.start == null ||
                   event.end == null ||
-                  (event.start != null &&
-                      event.end != null &&
-                      event.start!.isAfter(event.end!)))),
+                  (event.start != null && event.end != null && event.start!.isAfter(event.end!)))),
           ErrorCodes.invalidArguments,
           ErrorMessages.createOrUpdateEventInvalidArgumentsMessage,
         );
@@ -265,6 +253,8 @@ class DeviceCalendarPlugin {
     String? calendarName, {
     Color? calendarColor,
     String? localAccountName,
+
+    //required int calendarId,
   }) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameCreateCalendar,
@@ -280,12 +270,10 @@ class DeviceCalendarPlugin {
       },
       arguments: () => <String, Object?>{
         ChannelConstants.parameterNameCalendarName: calendarName,
-        ChannelConstants.parameterNameCalendarColor:
-            '0x${calendarColor?.value.toRadixString(16)}',
+        ChannelConstants.parameterNameCalendarColor: '0x${calendarColor?.value.toRadixString(16)}',
         ChannelConstants.parameterNameLocalAccountName:
-            localAccountName?.isEmpty ?? true
-                ? 'Device Calendar'
-                : localAccountName
+            localAccountName?.isEmpty ?? true ? 'Device Calendar' : localAccountName,
+        // ChannelConstants.parameterNameCalendarId: calendarId
       },
     );
   }
@@ -343,8 +331,7 @@ class DeviceCalendarPlugin {
     return result;
   }
 
-  void _parsePlatformExceptionAndUpdateResult<T>(
-      Exception? exception, Result<T> result) {
+  void _parsePlatformExceptionAndUpdateResult<T>(Exception? exception, Result<T> result) {
     if (exception == null) {
       result.errors.add(
         ResultError(
@@ -361,16 +348,14 @@ class DeviceCalendarPlugin {
       result.errors.add(
         ResultError(
           ErrorCodes.platformSpecific,
-          sprintf(ErrorMessages.unknownDeviceExceptionTemplate,
-              [exception.code, exception.message]),
+          sprintf(ErrorMessages.unknownDeviceExceptionTemplate, [exception.code, exception.message]),
         ),
       );
     } else {
       result.errors.add(
         ResultError(
           ErrorCodes.generic,
-          sprintf(ErrorMessages.unknownDeviceGenericExceptionTemplate,
-              [exception.toString()]),
+          sprintf(ErrorMessages.unknownDeviceGenericExceptionTemplate, [exception.toString()]),
         ),
       );
     }

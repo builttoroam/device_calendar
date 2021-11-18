@@ -1,4 +1,4 @@
-package com.builttoroam.devicecalendar.models
+package com.hello.calendar.models
 
 import io.flutter.plugin.common.MethodChannel
 

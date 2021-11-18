@@ -1,6 +1,6 @@
-package com.builttoroam.devicecalendar
+package com.hello.calendar
 
-import com.builttoroam.devicecalendar.models.Availability
+import com.hello.calendar.models.Availability
 import com.google.gson.*
 import java.lang.reflect.Type
 
