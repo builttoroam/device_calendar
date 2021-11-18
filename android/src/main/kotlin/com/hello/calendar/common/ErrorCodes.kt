@@ -1,4 +1,4 @@
-package com.builttoroam.devicecalendar.common
+package com.hello.calendar.common
 
 class ErrorCodes {
     companion object {

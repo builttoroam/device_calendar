@@ -22,7 +22,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.builttoroam.devicecalendar
+        package: com.hello.calendar
         pluginClass: DeviceCalendarPlugin
       ios:
         pluginClass: DeviceCalendarPlugin

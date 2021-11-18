@@ -1,8 +1,8 @@
-group 'com.builttoroam.devicecalendar'
+group 'com.hello.calendar'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.3.50'
+    ext.kotlin_version = '1.5.10'
     repositories {
         google()
         jcenter()
@@ -18,6 +18,8 @@ rootProject.allprojects {
     repositories {
         google()
         jcenter()
+        //MARK: for linter on local machine only
+        //maven { url "https://storage.googleapis.com/download.flutter.io"}
     }
 }
 
@@ -41,8 +43,10 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.google.code.gson:gson:2.8.5'
-    api 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'com.google.code.gson:gson:2.8.6'
+    api 'androidx.appcompat:appcompat:1.3.1'
     implementation 'org.dmfs:lib-recur:0.11.2'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.5'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1'
+    //MARK: for linter on local machine only
+//    api "io.flutter:flutter_embedding_debug:1.0.0-d3ea636dc5d16b56819f3266241e1f708979c233"
 }
