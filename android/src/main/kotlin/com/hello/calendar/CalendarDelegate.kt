@@ -225,10 +225,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         if (arePermissionsGranted()) {
             getCalendars(_binding!!.activity)
                 .onSuccess {
-                    it.map {
-                        Log.e("MYTAGRETRIVECAL", "${it!!.name} ${it.id}")
-                    }
-
                     finishWithSuccess(
                         _gson!!.toJson(it),
                         pendingChannelResult
