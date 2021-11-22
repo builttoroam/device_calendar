@@ -29,16 +29,19 @@ jobs:
       - name: Edit pubspec.ymal for dev release
         run: |
           sed  -i "s/version.*/&-$GITHUB_RUN_ID/" pubspec.yaml
+      - name: Get Changelog Entry
+        id: changelog_reader
+        uses: mindsers/changelog-reader-action@v2.0.0
+      - name: Edit changelog.md for dev release
+        run: |
+          sed -i "0,/\#\# \[.*/s//## [${{steps.changelog_reader.outputs.version}}-$GITHUB_RUN_ID]/" CHANGELOG.md
+          cat CHANGELOG.md
       - name: Publish package
         uses: sakebook/actions-flutter-pub-publisher@v1.3.1
         with:
           credential: ${{ secrets.CREDENTIALS }}
           flutter_package: true
           skip_test: false
-          dry_run: true
-      - name: Get Changelog Entry
-        id: changelog_reader
-        uses: mindsers/changelog-reader-action@v2.0.0
       - name: Add entry to Github release
         uses: softprops/action-gh-release@v1
         with:
