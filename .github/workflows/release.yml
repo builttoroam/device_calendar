@@ -25,13 +25,10 @@ jobs:
           channel: "stable"
       - run: dart --version
       - run: flutter --version
-      - name: Fetch credentials for publish
-        run: |
-          content= "cat $PUB_CACHE/credentials.json"
       - name: Publish package
         uses: sakebook/actions-flutter-pub-publisher@v1.3.1
         with:
-          credential: content
+          credential:  ${{ secrets.CREDENTIALS }}
           flutter_package: true
           skip_test: false
           dry_run: true
