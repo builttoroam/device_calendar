@@ -87,7 +87,7 @@ class Event {
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
 
-    allDay = json['allDay'];
+    allDay = json['allDay'] ?? false;
     location = json['location'];
     availability = parseStringToAvailability(json['availability']);
 
@@ -136,9 +136,11 @@ class Event {
     data['eventId'] = eventId;
     data['eventTitle'] = title;
     data['eventDescription'] = description;
-    data['eventStartDate'] = start!.millisecondsSinceEpoch;
+    data['eventStartDate'] = start?.millisecondsSinceEpoch ??
+        TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventStartTimeZone'] = start?.location.name;
-    data['eventEndDate'] = end!.millisecondsSinceEpoch;
+    data['eventEndDate'] = end?.millisecondsSinceEpoch ??
+        TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventEndTimeZone'] = end?.location.name;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
