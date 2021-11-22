@@ -193,6 +193,7 @@ void main() {
     expect(newEvent, isNotNull);
     expect(newEvent.calendarId, equals(event.calendarId));
     expect(newEvent.eventId, equals(event.eventId));
-    expect(newEvent.start, equals(event.start));
+    expect(newEvent.start!.millisecondsSinceEpoch,
+        equals(event.start!.millisecondsSinceEpoch));
   });
 }
