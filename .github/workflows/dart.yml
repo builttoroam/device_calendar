@@ -27,6 +27,7 @@ jobs:
           channel: "stable"
       - run: dart --version
       - run: flutter --version
+      - run: flutter test
       - name: iOS build
         run: |
           cd example
