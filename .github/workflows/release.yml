@@ -31,7 +31,6 @@ jobs:
           credential:  ${{ secrets.CREDENTIALS }}
           flutter_package: true
           skip_test: false
-          dry_run: true
       - name: Get Changelog Entry
         id: changelog_reader
         uses: mindsers/changelog-reader-action@v2.0.0
