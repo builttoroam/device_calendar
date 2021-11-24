@@ -31,8 +31,9 @@ class DateTimePicker extends StatelessWidget {
             : DateTime.now(),
         firstDate: DateTime(2015, 8),
         lastDate: DateTime(2101));
-    if (picked != null && picked != selectedDate && selectDate != null)
+    if (picked != null && picked != selectedDate && selectDate != null) {
       selectDate!(picked);
+    }
   }
 
   Future<Null> _selectTime(BuildContext context) async {

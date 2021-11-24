@@ -24,8 +24,10 @@ class DeviceCalendarPlugin {
 
   static final DeviceCalendarPlugin _instance = DeviceCalendarPlugin.private();
 
-  factory DeviceCalendarPlugin() {
-    tz.initializeTimeZones();
+  factory DeviceCalendarPlugin({bool shouldInitTimezone = true}) {
+    if (shouldInitTimezone) {
+      tz.initializeTimeZones();
+    }
     return _instance;
   }
 

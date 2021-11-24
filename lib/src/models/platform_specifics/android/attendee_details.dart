@@ -14,16 +14,13 @@ class AndroidAttendeeDetails {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
 
-    if (json['androidAttendanceStatus'] != null &&
-        json['androidAttendanceStatus'] is int) {
+    if (json['attendanceStatus'] != null && json['attendanceStatus'] is int) {
       _attendanceStatus =
-          AndroidAttendanceStatus.values[json['androidAttendanceStatus']];
+          AndroidAttendanceStatus.values[json['attendanceStatus']];
     }
   }
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'androidAttendanceStatus': _attendanceStatus?.index
-    };
+    return <String, dynamic>{'attendanceStatus': _attendanceStatus?.index};
   }
 }

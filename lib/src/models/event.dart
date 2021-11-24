@@ -56,7 +56,9 @@ class Event {
       this.attendees,
       this.recurrenceRule,
       this.reminders,
-      required this.availability,
+      this.availability = Availability.Busy,
+      this.location,
+      this.url,
       this.allDay = false});
 
   Event.fromJson(Map<String, dynamic>? json) {
@@ -69,7 +71,7 @@ class Event {
     title = json['title'];
     description = json['description'];
 
-    final int? startTimestamp = json['start'];
+    final int? startTimestamp = json['eventStartDate'];
     final String? startLocationName = json['startTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
@@ -77,7 +79,7 @@ class Event {
         ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp)
         : TZDateTime.now(local);
 
-    final int? endTimestamp = json['end'];
+    final int? endTimestamp = json['eventEndDate'];
     final String? endLocationName = json['endTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= local;
@@ -85,7 +87,7 @@ class Event {
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
 
-    allDay = json['allDay'];
+    allDay = json['allDay'] ?? false;
     location = json['location'];
     availability = parseStringToAvailability(json['availability']);
 
@@ -134,9 +136,11 @@ class Event {
     data['eventId'] = eventId;
     data['eventTitle'] = title;
     data['eventDescription'] = description;
-    data['eventStartDate'] = start!.millisecondsSinceEpoch;
+    data['eventStartDate'] = start?.millisecondsSinceEpoch ??
+        TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventStartTimeZone'] = start?.location.name;
-    data['eventEndDate'] = end!.millisecondsSinceEpoch;
+    data['eventEndDate'] = end?.millisecondsSinceEpoch ??
+        TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventEndTimeZone'] = end?.location.name;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
