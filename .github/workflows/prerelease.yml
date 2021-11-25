@@ -36,11 +36,13 @@ jobs:
         run: |
           sed -i "0,/\#\# \[.*/s//## [${{steps.changelog_reader.outputs.version}}-$GITHUB_RUN_ID]/" CHANGELOG.md
           cat CHANGELOG.md
-      - name: Publish package
+      - name: Setup credentials
         run: |
-          mkdir -p $FLUTTER_HOME/.pub-cache
-          echo '${{ secrets.CREDENTIALS }}' >  $FLUTTER_HOME/.pub-cache/credentials.json
-          flutter pub publish
+          cat <<EOF > $PUB_CACHE/credentials.json
+          ${{ secrets.CREDENTIALS }}
+          EOF
+      - name: Publish package
+        run: flutter pub publish
       - name: Add entry to Github release
         uses: softprops/action-gh-release@v1
         with:
