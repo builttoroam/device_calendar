@@ -1,7 +1,7 @@
 # Device Calendar Plugin
 **Your previous code will need to be modified (slightly) otherwise it will not run after update. See Timezone support for more details.**
 
-[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) [![Build Status](https://dev.azure.com/builttoroam/Flutter%20Plugins/_apis/build/status/Device%20Calendar)](https://dev.azure.com/builttoroam/Flutter%20Plugins/_build/latest?definitionId=111)
+[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) ![Pub Version (including pre-releases)](https://img.shields.io/pub/v/device_calendar?include_prereleases&label=Prerelease) [![build](https://github.com/builttoroam/device_calendar/actions/workflows/dart.yml/badge.svg?branch=develop)](https://github.com/builttoroam/device_calendar/actions/workflows/dart.yml)
 
 A cross platform plugin for modifying calendars on the user's device.
 
