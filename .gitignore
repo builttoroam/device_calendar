@@ -12,6 +12,12 @@ pubspec.lock
 # If you don't generate documentation locally you can remove this line.
 doc/api/
 device_calendar.code-workspace
-device_calendar/example/.flutter-plugins-dependencies
-device_calendar/example/ios/Flutter/flutter_export_environment.sh
-device_calendar/example/ios/Flutter/Flutter.podspec
+example/.flutter-plugins-dependencies
+example/ios/Flutter/flutter_export_environment.sh
+example/ios/Flutter/Flutter.podspec
+**/.idea/
+**/.vs/
+**/.settings
+**/.project
+**/.classpath
+.vscode
