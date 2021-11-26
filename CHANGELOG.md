@@ -2,14 +2,14 @@
 
 To benefit from the current changelog reader in CI/CD, please follow the changelog format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [4.0.1]
+## [4.0.0]
 
 - Timezone plugin and logic implemented. Fixed all issues related to timezone.
 - Android: Fixed bug where platform exception appeared, when Events.availability was null on Event [241](https://github.com/builttoroam/device_calendar/issues/241)
 - Fixed example app issues [270](https://github.com/builttoroam/device_calendar/issues/270), [268](https://github.com/builttoroam/device_calendar/issues/268)
 - Android code variable order fix for issue [258](https://github.com/builttoroam/device_calendar/issues/258)
 
-## [4.0.0]
+## [3.9.0]
 
 - Migrated to null safety
 - Updated multiple underlying dependencies
