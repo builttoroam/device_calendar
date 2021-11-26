@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.0
+## [3.9.0]
 
 * Migrated to null safety
 * Updated multiple underlying dependencies
