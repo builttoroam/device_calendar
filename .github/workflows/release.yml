@@ -31,7 +31,7 @@ jobs:
           ${{ secrets.CREDENTIALS }}
           EOF
       - name: Publish package
-        run: flutter pub publish
+        run: flutter pub publish --force
       - name: Get Changelog Entry
         id: changelog_reader
         uses: mindsers/changelog-reader-action@v2.0.0
