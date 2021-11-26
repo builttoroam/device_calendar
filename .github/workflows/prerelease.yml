@@ -42,7 +42,7 @@ jobs:
           ${{ secrets.CREDENTIALS }}
           EOF
       - name: Publish package
-        run: flutter pub publish
+        run: flutter pub publish --force
       - name: Add entry to Github release
         uses: softprops/action-gh-release@v1
         with:
