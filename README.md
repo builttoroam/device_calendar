@@ -23,7 +23,7 @@ A cross platform plugin for modifying calendars on the user's device.
 
 ## Timezone support with TZDateTime
 
-Due to feedback we received, starting from `v4.0.0` we will be utilizing `timezone` package to better handle all the timezone data. 
+Due to feedback we received, starting from `v4.0.0` we will be using the `timezone` package to better handle all timezone data. 
 
 This is already included in this package. However, you need to add this line whenever the package is needed.
 
@@ -36,7 +36,7 @@ If you don't need any timezone specific features in your app, you may use `flutt
 ```dart 
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 
-//As an example, our default timezone is UTC.
+// As an example, our default timezone is UTC.
 Location _currentLocation = getLocation('Etc/UTC');
 
 Future setCurentLocation() async {
@@ -59,14 +59,14 @@ For other use cases, feedback or future developments on the feature, feel free t
 
 ## Null-safety migration
 
-From `v3.9.0`, device_calendar is null-safe. However, not all workflow had been checked and bugs from older versions still presist.
+From `v3.9.0`, device_calendar is null-safe. However, not all workflows have been checked and bugs from older versions still persist.
 
 You are strongly advised to test your workflow with the new package before shipping. 
 Better yet, please leave a note for what works and what doesn't, or contribute some bug fixes!
 
 ## Android Integration
 
-The following will need to be added to the `AndroidManifest.xml` file for your application to indicate permissions to modify calendars a needed
+The following will need to be added to the `AndroidManifest.xml` file for your application to indicate permissions to modify calendars are needed
 
 ```xml
 <uses-permission android:name="android.permission.READ_CALENDAR" />
