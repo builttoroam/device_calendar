@@ -1,7 +1,7 @@
 # Device Calendar Plugin
-**Your previous code will need to be modified (slightly) otherwise it will not run after update. See Timezone support for more details.**
+**If you're upgrading to `v4.0.0`, your previous code will need to be modified (slightly) otherwise it will not run after update. See Timezone support for more details.**
 
-[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) [![Build Status](https://dev.azure.com/builttoroam/Flutter%20Plugins/_apis/build/status/Device%20Calendar)](https://dev.azure.com/builttoroam/Flutter%20Plugins/_build/latest?definitionId=111)
+[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) ![Pub Version (including pre-releases)](https://img.shields.io/pub/v/device_calendar?include_prereleases&label=Prerelease) [![build](https://github.com/builttoroam/device_calendar/actions/workflows/dart.yml/badge.svg?branch=develop)](https://github.com/builttoroam/device_calendar/actions/workflows/dart.yml)
 
 A cross platform plugin for modifying calendars on the user's device.
 
@@ -23,7 +23,7 @@ A cross platform plugin for modifying calendars on the user's device.
 
 ## Timezone support with TZDateTime
 
-Due to feedback we received, we will be utilizing `timezone` package to better handle all the timezone data. 
+Due to feedback we received, starting from `v4.0.0` we will be using the `timezone` package to better handle all timezone data. 
 
 This is already included in this package. However, you need to add this line whenever the package is needed.
 
@@ -36,7 +36,7 @@ If you don't need any timezone specific features in your app, you may use `flutt
 ```dart 
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 
-//As an example, our default timezone is UTC.
+// As an example, our default timezone is UTC.
 Location _currentLocation = getLocation('Etc/UTC');
 
 Future setCurentLocation() async {
@@ -57,16 +57,16 @@ event.start = TZDateTime.from(oldDateTime, _currentLocation);
 
 For other use cases, feedback or future developments on the feature, feel free to open a discussion on GitHub.
 
-## Null migration
+## Null-safety migration
 
-From v4.0.0, device_calendar fits null safety. However, not all workflow had been checked and bugs from 3.2 still presists.
+From `v3.9.0`, device_calendar is null-safe. However, not all workflows have been checked and bugs from older versions still persist.
 
 You are strongly advised to test your workflow with the new package before shipping. 
 Better yet, please leave a note for what works and what doesn't, or contribute some bug fixes!
 
 ## Android Integration
 
-The following will need to be added to the manifest file for your application to indicate permissions to modify calendars a needed
+The following will need to be added to the `AndroidManifest.xml` file for your application to indicate permissions to modify calendars are needed
 
 ```xml
 <uses-permission android:name="android.permission.READ_CALENDAR" />
@@ -75,7 +75,7 @@ The following will need to be added to the manifest file for your application to
 ### Proguard / R8 exceptions
 By default, all android apps go through R8 for file shrinking when building a release version. Currently, it interferes with some functions such as `retrieveCalendars()`.
 
-You may add the following setting to the ProGuard rules file (thanks to [Britannio Jarrett](https://github.com/britannio)). Read more about the issue [here](https://github.com/builttoroam/device_calendar/issues/99)
+You may add the following setting to the ProGuard rules file `proguard-rules.pro` (thanks to [Britannio Jarrett](https://github.com/britannio)). Read more about the issue [here](https://github.com/builttoroam/device_calendar/issues/99)
 
 ```
 -keep class com.builttoroam.devicecalendar.** { *; }
@@ -86,11 +86,11 @@ See [here](https://github.com/builttoroam/device_calendar/issues/99#issuecomment
 For more information, refer to the guide at [Android Developer](https://developer.android.com/studio/build/shrink-code#keep-code)
 
 ### AndroidX migration
-**IMPORTANT**: Since version 0.1.0, this version has migrated to use AndroidX instead of the deprecated Android support libraries. When using version 0.10.0 and onwards for this plugin, please ensure your application has been migrated following the guide [here](https://developer.android.com/jetpack/androidx/migrate)
+Since `v0.1.0`, this version has migrated to use AndroidX instead of the deprecated Android support libraries. When using `v0.10.0` and onwards for this plugin, please ensure your application has been migrated following the guide [here](https://developer.android.com/jetpack/androidx/migrate)
 
 ## iOS Integration
 
-For iOS 10 support, you'll need to modify the Info.plist to add the following key/value pair
+For iOS 10 support, you'll need to modify the `Info.plist` to add the following key/value pair
 
 ```xml
 <key>NSCalendarsUsageDescription</key>
