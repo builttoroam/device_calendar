@@ -48,4 +48,3 @@ jobs:
         run: |
           cd example
           flutter build ios --release --no-codesign
-          
