@@ -1,10 +1,11 @@
+import 'package:collection/collection.dart';
+import 'package:timezone/timezone.dart';
+
 import '../../device_calendar.dart';
 import '../common/calendar_enums.dart';
 import '../common/error_messages.dart';
 import 'attendee.dart';
 import 'recurrence_rule.dart';
-import 'package:timezone/timezone.dart';
-import 'package:collection/collection.dart';
 
 /// An event associated with a calendar
 class Event {
@@ -71,7 +72,7 @@ class Event {
     title = json['title'];
     description = json['description'];
 
-    final int? startTimestamp = json['eventStartDate'];
+    final int? startTimestamp = json['start'];
     final String? startLocationName = json['startTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
@@ -79,7 +80,7 @@ class Event {
         ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp)
         : TZDateTime.now(local);
 
-    final int? endTimestamp = json['eventEndDate'];
+    final int? endTimestamp = json['end'];
     final String? endLocationName = json['endTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= local;
