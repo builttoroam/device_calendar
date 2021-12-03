@@ -169,8 +169,8 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
         event.eventId = call.argument<String>(EVENT_ID_ARGUMENT)
         event.description = call.argument<String>(EVENT_DESCRIPTION_ARGUMENT)
         event.allDay = call.argument<Boolean>(EVENT_ALL_DAY_ARGUMENT) ?: false
-        event.start = call.argument<Long>(EVENT_START_DATE_ARGUMENT)!!
-        event.end = call.argument<Long>(EVENT_END_DATE_ARGUMENT)!!
+        event.eventStartDate = call.argument<Long>(EVENT_START_DATE_ARGUMENT)!!
+        event.eventEndDate = call.argument<Long>(EVENT_END_DATE_ARGUMENT)!!
         event.startTimeZone = call.argument<String>(EVENT_START_TIMEZONE_ARGUMENT)
         event.endTimeZone = call.argument<String>(EVENT_END_TIMEZONE_ARGUMENT)
         event.location = call.argument<String>(EVENT_LOCATION_ARGUMENT)

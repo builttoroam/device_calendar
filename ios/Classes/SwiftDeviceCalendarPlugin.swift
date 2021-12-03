@@ -28,8 +28,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let calendarId: String
         let title: String
         let description: String?
-        let start: Int64
-        let end: Int64
+        let eventStartDate: Int64
+        let eventEndDate: Int64
         let startTimeZone: String?
         let allDay: Bool
         let attendees: [Attendee]
@@ -352,8 +352,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             calendarId: calendarId,
             title: ekEvent.title ?? "New Event",
             description: ekEvent.notes,
-            start: Int64(ekEvent.startDate.millisecondsSinceEpoch),
-            end: Int64(ekEvent.endDate.millisecondsSinceEpoch),
+            eventStartDate: Int64(ekEvent.startDate.millisecondsSinceEpoch),
+            eventEndDate: Int64(ekEvent.endDate.millisecondsSinceEpoch),
             startTimeZone: ekEvent.timeZone?.identifier,
             allDay: ekEvent.isAllDay,
             attendees: attendees,

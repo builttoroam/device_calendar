@@ -6,8 +6,8 @@ class Event {
     var eventId: String? = null
     var calendarId: String? = null
     var description: String? = null
-    var start: Long? = null
-    var end: Long? = null
+    var eventStartDate: Long? = null
+    var eventEndDate: Long? = null
     var startTimeZone: String? = null
     var endTimeZone: String? = null
     var allDay: Boolean = false
