@@ -2,6 +2,10 @@
 
 <!-- To benefit from the current changelog reader in CI/CD, please follow the changelog format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). -->
 
+## [4.0.1](https://github.com/builttoroam/device_calendar/releases/tag/4.1.0)
+
+- Fixes event time retrieved
+
 ## [4.0.0](https://github.com/builttoroam/device_calendar/releases/tag/4.0.0)
 
 - Timezone plugin and logic implemented. All issues related to timezone shoulde be fixed.
