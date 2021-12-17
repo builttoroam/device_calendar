@@ -64,7 +64,8 @@ void main() {
     final String? calendarId = null;
     final params = RetrieveEventsParams();
 
-    final result = await deviceCalendarPlugin.retrieveEvents(calendarId, params);
+    final result =
+        await deviceCalendarPlugin.retrieveEvents(calendarId, params);
     expect(result.isSuccess, false);
     expect(result.errors.length, greaterThan(0));
     expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
@@ -105,7 +106,7 @@ void main() {
 
   test('CreateEvent_Arguments_Invalid', () async {
     final String? fakeCalendarId = null;
-    final event = Event(fakeCalendarId, availability: Availability.Busy);
+    final event = Event(fakeCalendarId);
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result!.isSuccess, false);
@@ -120,7 +121,7 @@ void main() {
     });
 
     final fakeCalendarId = 'fakeCalendarId';
-    final event = Event(fakeCalendarId, availability: Availability.Busy);
+    final event = Event(fakeCalendarId);
     event.title = 'fakeEventTitle';
     event.start = TZDateTime.now(local);
     event.end = event.start!.add(Duration(hours: 1));
@@ -144,7 +145,7 @@ void main() {
     });
 
     final fakeCalendarId = 'fakeCalendarId';
-    final event = Event(fakeCalendarId, availability: Availability.Busy);
+    final event = Event(fakeCalendarId);
     event.eventId = 'fakeEventId';
     event.title = 'fakeEventTitle';
     event.start = TZDateTime.now(local);
@@ -178,10 +179,20 @@ void main() {
   test('Event_Serializes_Correctly', () async {
     final startTime = TZDateTime(
         timeZoneDatabase.locations.entries.skip(20).first.value,
-        1980, 10, 1, 0, 0, 0);
+        1980,
+        10,
+        1,
+        0,
+        0,
+        0);
     final endTime = TZDateTime(
         timeZoneDatabase.locations.entries.skip(21).first.value,
-        1980, 10, 2, 0, 0, 0);
+        1980,
+        10,
+        2,
+        0,
+        0,
+        0);
     final attendee = Attendee(
         name: 'Test Attendee',
         emailAddress: 'test@t.com',
@@ -209,8 +220,10 @@ void main() {
     expect(newEvent.calendarId, equals(event.calendarId));
     expect(newEvent.eventId, equals(event.eventId));
     expect(newEvent.title, equals(event.title));
-    expect(newEvent.start, equals(event.start));
-    expect(newEvent.end, equals(event.end));
+    expect(newEvent.start!.millisecondsSinceEpoch,
+        equals(event.start!.millisecondsSinceEpoch));
+    expect(newEvent.end!.millisecondsSinceEpoch,
+        equals(event.end!.millisecondsSinceEpoch));
     expect(newEvent.description, equals(event.description));
     expect(newEvent.url, equals(event.url));
     expect(newEvent.location, equals(event.location));
