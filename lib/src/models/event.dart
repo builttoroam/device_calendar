@@ -68,8 +68,8 @@ class Event {
 
     eventId = json['eventId'];
     calendarId = json['calendarId'];
-    title = json['title'];
-    description = json['description'];
+    title = json['eventTitle'];
+    description = json['eventDescription'];
 
     final int? startTimestamp = json['eventStartDate'];
     final String? startLocationName = json['startTimeZone'];
@@ -87,11 +87,11 @@ class Event {
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
 
-    allDay = json['allDay'] ?? false;
-    location = json['location'];
+    allDay = json['eventAllDay'] ?? false;
+    location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
 
-    var foundUrl = json['url']?.toString();
+    var foundUrl = json['eventURL']?.toString();
     if (foundUrl?.isEmpty ?? true) {
       url = null;
     } else {
