@@ -56,7 +56,7 @@ class Event {
       this.attendees,
       this.recurrenceRule,
       this.reminders,
-      required this.availability,
+      this.availability = Availability.Busy,
       this.location,
       this.url,
       this.allDay = false});
@@ -72,7 +72,7 @@ class Event {
     description = json['eventDescription'];
 
     final int? startTimestamp = json['eventStartDate'];
-    final String? startLocationName = json['eventStartTimeZone'];
+    final String? startLocationName = json['startTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
     start = startTimestamp != null
@@ -80,14 +80,14 @@ class Event {
         : TZDateTime.now(local);
 
     final int? endTimestamp = json['eventEndDate'];
-    final String? endLocationName = json['eventEndTimeZone'];
+    final String? endLocationName = json['endTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= local;
     end = endTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
 
-    allDay = json['eventAllDay'];
+    allDay = json['eventAllDay'] ?? false;
     location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
 
@@ -136,9 +136,11 @@ class Event {
     data['eventId'] = eventId;
     data['eventTitle'] = title;
     data['eventDescription'] = description;
-    data['eventStartDate'] = start!.millisecondsSinceEpoch;
+    data['eventStartDate'] = start?.millisecondsSinceEpoch ??
+        TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventStartTimeZone'] = start?.location.name;
-    data['eventEndDate'] = end!.millisecondsSinceEpoch;
+    data['eventEndDate'] = end?.millisecondsSinceEpoch ??
+        TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventEndTimeZone'] = end?.location.name;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
