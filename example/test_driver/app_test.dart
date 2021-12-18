@@ -1,93 +1,90 @@
-import 'dart:io';
-
-import 'package:flutter_driver/flutter_driver.dart';
-import 'package:test/test.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 import 'package:uuid/uuid.dart';
 
+// import 'package:flutter_driver/driver_extension.dart';
+import 'package:device_calendar_example/main.dart' as app;
+
 /// NOTE: These integration tests are currently made to be run on a physical Android device where there is at least a calendar that can be written to.
-/// They will currently need to be run on a Mac as well
+/// Calendar permissions are needed. See example/test_driver/integration_test.dart for how to run this
 void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   group('Calendar plugin example', () {
-    FlutterDriver? driver;
     final eventTitle = Uuid().v1();
-    final saveEventButtonFinder = find.byValueKey('saveEventButton');
+    final saveEventButtonFinder = find.byKey(const Key('saveEventButton'));
     final eventTitleFinder = find.text(eventTitle);
-    setUpAll(() async {
-      // workaround for handling permissions based on info taken from https://github.com/flutter/flutter/issues/12561
-      // this is to be run in a Mac environment
-      final envVars = Platform.environment;
-      final adbPath = envVars['ANDROID_HOME'] != null
-          ? envVars['ANDROID_HOME']! + '/platform-tools/adb'
-          : '';
-      await Process.run(adbPath, [
-        'shell',
-        'pm',
-        'grant',
-        'com.builttoroam.devicecalendarexample',
-        'android.permission.INTERNET'
-      ]);
-      await Process.run(adbPath, [
-        'shell',
-        'pm',
-        'grant',
-        'com.builttoroam.devicecalendarexample',
-        'android.permission.READ_CALENDAR'
-      ]);
-      await Process.run(adbPath, [
-        'shell',
-        'pm',
-        'grant',
-        'com.builttoroam.devicecalendarexample',
-        'android.permission.WRITE_CALENDAR'
-      ]);
+    final firstWritableCalendarFinder =
+        find.byKey(const Key('writableCalendar0'));
+    final addEventButtonFinder = find.byKey(const Key('addEventButton'));
+    final titleFieldFinder = find.byKey(const Key('titleField'));
+    final deleteButtonFinder = find.byKey(const Key('deleteEventButton'));
+//TODO: remove redundant restarts. Currently needed because the first screen is always "test starting..."
+    testWidgets('starts on calendars page', (WidgetTester tester) async {
+      app.main();
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('calendarsPage')), findsOneWidget);
+    });
+    testWidgets('select first writable calendar', (WidgetTester tester) async {
+      app.main();
 
-      driver = await FlutterDriver.connect();
+      await tester.pumpAndSettle(Duration(milliseconds: 500));
+      expect(firstWritableCalendarFinder, findsOneWidget);
     });
+    testWidgets('go to add event page', (WidgetTester tester) async {
+      app.main();
+      await tester.pumpAndSettle();
+      await tester.tap(firstWritableCalendarFinder);
 
-    tearDownAll(() async {
-      await driver?.close();
-    });
-
-    test('check flutter driver health', () async {
-      final health = await driver?.checkHealth();
-      print('flutter driver status: ${health?.status}');
-    });
-
-    test('starts on calendars page', () async {
-      await driver?.waitFor(find.byValueKey('calendarsPage'));
-    });
-    test('select first writable calendar', () async {
-      final writableCalendarFinder = find.byValueKey('writableCalendar0');
-      await driver?.waitFor(writableCalendarFinder,
-          timeout: Duration(milliseconds: 500));
-      await driver?.tap(writableCalendarFinder);
-    });
-    test('go to add event page', () async {
-      final addEventButtonFinder = find.byValueKey('addEventButton');
-      await driver?.waitFor(addEventButtonFinder);
+      await tester.pumpAndSettle();
+      expect(addEventButtonFinder, findsOneWidget);
       print('found add event button');
-      await driver?.tap(addEventButtonFinder);
-      await driver?.waitFor(saveEventButtonFinder);
+      await tester.tap(addEventButtonFinder);
+      await tester.pumpAndSettle();
+      expect(saveEventButtonFinder, findsOneWidget);
     });
-    test('try to save event without entering mandatory fields', () async {
-      await driver?.tap(saveEventButtonFinder);
-      await driver?.waitFor(
-          find.text('Please fix the errors in red before submitting.'));
+    testWidgets('try to save event without entering mandatory fields',
+        (WidgetTester tester) async {
+      app.main();
+      await tester.pumpAndSettle();
+      await tester.tap(firstWritableCalendarFinder);
+      await tester.pumpAndSettle();
+      await tester.tap(addEventButtonFinder);
+
+      await tester.pumpAndSettle();
+      await tester.tap(saveEventButtonFinder);
+      await tester.pumpAndSettle();
+      expect(find.text('Please fix the errors in red before submitting.'),
+          findsOneWidget);
     });
-    test('save event with title $eventTitle', () async {
-      final titleFieldFinder = find.byValueKey('titleField');
-      await driver?.waitFor(titleFieldFinder);
-      await driver?.tap(titleFieldFinder);
-      await driver?.enterText(eventTitle);
-      await driver?.tap(saveEventButtonFinder);
-      await driver?.waitFor(eventTitleFinder);
+    testWidgets('save event with title $eventTitle',
+        (WidgetTester tester) async {
+      app.main();
+      await tester.pumpAndSettle();
+      await tester.tap(firstWritableCalendarFinder);
+      await tester.pumpAndSettle();
+      await tester.tap(addEventButtonFinder);
+
+      await tester.pumpAndSettle();
+      await tester.tap(titleFieldFinder);
+
+      await tester.enterText(titleFieldFinder, eventTitle);
+      await tester.tap(saveEventButtonFinder);
+      await tester.pumpAndSettle();
+      expect(eventTitleFinder, findsOneWidget);
     });
-    test('delete event with title $eventTitle', () async {
-      await driver?.tap(eventTitleFinder);
-      final deleteButtonFinder = find.byValueKey('deleteEventButton');
-      await driver?.scrollIntoView(deleteButtonFinder);
-      await driver?.tap(deleteButtonFinder);
-      await driver?.waitForAbsent(eventTitleFinder);
+    testWidgets('delete event with title $eventTitle',
+        (WidgetTester tester) async {
+      app.main();
+      await tester.pumpAndSettle();
+      await tester.tap(firstWritableCalendarFinder);
+      await tester.pumpAndSettle();
+      await tester.tap(eventTitleFinder);
+
+      await tester.scrollUntilVisible(deleteButtonFinder, 5);
+      await tester.tap(deleteButtonFinder);
+      await tester.pumpAndSettle();
+      expect(eventTitleFinder, findsNothing);
     });
   });
 }
