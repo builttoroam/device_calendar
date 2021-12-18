@@ -26,15 +26,15 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     struct Event: Codable {
         let eventId: String
         let calendarId: String
-        let title: String
-        let description: String?
+        let eventTitle: String
+        let eventDescription: String?
         let eventStartDate: Int64
         let eventEndDate: Int64
-        let startTimeZone: String?
-        let allDay: Bool
+        let eventStartTimeZone: String?
+        let eventAllDay: Bool
         let attendees: [Attendee]
-        let location: String?
-        let url: String?
+        let eventLocation: String?
+        let eventURL: String?
         let recurrenceRule: RecurrenceRule?
         let organizer: Attendee?
         let reminders: [Reminder]
