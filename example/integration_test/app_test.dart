@@ -3,11 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:uuid/uuid.dart';
 
-// import 'package:flutter_driver/driver_extension.dart';
 import 'package:device_calendar_example/main.dart' as app;
 
-/// NOTE: These integration tests are currently made to be run on a physical Android device where there is at least a calendar that can be written to.
-/// Calendar permissions are needed. See example/test_driver/integration_test.dart for how to run this
+/// NOTE: These integration tests are currently made to be run on a physical device where there is at least a calendar that can be written to.
+/// Calendar permissions are needed. See example/test_driver/integration_test.dart for how to run this on Android
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   group('Calendar plugin example', () {
@@ -81,7 +80,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(eventTitleFinder);
 
-      await tester.scrollUntilVisible(deleteButtonFinder, 5);
+      await tester.scrollUntilVisible(deleteButtonFinder, -5);
       await tester.tap(deleteButtonFinder);
       await tester.pumpAndSettle();
       expect(eventTitleFinder, findsNothing);
