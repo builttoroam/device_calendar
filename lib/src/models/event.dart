@@ -1,8 +1,5 @@
 import '../../device_calendar.dart';
-import '../common/calendar_enums.dart';
 import '../common/error_messages.dart';
-import 'attendee.dart';
-import 'recurrence_rule.dart';
 import 'package:timezone/timezone.dart';
 import 'package:collection/collection.dart';
 
@@ -72,7 +69,7 @@ class Event {
     description = json['eventDescription'];
 
     final int? startTimestamp = json['eventStartDate'];
-    final String? startLocationName = json['startTimeZone'];
+    final String? startLocationName = json['eventStartTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
     start = startTimestamp != null
@@ -80,7 +77,7 @@ class Event {
         : TZDateTime.now(local);
 
     final int? endTimestamp = json['eventEndDate'];
-    final String? endLocationName = json['endTimeZone'];
+    final String? endLocationName = json['eventEndTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= local;
     end = endTimestamp != null
