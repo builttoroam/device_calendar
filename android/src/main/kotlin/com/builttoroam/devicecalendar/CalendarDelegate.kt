@@ -1,4 +1,4 @@
-package com.hello.calendar
+package com.builttoroam.devicecalendar
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -16,56 +16,55 @@ import android.provider.CalendarContract
 import android.provider.CalendarContract.CALLER_IS_SYNCADAPTER
 import android.provider.CalendarContract.Events
 import android.text.format.DateUtils
-import com.hello.calendar.common.Constants.Companion.ATTENDEE_EMAIL_INDEX
-import com.hello.calendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
-import com.hello.calendar.common.Constants.Companion.ATTENDEE_PROJECTION
-import com.hello.calendar.common.Constants.Companion.ATTENDEE_RELATIONSHIP_INDEX
-import com.hello.calendar.common.Constants.Companion.ATTENDEE_STATUS_INDEX
-import com.hello.calendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
-import com.hello.calendar.common.Constants.Companion.CALENDAR_PROJECTION
-import com.hello.calendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
-import com.hello.calendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX
-import com.hello.calendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_TYPE_INDEX
-import com.hello.calendar.common.Constants.Companion.CALENDAR_PROJECTION_COLOR_INDEX
-import com.hello.calendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
-import com.hello.calendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
-import com.hello.calendar.common.Constants.Companion.CALENDAR_PROJECTION_IS_PRIMARY_INDEX
-import com.hello.calendar.common.Constants.Companion.CALENDAR_PROJECTION_OLDER_API
-import com.hello.calendar.common.Constants.Companion.EVENT_INSTANCE_DELETION
-import com.hello.calendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_BEGIN_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_END_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_ID_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_LAST_DATE_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_RRULE_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION_ALL_DAY_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION_AVAILABILITY_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION_BEGIN_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION_CUSTOM_APP_URI_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION_END_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION_END_TIMEZONE_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION_EVENT_LOCATION_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION_START_TIMEZONE_INDEX
-import com.hello.calendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
-import com.hello.calendar.common.Constants.Companion.REMINDER_MINUTES_INDEX
-import com.hello.calendar.common.Constants.Companion.REMINDER_PROJECTION
-import com.hello.calendar.common.DayOfWeek
-import com.hello.calendar.common.ErrorCodes.Companion.GENERIC_ERROR
-import com.hello.calendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
-import com.hello.calendar.common.ErrorCodes.Companion.NOT_ALLOWED
-import com.hello.calendar.common.ErrorCodes.Companion.NOT_AUTHORIZED
-import com.hello.calendar.common.ErrorCodes.Companion.NOT_FOUND
-import com.hello.calendar.common.ErrorMessages
-import com.hello.calendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE
-import com.hello.calendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
-import com.hello.calendar.common.ErrorMessages.Companion.EVENT_ID_CANNOT_BE_NULL_ON_DELETION_MESSAGE
-import com.hello.calendar.common.ErrorMessages.Companion.NOT_AUTHORIZED_MESSAGE
-import com.hello.calendar.common.RecurrenceFrequency
-import com.hello.calendar.models.*
-import com.hello.calendar.models.Calendar
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_EMAIL_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_NAME_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_PROJECTION
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_RELATIONSHIP_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_STATUS_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.ATTENDEE_TYPE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ACCOUNT_TYPE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_COLOR_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_DISPLAY_NAME_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_ID_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_IS_PRIMARY_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.CALENDAR_PROJECTION_OLDER_API
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_BEGIN_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_END_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_ID_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_LAST_DATE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_RRULE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ALL_DAY_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_AVAILABILITY_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_BEGIN_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_CUSTOM_APP_URI_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_DESCRIPTION_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_END_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_END_TIMEZONE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_EVENT_LOCATION_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_START_TIMEZONE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_MINUTES_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_PROJECTION
+import com.builttoroam.devicecalendar.common.DayOfWeek
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.GENERIC_ERROR
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.INVALID_ARGUMENT
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_ALLOWED
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_AUTHORIZED
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion.NOT_FOUND
+import com.builttoroam.devicecalendar.common.ErrorMessages
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CALENDAR_ID_INVALID_ARGUMENT_NOT_A_NUMBER_MESSAGE
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.CREATE_EVENT_ARGUMENTS_NOT_VALID_MESSAGE
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.EVENT_ID_CANNOT_BE_NULL_ON_DELETION_MESSAGE
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion.NOT_AUTHORIZED_MESSAGE
+import com.builttoroam.devicecalendar.common.RecurrenceFrequency
+import com.builttoroam.devicecalendar.models.*
+import com.builttoroam.devicecalendar.models.Calendar
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -78,7 +77,6 @@ import org.dmfs.rfc5545.recur.Freq
 import java.text.SimpleDateFormat
 import java.util.*
 import android.provider.CalendarContract.Calendars
-import android.util.Log
 
 class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val RETRIEVE_CALENDARS_REQUEST_CODE = 0
@@ -102,12 +100,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         Calendars.ACCOUNT_TYPE //5
     )
 
-    private val PROJECTION_ID_INDEX = 0
-    private val PROJECTION_ACCOUNT_NAME_INDEX = 1
-    private val PROJECTION_DISPLAY_NAME_INDEX = 2
-    private val PROJECTION_OWNER_ACCOUNT_INDEX = 3
-    private val PROJECTION_COLOR_INDEX = 4
-    private val PROJECTION_ACCOUNT_TYPE_INDEX = 5
     private val CALENDER_URL = "content://com.android.calendar/calendars"
 
 
@@ -162,8 +154,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             when (cachedValues.calendarDelegateMethodCode) {
                 RETRIEVE_CALENDARS_REQUEST_CODE -> {
-                    retriveCalendars2(cachedValues.pendingChannelResult)
-//                    retrieveCalendars(cachedValues.pendingChannelResult)
+                    retrieveCalendars(cachedValues.pendingChannelResult)
                 }
                 RETRIEVE_EVENTS_REQUEST_CODE -> {
                     retrieveEvents(
@@ -221,7 +212,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         finishWithSuccess(arePermissionsGranted(), pendingChannelResult)
     }
 
-    fun retriveCalendars2(pendingChannelResult: MethodChannel.Result) {
+    fun retrieveCalendars(pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             getCalendars(_binding!!.activity)
                 .onSuccess {
@@ -251,6 +242,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
      * @param context Context
      * @return the id or -1L
      */
+    @SuppressLint("MissingPermission")
     private fun getCalendars(context: Context): Result<List<Calendar?>> {
         val list = ArrayList<Calendar?>()
         try {
@@ -282,40 +274,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             return Result.failure(e)
         }
         return Result.success(list)
-    }
-
-
-    @SuppressLint("MissingPermission")
-    fun retrieveCalendars(pendingChannelResult: MethodChannel.Result) {
-        if (arePermissionsGranted()) {
-            val contentResolver: ContentResolver? = _context?.contentResolver
-            val uri: Uri = CalendarContract.Calendars.CONTENT_URI
-            val cursor: Cursor? = if (atLeastAPI(17)) {
-                contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
-            } else {
-                contentResolver?.query(uri, CALENDAR_PROJECTION_OLDER_API, null, null, null)
-            }
-            val calendars: MutableList<Calendar> = mutableListOf()
-            try {
-                while (cursor?.moveToNext() == true) {
-                    val calendar = parseCalendarRow(cursor) ?: continue
-                    calendars.add(calendar)
-                }
-
-                finishWithSuccess(_gson?.toJson(calendars), pendingChannelResult)
-
-            } catch (e: Exception) {
-                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
-            } finally {
-                cursor?.close()
-            }
-        } else {
-            val parameters = CalendarMethodsParametersCacheModel(
-                pendingChannelResult,
-                RETRIEVE_CALENDARS_REQUEST_CODE
-            )
-            requestPermissions(parameters)
-        }
     }
 
     private fun retrieveCalendar(

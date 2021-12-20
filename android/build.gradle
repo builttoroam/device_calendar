@@ -1,4 +1,4 @@
-group 'com.hello.calendar'
+group 'com.builttoroam.devicecalendar'
 version '1.0-SNAPSHOT'
 
 buildscript {
@@ -19,7 +19,7 @@ rootProject.allprojects {
         google()
         jcenter()
         //MARK: for linter on local machine only
-        //maven { url "https://storage.googleapis.com/download.flutter.io"}
+//        maven { url "https://storage.googleapis.com/download.flutter.io"}
     }
 }
 

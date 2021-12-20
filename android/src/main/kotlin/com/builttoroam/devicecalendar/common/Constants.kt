@@ -1,4 +1,4 @@
-package com.hello.calendar.common
+package com.builttoroam.devicecalendar.common
 
 import android.provider.CalendarContract
 
