@@ -2,7 +2,15 @@
 
 <!-- To benefit from the current changelog reader in CI/CD, please follow the changelog format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). -->
 
-## [4.0.1](https://github.com/builttoroam/device_calendar/releases/tag/4.1.0)
+## [4.1.0](https://github.com/builttoroam/device_calendar/releases/tag/4.1.0)
+
+- Fix: Event JSONs created are now readable.
+- Fix: Compliable for Flutter 2.9+
+- Fix: removed depreceated plugins from Example.
+- Fix: Integration tests are now working. Android instructions are ready.
+- Gradle plug-ins are updated.
+
+## [4.0.1](https://github.com/builttoroam/device_calendar/releases/tag/4.0.1)
 
 - Fixes event time retrieved
 
