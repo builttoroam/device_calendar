@@ -37,7 +37,6 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_LAST_DATE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_INSTANCE_DELETION_RRULE_INDEX
-import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ALL_DAY_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_AVAILABILITY_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_BEGIN_INDEX
@@ -78,7 +77,6 @@ import org.dmfs.rfc5545.recur.Freq
 import java.text.SimpleDateFormat
 import java.util.*
 import android.provider.CalendarContract.Calendars
-import android.util.Log
 
 class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val RETRIEVE_CALENDARS_REQUEST_CODE = 0
@@ -102,12 +100,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         Calendars.ACCOUNT_TYPE //5
     )
 
-    private val PROJECTION_ID_INDEX = 0
-    private val PROJECTION_ACCOUNT_NAME_INDEX = 1
-    private val PROJECTION_DISPLAY_NAME_INDEX = 2
-    private val PROJECTION_OWNER_ACCOUNT_INDEX = 3
-    private val PROJECTION_COLOR_INDEX = 4
-    private val PROJECTION_ACCOUNT_TYPE_INDEX = 5
     private val CALENDER_URL = "content://com.android.calendar/calendars"
 
 
@@ -162,8 +154,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             when (cachedValues.calendarDelegateMethodCode) {
                 RETRIEVE_CALENDARS_REQUEST_CODE -> {
-                    retriveCalendars2(cachedValues.pendingChannelResult)
-//                    retrieveCalendars(cachedValues.pendingChannelResult)
+                    retrieveCalendars(cachedValues.pendingChannelResult)
                 }
                 RETRIEVE_EVENTS_REQUEST_CODE -> {
                     retrieveEvents(
@@ -221,7 +212,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         finishWithSuccess(arePermissionsGranted(), pendingChannelResult)
     }
 
-    fun retriveCalendars2(pendingChannelResult: MethodChannel.Result) {
+    fun retrieveCalendars(pendingChannelResult: MethodChannel.Result) {
         if (arePermissionsGranted()) {
             getCalendars(_binding!!.activity)
                 .onSuccess {
@@ -251,6 +242,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
      * @param context Context
      * @return the id or -1L
      */
+    @SuppressLint("MissingPermission")
     private fun getCalendars(context: Context): Result<List<Calendar?>> {
         val list = ArrayList<Calendar?>()
         try {
@@ -282,40 +274,6 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             return Result.failure(e)
         }
         return Result.success(list)
-    }
-
-
-    @SuppressLint("MissingPermission")
-    fun retrieveCalendars(pendingChannelResult: MethodChannel.Result) {
-        if (arePermissionsGranted()) {
-            val contentResolver: ContentResolver? = _context?.contentResolver
-            val uri: Uri = CalendarContract.Calendars.CONTENT_URI
-            val cursor: Cursor? = if (atLeastAPI(17)) {
-                contentResolver?.query(uri, CALENDAR_PROJECTION, null, null, null)
-            } else {
-                contentResolver?.query(uri, CALENDAR_PROJECTION_OLDER_API, null, null, null)
-            }
-            val calendars: MutableList<Calendar> = mutableListOf()
-            try {
-                while (cursor?.moveToNext() == true) {
-                    val calendar = parseCalendarRow(cursor) ?: continue
-                    calendars.add(calendar)
-                }
-
-                finishWithSuccess(_gson?.toJson(calendars), pendingChannelResult)
-
-            } catch (e: Exception) {
-                finishWithError(GENERIC_ERROR, e.message, pendingChannelResult)
-            } finally {
-                cursor?.close()
-            }
-        } else {
-            val parameters = CalendarMethodsParametersCacheModel(
-                pendingChannelResult,
-                RETRIEVE_CALENDARS_REQUEST_CODE
-            )
-            requestPermissions(parameters)
-        }
     }
 
     private fun retrieveCalendar(

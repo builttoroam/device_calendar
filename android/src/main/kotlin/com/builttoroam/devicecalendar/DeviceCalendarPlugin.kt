@@ -115,7 +115,7 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
             RETRIEVE_CALENDARS_METHOD -> {
 //                _calendarDelegate.retrieveCalendars(result)
-                _calendarDelegate.retriveCalendars2(result)
+                _calendarDelegate.retrieveCalendars(result)
             }
             RETRIEVE_EVENTS_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
