@@ -1,25 +1,36 @@
 # Changelog
 
-To benefit from the current changelog reader in CI/CD, please follow the changelog format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+<!-- To benefit from the current changelog reader in CI/CD, please follow the changelog format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). -->
 
-## [4.0.1]
+## [4.1.0](https://github.com/builttoroam/device_calendar/releases/tag/4.1.0)
 
-- Timezone plugin and logic implemented. Fixed all issues related to timezone.
+- Fix: Event JSONs created are now readable.
+- Fix: Compilable for Flutter 2.9+
+- Fix: removed depreceated plugins from Example.
+- Fix: Integration tests are now working. Android instructions are ready.
+- Gradle plug-ins are updated.
+
+## [4.0.1](https://github.com/builttoroam/device_calendar/releases/tag/4.0.1)
+
+- Fixes event time retrieved
+
+## [4.0.0](https://github.com/builttoroam/device_calendar/releases/tag/4.0.0)
+
+- Timezone plugin and logic implemented. All issues related to timezone shoulde be fixed.
+- Events.availability defaults to busy when not specified [354](https://github.com/builttoroam/device_calendar/pull/354)
+- Events parameter now includes location and url. [319](https://github.com/builttoroam/device_calendar/pull/319)
 - Android: Fixed bug where platform exception appeared, when Events.availability was null on Event [241](https://github.com/builttoroam/device_calendar/issues/241)
-- Fixed example app issues [270](https://github.com/builttoroam/device_calendar/issues/270), [268](https://github.com/builttoroam/device_calendar/issues/268)
-- Android code variable order fix for issue [258](https://github.com/builttoroam/device_calendar/issues/258)
+- Fixed various issues in example [270](https://github.com/builttoroam/device_calendar/issues/270), [268](https://github.com/builttoroam/device_calendar/issues/268)
+- Android: deleteEvent code aligned with flutter [258](https://github.com/builttoroam/device_calendar/issues/258)
+- Android: Updated to V2 embeddding [326](https://github.com/builttoroam/device_calendar/issues/326)
+- iOS: Updated swift versions, possibly improved compability with Obj-C [flutter/flutter#16049 (comment)](https://github.com/flutter/flutter/issues/16049#issuecomment-611192738)
 
-## [4.0.0]
+## [3.9.0](https://github.com/builttoroam/device_calendar/releases/tag/3.9.0)
 
 - Migrated to null safety
 - Updated multiple underlying dependencies
 - Rebuilt iOS podfile
 - Upgraded to new Android plugins APIs for flutter
-
-## 3.2.0
-
-- Added time zone support
-- Project hierarchy update and clean up
 
 ## 3.1.0 25th March 2020 - Bug fixes and new features
 

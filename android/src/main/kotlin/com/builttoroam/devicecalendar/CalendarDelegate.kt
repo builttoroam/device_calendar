@@ -1,4 +1,4 @@
-package com.builttoroam.devicecalendar 
+package com.builttoroam.devicecalendar
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -467,11 +467,11 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private fun buildEventContentValues(event: Event, calendarId: String): ContentValues {
         val values = ContentValues()
         val duration: String? = null
-        values.put(Events.ALL_DAY, event.allDay)
+        values.put(Events.ALL_DAY, event.eventAllDay)
 
-        if (event.allDay) {
+        if (event.eventAllDay) {
             val calendar = java.util.Calendar.getInstance()
-            calendar.timeInMillis = event.start!!
+            calendar.timeInMillis = event.eventStartDate!!
             calendar.set(java.util.Calendar.HOUR, 0)
             calendar.set(java.util.Calendar.MINUTE, 0)
             calendar.set(java.util.Calendar.SECOND, 0)
@@ -479,18 +479,18 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             values.put(Events.DTSTART, calendar.timeInMillis)
             values.put(Events.DTEND, calendar.timeInMillis)
-            values.put(Events.EVENT_TIMEZONE, getTimeZone(event.startTimeZone).id)
+            values.put(Events.EVENT_TIMEZONE, getTimeZone(event.eventStartTimeZone).id)
         } else {
-            values.put(Events.DTSTART, event.start!!)
-            values.put(Events.EVENT_TIMEZONE, getTimeZone(event.startTimeZone).id)
+            values.put(Events.DTSTART, event.eventStartDate!!)
+            values.put(Events.EVENT_TIMEZONE, getTimeZone(event.eventStartTimeZone).id)
 
-            values.put(Events.DTEND, event.end!!)
-            values.put(Events.EVENT_END_TIMEZONE, getTimeZone(event.endTimeZone).id)
+            values.put(Events.DTEND, event.eventEndDate!!)
+            values.put(Events.EVENT_END_TIMEZONE, getTimeZone(event.eventEndTimeZone).id)
         }
-        values.put(Events.TITLE, event.title)
-        values.put(Events.DESCRIPTION, event.description)
-        values.put(Events.EVENT_LOCATION, event.location)
-        values.put(Events.CUSTOM_APP_URI, event.url)
+        values.put(Events.TITLE, event.eventTitle)
+        values.put(Events.DESCRIPTION, event.eventDescription)
+        values.put(Events.EVENT_LOCATION, event.eventLocation)
+        values.put(Events.CUSTOM_APP_URI, event.eventURL)
         values.put(Events.CALENDAR_ID, calendarId)
         values.put(Events.DURATION, duration)
         values.put(Events.AVAILABILITY, getAvailability(event.availability))
@@ -713,18 +713,18 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val availability = parseAvailability(cursor.getInt(EVENT_PROJECTION_AVAILABILITY_INDEX))
 
         val event = Event()
-        event.title = title ?: "New Event"
+        event.eventTitle = title ?: "New Event"
         event.eventId = eventId.toString()
         event.calendarId = calendarId
-        event.description = description
-        event.start = begin
-        event.end = end
-        event.allDay = allDay
-        event.location = location
-        event.url = url
+        event.eventDescription = description
+        event.eventStartDate = begin
+        event.eventEndDate = end
+        event.eventAllDay = allDay
+        event.eventLocation = location
+        event.eventURL = url
         event.recurrenceRule = parseRecurrenceRuleString(recurringRule)
-        event.startTimeZone = startTimeZone
-        event.endTimeZone = endTimeZone
+        event.eventStartTimeZone = startTimeZone
+        event.eventEndTimeZone = endTimeZone
         event.availability = availability
 
         return event
@@ -863,7 +863,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     @Synchronized
     private fun generateUniqueRequestCodeAndCacheParameters(parameters: CalendarMethodsParametersCacheModel): Int {
         // TODO we can ran out of Int's at some point so this probably should re-use some of the freed ones
-        val uniqueRequestCode: Int = (_cachedParametersMap.keys.max() ?: 0) + 1
+        val uniqueRequestCode: Int = (_cachedParametersMap.keys.maxOrNull() ?: 0) + 1
         parameters.ownCacheKey = uniqueRequestCode
         _cachedParametersMap[uniqueRequestCode] = parameters
 
