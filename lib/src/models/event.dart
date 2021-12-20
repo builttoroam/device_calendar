@@ -1,8 +1,5 @@
 import '../../device_calendar.dart';
-import '../common/calendar_enums.dart';
 import '../common/error_messages.dart';
-import 'attendee.dart';
-import 'recurrence_rule.dart';
 import 'package:timezone/timezone.dart';
 import 'package:collection/collection.dart';
 
@@ -68,11 +65,11 @@ class Event {
 
     eventId = json['eventId'];
     calendarId = json['calendarId'];
-    title = json['title'];
-    description = json['description'];
+    title = json['eventTitle'];
+    description = json['eventDescription'];
 
     final int? startTimestamp = json['eventStartDate'];
-    final String? startLocationName = json['startTimeZone'];
+    final String? startLocationName = json['eventStartTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
     start = startTimestamp != null
@@ -80,18 +77,18 @@ class Event {
         : TZDateTime.now(local);
 
     final int? endTimestamp = json['eventEndDate'];
-    final String? endLocationName = json['endTimeZone'];
+    final String? endLocationName = json['eventEndTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= local;
     end = endTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
 
-    allDay = json['allDay'] ?? false;
-    location = json['location'];
+    allDay = json['eventAllDay'] ?? false;
+    location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
 
-    var foundUrl = json['url']?.toString();
+    var foundUrl = json['eventURL']?.toString();
     if (foundUrl?.isEmpty ?? true) {
       url = null;
     } else {

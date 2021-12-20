@@ -16,6 +16,23 @@ on:
 jobs:
   test:
     name: Build test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: "stable"
+      - run: dart --version
+      - run: flutter --version
+      - run: flutter test
+      - name: publish test
+        run: flutter pub publish --dry-run
+      - name: android build
+        run: |
+          cd example
+          flutter build appbundle
+  test-macos:
+    name: iOS build test
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
@@ -27,12 +44,7 @@ jobs:
           channel: "stable"
       - run: dart --version
       - run: flutter --version
-      - run: flutter test
       - name: iOS build
         run: |
           cd example
           flutter build ios --release --no-codesign
-      - name: android build
-        run: |
-          cd example
-          flutter build appbundle

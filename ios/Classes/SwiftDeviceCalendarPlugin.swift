@@ -26,15 +26,15 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
     struct Event: Codable {
         let eventId: String
         let calendarId: String
-        let title: String
-        let description: String?
-        let start: Int64
-        let end: Int64
-        let startTimeZone: String?
-        let allDay: Bool
+        let eventTitle: String
+        let eventDescription: String?
+        let eventStartDate: Int64
+        let eventEndDate: Int64
+        let eventStartTimeZone: String?
+        let eventAllDay: Bool
         let attendees: [Attendee]
-        let location: String?
-        let url: String?
+        let eventLocation: String?
+        let eventURL: String?
         let recurrenceRule: RecurrenceRule?
         let organizer: Attendee?
         let reminders: [Reminder]
@@ -350,15 +350,15 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         let event = Event(
             eventId: ekEvent.eventIdentifier,
             calendarId: calendarId,
-            title: ekEvent.title ?? "New Event",
-            description: ekEvent.notes,
-            start: Int64(ekEvent.startDate.millisecondsSinceEpoch),
-            end: Int64(ekEvent.endDate.millisecondsSinceEpoch),
-            startTimeZone: ekEvent.timeZone?.identifier,
-            allDay: ekEvent.isAllDay,
+            eventTitle: ekEvent.title ?? "New Event",
+            eventDescription: ekEvent.notes,
+            eventStartDate: Int64(ekEvent.startDate.millisecondsSinceEpoch),
+            eventEndDate: Int64(ekEvent.endDate.millisecondsSinceEpoch),
+            eventStartTimeZone: ekEvent.timeZone?.identifier,
+            eventAllDay: ekEvent.isAllDay,
             attendees: attendees,
-            location: ekEvent.location,
-            url: ekEvent.url?.absoluteString,
+            eventLocation: ekEvent.location,
+            eventURL: ekEvent.url?.absoluteString,
             recurrenceRule: recurrenceRule,
             organizer: convertEkParticipantToAttendee(ekParticipant: ekEvent.organizer),
             reminders: reminders,

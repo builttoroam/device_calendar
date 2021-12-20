@@ -25,12 +25,13 @@ jobs:
           channel: "stable"
       - run: dart --version
       - run: flutter --version
+      - name: Setup credentials
+        run: |
+          cat <<EOF > $PUB_CACHE/credentials.json
+          ${{ secrets.CREDENTIALS }}
+          EOF
       - name: Publish package
-        uses: sakebook/actions-flutter-pub-publisher@v1.3.1
-        with:
-          credential:  ${{ secrets.CREDENTIALS }}
-          flutter_package: true
-          skip_test: false
+        run: flutter pub publish --force
       - name: Get Changelog Entry
         id: changelog_reader
         uses: mindsers/changelog-reader-action@v2.0.0
