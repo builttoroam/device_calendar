@@ -1,4 +1,4 @@
-package com.hello.calendar.models
+package com.builttoroam.devicecalendar.models
 
 import com.google.gson.annotations.SerializedName
 

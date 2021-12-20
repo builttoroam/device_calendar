@@ -1,12 +1,12 @@
-package com.hello.calendar
+package com.builttoroam.devicecalendar
 
 import android.app.Activity
 import android.content.Context
 import androidx.annotation.NonNull
-import com.hello.calendar.common.Constants
-import com.hello.calendar.common.DayOfWeek
-import com.hello.calendar.common.RecurrenceFrequency
-import com.hello.calendar.models.*
+import com.builttoroam.devicecalendar.common.Constants
+import com.builttoroam.devicecalendar.common.DayOfWeek
+import com.builttoroam.devicecalendar.common.RecurrenceFrequency
+import com.builttoroam.devicecalendar.models.*
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding

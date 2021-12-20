@@ -1,4 +1,4 @@
-group 'com.hello.calendar'
+group 'com.builttoroam.devicecalendar'
 version '1.0-SNAPSHOT'
 
 buildscript {
