@@ -2,9 +2,12 @@ import 'dart:io';
 
 import 'package:integration_test/integration_test_driver.dart';
 
-// make sure 'adb devices' works on your local machine, then run the following:
+// make sure 'adb devices' works on your local machine, then from the root of the plugin, run the following:
 /* 
-flutter drive \ --driver=test_driver/integration_test.dart \ --target=integration_test/app_test.dart 
+1.
+cd example
+2.
+flutter drive --driver=integration_test/integration_test.dart --target=integration_test/app_test.dart 
   */
 
 Future<void> main() async {

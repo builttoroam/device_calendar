@@ -38,10 +38,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   final RecurringEventDialog? _recurringEventDialog;
 
   TZDateTime? _startDate;
-  late TimeOfDay _startTime;
+  TimeOfDay? _startTime;
 
   TZDateTime? _endDate;
-  late TimeOfDay _endTime;
+  TimeOfDay? _endTime;
 
   AutovalidateMode _autovalidate = AutovalidateMode.disabled;
   DayOfWeekGroup? _dayOfWeekGroup = DayOfWeekGroup.None;
