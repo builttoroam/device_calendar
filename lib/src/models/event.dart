@@ -1,8 +1,5 @@
 import '../../device_calendar.dart';
-import '../common/calendar_enums.dart';
 import '../common/error_messages.dart';
-import 'attendee.dart';
-import 'recurrence_rule.dart';
 import 'package:timezone/timezone.dart';
 import 'package:collection/collection.dart';
 
