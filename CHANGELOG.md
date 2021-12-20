@@ -5,7 +5,7 @@
 ## [4.1.0](https://github.com/builttoroam/device_calendar/releases/tag/4.1.0)
 
 - Fix: Event JSONs created are now readable.
-- Fix: Compliable for Flutter 2.9+
+- Fix: Compilable for Flutter 2.9+
 - Fix: removed depreceated plugins from Example.
 - Fix: Integration tests are now working. Android instructions are ready.
 - Gradle plug-ins are updated.
