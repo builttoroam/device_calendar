@@ -38,11 +38,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   final RecurringEventDialog? _recurringEventDialog;
 
   TZDateTime? _startDate;
-  late TimeOfDay _startTime;
+  TimeOfDay? _startTime;
 
   TZDateTime? _endDate;
-  late TimeOfDay _endTime;
+  TimeOfDay? _endTime;
 
+  AutovalidateMode _autovalidate = AutovalidateMode.disabled;
   DayOfWeekGroup? _dayOfWeekGroup = DayOfWeekGroup.None;
 
   bool _isRecurringEvent = false;
@@ -93,8 +94,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         _startDate = TZDateTime.now(fallbackLocation!);
         _endDate = TZDateTime.now(fallbackLocation).add(Duration(hours: 1));
       }
-      _event = Event(_calendar.id,
-          start: _startDate, end: _endDate, availability: Availability.Busy);
+      _event = Event(_calendar.id, start: _startDate, end: _endDate);
 
       print('DeviceCalendarPlugin calendar id is: ${_calendar.id}');
 
@@ -136,7 +136,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
             _event?.recurrenceRule?.monthOfYear ?? MonthOfYear.January;
         _weekOfMonth = _event?.recurrenceRule?.weekOfMonth ?? WeekNumber.First;
         _selectedDayOfWeek =
-        _daysOfWeek.isNotEmpty ? _daysOfWeek.first : DayOfWeek.Monday;
+            _daysOfWeek.isNotEmpty ? _daysOfWeek.first : DayOfWeek.Monday;
         _dayOfMonth = _event?.recurrenceRule?.dayOfMonth ?? 1;
 
         if (_daysOfWeek.isNotEmpty) {
@@ -181,6 +181,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           child: Column(
             children: [
               Form(
+                autovalidateMode: _autovalidate,
                 key: _formKey,
                 child: Column(
                   children: [
@@ -807,6 +808,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           onPressed: () async {
             final form = _formKey.currentState;
             if (form?.validate() == false) {
+              _autovalidate =
+                  AutovalidateMode.always; // Start validating on every change.
               showInSnackBar('Please fix the errors in red before submitting.');
             } else {
               form?.save();

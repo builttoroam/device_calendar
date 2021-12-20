@@ -47,21 +47,19 @@ class Event {
   /// Indicates if this event counts as busy time, tentative, unavaiable or is still free time
   late Availability availability;
 
-  Event(
-    this.calendarId, {
-    this.eventId,
-    this.title,
-    this.start,
-    this.end,
-    this.description,
-    this.attendees,
-    this.recurrenceRule,
-    this.reminders,
-    this.url,
-    required this.availability,
-    this.location,
-    this.allDay = false,
-  });
+  Event(this.calendarId,
+      {this.eventId,
+      this.title,
+      this.start,
+      this.end,
+      this.description,
+      this.attendees,
+      this.recurrenceRule,
+      this.reminders,
+      this.availability = Availability.Busy,
+      this.location,
+      this.url,
+      this.allDay = false});
 
   Event.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
@@ -70,11 +68,11 @@ class Event {
 
     eventId = json['eventId'];
     calendarId = json['calendarId'];
-    title = json['title'];
-    description = json['description'];
+    title = json['eventTitle'];
+    description = json['eventDescription'];
 
     final int? startTimestamp = json['eventStartDate'];
-    final String? startLocationName = json['startTimeZone'];
+    final String? startLocationName = json['eventStartTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
     start = startTimestamp != null
@@ -82,18 +80,18 @@ class Event {
         : TZDateTime.now(local);
 
     final int? endTimestamp = json['eventEndDate'];
-    final String? endLocationName = json['endTimeZone'];
+    final String? endLocationName = json['eventEndTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= local;
     end = endTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
 
-    allDay = json['allDay'];
-    location = json['location'];
+    allDay = json['eventAllDay'] ?? false;
+    location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
 
-    var foundUrl = json['url']?.toString();
+    var foundUrl = json['eventURL']?.toString();
     if (foundUrl?.isEmpty ?? true) {
       url = null;
     } else {
@@ -138,9 +136,11 @@ class Event {
     data['eventId'] = eventId;
     data['eventTitle'] = title;
     data['eventDescription'] = description;
-    data['eventStartDate'] = start!.millisecondsSinceEpoch;
+    data['eventStartDate'] = start?.millisecondsSinceEpoch ??
+        TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventStartTimeZone'] = start?.location.name;
-    data['eventEndDate'] = end!.millisecondsSinceEpoch;
+    data['eventEndDate'] = end?.millisecondsSinceEpoch ??
+        TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventEndTimeZone'] = end?.location.name;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;

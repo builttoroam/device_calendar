@@ -15,6 +15,8 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late DeviceCalendarPlugin _deviceCalendarPlugin;
 
+
+  AutovalidateMode _autovalidate = AutovalidateMode.disabled;
   String _calendarName = '';
   ColorChoice? _colorChoice;
   String _localAccountName = '';
@@ -31,6 +33,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
         title: Text('Create Calendar'),
       ),
       body: Form(
+        autovalidateMode: _autovalidate,
         key: _formKey,
         child: Container(
           padding: EdgeInsets.all(10),
@@ -79,6 +82,8 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
         onPressed: () async {
           final form = _formKey.currentState;
           if (form?.validate() == false) {
+            _autovalidate =
+                AutovalidateMode.always; // Start validating on every change.
             showInSnackBar('Please fix the errors in red before submitting.');
           } else {
             form?.save();
@@ -113,6 +118,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
 
   void showInSnackBar(String value) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
+    // _scaffoldKey.currentState?.showSnackBar(SnackBar(content: Text(value)));
   }
 }
 
