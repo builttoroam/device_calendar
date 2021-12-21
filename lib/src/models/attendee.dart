@@ -65,7 +65,7 @@ class Attendee {
       'name': name,
       'emailAddress': emailAddress,
       'role': role?.index,
-      'isOrganizer': isOrganiser,
+      'isOrganizer': isOrganiser
     };
 
     if (iosAttendeeDetails != null) {
