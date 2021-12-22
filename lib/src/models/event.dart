@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../../device_calendar.dart';
 import '../common/calendar_enums.dart';
 import '../common/error_messages.dart';
@@ -56,7 +58,9 @@ class Event {
       this.attendees,
       this.recurrenceRule,
       this.reminders,
-      required this.availability,
+      this.availability = Availability.Busy,
+      this.location,
+      this.url,
       this.allDay = false});
 
   Event.fromJson(Map<String, dynamic>? json) {
@@ -69,23 +73,34 @@ class Event {
     title = json['title'];
     description = json['description'];
 
-    final int? startTimestamp = json['start'];
+    final int? startTimestamp = json['eventStartDate'];
     final String? startLocationName = json['startTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
     start = startTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp)
         : TZDateTime.now(local);
-
-    final int? endTimestamp = json['end'];
+    final int? endTimestamp = json['eventEndDate'];
     final String? endLocationName = json['endTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= local;
     end = endTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
-
-    allDay = json['allDay'];
+    allDay = json['allDay'] ?? false;
+    if (Platform.isAndroid && (allDay ?? false)){
+      // On Android, the datetime in an allDay event is adjusted to local
+      // timezone, which can result in the wrong day, so we need to bring the
+      // date back to midnight UTC to get the correct date
+      var startOffset = start?.timeZoneOffset.inMilliseconds ?? 0;
+      var endOffset = end?.timeZoneOffset.inMilliseconds ?? 0;
+      // subtract the offset to get back to midnight on the correct date
+      start = start?.subtract(Duration(milliseconds: startOffset));
+      end = end?.subtract(Duration(milliseconds: endOffset));
+      // The Event End Date for allDay events is midnight of the next day, so
+      // subtract one day
+      end = end?.subtract(Duration(days: 1));
+    }
     location = json['location'];
     availability = parseStringToAvailability(json['availability']);
 
@@ -134,9 +149,11 @@ class Event {
     data['eventId'] = eventId;
     data['eventTitle'] = title;
     data['eventDescription'] = description;
-    data['eventStartDate'] = start!.millisecondsSinceEpoch;
+    data['eventStartDate'] = start?.millisecondsSinceEpoch ??
+        TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventStartTimeZone'] = start?.location.name;
-    data['eventEndDate'] = end!.millisecondsSinceEpoch;
+    data['eventEndDate'] = end?.millisecondsSinceEpoch ??
+        TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventEndTimeZone'] = end?.location.name;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;

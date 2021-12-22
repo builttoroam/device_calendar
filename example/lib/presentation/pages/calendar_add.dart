@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:device_calendar/device_calendar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CalendarAddPage extends StatefulWidget {
@@ -15,7 +16,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late DeviceCalendarPlugin _deviceCalendarPlugin;
 
-  bool _autovalidate = false;
+  AutovalidateMode _autovalidate = AutovalidateMode.disabled;
   String _calendarName = '';
   ColorChoice? _colorChoice;
   String _localAccountName = '';
@@ -32,7 +33,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
         title: Text('Create Calendar'),
       ),
       body: Form(
-        autovalidate: _autovalidate,
+        autovalidateMode: _autovalidate,
         key: _formKey,
         child: Container(
           padding: EdgeInsets.all(10),
@@ -81,7 +82,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
         onPressed: () async {
           final form = _formKey.currentState;
           if (form?.validate() == false) {
-            _autovalidate = true; // Start validating on every change.
+            _autovalidate = AutovalidateMode.always; // Start validating on every change.
             showInSnackBar('Please fix the errors in red before submitting.');
           } else {
             form?.save();

@@ -6,7 +6,7 @@ homepage: https://github.com/builttoroam/device_calendar/tree/master
 dependencies:
   flutter:
     sdk: flutter
-  meta: ^1.1.8
+  meta: ^1.7.0
   collection: ^1.15.0
   sprintf: ^6.0.0
   timezone: ^0.8.0
@@ -15,7 +15,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  pedantic: ^1.11.0
+  flutter_lints: ^1.0.4
 
 # The following section is specific to Flutter.
 flutter:
