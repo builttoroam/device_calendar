@@ -38,10 +38,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   final RecurringEventDialog? _recurringEventDialog;
 
   TZDateTime? _startDate;
-  late TimeOfDay _startTime;
+  TimeOfDay? _startTime;
 
   TZDateTime? _endDate;
-  late TimeOfDay _endTime;
+  TimeOfDay? _endTime;
 
   AutovalidateMode _autovalidate = AutovalidateMode.disabled;
   DayOfWeekGroup? _dayOfWeekGroup = DayOfWeekGroup.None;
@@ -811,7 +811,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           onPressed: () async {
             final form = _formKey.currentState;
             if (form?.validate() == false) {
-              _autovalidate = AutovalidateMode.always; // Start validating on every change.
+              _autovalidate =
+                  AutovalidateMode.always; // Start validating on every change.
               showInSnackBar('Please fix the errors in red before submitting.');
             } else {
               form?.save();
@@ -1016,6 +1017,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   }
 
   void showInSnackBar(String value) {
-    _scaffoldKey.currentState!.showSnackBar(SnackBar(content: Text(value)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
   }
 }

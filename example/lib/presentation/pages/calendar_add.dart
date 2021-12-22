@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:device_calendar/device_calendar.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CalendarAddPage extends StatefulWidget {
@@ -82,7 +81,8 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
         onPressed: () async {
           final form = _formKey.currentState;
           if (form?.validate() == false) {
-            _autovalidate = AutovalidateMode.always; // Start validating on every change.
+            _autovalidate =
+                AutovalidateMode.always; // Start validating on every change.
             showInSnackBar('Please fix the errors in red before submitting.');
           } else {
             form?.save();
@@ -116,7 +116,8 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
   }
 
   void showInSnackBar(String value) {
-    _scaffoldKey.currentState?.showSnackBar(SnackBar(content: Text(value)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
+    // _scaffoldKey.currentState?.showSnackBar(SnackBar(content: Text(value)));
   }
 }
 
