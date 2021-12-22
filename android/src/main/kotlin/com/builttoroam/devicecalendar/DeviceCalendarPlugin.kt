@@ -164,17 +164,17 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     private fun parseEventArgs(call: MethodCall, calendarId: String?): Event {
         val event = Event()
-        event.title = call.argument<String>(EVENT_TITLE_ARGUMENT)
+        event.eventTitle = call.argument<String>(EVENT_TITLE_ARGUMENT)
         event.calendarId = calendarId
         event.eventId = call.argument<String>(EVENT_ID_ARGUMENT)
-        event.description = call.argument<String>(EVENT_DESCRIPTION_ARGUMENT)
-        event.allDay = call.argument<Boolean>(EVENT_ALL_DAY_ARGUMENT) ?: false
+        event.eventDescription = call.argument<String>(EVENT_DESCRIPTION_ARGUMENT)
+        event.eventAllDay = call.argument<Boolean>(EVENT_ALL_DAY_ARGUMENT) ?: false
         event.eventStartDate = call.argument<Long>(EVENT_START_DATE_ARGUMENT)!!
         event.eventEndDate = call.argument<Long>(EVENT_END_DATE_ARGUMENT)!!
-        event.startTimeZone = call.argument<String>(EVENT_START_TIMEZONE_ARGUMENT)
-        event.endTimeZone = call.argument<String>(EVENT_END_TIMEZONE_ARGUMENT)
-        event.location = call.argument<String>(EVENT_LOCATION_ARGUMENT)
-        event.url = call.argument<String>(EVENT_URL_ARGUMENT)
+        event.eventStartTimeZone = call.argument<String>(EVENT_START_TIMEZONE_ARGUMENT)
+        event.eventEndTimeZone = call.argument<String>(EVENT_END_TIMEZONE_ARGUMENT)
+        event.eventLocation = call.argument<String>(EVENT_LOCATION_ARGUMENT)
+        event.eventURL = call.argument<String>(EVENT_URL_ARGUMENT)
         event.availability = parseAvailability(call.argument<String>(EVENT_AVAILABILITY_ARGUMENT))
 
         if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
