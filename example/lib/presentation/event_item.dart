@@ -46,8 +46,9 @@ class _EventItemState extends State<EventItem> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (widget._calendarEvent != null)
+        if (widget._calendarEvent != null) {
           widget._onTapped(widget._calendarEvent as Event);
+        }
       },
       child: Card(
         child: Column(
@@ -77,8 +78,8 @@ class _EventItemState extends State<EventItem> {
                             widget._calendarEvent == null
                                 ? ''
                                 : _formatDateTime(
-                                dateTime: widget._calendarEvent!.start!,
-                                isEndDate: false),
+                                    dateTime: widget._calendarEvent!.start!,
+                                  ),
                           )
                         ],
                       ),
@@ -99,8 +100,8 @@ class _EventItemState extends State<EventItem> {
                             widget._calendarEvent?.end == null
                                 ? ''
                                 : _formatDateTime(
-                                dateTime: widget._calendarEvent!.end!,
-                                isEndDate: true),
+                                    dateTime: widget._calendarEvent!.end!,
+                                  ),
                           ),
                         ],
                       ),
@@ -200,7 +201,7 @@ class _EventItemState extends State<EventItem> {
                         ),
                         Expanded(
                           child: Text(
-                            widget._calendarEvent?.availability?.enumToString ??
+                            widget._calendarEvent?.availability.enumToString ??
                                 '',
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -216,8 +217,9 @@ class _EventItemState extends State<EventItem> {
                 if (!widget._isReadOnly) ...[
                   IconButton(
                     onPressed: () {
-                      if (widget._calendarEvent != null)
+                      if (widget._calendarEvent != null) {
                         widget._onTapped(widget._calendarEvent as Event);
+                      }
                     },
                     icon: Icon(Icons.edit),
                   ),
@@ -256,8 +258,9 @@ class _EventItemState extends State<EventItem> {
                               ],
                             );
                           } else {
-                            if (widget._calendarEvent == null)
+                            if (widget._calendarEvent == null) {
                               return SizedBox();
+                            }
                             return RecurringEventDialog(
                                 widget._deviceCalendarPlugin,
                                 widget._calendarEvent!,
@@ -272,8 +275,9 @@ class _EventItemState extends State<EventItem> {
                 ] else ...[
                   IconButton(
                     onPressed: () {
-                      if (widget._calendarEvent != null)
+                      if (widget._calendarEvent != null) {
                         widget._onTapped(widget._calendarEvent!);
+                      }
                     },
                     icon: Icon(Icons.remove_red_eye),
                   ),
@@ -299,28 +303,14 @@ class _EventItemState extends State<EventItem> {
   }
 
   /// Formats [dateTime] into a human-readable string.
-  /// If [_calendarEvent] is an allDay event, then the output will omit the time.
-  /// For Android allDay events, the Calendar Provider returns the time
-  /// adjusted into local time, which may change the date. In that case
-  /// (Android allDay event), the time is adjusted back to UTC before
-  /// formatting the date.
-  /// Also, for Android allDay events, the End Date falls on midnight at the
-  /// beginning of the day after the End Date, so this function subtracts a
-  /// day before printing the date when [isEndDate] = true
-  String _formatDateTime({DateTime? dateTime, bool isEndDate = false}) {
+  /// If [_calendarEvent] is an Android allDay event, then the output will
+  /// omit the time.
+  String _formatDateTime({DateTime? dateTime}) {
     if (dateTime == null) {
       return 'Error';
     }
     var output = '';
     if (Platform.isAndroid && widget._calendarEvent?.allDay == true) {
-      var offset = dateTime.timeZoneOffset.inMilliseconds;
-      // subtract the offset to get back to midnight on the correct date
-      dateTime = dateTime.subtract(Duration(milliseconds: offset));
-      if (isEndDate) {
-        // The Event End Date for allDay events is midnight of the next day, so
-        // subtract one day
-        dateTime = dateTime.subtract(Duration(days: 1));
-      }
       // just the dates, no times
       output = DateFormat.yMd().format(dateTime);
     } else {

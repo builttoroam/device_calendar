@@ -1,19 +1,32 @@
 package com.builttoroam.devicecalendar
 
+import android.app.Activity
 import android.content.Context
+import androidx.annotation.NonNull
 import com.builttoroam.devicecalendar.common.Constants
 import com.builttoroam.devicecalendar.common.DayOfWeek
 import com.builttoroam.devicecalendar.common.RecurrenceFrequency
 import com.builttoroam.devicecalendar.models.*
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
 
 const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar"
 
-class DeviceCalendarPlugin() : MethodCallHandler {
+class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
+
+    /// The MethodChannel that will the communication between Flutter and native Android
+    ///
+    /// This local reference serves to register the plugin with the Flutter Engine and unregister it
+    /// when the Flutter Engine is detached from the Activity
+    private lateinit var channel: MethodChannel
+    private var context: Context? = null
+    private var activity: Activity? = null
+
     // Methods
     private val REQUEST_PERMISSIONS_METHOD = "requestPermissions"
     private val HAS_PERMISSIONS_METHOD = "hasPermissions"
@@ -60,28 +73,36 @@ class DeviceCalendarPlugin() : MethodCallHandler {
     private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
     private val EVENT_AVAILABILITY_ARGUMENT = "availability"
 
-
-    private lateinit var _registrar: Registrar
     private lateinit var _calendarDelegate: CalendarDelegate
 
-    private constructor(registrar: Registrar, calendarDelegate: CalendarDelegate) : this() {
-        _registrar = registrar
-        _calendarDelegate = calendarDelegate
+    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        context = flutterPluginBinding.applicationContext
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, CHANNEL_NAME)
+        channel.setMethodCallHandler(this)
     }
 
-    companion object {
-        @JvmStatic
-        fun registerWith(registrar: Registrar) {
-            val context: Context = registrar.context()
+    override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+        channel.setMethodCallHandler(null)
+    }
 
-            val calendarDelegate = CalendarDelegate(registrar, context)
-            val instance = DeviceCalendarPlugin(registrar, calendarDelegate)
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        activity = binding.activity
+        _calendarDelegate = CalendarDelegate(binding, context!!)
+        binding.addRequestPermissionsResultListener(_calendarDelegate)
+    }
 
-            val calendarsChannel = MethodChannel(registrar.messenger(), CHANNEL_NAME)
-            calendarsChannel.setMethodCallHandler(instance)
+    override fun onDetachedFromActivityForConfigChanges() {
+        activity = null
+    }
 
-            registrar.addRequestPermissionsResultListener(calendarDelegate)
-        }
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        activity = binding.activity
+        _calendarDelegate = CalendarDelegate(binding, context!!)
+        binding.addRequestPermissionsResultListener(_calendarDelegate)
+    }
+
+    override fun onDetachedFromActivity() {
+        activity = null
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -148,8 +169,8 @@ class DeviceCalendarPlugin() : MethodCallHandler {
         event.eventId = call.argument<String>(EVENT_ID_ARGUMENT)
         event.description = call.argument<String>(EVENT_DESCRIPTION_ARGUMENT)
         event.allDay = call.argument<Boolean>(EVENT_ALL_DAY_ARGUMENT) ?: false
-        event.start = call.argument<Long>(EVENT_START_DATE_ARGUMENT)!!
-        event.end = call.argument<Long>(EVENT_END_DATE_ARGUMENT)!!
+        event.eventStartDate = call.argument<Long>(EVENT_START_DATE_ARGUMENT)!!
+        event.eventEndDate = call.argument<Long>(EVENT_END_DATE_ARGUMENT)!!
         event.startTimeZone = call.argument<String>(EVENT_START_TIMEZONE_ARGUMENT)
         event.endTimeZone = call.argument<String>(EVENT_END_TIMEZONE_ARGUMENT)
         event.location = call.argument<String>(EVENT_LOCATION_ARGUMENT)
