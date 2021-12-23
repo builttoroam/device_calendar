@@ -5,6 +5,10 @@ import 'package:uuid/uuid.dart';
 
 import 'package:device_calendar_example/main.dart' as app;
 
+Finder keyFinder([key = '']) {
+  return find.byKey(Key(key));
+}
+
 /// NOTE: These integration tests are currently made to be run on a physical device where there is at least a calendar that can be written to.
 /// Calendar permissions are needed. See example/test_driver/integration_test.dart for how to run this on Android
 void main() {
@@ -13,11 +17,6 @@ void main() {
     final eventTitle = const Uuid().v1();
     final saveEventButtonFinder = find.byKey(const Key('saveEventButton'));
     final eventTitleFinder = find.text(eventTitle);
-    final firstWritableCalendarFinder =
-        find.byKey(const Key('writableCalendar0'));
-    final addEventButtonFinder = find.byKey(const Key('addEventButton'));
-    final titleFieldFinder = find.byKey(const Key('titleField'));
-    final deleteButtonFinder = find.byKey(const Key('deleteEventButton'));
 //TODO: remove redundant restarts. Currently needed because the first screen is always "test starting..."
     testWidgets('starts on calendars page', (WidgetTester tester) async {
       app.main();
@@ -28,30 +27,30 @@ void main() {
       app.main();
 
       await tester.pumpAndSettle(const Duration(milliseconds: 500));
-      expect(firstWritableCalendarFinder, findsOneWidget);
+      expect(keyFinder('writableCalendar0'), findsOneWidget);
     });
     testWidgets('go to add event page', (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
-      await tester.tap(firstWritableCalendarFinder);
+      await tester.tap(keyFinder('writableCalendar0'));
 
       await tester.pumpAndSettle();
-      expect(addEventButtonFinder, findsOneWidget);
+      expect(keyFinder('addEventButton'), findsOneWidget);
       print('found add event button');
-      await tester.tap(addEventButtonFinder);
+      await tester.tap(keyFinder('addEventButton'));
       await tester.pumpAndSettle();
-      expect(saveEventButtonFinder, findsOneWidget);
+      expect(keyFinder('saveEventButton'), findsOneWidget);
     });
     testWidgets('try to save event without entering mandatory fields',
         (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
-      await tester.tap(firstWritableCalendarFinder);
+      await tester.tap(keyFinder('writableCalendar0'));
       await tester.pumpAndSettle();
-      await tester.tap(addEventButtonFinder);
+      await tester.tap(keyFinder('addEventButton'));
 
       await tester.pumpAndSettle();
-      await tester.tap(saveEventButtonFinder);
+      await tester.tap(keyFinder('saveEventButton'));
       await tester.pumpAndSettle();
       expect(find.text('Please fix the errors in red before submitting.'),
           findsOneWidget);
@@ -60,15 +59,15 @@ void main() {
         (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
-      await tester.tap(firstWritableCalendarFinder);
+      await tester.tap(keyFinder('writableCalendar0'));
       await tester.pumpAndSettle();
-      await tester.tap(addEventButtonFinder);
+      await tester.tap(keyFinder('addEventButton'));
 
       await tester.pumpAndSettle();
-      await tester.tap(titleFieldFinder);
+      await tester.tap(keyFinder('titleField'));
 
-      await tester.enterText(titleFieldFinder, eventTitle);
-      await tester.tap(saveEventButtonFinder);
+      await tester.enterText(keyFinder('titleField'), eventTitle);
+      await tester.tap(keyFinder('saveEventButton'));
       await tester.pumpAndSettle();
       expect(eventTitleFinder, findsOneWidget);
     });
@@ -76,12 +75,12 @@ void main() {
         (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
-      await tester.tap(firstWritableCalendarFinder);
+      await tester.tap(keyFinder('writableCalendar0'));
       await tester.pumpAndSettle();
       await tester.tap(eventTitleFinder);
 
-      await tester.scrollUntilVisible(deleteButtonFinder, -5);
-      await tester.tap(deleteButtonFinder);
+      await tester.scrollUntilVisible(keyFinder('deleteEventButton'), -5);
+      await tester.tap(keyFinder('deleteEventButton'));
       await tester.pumpAndSettle();
       expect(eventTitleFinder, findsNothing);
     });
