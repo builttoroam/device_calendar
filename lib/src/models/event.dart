@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../../device_calendar.dart';
 import '../common/error_messages.dart';
 import 'package:timezone/timezone.dart';
@@ -79,12 +81,24 @@ class Event {
     final int? endTimestamp = json['eventEndDate'];
     final String? endLocationName = json['eventEndTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
-    endLocation ??= local;
+    endLocation ??= startTimeZone;
     end = endTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
-
     allDay = json['eventAllDay'] ?? false;
+    if (Platform.isAndroid && (allDay ?? false)){
+      // On Android, the datetime in an allDay event is adjusted to local
+      // timezone, which can result in the wrong day, so we need to bring the
+      // date back to midnight UTC to get the correct date
+      var startOffset = start?.timeZoneOffset.inMilliseconds ?? 0;
+      var endOffset = end?.timeZoneOffset.inMilliseconds ?? 0;
+      // subtract the offset to get back to midnight on the correct date
+      start = start?.subtract(Duration(milliseconds: startOffset));
+      end = end?.subtract(Duration(milliseconds: endOffset));
+      // The Event End Date for allDay events is midnight of the next day, so
+      // subtract one day
+      end = end?.subtract(Duration(days: 1));
+    }
     location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
 

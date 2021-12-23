@@ -468,25 +468,10 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val values = ContentValues()
         val duration: String? = null
         values.put(Events.ALL_DAY, event.eventAllDay)
-
-        if (event.eventAllDay) {
-            val calendar = java.util.Calendar.getInstance()
-            calendar.timeInMillis = event.eventStartDate!!
-            calendar.set(java.util.Calendar.HOUR, 0)
-            calendar.set(java.util.Calendar.MINUTE, 0)
-            calendar.set(java.util.Calendar.SECOND, 0)
-            calendar.set(java.util.Calendar.MILLISECOND, 0)
-
-            values.put(Events.DTSTART, calendar.timeInMillis)
-            values.put(Events.DTEND, calendar.timeInMillis)
-            values.put(Events.EVENT_TIMEZONE, getTimeZone(event.eventStartTimeZone).id)
-        } else {
-            values.put(Events.DTSTART, event.eventStartDate!!)
-            values.put(Events.EVENT_TIMEZONE, getTimeZone(event.eventStartTimeZone).id)
-
-            values.put(Events.DTEND, event.eventEndDate!!)
-            values.put(Events.EVENT_END_TIMEZONE, getTimeZone(event.eventEndTimeZone).id)
-        }
+        values.put(Events.DTSTART, event.eventStartDate!!)
+        values.put(Events.EVENT_TIMEZONE, getTimeZone(event.eventStartTimeZone).id)
+        values.put(Events.DTEND, event.eventEndDate!!)
+        values.put(Events.EVENT_END_TIMEZONE, getTimeZone(event.eventEndTimeZone).id)
         values.put(Events.TITLE, event.eventTitle)
         values.put(Events.DESCRIPTION, event.eventDescription)
         values.put(Events.EVENT_LOCATION, event.eventLocation)
