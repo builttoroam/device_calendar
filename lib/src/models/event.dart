@@ -64,29 +64,52 @@ class Event {
     if (json == null) {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
+    String? foundUrl;
+    String? startLocationName;
+    String? endLocationName;
+    int? startTimestamp;
+    int? endTimestamp;
+    bool legacyJSON = false;
+    var legacyName = {
+      title: 'title',
+      description: 'description',
+      startTimestamp: 'start',
+      endTimestamp: 'end',
+      startLocationName: 'startTimeZone',
+      endLocationName: 'endTimeZone',
+      allDay: 'allDay',
+      location: 'location',
+      foundUrl: 'url',
+    };
+    legacyName.forEach((key, value) {
+      if (json[value] != null) {
+        key = json[value];
+        legacyJSON = true;
+      }
+    });
 
     eventId = json['eventId'];
     calendarId = json['calendarId'];
     title = json['eventTitle'];
     description = json['eventDescription'];
 
-    final int? startTimestamp = json['eventStartDate'];
-    final String? startLocationName = json['eventStartTimeZone'];
+    startTimestamp = json['eventStartDate'];
+    startLocationName = json['eventStartTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
     start = startTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp)
         : TZDateTime.now(local);
 
-    final int? endTimestamp = json['eventEndDate'];
-    final String? endLocationName = json['eventEndTimeZone'];
+    endTimestamp = json['eventEndDate'];
+    endLocationName = json['eventEndTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= startTimeZone;
     end = endTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
     allDay = json['eventAllDay'] ?? false;
-    if (Platform.isAndroid && (allDay ?? false)){
+    if (Platform.isAndroid && (allDay ?? false)) {
       // On Android, the datetime in an allDay event is adjusted to local
       // timezone, which can result in the wrong day, so we need to bring the
       // date back to midnight UTC to get the correct date
@@ -102,7 +125,7 @@ class Event {
     location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
 
-    var foundUrl = json['eventURL']?.toString();
+    foundUrl = json['eventURL']?.toString();
     if (foundUrl?.isEmpty ?? true) {
       url = null;
     } else {
@@ -137,6 +160,10 @@ class Event {
       reminders = json['reminders'].map<Reminder>((decodedReminder) {
         return Reminder.fromJson(decodedReminder);
       }).toList();
+    }
+    if (legacyJSON) {
+      throw FormatException(
+          'legacy JSON detected. Please update your current JSONs as they may not be supported later on.');
     }
   }
 
