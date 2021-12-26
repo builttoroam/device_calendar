@@ -46,6 +46,16 @@ class Event {
   /// Indicates if this event counts as busy time, tentative, unavaiable or is still free time
   late Availability availability;
 
+  ///Note for development:
+  ///
+  ///JSON field names are coded in dart, swift and kotlin to facilitate data exchange.
+  ///Make sure all locations are updated if changes needed to be made.
+  ///Swift:
+  ///`ios/Classes/SwiftDeviceCalendarPlugin.swift`
+  ///Kotlin:
+  ///`android/src/main/kotlin/com/builttoroam/devicecalendar/models/Event.kt`
+  ///`android/src/main/kotlin/com/builttoroam/devicecalendar/CalendarDelegate.kt`
+  ///`android/src/main/kotlin/com/builttoroam/devicecalendar/DeviceCalendarPlugin.kt`
   Event(this.calendarId,
       {this.eventId,
       this.title,
@@ -60,6 +70,10 @@ class Event {
       this.url,
       this.allDay = false});
 
+  ///Get Event from JSON.
+  ///
+  ///Sample JSON:
+  ///{calendarId: 00, eventId: 0000, eventTitle: Sample Event, eventDescription: This is a sample event, eventStartDate: 1563719400000, eventStartTimeZone: Asia/Hong_Kong, eventEndDate: 1640532600000, eventEndTimeZone: Asia/Hong_Kong, eventAllDay: false, eventLocation: Yuenlong Station, eventURL: null, availability: BUSY, attendees: [{name: commonfolk, emailAddress: total.loss@hong.com, role: 1, isOrganizer: false, attendanceStatus: 3}], reminders: [{minutes: 39}]}
   Event.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
