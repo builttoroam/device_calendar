@@ -391,7 +391,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => EventAttendeePage(
-                                          attendee: _attendees[index])));
+                                          attendee: _attendees[index],
+                                          eventId: _event?.eventId)));
                               if (result != null) {
                                 return setState(() {
                                   _attendees[index] = result;
@@ -421,7 +422,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                           border: Border.all(
                                               color: Colors.blueAccent)),
                                       child: Text(
-                                          'Android: ${_attendees[index].androidAttendeeDetails!.attendanceStatus!.enumToString}')),
+                                          'Android: ${_attendees[index].androidAttendeeDetails?.attendanceStatus?.enumToString}')),
                                 ),
                                 Visibility(
                                   visible:
