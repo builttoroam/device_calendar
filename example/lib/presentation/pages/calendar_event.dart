@@ -356,31 +356,25 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         ),
                       ),
                     ],
-                    GestureDetector(
-                      onTap: () async {
-                        var result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => EventAttendeePage()));
-                        if (result == null) return;
-                        _attendees.add(result);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: 10.0,
-                            children: [
-                              Icon(Icons.people),
-                              Text(_calendar.isReadOnly == false
-                                  ? 'Add Attendees'
-                                  : 'Attendees')
-                            ],
-                          ),
-                        ),
-                      ),
+                    ListTile(
+                      onTap: _calendar.isReadOnly == false
+                          ? () async {
+                              var result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          EventAttendeePage()));
+                              if (result != null) {
+                                setState(() {
+                                  _attendees.add(result);
+                                });
+                              }
+                            }
+                          : null,
+                      leading: Icon(Icons.people),
+                      title: Text(_calendar.isReadOnly == false
+                          ? 'Add Attendees'
+                          : 'Attendees'),
                     ),
                     ListView.builder(
                       physics: const NeverScrollableScrollPhysics(),
@@ -392,23 +386,80 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               ? Colors.greenAccent[100]
                               : Colors.transparent,
                           child: ListTile(
-                            title: GestureDetector(
-                              onTap: () async {
-                                var result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => EventAttendeePage(
-                                            attendee: _attendees[index])));
-                                if (result == null) return;
-                                _attendees[index] = result;
-                              },
-                              child: Text('${_attendees[index].emailAddress}'),
+                            onTap: () async {
+                              var result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => EventAttendeePage(
+                                          attendee: _attendees[index])));
+                              if (result != null) {
+                                return setState(() {
+                                  _attendees[index] = result;
+                                });
+                              }
+                            },
+                            title: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 10.0),
+                              child: Text(
+                                  '${_attendees[index].name} (${_attendees[index].emailAddress})'),
                             ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
+                            subtitle: Wrap(
+                              spacing: 10,
+                              direction: Axis.horizontal,
+                              alignment: WrapAlignment.end,
                               children: <Widget>[
+                                Visibility(
+                                  visible: _attendees[index]
+                                          .androidAttendeeDetails !=
+                                      null,
+                                  child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 10.0),
+                                      padding: const EdgeInsets.all(3.0),
+                                      decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.blueAccent)),
+                                      child: Text(
+                                          'Android: ${_attendees[index].androidAttendeeDetails!.attendanceStatus!.enumToString}')),
+                                ),
+                                Visibility(
+                                  visible:
+                                      _attendees[index].iosAttendeeDetails !=
+                                          null,
+                                  child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 10.0),
+                                      padding: const EdgeInsets.all(3.0),
+                                      decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.blueAccent)),
+                                      child: Text(
+                                          'iOS: ${_attendees[index].iosAttendeeDetails?.attendanceStatus?.enumToString}')),
+                                ),
+                                Visibility(
+                                    visible: _attendees[index].isCurrentUser,
+                                    child: Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 10.0),
+                                        padding: const EdgeInsets.all(3.0),
+                                        decoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: Colors.blueAccent)),
+                                        child: Text('current user'))),
+                                Visibility(
+                                    visible: _attendees[index].isOrganiser,
+                                    child: Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 10.0),
+                                        padding: const EdgeInsets.all(3.0),
+                                        decoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: Colors.blueAccent)),
+                                        child: Text('Organiser'))),
                                 Container(
-                                  margin: const EdgeInsets.all(10.0),
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 10.0),
                                   padding: const EdgeInsets.all(3.0),
                                   decoration: BoxDecoration(
                                       border:
