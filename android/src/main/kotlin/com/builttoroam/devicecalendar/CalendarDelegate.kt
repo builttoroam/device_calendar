@@ -551,7 +551,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 put(CalendarContract.Attendees.ATTENDEE_TYPE, it.role)
                 put(
                   CalendarContract.Attendees.ATTENDEE_STATUS,
-                  CalendarContract.Attendees.ATTENDEE_STATUS_INVITED
+                  it.attendanceStatus
                 )
                 put(CalendarContract.Attendees.EVENT_ID, eventId)
             }
