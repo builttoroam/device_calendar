@@ -1,10 +1,8 @@
 import 'package:integration_test/integration_test_driver.dart';
 
-///
-/// To run an integration test make sure the script has execute permission
-/// example: `chmod +x example/integration_test/ios.sh` then:
-/// 1. cd example
-/// 2. integration_test/ios.sh
-/// 3. You should see `All tests passed`
+/// Instruction for iOS:
+/// See `ios.sh`
+/// Instruction for android: 
+/// See `integration_test_android.dart`
 
 Future<void> main() => integrationDriver();
