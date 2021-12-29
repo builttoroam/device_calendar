@@ -3,7 +3,14 @@
 # Executes the device_calendar integration test for iOS
 # This script creates and starts a new iOS simulator, grants calendar permission 
 # to the app then runs the integration tests and finally deletes the simulator.
+#
 # Prerequisites: Xcode, Xcode Command Line Tools, Xcode iOS Simulator
+#
+# To run an integration test, make sure the script has execute permission
+# example: `chmod +x example/integration_test/ios.sh` then:
+# 1. cd example
+# 2. integration_test/ios.sh
+# 3. You should see `All tests passed`
 #
 # Success - "All tests passed." is printed to the console
 #
