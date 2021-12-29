@@ -38,12 +38,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   final RecurringEventDialog? _recurringEventDialog;
 
   TZDateTime? _startDate;
-  late TimeOfDay _startTime;
+  TimeOfDay? _startTime;
 
   TZDateTime? _endDate;
-  late TimeOfDay _endTime;
+  TimeOfDay? _endTime;
 
-  bool _autovalidate = false;
+  AutovalidateMode _autovalidate = AutovalidateMode.disabled;
   DayOfWeekGroup? _dayOfWeekGroup = DayOfWeekGroup.None;
 
   bool _isRecurringEvent = false;
@@ -181,7 +181,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           child: Column(
             children: [
               Form(
-                autovalidate: _autovalidate,
+                autovalidateMode: _autovalidate,
                 key: _formKey,
                 child: Column(
                   children: [
@@ -299,26 +299,29 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           },
                         ),
                       ),
-                    if (_event?.allDay == false) ...[
-                      if (Platform.isAndroid)
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: TextFormField(
-                            initialValue: _event?.start?.location.name,
-                            decoration: const InputDecoration(
-                                labelText: 'Start date time zone',
-                                hintText: 'Australia/Sydney'),
-                            onSaved: (String? value) {
-                              _event?.updateStartLocation(value);
-                            },
-                          ),
+                    if ((_event?.allDay == false) && Platform.isAndroid)
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: TextFormField(
+                          initialValue: _event?.start?.location.name,
+                          decoration: const InputDecoration(
+                              labelText: 'Start date time zone',
+                              hintText: 'Australia/Sydney'),
+                          onSaved: (String? value) {
+                            _event?.updateStartLocation(value);
+                          },
                         ),
+                      ),
+                    // Only add the 'To' Date for non-allDay events on all
+                    // platforms except Android (which allows multiple-day allDay events)
+                    if (_event?.allDay == false || Platform.isAndroid)
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: DateTimePicker(
                           labelText: 'To',
                           selectedDate: _endDate,
                           selectedTime: _endTime,
+                          enableTime: _event?.allDay == false,
                           selectDate: (DateTime date) {
                             setState(
                               () {
@@ -344,6 +347,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           },
                         ),
                       ),
+                    if (_event?.allDay == false && Platform.isAndroid)
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: TextFormField(
@@ -355,7 +359,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               _event?.updateEndLocation(value),
                         ),
                       ),
-                    ],
                     GestureDetector(
                       onTap: () async {
                         var result = await Navigator.push(
@@ -808,7 +811,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           onPressed: () async {
             final form = _formKey.currentState;
             if (form?.validate() == false) {
-              _autovalidate = true; // Start validating on every change.
+              _autovalidate =
+                  AutovalidateMode.always; // Start validating on every change.
               showInSnackBar('Please fix the errors in red before submitting.');
             } else {
               form?.save();
@@ -1006,12 +1010,13 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         currentLocation!);
 
     if (time == null) return dateWithoutTime;
+    if (Platform.isAndroid && _event?.allDay == true) return dateWithoutTime;
 
     return dateWithoutTime
         .add(Duration(hours: time.hour, minutes: time.minute));
   }
 
   void showInSnackBar(String value) {
-    _scaffoldKey.currentState!.showSnackBar(SnackBar(content: Text(value)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
   }
 }
