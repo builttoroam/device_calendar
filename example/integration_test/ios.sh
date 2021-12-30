@@ -11,6 +11,12 @@
 #
 # Prerequisites: Xcode, Xcode Command Line Tools, Xcode iOS Simulator
 #
+# To run an integration test, make sure the script has execute permission
+# example: `chmod +x example/integration_test/ios.sh` then:
+# 1. cd example
+# 2. integration_test/ios.sh
+# 3. You should see `All tests passed`
+#
 # Success - "All tests passed." is printed to the console
 #
 if [ $# -gt 1 ]; then
