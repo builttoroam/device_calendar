@@ -1,12 +1,8 @@
 import 'dart:collection';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:meta/meta.dart';
-import 'package:sprintf/sprintf.dart';
 import 'package:timezone/timezone.dart';
-
 import 'common/channel_constants.dart';
 import 'common/error_codes.dart';
 import 'common/error_messages.dart';
@@ -337,7 +333,12 @@ class DeviceCalendarPlugin {
         result.data = rawData;
       }
     } catch (e) {
-      _parsePlatformExceptionAndUpdateResult<T>(e as Exception?, result);
+      if (e is ArgumentError) {
+        debugPrint(
+            "INVOKE_CHANNEL_METHOD_ERROR! Name: ${e.name}, InvalidValue: ${e.invalidValue}, Message: ${e.message}, ${e.toString()}");
+      } else {
+        _parsePlatformExceptionAndUpdateResult<T>(e as Exception?, result);
+      }
     }
 
     return result;
@@ -347,7 +348,7 @@ class DeviceCalendarPlugin {
       Exception? exception, Result<T> result) {
     if (exception == null) {
       result.errors.add(
-        ResultError(
+        const ResultError(
           ErrorCodes.unknown,
           ErrorMessages.unknownDeviceIssue,
         ),
@@ -355,22 +356,20 @@ class DeviceCalendarPlugin {
       return;
     }
 
-    debugPrint(exception.toString());
+    debugPrint('$exception');
 
     if (exception is PlatformException) {
       result.errors.add(
         ResultError(
           ErrorCodes.platformSpecific,
-          sprintf(ErrorMessages.unknownDeviceExceptionTemplate,
-              [exception.code, exception.message]),
+          '${ErrorMessages.unknownDeviceExceptionTemplate}, Code: ${exception.code}, Exception: ${exception.message}',
         ),
       );
     } else {
       result.errors.add(
         ResultError(
           ErrorCodes.generic,
-          sprintf(ErrorMessages.unknownDeviceGenericExceptionTemplate,
-              [exception.toString()]),
+          '${ErrorMessages.unknownDeviceGenericExceptionTemplate} ${exception.toString}',
         ),
       );
     }
@@ -382,6 +381,9 @@ class DeviceCalendarPlugin {
     int errorCode,
     String errorMessage,
   ) {
+    if (result.data != null) {
+      debugPrint("RESULT of _assertParameter: ${result.data}");
+    }
     if (!predicate) {
       result.errors.add(
         ResultError(errorCode, errorMessage),

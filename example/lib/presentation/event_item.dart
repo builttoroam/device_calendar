@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -76,10 +77,9 @@ class _EventItemState extends State<EventItem> {
                           Text(
                             widget._calendarEvent == null
                                 ? ''
-                                : DateFormat('yyyy-MM-dd HH:mm:ss').format(
-                                    TZDateTime.from(
-                                        widget._calendarEvent!.start!,
-                                        _currentLocation!)),
+                                : _formatDateTime(
+                                    dateTime: widget._calendarEvent!.start!,
+                                  ),
                           )
                         ],
                       ),
@@ -99,9 +99,9 @@ class _EventItemState extends State<EventItem> {
                           Text(
                             widget._calendarEvent?.end == null
                                 ? ''
-                                : DateFormat('yyyy-MM-dd HH:mm:ss').format(
-                                    TZDateTime.from(widget._calendarEvent!.end!,
-                                        _currentLocation!)),
+                                : _formatDateTime(
+                                    dateTime: widget._calendarEvent!.end!,
+                                  ),
                           ),
                         ],
                       ),
@@ -300,5 +300,23 @@ class _EventItemState extends State<EventItem> {
     timezone ??= 'Etc/UTC';
     _currentLocation = timeZoneDatabase.locations[timezone];
     setState(() {});
+  }
+
+  /// Formats [dateTime] into a human-readable string.
+  /// If [_calendarEvent] is an Android allDay event, then the output will
+  /// omit the time.
+  String _formatDateTime({DateTime? dateTime}) {
+    if (dateTime == null) {
+      return 'Error';
+    }
+    var output = '';
+    if (Platform.isAndroid && widget._calendarEvent?.allDay == true) {
+      // just the dates, no times
+      output = DateFormat.yMd().format(dateTime);
+    } else {
+      output = DateFormat('yyyy-MM-dd HH:mm:ss')
+          .format(TZDateTime.from(dateTime, _currentLocation!));
+    }
+    return output;
   }
 }

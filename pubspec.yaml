@@ -1,23 +1,25 @@
 name: device_calendar
 description: A cross platform plugin for modifying calendars on the user's device.
-version: 4.0.1
+version: 4.1.0
 homepage: https://github.com/builttoroam/device_calendar/tree/master
 
 dependencies:
   flutter:
     sdk: flutter
-  meta: ^1.1.8
-  collection: ^1.15.0
-  sprintf: ^6.0.0
   timezone: ^0.8.0
-  flutter_native_timezone: ^2.0.0
+  intl: ^0.17.0
+  rrule:
+    git:
+      url: git://github.com/GoldenSoju/rrule.git
+      ref: main
+#  rrule:
+#    path: ../rrule
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  pedantic: ^1.11.0
+  flutter_lints: ^1.0.4
 
-# The following section is specific to Flutter.
 flutter:
   plugin:
     platforms:
@@ -29,4 +31,4 @@ flutter:
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=1.12.13+hotfix.5"
+  flutter: ">=1.20.0"

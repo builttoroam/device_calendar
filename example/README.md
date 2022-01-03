@@ -1,9 +1,9 @@
 # Examples
 
-Most of the APIs are covered in [calendar_event.dart](https://github.com/builttoroam/device_calendar/blob/master/example/lib/presentation/pages/calendar_event.dart) or [calendar_events.dart](https://github.com/builttoroam/device_calendar/blob/master/example/lib/presentation/pages/calendar_events.dart) files in the example app.
-You'll be able to get a reference of how the APIs are used.
+Most of the APIs are covered in [calendar_event.dart](https://github.com/builttoroam/device_calendar/blob/master/example/lib/presentation/pages/calendar_event.dart) or [calendar_events.dart](https://github.com/builttoroam/device_calendar/blob/master/example/lib/presentation/pages/calendar_events.dart) files in the example app.
+You'll be able to get a reference of how the APIs are used.
 
-For a full API reference, the documentation can be found at [pub.dev](https://pub.dev/documentation/device_calendar/latest/device_calendar/device_calendar-library.html).
+For a full API reference, the documentation can be found at [pub.dev](https://pub.dev/documentation/device_calendar/latest/device_calendar/device_calendar-library.html).
 
 ## DayOfWeekGroup Enum
 

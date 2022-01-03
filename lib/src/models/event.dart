@@ -1,8 +1,7 @@
+import 'package:flutter/foundation.dart';
+
 import '../../device_calendar.dart';
-import '../common/calendar_enums.dart';
 import '../common/error_messages.dart';
-import 'attendee.dart';
-import 'recurrence_rule.dart';
 import 'package:timezone/timezone.dart';
 import 'package:collection/collection.dart';
 
@@ -56,7 +55,7 @@ class Event {
       this.attendees,
       this.recurrenceRule,
       this.reminders,
-      required this.availability,
+      this.availability = Availability.Busy,
       this.location,
       this.url,
       this.allDay = false});
@@ -68,10 +67,10 @@ class Event {
 
     eventId = json['eventId'];
     calendarId = json['calendarId'];
-    title = json['title'];
-    description = json['description'];
+    title = json['eventTitle'];
+    description = json['eventDescription'];
 
-    final int? startTimestamp = json['start'];
+    final int? startTimestamp = json['eventStartDate'];
     final String? startLocationName = json['startTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
@@ -79,7 +78,7 @@ class Event {
         ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp)
         : TZDateTime.now(local);
 
-    final int? endTimestamp = json['end'];
+    final int? endTimestamp = json['eventEndDate'];
     final String? endLocationName = json['endTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= local;
@@ -87,11 +86,11 @@ class Event {
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
 
-    allDay = json['allDay'];
-    location = json['location'];
+    allDay = json['eventAllDay'] ?? false;
+    location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
 
-    var foundUrl = json['url']?.toString();
+    var foundUrl = json['eventUrl']?.toString();
     if (foundUrl?.isEmpty ?? true) {
       url = null;
     } else {
@@ -119,6 +118,8 @@ class Event {
     }
 
     if (json['recurrenceRule'] != null) {
+      debugPrint(
+          "EVENT_MODEL: $title; START: $start, END: $end RRULE = ${json['recurrenceRule']}");
       recurrenceRule = RecurrenceRule.fromJson(json['recurrenceRule']);
     }
 
@@ -136,9 +137,11 @@ class Event {
     data['eventId'] = eventId;
     data['eventTitle'] = title;
     data['eventDescription'] = description;
-    data['eventStartDate'] = start!.millisecondsSinceEpoch;
+    data['eventStartDate'] = start?.millisecondsSinceEpoch ??
+        TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventStartTimeZone'] = start?.location.name;
-    data['eventEndDate'] = end!.millisecondsSinceEpoch;
+    data['eventEndDate'] = end?.millisecondsSinceEpoch ??
+        TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventEndTimeZone'] = end?.location.name;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
@@ -161,7 +164,7 @@ class Event {
     if (reminders != null) {
       data['reminders'] = reminders?.map((r) => r.toJson()).toList();
     }
-
+    debugPrint("EVENT_TO_JSON: $data");
     return data;
   }
 

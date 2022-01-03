@@ -26,17 +26,6 @@ class Constants {
 
         )
 
-        // API 16 or lower
-        val CALENDAR_PROJECTION_OLDER_API: Array<String> = arrayOf(
-                CalendarContract.Calendars._ID,                           // 0
-                CalendarContract.Calendars.ACCOUNT_NAME,                  // 1
-                CalendarContract.Calendars.ACCOUNT_TYPE,                  // 2
-                CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,         // 3
-                CalendarContract.Calendars.OWNER_ACCOUNT,                 // 4
-                CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,         // 5
-                CalendarContract.Calendars.CALENDAR_COLOR                 // 6
-        )
-
         const val EVENT_PROJECTION_ID_INDEX: Int = 0
         const val EVENT_PROJECTION_TITLE_INDEX: Int = 1
         const val EVENT_PROJECTION_DESCRIPTION_INDEX: Int = 2

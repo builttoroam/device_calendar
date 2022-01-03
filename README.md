@@ -1,6 +1,9 @@
 # Device Calendar Plugin
 
-[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) [![Build Status](https://dev.azure.com/builttoroam/Flutter%20Plugins/_apis/build/status/Device%20Calendar)](https://dev.azure.com/builttoroam/Flutter%20Plugins/_build/latest?definitionId=111)
+**If you're upgrading to v4, your previous code will need to be modified (slightly) otherwise it will not run after update. See [Timezone support](https://github.com/builttoroam/device_calendar#timezone-support-with-tzdatetime) for more details.**
+**There are some changes to event JSON formats at v4. Pay extra care if handld event JSONs. Directly calling to and from device calendars should be unaffected.**
+
+[![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) ![Pub Version (including pre-releases)](https://img.shields.io/pub/v/device_calendar?include_prereleases&label=Prerelease) [![build](https://github.com/builttoroam/device_calendar/actions/workflows/dart.yml/badge.svg?branch=develop)](https://github.com/builttoroam/device_calendar/actions/workflows/dart.yml)
 
 A cross platform plugin for modifying calendars on the user's device.
 
@@ -19,27 +22,64 @@ A cross platform plugin for modifying calendars on the user's device.
 * Specify a time zone for event start and end date
   * **NOTE**: Due to a limitation of iOS API, single time zone property is used for iOS (`event.startTimeZone`)
   * **NOTE**: For the time zone list, please refer to the `TZ database name` column on [Wikipedia](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
-  * **NOTE**: If the time zone values are null or invalid, it will be defaulted to the device's current time zone.
 
-## Null migration
+## Timezone support with TZDateTime
 
-From v4.0.0, device_calendar fits null safety. However, not all workflow had been checked and bugs from 3.2 still presists.
+Due to feedback we received, starting from `4.0.0` we will be using the `timezone` package to better handle all timezone data.
 
-You are strongly advised to test your workflow with the new package before shipping. 
+This is already included in this package. However, you need to add this line whenever the package is needed.
+
+```dart
+import 'package:timezone/timezone.dart';
+```
+
+If you don't need any timezone specific features in your app, you may use `flutter_native_timezone` to get your devices' current timezone, then convert your previous `DateTime` with it.
+
+```dart
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+
+// As an example, our default timezone is UTC.
+Location _currentLocation = getLocation('Etc/UTC');
+
+Future setCurentLocation() async {
+  String timezone = 'Etc/UTC';
+  try {
+    timezone = await FlutterNativeTimezone.getLocalTimezone();
+  } catch (e) {
+    print('Could not get the local timezone');
+  }
+  _currentLocation = getLocation(timezone);
+  setLocalLocation(_currentLocation);
+}
+
+...
+
+event.start = TZDateTime.from(oldDateTime, _currentLocation);
+```
+
+For other use cases, feedback or future developments on the feature, feel free to open a discussion on GitHub.
+
+## Null-safety migration
+
+From `v3.9.0`, device_calendar is null-safe. However, not all workflows have been checked and bugs from older versions still persist.
+
+You are strongly advised to test your workflow with the new package before shipping.
 Better yet, please leave a note for what works and what doesn't, or contribute some bug fixes!
 
 ## Android Integration
 
-The following will need to be added to the manifest file for your application to indicate permissions to modify calendars a needed
+The following will need to be added to the `AndroidManifest.xml` file for your application to indicate permissions to modify calendars are needed
 
 ```xml
 <uses-permission android:name="android.permission.READ_CALENDAR" />
 <uses-permission android:name="android.permission.WRITE_CALENDAR" />
 ```
+
 ### Proguard / R8 exceptions
+
 By default, all android apps go through R8 for file shrinking when building a release version. Currently, it interferes with some functions such as `retrieveCalendars()`.
 
-You may add the following setting to the ProGuard rules file (thanks to [Britannio Jarrett](https://github.com/britannio)). Read more about the issue [here](https://github.com/builttoroam/device_calendar/issues/99)
+You may add the following setting to the ProGuard rules file `proguard-rules.pro` (thanks to [Britannio Jarrett](https://github.com/britannio)). Read more about the issue [here](https://github.com/builttoroam/device_calendar/issues/99)
 
 ```
 -keep class com.builttoroam.devicecalendar.** { *; }
@@ -50,11 +90,12 @@ See [here](https://github.com/builttoroam/device_calendar/issues/99#issuecomment
 For more information, refer to the guide at [Android Developer](https://developer.android.com/studio/build/shrink-code#keep-code)
 
 ### AndroidX migration
-**IMPORTANT**: Since version 0.1.0, this version has migrated to use AndroidX instead of the deprecated Android support libraries. When using version 0.10.0 and onwards for this plugin, please ensure your application has been migrated following the guide [here](https://developer.android.com/jetpack/androidx/migrate)
+
+Since `v.1.0`, this version has migrated to use AndroidX instead of the deprecated Android support libraries. When using `0.10.0` and onwards for this plugin, please ensure your application has been migrated following the guide [here](https://developer.android.com/jetpack/androidx/migrate)
 
 ## iOS Integration
 
-For iOS 10 support, you'll need to modify the Info.plist to add the following key/value pair
+For iOS 10 support, you'll need to modify the `Info.plist` to add the following key/value pair
 
 ```xml
 <key>NSCalendarsUsageDescription</key>
