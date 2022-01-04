@@ -82,6 +82,18 @@ void main() {
       await tester.pumpAndSettle();
       expect(textFinder(eventTitle), findsOneWidget);
     });
+
+    testWidgets('check event with title $eventTitle',
+        (WidgetTester tester) async {
+      app.main();
+      await tester.pumpAndSettle();
+      await tester.tap(keyFinder('writableCalendar0'));
+      await tester.pumpAndSettle();
+      await tester.tap(keyFinder('addEventButton'));
+      await tester.pumpAndSettle();
+      for (var i = 0; i < sampleEvent.length; i++) {
+        expect(textFinder(sampleEvent.values.elementAt(i)), findsOneWidget);
+      }
     });
     testWidgets('delete event with title $eventTitle',
         (WidgetTester tester) async {
