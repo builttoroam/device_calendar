@@ -31,7 +31,8 @@ jobs:
         run: |
           cd example
           flutter build appbundle
-  test-macos:
+          flutter build apk
+  test-ios:
     name: iOS build test
     runs-on: macos-latest
     steps:
