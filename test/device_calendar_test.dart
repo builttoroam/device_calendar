@@ -198,7 +198,8 @@ void main() {
         emailAddress: 'test@t.com',
         role: AttendeeRole.Required,
         isOrganiser: true);
-    final recurrence = RecurrenceRule(RecurrenceFrequency.Daily);
+    final recurrence =
+        RecurrenceRule(recurrenceFrequency: RecurrenceFrequency.daily);
     final reminder = Reminder(minutes: 10);
     var event = Event('calendarId',
         eventId: 'eventId',

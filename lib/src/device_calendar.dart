@@ -1,12 +1,8 @@
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sprintf/sprintf.dart';
 import 'package:timezone/timezone.dart';
-
 import 'common/channel_constants.dart';
 import 'common/error_codes.dart';
 import 'common/error_messages.dart';
@@ -212,25 +208,14 @@ class DeviceCalendarPlugin {
           if (event.start != null) {
             var dateStart = DateTime(event.start!.year, event.start!.month,
                 event.start!.day, 0, 0, 0);
-            // allDay events on Android need to be at midnight UTC
-            event.start = Platform.isAndroid
-                ? TZDateTime.utc(event.start!.year, event.start!.month,
-                event.start!.day, 0, 0, 0)
-                : TZDateTime.from(dateStart,
+            event.start = TZDateTime.from(dateStart,
                 timeZoneDatabase.locations[event.start!.location.name]!);
           }
           if (event.end != null) {
             var dateEnd = DateTime(
                 event.end!.year, event.end!.month, event.end!.day, 0, 0, 0);
-            // allDay events on Android need to be at midnight UTC on the
-            // day after the last day. For example, a 2-day allDay event on
-            // Jan 1 and 2, should be from Jan 1 00:00:00 to Jan 3 00:00:00
-            event.end = Platform.isAndroid
-                ? TZDateTime.utc(event.end!.year, event.end!.month,
-                event.end!.day, 0, 0, 0)
-                .add(Duration(days: 1))
-                : TZDateTime.from(dateEnd,
-                timeZoneDatabase.locations[event.end!.location.name]!);
+            event.end = TZDateTime.from(
+                dateEnd, timeZoneDatabase.locations[event.end!.location.name]!);
           }
         }
 
@@ -348,7 +333,12 @@ class DeviceCalendarPlugin {
         result.data = rawData;
       }
     } catch (e) {
-      _parsePlatformExceptionAndUpdateResult<T>(e as Exception?, result);
+      if (e is ArgumentError) {
+        debugPrint(
+            "INVOKE_CHANNEL_METHOD_ERROR! Name: ${e.name}, InvalidValue: ${e.invalidValue}, Message: ${e.message}, ${e.toString()}");
+      } else {
+        _parsePlatformExceptionAndUpdateResult<T>(e as Exception?, result);
+      }
     }
 
     return result;
@@ -358,7 +348,7 @@ class DeviceCalendarPlugin {
       Exception? exception, Result<T> result) {
     if (exception == null) {
       result.errors.add(
-        ResultError(
+        const ResultError(
           ErrorCodes.unknown,
           ErrorMessages.unknownDeviceIssue,
         ),
@@ -366,22 +356,20 @@ class DeviceCalendarPlugin {
       return;
     }
 
-    print(exception);
+    debugPrint('$exception');
 
     if (exception is PlatformException) {
       result.errors.add(
         ResultError(
           ErrorCodes.platformSpecific,
-          sprintf(ErrorMessages.unknownDeviceExceptionTemplate,
-              [exception.code, exception.message]),
+          '${ErrorMessages.unknownDeviceExceptionTemplate}, Code: ${exception.code}, Exception: ${exception.message}',
         ),
       );
     } else {
       result.errors.add(
         ResultError(
           ErrorCodes.generic,
-          sprintf(ErrorMessages.unknownDeviceGenericExceptionTemplate,
-              [exception.toString()]),
+          '${ErrorMessages.unknownDeviceGenericExceptionTemplate} ${exception.toString}',
         ),
       );
     }
@@ -393,6 +381,9 @@ class DeviceCalendarPlugin {
     int errorCode,
     String errorMessage,
   ) {
+    if (result.data != null) {
+      debugPrint("RESULT of _assertParameter: ${result.data}");
+    }
     if (!predicate) {
       result.errors.add(
         ResultError(errorCode, errorMessage),
