@@ -366,7 +366,7 @@ class DeviceCalendarPlugin {
       return;
     }
 
-    print(exception);
+    debugPrint(exception.toString());
 
     if (exception is PlatformException) {
       result.errors.add(

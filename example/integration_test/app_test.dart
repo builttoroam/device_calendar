@@ -37,7 +37,7 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(addEventButtonFinder, findsOneWidget);
-      print('found add event button');
+      debugPrint('found add event button');
       await tester.tap(addEventButtonFinder);
       await tester.pumpAndSettle();
       expect(saveEventButtonFinder, findsOneWidget);

@@ -138,7 +138,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
         _calendars = calendarsResult.data as List<Calendar>;
       });
     } on PlatformException catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:device_calendar/device_calendar.dart';
 import 'package:device_calendar/src/common/error_codes.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/timezone.dart';
@@ -15,7 +16,7 @@ void main() {
 
   setUp(() {
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      print('Calling channel method ${methodCall.method}');
+      debugPrint('Calling channel method ${methodCall.method}');
       log.add(methodCall);
 
       return null;

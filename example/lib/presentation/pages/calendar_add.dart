@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:device_calendar/device_calendar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CalendarAddPage extends StatefulWidget {
@@ -83,7 +84,8 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
           if (form?.validate() == false) {
             _autovalidate =
                 AutovalidateMode.always; // Start validating on every change.
-            showInSnackBar('Please fix the errors in red before submitting.');
+            showInSnackBar(
+                context, 'Please fix the errors in red before submitting.');
           } else {
             form?.save();
             var result = await _deviceCalendarPlugin.createCalendar(
@@ -95,9 +97,11 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
             if (result.isSuccess) {
               Navigator.pop(context, true);
             } else {
-              showInSnackBar(result.errors
-                  .map((err) => '[${err.errorCode}] ${err.errorMessage}')
-                  .join(' | '));
+              showInSnackBar(
+                  context,
+                  result.errors
+                      .map((err) => '[${err.errorCode}] ${err.errorMessage}')
+                      .join(' | '));
             }
           }
         },
@@ -115,9 +119,8 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
     return null;
   }
 
-  void showInSnackBar(String value) {
+  void showInSnackBar(BuildContext context, String value) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
-    // _scaffoldKey.currentState?.showSnackBar(SnackBar(content: Text(value)));
   }
 }
 
