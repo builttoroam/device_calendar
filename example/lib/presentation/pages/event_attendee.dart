@@ -31,7 +31,7 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
       _nameController.text = _attendee!.name!;
       _emailAddressController.text = _attendee!.emailAddress!;
       _role = _attendee!.role!;
-      _status = _attendee!.androidAttendeeDetails!.attendanceStatus ??
+      _status = _attendee!.androidAttendeeDetails?.attendanceStatus ??
           AndroidAttendanceStatus.None;
     }
     _eventId = eventId;
