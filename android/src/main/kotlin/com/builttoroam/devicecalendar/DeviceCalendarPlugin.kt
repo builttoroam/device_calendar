@@ -244,10 +244,6 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
         return (this as List<*>?)?.filterIsInstance<T>()?.toList()
     }
 
-    private inline fun <reified T : Any> Any?.toMutableListOf(): MutableList<T>? {
-        return this?.toListOf<T>()?.toMutableList()
-    }
-
     private fun parseAvailability(value: String?): Availability? =
             if (value == null || value == Constants.AVAILABILITY_UNAVAILABLE) {
                 null

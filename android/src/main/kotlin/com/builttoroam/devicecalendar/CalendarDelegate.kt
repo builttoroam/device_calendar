@@ -78,7 +78,7 @@ import org.dmfs.rfc5545.recur.Freq
 import java.text.SimpleDateFormat
 import java.util.*
 
-class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
+class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) : PluginRegistry.RequestPermissionsResultListener {
     private val RETRIEVE_CALENDARS_REQUEST_CODE = 0
     private val RETRIEVE_EVENTS_REQUEST_CODE = RETRIEVE_CALENDARS_REQUEST_CODE + 1
     private val RETRIEVE_CALENDAR_REQUEST_CODE = RETRIEVE_EVENTS_REQUEST_CODE + 1
@@ -92,15 +92,13 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private val BYSETPOS_PART = "BYSETPOS"
 
     private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> = mutableMapOf()
-    private var _binding: ActivityPluginBinding? = null
-    private var _context: Context? = null
+    private var _binding: ActivityPluginBinding? = binding
+    private var _context: Context? = context
     private var _gson: Gson? = null
 
     private val uiThreadHandler = Handler(Looper.getMainLooper())
 
-    constructor(binding: ActivityPluginBinding?, context: Context) {
-        _binding = binding
-        _context = context
+    init {
         val gsonBuilder = GsonBuilder()
         gsonBuilder.registerTypeAdapter(RecurrenceFrequency::class.java, RecurrenceFrequencySerializer())
         gsonBuilder.registerTypeAdapter(DayOfWeek::class.java, DayOfWeekSerializer())
