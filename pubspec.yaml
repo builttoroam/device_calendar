@@ -6,21 +6,20 @@ homepage: https://github.com/builttoroam/device_calendar/tree/master
 dependencies:
   flutter:
     sdk: flutter
-  collection: ^1.15.0
-  sprintf: ^6.0.0
   timezone: ^0.8.0
-  flutter_native_timezone: ^2.0.0
+  intl: ^0.17.0
   rrule:
     git:
       url: git://github.com/GoldenSoju/rrule.git
       ref: main
+#  rrule:
+#    path: ../rrule
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^1.0.4
 
-# The following section is specific to Flutter.
 flutter:
   plugin:
     platforms:
@@ -32,4 +31,4 @@ flutter:
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=1.12.13"
+  flutter: ">=1.20.0"

@@ -44,7 +44,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   TZDateTime? _endDate;
 
-  /*late*/
   TimeOfDay? _endTime;
 
   AutovalidateMode _autovalidate = AutovalidateMode.disabled;
@@ -88,8 +87,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     _recurrenceRuleEndType = RecurrenceRuleEndType.Indefinite;
 
     if (_event == null) {
-      // debugPrint(
-      //     'calendar_event _timezone ------------------------- $_timezone');
       var currentLocation = timeZoneDatabase.locations[_timezone];
       if (currentLocation != null) {
         _startDate = TZDateTime.now(currentLocation);
@@ -102,9 +99,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
             TZDateTime.now(fallbackLocation).add(const Duration(hours: 1));
       }
       _event = Event(_calendar.id, start: _startDate, end: _endDate);
-
-      // debugPrint('DeviceCalendarPlugin calendar id is: ${_calendar.id}');
-
       _recurrenceEndDate = _endDate as DateTime;
       _dayOfMonth = {};
       _monthOfYear = {};
@@ -172,7 +166,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('selectedFrequency: $_recurrenceFrequency');
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -812,10 +805,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             ),
                           ),
                       ],
-                      // if (_calendar.isReadOnly == false &&
-                      //     (_event?.eventId?.isNotEmpty ?? false))
                       ...[
-                        //TODO: on iPhone (8) this seems neccesary to be able to access UI below the FAB
+                        //TODO: on iPhone (e.g. 8) this seems neccesary to be able to access UI below the FAB
                         const SizedBox(height: 75),
                       ]
                     ],
@@ -872,15 +863,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                 if (!_isByDayOfMonth &&
                     (_recurrenceFrequency == RecurrenceFrequency.monthly ||
                         _recurrenceFrequency == RecurrenceFrequency.yearly)) {
-                  // Setting day of the week parameters for WeekNumber to avoid clashing with the weekly recurrence values
-                  debugPrint("HERE1");
                   _daysOfWeek.clear();
                   if (_selectedDayOfWeek != null) {
                     int? weekNo = _weekOfMonth.firstOrNull;
                     if (weekNo != null) {
                       weekNo += 1;
                     }
-                    debugPrint('weekNo: $weekNo');
                     _weekOfMonth.clear();
                     int? monthOfYear = _monthOfYear.firstOrNull;
                     if (monthOfYear != null) {
@@ -892,17 +880,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
                     if (_recurrenceFrequency == RecurrenceFrequency.yearly) {
                       _dayOfMonth.clear();
-                      // _monthOfYear.clear();
                     }
                   }
-                } else {
-                  debugPrint("HERE2");
-                  _weekOfMonth.clear();
-                  _daysOfWeek.clear();
                 }
-                debugPrint(
-                    'End_Date: $_recurrenceEndDate, isUTC? ${_recurrenceEndDate.isUtc}, change to UTC: ${_recurrenceEndDate.toUtc()}');
-                debugPrint('BYDAY: $_dayOfMonth');
                 var finalRecRule = RecurrenceRule(
                     recurrenceFrequency: _recurrenceFrequency!,
                     interval: _interval,
@@ -927,10 +907,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     _recurrenceFrequency == RecurrenceFrequency.daily
                         ? DateTime.now()
                         : dateInstances.firstOrNull;
-                // var realEndDate = dateInstances.lastOrNull;
 
                 if (realStartDate != null) {
-                  debugPrint("REAL_START_DATE: $realStartDate");
                   var currentLocation = timeZoneDatabase.locations[_timezone];
                   var fallbackLocation = timeZoneDatabase.locations['Etc/UTC'];
                   _event?.start = TZDateTime.from(
@@ -950,13 +928,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           _event?.end?.minute ?? 0),
                       currentLocation ?? fallbackLocation!);
                 }
-                // if (realEndDate != null) {
-                //   debugPrint("REAL_END_DATE: $realEndDate");
-                //   var currentLocation = timeZoneDatabase.locations[_timezone];
-                //   var fallbackLocation = timeZoneDatabase.locations['Etc/UTC'];
-                //   _event?.end = TZDateTime.from(
-                //       realEndDate, currentLocation ?? fallbackLocation!);
-                // }
               }
 
               _event?.attendees = _attendees;
@@ -1030,9 +1001,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
     // Year frequency: Get total days of the selected month
     if (frequency == RecurrenceFrequency.yearly) {
-      // totalDays = DateTime(DateTime.now().year,
-      //         _monthOfYear?.value != null ? _monthOfYear!.value + 1 : 1, 0)
-      //     .day;
       totalDays = DateTime(DateTime.now().year,
               _monthOfYear.isNotEmpty ? _monthOfYear.first : 1, 0)
           .day;
@@ -1049,7 +1017,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   void _updateDaysOfWeek() {
     if (_dayOfWeekGroup == null) return;
-    // var days = _dayOfWeekGroup!.getDays;
     switch (_dayOfWeekGroup) {
       case DayOfWeekGroup.Weekday:
         _daysOfWeek.clear();
@@ -1085,20 +1052,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         break;
       default:
         _daysOfWeek.clear();
-    } /*
-    switch (_dayOfWeekGroup) {
-      case DayOfWeekGroup.Weekday:
-      case DayOfWeekGroup.Weekend:
-      case DayOfWeekGroup.AllDays:
-        _daysOfWeek.clear();
-        _daysOfWeek.addAll(days.where((a) => _daysOfWeek.every((b) => a != b)));
-        break;
-      case DayOfWeekGroup.None:
-        _daysOfWeek.clear();
-        break;
-      default:
-        _daysOfWeek.clear();
-    }*/
+    }
   }
 
   void _updateDaysOfWeekGroup({DayOfWeek? selectedDay}) {

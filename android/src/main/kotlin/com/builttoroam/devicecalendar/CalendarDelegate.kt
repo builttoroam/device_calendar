@@ -903,8 +903,6 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
             return null
         }
         val rfcRecurrenceRule = Rrule(recurrenceRuleString)
-//        Log.d("ANDROID _parseRecurrenceRuleString", "rfcRecurrenceRule = $rfcRecurrenceRule")
-//        Log.d("ANDROID _parseRecurrenceRuleString", "rfcRecurrenceRule = ${rfcRecurrenceRule.freq}")
         val frequency = when (rfcRecurrenceRule.freq) {
             RruleFreq.YEARLY -> RecurrenceFrequency.YEARLY
             RruleFreq.MONTHLY -> RecurrenceFrequency.MONTHLY
@@ -925,18 +923,11 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
 
         recurrenceRule.sourceRruleString = recurrenceRuleString
 
-/*        var weekStartOrdinal = rfcRecurrenceRule.weekStart.ordinal
-        weekStartOrdinal = if (weekStartOrdinal == 0) {
-            7
-        } else {
-            + 1
-        }*/
         recurrenceRule.weekStart =
             1 //TODO: Force set to Monday (need to find out why RRULE package only supports Monday)
 
         if (rfcRecurrenceRule.hasPart(Rrule.Part.BYDAY)) {
             recurrenceRule.byWeekDays = rfcRecurrenceRule.byDayPart?.mapNotNull {
-//                DayOfWeek.values().find { dayOfWeek -> dayOfWeek.ordinal == it.weekday.ordinal }
                 ByWeekDayEntry(it.weekday.ordinal, it.pos)
             }?.toMutableList()
         }
@@ -955,53 +946,9 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
             }
 
             recurrenceRule.byMonths = newMonthList
-            if (recurrenceRule.byMonths != null) {
-                Log.d("ANDROID_ RRULE_BYMONTH", "VALUE FROM PACKAGE: $newMonthList")
-            }
         }
-
-
 
         recurrenceRule.bySetPositions = rfcRecurrenceRule.getByPart(Rrule.Part.BYSETPOS)
-
-
-/*        if (rfcRecurrenceRule.count != null) {
-            recurrenceRule.count = rfcRecurrenceRule.count
-        }
-
-        recurrenceRule.interval = rfcRecurrenceRule.interval
-        if (rfcRecurrenceRule.until != null) {
-            recurrenceRule.until = rfcRecurrenceRule.until.timestamp
-        }
-
-        when (rfcRecurrenceRule.freq) {
-            RruleFreq.WEEKLY, RruleFreq.MONTHLY, RruleFreq.YEARLY -> {
-                recurrenceRule.byWeekDays = rfcRecurrenceRule.byDayPart?.mapNotNull {
-                    DayOfWeek.values().find { dayOfWeek -> dayOfWeek.ordinal == it.weekday.ordinal }
-                }?.toMutableList()
-            } else -> {
-
-            }
-        }
-
-        val rfcRecurrenceRuleString = rfcRecurrenceRule.toString()
-
-        if (rfcRecurrenceRule.freq == RruleFreq.MONTHLY || rfcRecurrenceRule.freq == RruleFreq.YEARLY) {
-            // Get week number value from BYSETPOS
-            recurrenceRule.byWeeks = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYSETPOS_PART)
-
-            // If value is not found in BYSETPOS and not repeating by nth day or nth month
-            // Get the week number value from the BYDAY position
-            if (recurrenceRule.byWeeks == null && rfcRecurrenceRule.byDayPart != null) {
-                recurrenceRule.byWeeks = rfcRecurrenceRule.byDayPart.first().pos
-            }
-
-            recurrenceRule.byMonthDays = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTHDAY_PART)
-
-            if (rfcRecurrenceRule.freq == RruleFreq.YEARLY) {
-                recurrenceRule.byMonths = convertCalendarPartToNumericValues(rfcRecurrenceRuleString, BYMONTH_PART)
-            }
-        }*/
 
         return recurrenceRule
     }
@@ -1156,10 +1103,6 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
             RecurrenceFrequency.MONTHLY -> RruleFreq.MONTHLY
             RecurrenceFrequency.YEARLY -> RruleFreq.YEARLY
         }
-//        Log.d(
-//            "ANDROID _buildRecurrenceRuleParams",
-//            "recurrenceRule.recurrenceFrequency = ${recurrenceRule.recurrenceFrequency}, frequencyParam: $frequencyParam"
-//        )
         val rr = Rrule(frequencyParam)
         if (recurrenceRule.interval != null) {
             rr.interval = recurrenceRule.interval!!
@@ -1196,53 +1139,18 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         }
 
         if (recurrenceRule.byMonths != null) {
-            Log.d("ANDROID_AAAAA", "BYMONTHS = ${recurrenceRule.byMonths}")
-
             val month = recurrenceRule.byMonths!!
             val newMonth = mutableListOf<Int>()
             month.forEach {
                 newMonth.add(it.minus(1))
             }
-            Log.d("ANDROID_BBBBB", "BYMONTHS = $newMonth")
-//            rr.setByPart(Rrule.Part.BYMONTH, recurrenceRule.byMonths!!)
             rr.setByPart(Rrule.Part.BYMONTH, newMonth)
         }
 
         if (recurrenceRule.bySetPositions != null) {
             rr.setByPart(Rrule.Part.BYSETPOS, recurrenceRule.bySetPositions!!)
         }
-
-        Log.d("ANDROID_HERE", "RR-STRING: ${rr.toString()}")
         return rr.toString()
-
-/*        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.WEEKLY ||
-                recurrenceRule.byWeeks != null && (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY)) {
-            rr.byDayPart = buildByDayPart(recurrenceRule)
-        }
-
-        if (recurrenceRule.count != null) {
-            rr.count = recurrenceRule.count!!
-        } else if (recurrenceRule.until != null) {
-            val calendar = java.util.Calendar.getInstance()
-            calendar.timeInMillis = recurrenceRule.until!!
-            val dateFormat = SimpleDateFormat("yyyyMMdd")
-            dateFormat.timeZone = calendar.timeZone
-            rr.until = DateTime(calendar.timeZone, recurrenceRule.until!!)
-        }
-
-        var rrString = rr.toString()
-
-        if (recurrenceRule.byMonths != null && recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY) {
-            rrString = rrString.addPartWithValues(BYMONTH_PART, recurrenceRule.byMonths)
-        }
-
-        if (recurrenceRule.recurrenceFrequency == RecurrenceFrequency.MONTHLY || recurrenceRule.recurrenceFrequency == RecurrenceFrequency.YEARLY) {
-            if (recurrenceRule.byWeeks == null) {
-                rrString = rrString.addPartWithValues(BYMONTHDAY_PART, recurrenceRule.byMonthDays)
-            }
-        }
-
-        return rrString*/
     }
 
     private fun buildByDayPart(recurrenceRule: RecurrenceRule): List<Rrule.WeekdayNum>? {
