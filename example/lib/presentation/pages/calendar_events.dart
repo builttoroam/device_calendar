@@ -169,7 +169,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
               onPressed: () async {
                 var returnValue =
                     await _deviceCalendarPlugin.deleteCalendar(_calendar.id!);
-                print(
+                debugPrint(
                     'returnValue: ${returnValue.data}, ${returnValue.errors}');
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
