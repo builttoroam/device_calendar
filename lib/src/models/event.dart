@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 import '../../device_calendar.dart';
 import '../common/error_messages.dart';
@@ -167,6 +168,8 @@ class Event {
     }
 
     if (json['recurrenceRule'] != null) {
+      debugPrint(
+          "EVENT_MODEL: $title; START: $start, END: $end RRULE = ${json['recurrenceRule']}");
       recurrenceRule = RecurrenceRule.fromJson(json['recurrenceRule']);
     }
 
@@ -215,7 +218,7 @@ class Event {
     if (reminders != null) {
       data['reminders'] = reminders?.map((r) => r.toJson()).toList();
     }
-
+    debugPrint("EVENT_TO_JSON: $data");
     return data;
   }
 

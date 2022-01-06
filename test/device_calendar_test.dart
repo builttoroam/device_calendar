@@ -1,6 +1,5 @@
 import 'package:device_calendar/device_calendar.dart';
 import 'package:device_calendar/src/common/error_codes.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/timezone.dart';
@@ -16,7 +15,7 @@ void main() {
 
   setUp(() {
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      debugPrint('Calling channel method ${methodCall.method}');
+      print('Calling channel method ${methodCall.method}');
       log.add(methodCall);
 
       return null;
@@ -199,7 +198,8 @@ void main() {
         emailAddress: 'test@t.com',
         role: AttendeeRole.Required,
         isOrganiser: true);
-    final recurrence = RecurrenceRule(RecurrenceFrequency.Daily);
+    final recurrence =
+        RecurrenceRule(recurrenceFrequency: RecurrenceFrequency.daily);
     final reminder = Reminder(minutes: 10);
     var event = Event('calendarId',
         eventId: 'eventId',
