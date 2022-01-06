@@ -325,8 +325,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                     if ekEvent == nil {
                         continue
                     }
+
                     print("ekEvent: \(String(describing: ekEvent))")
                     let event = createEventFromEkEvent(calendarId: calendarId, ekEvent: ekEvent!)
+
                     events.append(event)
                 }
 
@@ -580,24 +582,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
             return reminders
         }
 
-        let recurrenceRule = parseEKRecurrenceRules(ekEvent)
-        let event = Event(
-            eventId: ekEvent.eventIdentifier,
-            calendarId: calendarId,
-            eventTitle: ekEvent.title ?? "New Event",
-            eventDescription: ekEvent.notes,
-            eventStartDate: Int64(ekEvent.startDate.millisecondsSinceEpoch),
-            eventEndDate: Int64(ekEvent.endDate.millisecondsSinceEpoch),
-            eventStartTimeZone: ekEvent.timeZone?.identifier,
-            eventAllDay: ekEvent.isAllDay,
-            attendees: attendees,
-            eventLocation: ekEvent.location,
-            eventURL: ekEvent.url?.absoluteString,
-            recurrenceRule: recurrenceRule,
-            organizer: convertEkParticipantToAttendee(ekParticipant: ekEvent.organizer),
-            reminders: reminders,
-            availability: convertEkEventAvailability(ekEventAvailability: ekEvent.availability)
-        )
         private func createEKRecurrenceDaysOfWeek(_ arguments: [String : AnyObject]) -> [EKRecurrenceDayOfWeek]?{
             let byWeekDaysArguments = arguments[byWeekDaysArgument] as? [Dictionary<String, AnyObject>]
             if byWeekDaysArguments == nil {
@@ -907,4 +891,5 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
 
             return nil
         }
+
     }

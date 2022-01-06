@@ -40,9 +40,11 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   final RecurringEventDialog? _recurringEventDialog;
 
   TZDateTime? _startDate;
-  TimeOfDay? _startTime;
+  late TimeOfDay _startTime;
 
   TZDateTime? _endDate;
+
+  /*late*/
   TimeOfDay? _endTime;
 
   AutovalidateMode _autovalidate = AutovalidateMode.disabled;
@@ -194,7 +196,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: TextFormField(
-                          key: Key('titleField'),
+                          key: const Key('titleField'),
                           initialValue: _event?.title,
                           decoration: const InputDecoration(
                               labelText: 'Title',
@@ -1163,7 +1165,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         currentLocation!);
 
     if (time == null) return dateWithoutTime;
-    if (Platform.isAndroid && _event?.allDay == true) return dateWithoutTime;
 
     return dateWithoutTime
         .add(Duration(hours: time.hour, minutes: time.minute));
