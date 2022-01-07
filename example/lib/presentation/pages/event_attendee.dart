@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:device_calendar_example/common/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:device_calendar/device_calendar.dart';
 
@@ -113,6 +114,8 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
 
                       var result = await _deviceCalendarPlugin
                           .showiOSEventModal(_eventId);
+                      Navigator.popUntil(
+                          context, ModalRoute.withName(AppRoutes.calendars));
                       //TODO: finish calling and getting attendee details from iOS
                     },
                     leading: Icon(Icons.edit),
