@@ -4,11 +4,14 @@ PODS:
   - Flutter (1.0.0)
   - flutter_native_timezone (0.0.1):
     - Flutter
+  - integration_test (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - device_calendar (from `.symlinks/plugins/device_calendar/ios`)
   - Flutter (from `Flutter`)
   - flutter_native_timezone (from `.symlinks/plugins/flutter_native_timezone/ios`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
 
 EXTERNAL SOURCES:
   device_calendar:
@@ -17,11 +20,14 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_native_timezone:
     :path: ".symlinks/plugins/flutter_native_timezone/ios"
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
   device_calendar: 9cb33f88a02e19652ec7b8b122ca778f751b1f7b
-  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
+  Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   flutter_native_timezone: 5f05b2de06c9776b4cc70e1839f03de178394d22
+  integration_test: 7db6d89f336f671dcbc7563ee27a5b08f6f8aee1
 
 PODFILE CHECKSUM: d3740c426905916d1f2ada0ddfce28cc99f7b7af
 
