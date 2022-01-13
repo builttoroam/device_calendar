@@ -1,11 +1,13 @@
 # Device Calendar Plugin
 
-**If you're upgrading to v4, your previous code will need to be modified (slightly) otherwise it will not run after update. See [Timezone support](https://github.com/builttoroam/device_calendar#timezone-support-with-tzdatetime) for more details.**
-**There are some changes to event JSON formats at v4. Pay extra care if handld event JSONs. Directly calling to and from device calendars should be unaffected.**
-
 [![pub package](https://img.shields.io/pub/v/device_calendar.svg)](https://pub.dartlang.org/packages/device_calendar) ![Pub Version (including pre-releases)](https://img.shields.io/pub/v/device_calendar?include_prereleases&label=Prerelease) [![build](https://github.com/builttoroam/device_calendar/actions/workflows/dart.yml/badge.svg?branch=develop)](https://github.com/builttoroam/device_calendar/actions/workflows/dart.yml)
 
 A cross platform plugin for modifying calendars on the user's device.
+
+## Breaking changes at v4
+
+* **If you're upgrading from previous versions, your code will need to be modified (slightly), otherwise it will not run after update. See [Timezone support](https://github.com/builttoroam/device_calendar#timezone-support-with-tzdatetime) for more details.**
+* **There are some changes to event JSON formats at v4. Pay extra care if you handle event JSONs. Directly calling to and from device calendars should be unaffected.**
 
 ## Features
 
@@ -95,11 +97,14 @@ Since `v.1.0`, this version has migrated to use AndroidX instead of the deprecat
 
 ## iOS Integration
 
-For iOS 10 support, you'll need to modify the `Info.plist` to add the following key/value pair
+For iOS 10+ support, you'll need to modify the `Info.plist` to add the following key/value pair
 
 ```xml
 <key>NSCalendarsUsageDescription</key>
-<string>INSERT_REASON_HERE</string>
+<string>Access most functions for calendar viewing and editing.</string>
+
+<key>NSContactsUsageDescription</key>
+<string>Access contacts for event attendee editing.</string>
 ```
 
 Note that on iOS, this is a Swift plugin. There is a known issue being tracked [here](https://github.com/flutter/flutter/issues/16049) by the Flutter team, where adding a plugin developed in Swift to an Objective-C project causes problems. If you run into such issues, please look at the suggested workarounds there.

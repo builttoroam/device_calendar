@@ -2,17 +2,25 @@
 
 <!-- To benefit from the current changelog reader in CI/CD, please follow the changelog format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). -->
 
+## [4.2.0](https://github.com/builttoroam/device_calendar/releases/tag/4.2.0)
+
+- Fix: apks can be build correctly now
+- Support for viewing and editing attendee status
+  - iOS needs a specific native view and permissions to edit attendees due to iOS restrictions. See README and example app.
+
 ## [4.1.0](https://github.com/builttoroam/device_calendar/releases/tag/4.1.0)
 
-- Fix: Event JSONs created are now readable.
-- Fix: Compilable for Flutter 2.9+
+- Fix: title, descriptions etc are now retrieved properly.
+- Fix: Event JSONs created and are now readable. Previous (mislabeled) JSONs are also readable with warnings.
 - Fix: removed depreceated plugins from Example.
-- Fix: Integration tests are now working. Android instructions are ready.
+- Integration tests are now working. Android instructions are ready.
 - Gradle plug-ins are updated.
+- Compiles with jvm 1.8, should be compilable for Flutter 2.9+
+- Android: proper support for all day events, and multi-day all day events.
 
 ## [4.0.1](https://github.com/builttoroam/device_calendar/releases/tag/4.0.1)
 
-- Fixes event time retrieved
+- Fix: event time are now properly retrieved
 
 ## [4.0.0](https://github.com/builttoroam/device_calendar/releases/tag/4.0.0)
 
@@ -34,7 +42,7 @@
 
 ## 3.1.0 25th March 2020 - Bug fixes and new features
 
-- Boolean variable `isDefault` added for issue [145](https://github.com/builttoroam/device_calendar/issues/145) (**NOTE**: This is not supported Android API 16 or lower, `isDefault` will always be false)
+- Boolean variable `isDefault` added for issue [145](https://github.com/builttoroam/device_calendar/issues/145) (**NOTE**: This is not supported Android API 16 or lower, `isDefault` will always be false)
 - Events with 'null' title now defaults to 'New Event', issue [126](https://github.com/builttoroam/device_calendar/issues/126)
 - Updated property summaries for issues [121](https://github.com/builttoroam/device_calendar/issues/121) and [122](https://github.com/builttoroam/device_calendar/issues/122)
 - Updated example documentation for issue [119](https://github.com/builttoroam/device_calendar/issues/119)
@@ -61,15 +69,15 @@
 
 ## 3.0.0 21st January 2020
 
-- **BREAKING CHANGE** Properties for the attendee model in `attendee.dart` file have been changed:
-  - Boolean property `isRequired` has been replaced to `AttendeeRole` enum
-  - New arugment added for `AttendeeRole` property
-- **BREAKING CHANGE** Package updates:
-  - [Android] Updated Gradle plugin to 3.5.2 and Gradle wrapper to 5.4.1
-  - [iOS] Updated Swift to 5
-- `name` and `isOrganiser` (read-only) properties have been added
-- Attendee UI update for the example app
-- Ability to add, modify or remove an attendee
+- **BREAKING CHANGE** Properties for the attendee model in `attendee.dart` file have been changed:
+  - Boolean property `isRequired` has been replaced to `AttendeeRole` enum
+  - New arugment added for `AttendeeRole` property
+- **BREAKING CHANGE** Package updates:
+  - [Android] Updated Gradle plugin to 3.5.2 and Gradle wrapper to 5.4.1
+  - [iOS] Updated Swift to 5
+- `name` and `isOrganiser` (read-only) properties have been added
+- Attendee UI update for the example app
+- Ability to add, modify or remove an attendee
 
 ## 2.0.0 17th January 2020
 
