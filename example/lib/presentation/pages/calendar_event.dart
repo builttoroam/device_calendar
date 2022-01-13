@@ -299,26 +299,29 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           },
                         ),
                       ),
-                    if (_event?.allDay == false) ...[
-                      if (Platform.isAndroid)
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: TextFormField(
-                            initialValue: _event?.start?.location.name,
-                            decoration: const InputDecoration(
-                                labelText: 'Start date time zone',
-                                hintText: 'Australia/Sydney'),
-                            onSaved: (String? value) {
-                              _event?.updateStartLocation(value);
-                            },
-                          ),
+                    if ((_event?.allDay == false) && Platform.isAndroid)
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: TextFormField(
+                          initialValue: _event?.start?.location.name,
+                          decoration: const InputDecoration(
+                              labelText: 'Start date time zone',
+                              hintText: 'Australia/Sydney'),
+                          onSaved: (String? value) {
+                            _event?.updateStartLocation(value);
+                          },
                         ),
+                      ),
+                    // Only add the 'To' Date for non-allDay events on all
+                    // platforms except Android (which allows multiple-day allDay events)
+                    if (_event?.allDay == false || Platform.isAndroid)
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: DateTimePicker(
                           labelText: 'To',
                           selectedDate: _endDate,
                           selectedTime: _endTime,
+                          enableTime: _event?.allDay == false,
                           selectDate: (DateTime date) {
                             setState(
                               () {
@@ -344,6 +347,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           },
                         ),
                       ),
+                    if (_event?.allDay == false && Platform.isAndroid)
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: TextFormField(
@@ -355,32 +359,25 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               _event?.updateEndLocation(value),
                         ),
                       ),
-                    ],
-                    GestureDetector(
-                      onTap: () async {
-                        var result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => EventAttendeePage()));
-                        if (result == null) return;
-                        _attendees.add(result);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: 10.0,
-                            children: [
-                              Icon(Icons.people),
-                              Text(_calendar.isReadOnly == false
-                                  ? 'Add Attendees'
-                                  : 'Attendees')
-                            ],
-                          ),
-                        ),
-                      ),
+                    ListTile(
+                      onTap: _calendar.isReadOnly == false
+                          ? () async {
+                              var result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          EventAttendeePage()));
+                              if (result != null) {
+                                setState(() {
+                                  _attendees.add(result);
+                                });
+                              }
+                            }
+                          : null,
+                      leading: Icon(Icons.people),
+                      title: Text(_calendar.isReadOnly == false
+                          ? 'Add Attendees'
+                          : 'Attendees'),
                     ),
                     ListView.builder(
                       physics: const NeverScrollableScrollPhysics(),
@@ -392,23 +389,81 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               ? Colors.greenAccent[100]
                               : Colors.transparent,
                           child: ListTile(
-                            title: GestureDetector(
-                              onTap: () async {
-                                var result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => EventAttendeePage(
-                                            attendee: _attendees[index])));
-                                if (result == null) return;
-                                _attendees[index] = result;
-                              },
-                              child: Text('${_attendees[index].emailAddress}'),
+                            onTap: () async {
+                              var result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => EventAttendeePage(
+                                          attendee: _attendees[index],
+                                          eventId: _event?.eventId)));
+                              if (result != null) {
+                                return setState(() {
+                                  _attendees[index] = result;
+                                });
+                              }
+                            },
+                            title: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 10.0),
+                              child: Text(
+                                  '${_attendees[index].name} (${_attendees[index].emailAddress})'),
                             ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
+                            subtitle: Wrap(
+                              spacing: 10,
+                              direction: Axis.horizontal,
+                              alignment: WrapAlignment.end,
                               children: <Widget>[
+                                Visibility(
+                                  visible: _attendees[index]
+                                          .androidAttendeeDetails !=
+                                      null,
+                                  child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 10.0),
+                                      padding: const EdgeInsets.all(3.0),
+                                      decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.blueAccent)),
+                                      child: Text(
+                                          'Android: ${_attendees[index].androidAttendeeDetails?.attendanceStatus?.enumToString}')),
+                                ),
+                                Visibility(
+                                  visible:
+                                      _attendees[index].iosAttendeeDetails !=
+                                          null,
+                                  child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 10.0),
+                                      padding: const EdgeInsets.all(3.0),
+                                      decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.blueAccent)),
+                                      child: Text(
+                                          'iOS: ${_attendees[index].iosAttendeeDetails?.attendanceStatus?.enumToString}')),
+                                ),
+                                Visibility(
+                                    visible: _attendees[index].isCurrentUser,
+                                    child: Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 10.0),
+                                        padding: const EdgeInsets.all(3.0),
+                                        decoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: Colors.blueAccent)),
+                                        child: Text('current user'))),
+                                Visibility(
+                                    visible: _attendees[index].isOrganiser,
+                                    child: Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 10.0),
+                                        padding: const EdgeInsets.all(3.0),
+                                        decoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: Colors.blueAccent)),
+                                        child: Text('Organiser'))),
                                 Container(
-                                  margin: const EdgeInsets.all(10.0),
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 10.0),
                                   padding: const EdgeInsets.all(3.0),
                                   decoration: BoxDecoration(
                                       border:
@@ -1007,6 +1062,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         currentLocation!);
 
     if (time == null) return dateWithoutTime;
+    if (Platform.isAndroid && _event?.allDay == true) return dateWithoutTime;
 
     return dateWithoutTime
         .add(Duration(hours: time.hour, minutes: time.minute));
