@@ -2,6 +2,12 @@
 
 <!-- To benefit from the current changelog reader in CI/CD, please follow the changelog format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). -->
 
+## [4.2.0](https://github.com/builttoroam/device_calendar/releases/tag/4.2.0)
+
+- Fix: apks can be build correctly now
+- Support for viewing and editing attendee status
+  - iOS needs a specific native view and permissions to edit attendees due to iOS restrictions. See README and example app.
+
 ## [4.1.0](https://github.com/builttoroam/device_calendar/releases/tag/4.1.0)
 
 - Fix: title, descriptions etc are now retrieved properly.
