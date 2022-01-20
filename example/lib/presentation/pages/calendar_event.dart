@@ -4,14 +4,14 @@ import 'package:collection/collection.dart';
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart';
 
 import '../date_time_picker.dart';
 import '../recurring_event_dialog.dart';
 import 'event_attendee.dart';
 import 'event_reminders.dart';
-import 'package:timezone/timezone.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 
 enum RecurrenceRuleEndType { Indefinite, MaxOccurrences, SpecifiedEndDate }
 
@@ -55,7 +55,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   int? _totalOccurrences;
   int? _interval;
   late DateTime _recurrenceEndDate;
-  RecurrenceFrequency? _recurrenceFrequency = RecurrenceFrequency.daily;
+  Frequency? _recurrenceFrequency = Frequency.daily;
   Set<ByWeekDayEntry> _daysOfWeek = {};
   Set<int> _dayOfMonth = {0};
   final List<int> _validDaysOfMonth = [];
@@ -120,7 +120,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       if (_isRecurringEvent) {
         _interval = _event!.recurrenceRule!.interval!;
         _totalOccurrences = _event!.recurrenceRule!.count;
-        _recurrenceFrequency = _event!.recurrenceRule!.recurrenceFrequency;
+        _recurrenceFrequency = _event!.recurrenceRule!.frequency;
 
         if (_totalOccurrences != null) {
           _recurrenceRuleEndType = RecurrenceRuleEndType.MaxOccurrences;
@@ -483,7 +483,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       if (_isRecurringEvent) ...[
                         ListTile(
                           leading: const Text('Select a Recurrence Type'),
-                          trailing: DropdownButton<RecurrenceFrequency>(
+                          trailing: DropdownButton<Frequency>(
                             onChanged: (selectedFrequency) {
                               setState(() {
                                 _recurrenceFrequency = selectedFrequency;
@@ -492,13 +492,13 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             },
                             value: _recurrenceFrequency,
                             items: [
-                              // RecurrenceFrequency.secondly,
-                              // RecurrenceFrequency.minutely,
-                              // RecurrenceFrequency.hourly,
-                              RecurrenceFrequency.daily,
-                              RecurrenceFrequency.weekly,
-                              RecurrenceFrequency.monthly,
-                              RecurrenceFrequency.yearly,
+                              // Frequency.secondly,
+                              // Frequency.minutely,
+                              // Frequency.hourly,
+                              Frequency.daily,
+                              Frequency.weekly,
+                              Frequency.monthly,
+                              Frequency.yearly,
                             ]
                                 .map((frequency) => DropdownMenuItem(
                                       value: frequency,
@@ -537,8 +537,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             ],
                           ),
                         ),
-                        if (_recurrenceFrequency ==
-                            RecurrenceFrequency.weekly) ...[
+                        if (_recurrenceFrequency == Frequency.weekly) ...[
                           Column(
                             children: [
                               ...DayOfWeek.values.map((day) {
@@ -579,10 +578,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             ],
                           )
                         ],
-                        if (_recurrenceFrequency ==
-                                RecurrenceFrequency.monthly ||
-                            _recurrenceFrequency ==
-                                RecurrenceFrequency.yearly) ...[
+                        if (_recurrenceFrequency == Frequency.monthly ||
+                            _recurrenceFrequency == Frequency.yearly) ...[
                           SwitchListTile(
                             value: _isByDayOfMonth,
                             onChanged: (value) =>
@@ -590,8 +587,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             title: const Text('By day of the month'),
                           )
                         ],
-                        if (_recurrenceFrequency ==
-                                RecurrenceFrequency.yearly &&
+                        if (_recurrenceFrequency == Frequency.yearly &&
                             _isByDayOfMonth) ...[
                           ListTile(
                             leading: const Text('Month of the year'),
@@ -622,10 +618,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           ),
                         ],
                         if (_isByDayOfMonth &&
-                            (_recurrenceFrequency ==
-                                    RecurrenceFrequency.monthly ||
-                                _recurrenceFrequency ==
-                                    RecurrenceFrequency.yearly)) ...[
+                            (_recurrenceFrequency == Frequency.monthly ||
+                                _recurrenceFrequency == Frequency.yearly)) ...[
                           ListTile(
                             leading: const Text('Day of the month'),
                             trailing: DropdownButton<int>(
@@ -649,10 +643,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           ),
                         ],
                         if (!_isByDayOfMonth &&
-                            (_recurrenceFrequency ==
-                                    RecurrenceFrequency.monthly ||
-                                _recurrenceFrequency ==
-                                    RecurrenceFrequency.yearly)) ...[
+                            (_recurrenceFrequency == Frequency.monthly ||
+                                _recurrenceFrequency == Frequency.yearly)) ...[
                           Padding(
                             padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
                             child: Align(
@@ -711,7 +703,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                   ),
                                 ),
                                 if (_recurrenceFrequency ==
-                                    RecurrenceFrequency.yearly) ...[
+                                    Frequency.yearly) ...[
                                   const Text('of'),
                                   Flexible(
                                     child: DropdownButton<MonthOfYear>(
@@ -726,7 +718,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                       value: MonthOfYear.values.toList()[
                                           _monthOfYear.isNotEmpty
                                               ? _monthOfYear.first
-                                              : 0],
+                                              : 1],
                                       items: MonthOfYear.values
                                           .map((month) => DropdownMenuItem(
                                                 value: month,
@@ -799,7 +791,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               selectedDate: _recurrenceEndDate,
                               selectDate: (DateTime date) {
                                 setState(() {
-                                  _recurrenceEndDate = date;
+                                  _recurrenceEndDate = DateTime(
+                                      date.year,
+                                      date.month,
+                                      date.day,
+                                      _endTime?.hour ?? 0,
+                                      _endTime?.minute ?? 0);
                                 });
                               },
                             ),
@@ -861,8 +858,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
               form?.save();
               if (_isRecurringEvent) {
                 if (!_isByDayOfMonth &&
-                    (_recurrenceFrequency == RecurrenceFrequency.monthly ||
-                        _recurrenceFrequency == RecurrenceFrequency.yearly)) {
+                    (_recurrenceFrequency == Frequency.monthly ||
+                        _recurrenceFrequency == Frequency.yearly)) {
                   _daysOfWeek.clear();
                   if (_selectedDayOfWeek != null) {
                     int? weekNo = _weekOfMonth.firstOrNull;
@@ -878,13 +875,13 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                     _daysOfWeek.add(
                         ByWeekDayEntry(_selectedDayOfWeek!.index + 1, weekNo));
 
-                    if (_recurrenceFrequency == RecurrenceFrequency.yearly) {
+                    if (_recurrenceFrequency == Frequency.yearly) {
                       _dayOfMonth.clear();
                     }
                   }
                 }
                 var finalRecRule = RecurrenceRule(
-                    recurrenceFrequency: _recurrenceFrequency!,
+                    frequency: _recurrenceFrequency!,
                     interval: _interval,
                     count: (_recurrenceRuleEndType ==
                             RecurrenceRuleEndType.MaxOccurrences)
@@ -903,10 +900,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                 var dateInstances =
                     finalRecRule.getInstances(start: DateTime.now().toUtc());
 
-                var realStartDate =
-                    _recurrenceFrequency == RecurrenceFrequency.daily
-                        ? DateTime.now()
-                        : dateInstances.firstOrNull;
+                var realStartDate = _recurrenceFrequency == Frequency.daily
+                    ? DateTime.now()
+                    : dateInstances.firstOrNull;
 
                 if (realStartDate != null) {
                   var currentLocation = timeZoneDatabase.locations[_timezone];
@@ -929,7 +925,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       currentLocation ?? fallbackLocation!);
                 }
               }
-
+              // debugPrint('END_DATE: $_recurrenceEndDate');
               _event?.attendees = _attendees;
               _event?.reminders = _reminders;
               _event?.availability = _availability;
@@ -952,29 +948,28 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     );
   }
 
-  Text _recurrenceFrequencyToText(RecurrenceFrequency? recurrenceFrequency) {
-    if (recurrenceFrequency == RecurrenceFrequency.daily) {
+  Text _recurrenceFrequencyToText(Frequency? recurrenceFrequency) {
+    if (recurrenceFrequency == Frequency.daily) {
       return const Text('Daily');
-    } else if (recurrenceFrequency == RecurrenceFrequency.weekly) {
+    } else if (recurrenceFrequency == Frequency.weekly) {
       return const Text('Weekly');
-    } else if (recurrenceFrequency == RecurrenceFrequency.monthly) {
+    } else if (recurrenceFrequency == Frequency.monthly) {
       return const Text('Monthly');
-    } else if (recurrenceFrequency == RecurrenceFrequency.yearly) {
+    } else if (recurrenceFrequency == Frequency.yearly) {
       return const Text('Yearly');
     } else {
       return const Text('');
     }
   }
 
-  Text _recurrenceFrequencyToIntervalText(
-      RecurrenceFrequency? recurrenceFrequency) {
-    if (recurrenceFrequency == RecurrenceFrequency.daily) {
+  Text _recurrenceFrequencyToIntervalText(Frequency? recurrenceFrequency) {
+    if (recurrenceFrequency == Frequency.daily) {
       return const Text(' Day(s)');
-    } else if (recurrenceFrequency == RecurrenceFrequency.weekly) {
+    } else if (recurrenceFrequency == Frequency.weekly) {
       return const Text(' Week(s) on');
-    } else if (recurrenceFrequency == RecurrenceFrequency.monthly) {
+    } else if (recurrenceFrequency == Frequency.monthly) {
       return const Text(' Month(s)');
-    } else if (recurrenceFrequency == RecurrenceFrequency.yearly) {
+    } else if (recurrenceFrequency == Frequency.yearly) {
       return const Text(' Year(s)');
     } else {
       return const Text('');
@@ -995,12 +990,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   }
 
   // Get total days of a month
-  void _getValidDaysOfMonth(RecurrenceFrequency? frequency) {
+  void _getValidDaysOfMonth(Frequency? frequency) {
     _validDaysOfMonth.clear();
     var totalDays = 0;
 
     // Year frequency: Get total days of the selected month
-    if (frequency == RecurrenceFrequency.yearly) {
+    if (frequency == Frequency.yearly) {
       totalDays = DateTime(DateTime.now().year,
               _monthOfYear.isNotEmpty ? _monthOfYear.first : 1, 0)
           .day;

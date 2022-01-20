@@ -8,10 +8,11 @@ dependencies:
     sdk: flutter
   timezone: ^0.8.0
   intl: ^0.17.0
-  rrule:
-    git:
-      url: git://github.com/GoldenSoju/rrule.git
-      ref: main
+  rrule: ^0.2.7
+#  rrule:
+#    git:
+#      url: git://github.com/GoldenSoju/rrule.git
+#      ref: main
 #  rrule:
 #    path: ../rrule
 

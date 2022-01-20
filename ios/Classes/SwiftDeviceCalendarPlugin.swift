@@ -42,7 +42,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
         }
 
         struct RecurrenceRule: Codable {
-            let recurrenceFrequency: Int
+            let frequency: Int
             let count: Int?
             let interval: Int
             let endDate: Int64?
@@ -444,7 +444,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin {
                 let bySetPositions = ekRecurrenceRule.setPositions
 
                 recurrenceRule = RecurrenceRule(
-                    recurrenceFrequency: frequency,
+                    frequency: frequency,
                     count: count,
                     interval: ekRecurrenceRule.interval,
                     endDate: endDate,

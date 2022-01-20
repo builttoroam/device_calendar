@@ -5,8 +5,6 @@ import android.content.Context
 import android.util.Log
 import androidx.annotation.NonNull
 import com.builttoroam.devicecalendar.common.Constants
-import com.builttoroam.devicecalendar.common.ByWeekDayEntry
-import com.builttoroam.devicecalendar.common.RecurrenceFrequency
 import com.builttoroam.devicecalendar.models.*
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -14,7 +12,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
+import org.dmfs.rfc5545.recur.Freq
 
 const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar"
 
@@ -56,16 +54,17 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private val EVENT_START_TIMEZONE_ARGUMENT = "eventStartTimeZone"
     private val EVENT_END_TIMEZONE_ARGUMENT = "eventEndTimeZone"
     private val RECURRENCE_RULE_ARGUMENT = "recurrenceRule"
-    private val RECURRENCE_FREQUENCY_ARGUMENT = "recurrenceFrequency"
+    private val FREQUENCY_ARGUMENT = "freq"
     private val COUNT_ARGUMENT = "count"
     private val UNTIL_ARGUMENT = "until"
     private val INTERVAL_ARGUMENT = "interval"
-    private val BY_WEEK_DAYS_ARGUMENT = "byWeekDays"
-    private val BY_MONTH_DAYS_ARGUMENT = "byMonthDays"
-    private val BY_YEAR_DAYS_ARGUMENT = "byYearDays"
-    private val BY_WEEKS_ARGUMENT = "byWeeks"
-    private val BY_MONTH_ARGUMENT = "byMonths"
-    private val BY_SET_POSITION_ARGUMENT = "bySetPositions"
+    private val BY_WEEK_DAYS_ARGUMENT = "byday"
+    private val BY_MONTH_DAYS_ARGUMENT = "bymonthday"
+    private val BY_YEAR_DAYS_ARGUMENT = "byyearday"
+    private val BY_WEEKS_ARGUMENT = "byweekno"
+    private val BY_MONTH_ARGUMENT = "bymonth"
+    private val BY_SET_POSITION_ARGUMENT = "bysetpos"
+
     private val ATTENDEES_ARGUMENT = "attendees"
     private val EMAIL_ADDRESS_ARGUMENT = "emailAddress"
     private val NAME_ARGUMENT = "name"
@@ -196,7 +195,7 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             ) != null
         ) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)
-            Log.d("RecurrenceRule on Parse Event Args", recurrenceRule.toDebugString())
+            Log.d("Rrule onParse EventArgs", recurrenceRule.toDebugString())
             event.recurrenceRule = recurrenceRule
         }
 
@@ -234,10 +233,10 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     private fun parseRecurrenceRuleArgs(call: MethodCall): RecurrenceRule {
         val recurrenceRuleArgs = call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT)!!
-        val recurrenceFrequencyIndex = recurrenceRuleArgs[RECURRENCE_FREQUENCY_ARGUMENT] as Int
-        val recurrenceFrequency = getFrequencyByNumber(recurrenceFrequencyIndex)
+        val recurrenceFrequencyString = recurrenceRuleArgs[FREQUENCY_ARGUMENT] as String
+        val recurrenceFrequency = Freq.valueOf(recurrenceFrequencyString)
         val recurrenceRule = RecurrenceRule(recurrenceFrequency)
-        Log.d("ANDROID_parseRecurrenceRuleArgs:", "Arguments from Flutter: $recurrenceRuleArgs")
+//        Log.d("ANDROID_parseRRuleArgs:", "Arguments from Flutter: $recurrenceRuleArgs")
 
         if (recurrenceRuleArgs.containsKey(COUNT_ARGUMENT)) {
             recurrenceRule.count = recurrenceRuleArgs[COUNT_ARGUMENT] as Int?
@@ -248,43 +247,41 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
 
         if (recurrenceRuleArgs.containsKey(UNTIL_ARGUMENT)) {
-            recurrenceRule.until = recurrenceRuleArgs[UNTIL_ARGUMENT] as Long?
+//            recurrenceRule.until = recurrenceRuleArgs[UNTIL_ARGUMENT] as Long?
+            recurrenceRule.until = recurrenceRuleArgs[UNTIL_ARGUMENT] as String?
         }
 
         if (recurrenceRuleArgs.containsKey(BY_WEEK_DAYS_ARGUMENT)) {
-
-            recurrenceRule.byWeekDays =
-                recurrenceRuleArgs[BY_WEEK_DAYS_ARGUMENT].toListOf<Map<String, Int>>()?.map {
-                    ByWeekDayEntry(it["day"] ?: 0, it["occurrence"])
-                }?.toMutableList()
+            recurrenceRule.byday =
+                recurrenceRuleArgs[BY_WEEK_DAYS_ARGUMENT].toListOf<String>()?.toMutableList()
         }
 
         if (recurrenceRuleArgs.containsKey(BY_MONTH_DAYS_ARGUMENT)) {
-            recurrenceRule.byMonthDays =
+            recurrenceRule.bymonthday =
                 recurrenceRuleArgs[BY_MONTH_DAYS_ARGUMENT] as MutableList<Int>?
         }
 
         if (recurrenceRuleArgs.containsKey(BY_YEAR_DAYS_ARGUMENT)) {
-            recurrenceRule.byYearDays =
+            recurrenceRule.byyearday =
                 recurrenceRuleArgs[BY_YEAR_DAYS_ARGUMENT] as MutableList<Int>?
         }
 
         if (recurrenceRuleArgs.containsKey(BY_WEEKS_ARGUMENT)) {
-            recurrenceRule.byWeeks = recurrenceRuleArgs[BY_WEEKS_ARGUMENT] as MutableList<Int>?
+            recurrenceRule.byweekno = recurrenceRuleArgs[BY_WEEKS_ARGUMENT] as MutableList<Int>?
         }
 
         if (recurrenceRuleArgs.containsKey(BY_MONTH_ARGUMENT)) {
-            recurrenceRule.byMonths = recurrenceRuleArgs[BY_MONTH_ARGUMENT] as MutableList<Int>?
+            recurrenceRule.bymonth = recurrenceRuleArgs[BY_MONTH_ARGUMENT] as MutableList<Int>?
         }
 
         if (recurrenceRuleArgs.containsKey(BY_SET_POSITION_ARGUMENT)) {
-            recurrenceRule.bySetPositions =
+            recurrenceRule.bysetpos =
                 recurrenceRuleArgs[BY_SET_POSITION_ARGUMENT] as MutableList<Int>?
         }
-        Log.d(
-            "ANDROID_parseRecurrenceRuleArgs:",
-            "Recurrence Rule result: ${recurrenceRule.toDebugString()}"
-        )
+//        Log.d(
+//            "ANDROID_parseRRuleArgs:",
+//            "Recurrence Rule result: ${recurrenceRule.toDebugString()}"
+//        )
         return recurrenceRule
     }
 
@@ -303,20 +300,20 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             Availability.valueOf(value)
         }
 
-    private fun getFrequencyByNumber(index: Int): RecurrenceFrequency {
-        return when (index) {
-            0 -> RecurrenceFrequency.YEARLY
-            1 -> RecurrenceFrequency.MONTHLY
-            2 -> RecurrenceFrequency.WEEKLY
-            3 -> RecurrenceFrequency.DAILY
-            4 -> RecurrenceFrequency.HOURLY
-            5 -> RecurrenceFrequency.MINUTELY
-            6 -> RecurrenceFrequency.SECONDLY
-            else -> {
-                Log.d("ANDROID", "Error getting correct Frequency by Number, fall back to YEARLY")
-                RecurrenceFrequency.YEARLY
-            }
-        }
-    }
+//    private fun getFrequencyByNumber(index: Int): RecurrenceFrequency {
+//        return when (index) {
+//            0 -> RecurrenceFrequency.YEARLY
+//            1 -> RecurrenceFrequency.MONTHLY
+//            2 -> RecurrenceFrequency.WEEKLY
+//            3 -> RecurrenceFrequency.DAILY
+//            4 -> RecurrenceFrequency.HOURLY
+//            5 -> RecurrenceFrequency.MINUTELY
+//            6 -> RecurrenceFrequency.SECONDLY
+//            else -> {
+//                Log.d("ANDROID", "Error getting correct Frequency by Number, fall back to YEARLY")
+//                RecurrenceFrequency.YEARLY
+//            }
+//        }
+//    }
 
 }

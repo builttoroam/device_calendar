@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.CalendarContract
@@ -17,12 +18,7 @@ import android.provider.CalendarContract.CALLER_IS_SYNCADAPTER
 import android.provider.CalendarContract.Events
 import android.text.format.DateUtils
 import android.util.Log
-import com.builttoroam.devicecalendar.common.Constants.Companion as Cst
-import com.builttoroam.devicecalendar.common.ByWeekDayEntry
-import com.builttoroam.devicecalendar.common.ErrorCodes.Companion as EC
 import com.builttoroam.devicecalendar.common.ErrorMessages
-import com.builttoroam.devicecalendar.common.ErrorMessages.Companion as EM
-import com.builttoroam.devicecalendar.common.RecurrenceFrequency
 import com.builttoroam.devicecalendar.models.*
 import com.builttoroam.devicecalendar.models.Calendar
 import com.google.gson.Gson
@@ -32,11 +28,16 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.PluginRegistry
 import kotlinx.coroutines.*
 import org.dmfs.rfc5545.DateTime
+import org.dmfs.rfc5545.DateTime.UTC
 import org.dmfs.rfc5545.Weekday
+import org.dmfs.rfc5545.recur.RecurrenceRule.WeekdayNum
+import java.util.*
+import kotlin.math.absoluteValue
+import com.builttoroam.devicecalendar.common.Constants.Companion as Cst
+import com.builttoroam.devicecalendar.common.ErrorCodes.Companion as EC
+import com.builttoroam.devicecalendar.common.ErrorMessages.Companion as EM
 import org.dmfs.rfc5545.recur.Freq as RruleFreq
 import org.dmfs.rfc5545.recur.RecurrenceRule as Rrule
-import java.text.SimpleDateFormat
-import java.util.*
 
 class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
     PluginRegistry.RequestPermissionsResultListener {
@@ -47,10 +48,10 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
     private val DELETE_EVENT_REQUEST_CODE = CREATE_OR_UPDATE_EVENT_REQUEST_CODE + 1
     private val REQUEST_PERMISSIONS_REQUEST_CODE = DELETE_EVENT_REQUEST_CODE + 1
     private val DELETE_CALENDAR_REQUEST_CODE = REQUEST_PERMISSIONS_REQUEST_CODE + 1
-    private val PART_TEMPLATE = ";%s="
-    private val BYMONTHDAY_PART = "BYMONTHDAY"
-    private val BYMONTH_PART = "BYMONTH"
-    private val BYSETPOS_PART = "BYSETPOS"
+//    private val PART_TEMPLATE = ";%s="
+//    private val BYMONTHDAY_PART = "BYMONTHDAY"
+//    private val BYMONTH_PART = "BYMONTH"
+//    private val BYSETPOS_PART = "BYSETPOS"
 
     private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> =
         mutableMapOf()
@@ -62,12 +63,12 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
 
     init {
         val gsonBuilder = GsonBuilder()
-        gsonBuilder.registerTypeAdapter(
-            RecurrenceFrequency::class.java,
-            RecurrenceFrequencySerializer()
-        )
+//        gsonBuilder.registerTypeAdapter(
+//            RecurrenceFrequency::class.java,
+//            RecurrenceFrequencySerializer()
+//        )
 //        gsonBuilder.registerTypeAdapter(DayOfWeek::class.java, DayOfWeekSerializer())
-        gsonBuilder.registerTypeAdapter(ByWeekDayEntry::class.java, ByWeekdaySerializer())
+//        gsonBuilder.registerTypeAdapter(ByWeekDayEntry::class.java, ByWeekdaySerializer())
         gsonBuilder.registerTypeAdapter(Availability::class.java, AvailabilitySerializer())
         _gson = gsonBuilder.create()
     }
@@ -407,7 +408,6 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
             }
 
             GlobalScope.launch(Dispatchers.IO + exceptionHandler) {
-//            launch(Dispatchers.Default/* + exceptionHandler*/) {
                 while (eventsCursor?.moveToNext() == true) {
                     val event = parseEvent(calendarId, eventsCursor) ?: continue
                     events.add(event)
@@ -813,15 +813,15 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
     }
 
     private fun arePermissionsGranted(): Boolean {
-//        if (atLeastAPI(23)) {
-        val writeCalendarPermissionGranted =
-            _binding!!.activity.checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
-        val readCalendarPermissionGranted =
-            _binding!!.activity.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
-        return writeCalendarPermissionGranted && readCalendarPermissionGranted
-//        }
+        if (atLeastAPI(23)) {
+            val writeCalendarPermissionGranted =
+                _binding!!.activity.checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
+            val readCalendarPermissionGranted =
+                _binding!!.activity.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
+            return writeCalendarPermissionGranted && readCalendarPermissionGranted
+        }
 
-//        return true
+        return true
     }
 
     private fun requestPermissions(parameters: CalendarMethodsParametersCacheModel) {
@@ -830,14 +830,14 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
     }
 
     private fun requestPermissions(requestCode: Int) {
-//        if (atLeastAPI(23)) {
-        _binding!!.activity.requestPermissions(
-            arrayOf(
-                Manifest.permission.WRITE_CALENDAR,
-                Manifest.permission.READ_CALENDAR
-            ), requestCode
-        )
-//        }
+        if (atLeastAPI(23)) {
+            _binding!!.activity.requestPermissions(
+                arrayOf(
+                    Manifest.permission.WRITE_CALENDAR,
+                    Manifest.permission.READ_CALENDAR
+                ), requestCode
+            )
+        }
     }
 
     private fun parseCalendarRow(cursor: Cursor?): Calendar? {
@@ -855,12 +855,12 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         val calendar =
             Calendar(calId.toString(), displayName, calendarColor, accountName, accountType)
         calendar.isReadOnly = isCalendarReadOnly(accessLevel)
-//        if (atLeastAPI(17)) {
-        val isPrimary = cursor.getString(Cst.CALENDAR_PROJECTION_IS_PRIMARY_INDEX)
-        calendar.isDefault = isPrimary == "1"
-//        } else {
-//            calendar.isDefault = false
-//        }
+        if (atLeastAPI(17)) {
+            val isPrimary = cursor.getString(Cst.CALENDAR_PROJECTION_IS_PRIMARY_INDEX)
+            calendar.isDefault = isPrimary == "1"
+        } else {
+            calendar.isDefault = false
+        }
         return calendar
     }
 
@@ -904,10 +904,10 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         }
         val rfcRecurrenceRule = Rrule(recurrenceRuleString)
         val frequency = when (rfcRecurrenceRule.freq) {
-            RruleFreq.YEARLY -> RecurrenceFrequency.YEARLY
-            RruleFreq.MONTHLY -> RecurrenceFrequency.MONTHLY
-            RruleFreq.WEEKLY -> RecurrenceFrequency.WEEKLY
-            RruleFreq.DAILY -> RecurrenceFrequency.DAILY
+            RruleFreq.YEARLY -> RruleFreq.YEARLY
+            RruleFreq.MONTHLY -> RruleFreq.MONTHLY
+            RruleFreq.WEEKLY -> RruleFreq.WEEKLY
+            RruleFreq.DAILY -> RruleFreq.DAILY
             else -> null
         } ?: return null //Avoid handling HOURLY/MINUTELY/SECONDLY frequencies for now
 
@@ -918,23 +918,22 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
 
         val until = rfcRecurrenceRule.until
         if (until != null) {
-            recurrenceRule.until = until.timestamp
+            recurrenceRule.until = formatDateTime(dateTime = until)
+//            Log.d("PARSE_RRULESTRING", "UNTIL = ${recurrenceRule.until}")
         }
 
         recurrenceRule.sourceRruleString = recurrenceRuleString
 
-        recurrenceRule.weekStart =
-            1 //TODO: Force set to Monday (need to find out why RRULE package only supports Monday)
+        recurrenceRule.wkst =
+            Weekday.MO.name //TODO: Force set to Monday (need to find out why RRULE package only supports Monday)
 
-        if (rfcRecurrenceRule.hasPart(Rrule.Part.BYDAY)) {
-            recurrenceRule.byWeekDays = rfcRecurrenceRule.byDayPart?.mapNotNull {
-                ByWeekDayEntry(it.weekday.ordinal, it.pos)
-            }?.toMutableList()
-        }
+        recurrenceRule.byday = rfcRecurrenceRule.byDayPart?.mapNotNull {
+            it.toString()
+        }?.toMutableList()
 
-        recurrenceRule.byMonthDays = rfcRecurrenceRule.getByPart(Rrule.Part.BYMONTHDAY)
-        recurrenceRule.byYearDays = rfcRecurrenceRule.getByPart(Rrule.Part.BYYEARDAY)
-        recurrenceRule.byWeeks = rfcRecurrenceRule.getByPart(Rrule.Part.BYWEEKNO)
+        recurrenceRule.bymonthday = rfcRecurrenceRule.getByPart(Rrule.Part.BYMONTHDAY)
+        recurrenceRule.byyearday = rfcRecurrenceRule.getByPart(Rrule.Part.BYYEARDAY)
+        recurrenceRule.byweekno = rfcRecurrenceRule.getByPart(Rrule.Part.BYWEEKNO)
 
         val rruleMonthList = rfcRecurrenceRule.getByPart(Rrule.Part.BYMONTH)
 
@@ -945,27 +944,38 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
                 newMonthList.add(newMonthNum)
             }
 
-            recurrenceRule.byMonths = newMonthList
+            recurrenceRule.bymonth = newMonthList
         }
 
-        recurrenceRule.bySetPositions = rfcRecurrenceRule.getByPart(Rrule.Part.BYSETPOS)
-
+        recurrenceRule.bysetpos = rfcRecurrenceRule.getByPart(Rrule.Part.BYSETPOS)
+//        Log.d("ANDROID_RRULE_DEBUG", recurrenceRule.toDebugString())
         return recurrenceRule
     }
 
-    private fun convertCalendarPartToNumericValues(
-        rfcRecurrenceRuleString: String,
-        partName: String
-    ): Int? {
-        val partIndex = rfcRecurrenceRuleString.indexOf(partName)
-        if (partIndex == -1) {
-            return null
+    private fun formatDateTime(dateTime: DateTime): String {
+        assert(dateTime.year in 0..9999)
+
+        fun twoDigits(n: Int): String {
+            return if (n < 10) "0$n" else "$n"
         }
 
-        return rfcRecurrenceRuleString.substring(partIndex).split(";").firstOrNull()?.split("=")
-            ?.lastOrNull()?.split(",")?.map {
-                it.toInt()
-            }?.firstOrNull()
+        fun fourDigits(n: Int): String {
+            val absolute = n.absoluteValue
+            val sign = if (n < 0) "-" else ""
+            if (absolute >= 1000) return "$n"
+            if (absolute >= 100) return "${sign}0$absolute"
+            if (absolute >= 10) return "${sign}00$absolute"
+            return "${sign}000$absolute"
+        }
+
+        val year = fourDigits(dateTime.year)
+        val month = twoDigits(dateTime.month.plus(1))
+        val day = twoDigits(dateTime.dayOfMonth)
+        val hour = twoDigits(dateTime.hours)
+        val minute = twoDigits(dateTime.minutes)
+        val second = twoDigits(dateTime.seconds)
+        val utcSuffix = if (dateTime.timeZone == UTC) 'Z' else ""
+        return "$year-$month-${day}T$hour:$minute:$second$utcSuffix"
     }
 
     private fun parseAttendeeRow(cursor: Cursor?): Attendee? {
@@ -1088,92 +1098,105 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         }
     }
 
-//    private fun atLeastAPI(api: Int): Boolean {
-//        return api <= android.os.Build.VERSION.SDK_INT
-//    }
+    private fun atLeastAPI(api: Int): Boolean {
+        return api <= Build.VERSION.SDK_INT
+    }
 
-    private fun buildRecurrenceRuleParams(recurrenceRule: RecurrenceRule): String {
-        val frequencyParam = when (recurrenceRule.recurrenceFrequency) {
-            RecurrenceFrequency.SECONDLY -> RruleFreq.SECONDLY
-            RecurrenceFrequency.MINUTELY -> RruleFreq.MINUTELY
-            RecurrenceFrequency.HOURLY -> RruleFreq.HOURLY
+    private fun buildRecurrenceRuleParams(recurrenceRule: RecurrenceRule): String? {
+        val frequencyParam = when (recurrenceRule.freq) {
+            RruleFreq.DAILY -> RruleFreq.DAILY
+            RruleFreq.WEEKLY -> RruleFreq.WEEKLY
+            RruleFreq.MONTHLY -> RruleFreq.MONTHLY
+            RruleFreq.YEARLY -> RruleFreq.YEARLY
+            else -> null
+        } ?: return null
 
-            RecurrenceFrequency.DAILY -> RruleFreq.DAILY
-            RecurrenceFrequency.WEEKLY -> RruleFreq.WEEKLY
-            RecurrenceFrequency.MONTHLY -> RruleFreq.MONTHLY
-            RecurrenceFrequency.YEARLY -> RruleFreq.YEARLY
-        }
         val rr = Rrule(frequencyParam)
         if (recurrenceRule.interval != null) {
             rr.interval = recurrenceRule.interval!!
         }
-        //Here my try
+
         if (recurrenceRule.count != null) {
             rr.count = recurrenceRule.count!!
         } else if (recurrenceRule.until != null) {
-            val calendar = java.util.Calendar.getInstance()
-            calendar.timeInMillis = recurrenceRule.until!!
-            val dateFormat = SimpleDateFormat("yyyyMMdd")
-            dateFormat.timeZone = calendar.timeZone
-            rr.until = DateTime(calendar.timeZone, recurrenceRule.until!!)
+            var untilString: String = recurrenceRule.until!!
+            if (!untilString.endsWith("Z")) {
+                untilString += "Z"
+            }
+            Log.d("DATETIME_STRING", "= $untilString, DateTime = ${parseDateTime(untilString)}")
+            rr.until = parseDateTime(untilString)
         }
 
-        if (recurrenceRule.weekStart != null) {
-            rr.weekStart = Weekday.values()[recurrenceRule.weekStart!!]
+        if (recurrenceRule.wkst != null) {
+            rr.weekStart = Weekday.valueOf(recurrenceRule.wkst!!)
         }
 
-        if (recurrenceRule.byWeekDays != null) {
-            rr.byDayPart = buildByDayPart(recurrenceRule)
+        if (recurrenceRule.byday != null) {
+            rr.byDayPart = recurrenceRule.byday?.mapNotNull {
+                WeekdayNum.valueOf(it)
+            }?.toMutableList()
+
+//            Log.d("ANDROID_BYDAYPART", "BYDAY = ${rr.byDayPart}")
         }
 
-        if (recurrenceRule.byMonthDays != null) {
-            rr.setByPart(Rrule.Part.BYMONTHDAY, recurrenceRule.byMonthDays!!)
+        if (recurrenceRule.bymonthday != null) {
+            rr.setByPart(Rrule.Part.BYMONTHDAY, recurrenceRule.bymonthday!!)
         }
 
-        if (recurrenceRule.byYearDays != null) {
-            rr.setByPart(Rrule.Part.BYYEARDAY, recurrenceRule.byYearDays!!)
+        if (recurrenceRule.byyearday != null) {
+            rr.setByPart(Rrule.Part.BYYEARDAY, recurrenceRule.byyearday!!)
         }
 
-        if (recurrenceRule.byWeeks != null) {
-            rr.setByPart(Rrule.Part.BYWEEKNO, recurrenceRule.byWeeks!!)
+        if (recurrenceRule.byweekno != null) {
+            rr.setByPart(Rrule.Part.BYWEEKNO, recurrenceRule.byweekno!!)
         }
 
-        if (recurrenceRule.byMonths != null) {
-            val month = recurrenceRule.byMonths!!
+        if (recurrenceRule.bymonth != null) {
+            val month = recurrenceRule.bymonth!!
+//            Log.d("ANDROID_BYMONTHPART", "BYMONTH = ${recurrenceRule.bymonth}")
             val newMonth = mutableListOf<Int>()
             month.forEach {
-                newMonth.add(it.minus(1))
+                newMonth.add(it)
             }
             rr.setByPart(Rrule.Part.BYMONTH, newMonth)
         }
 
-        if (recurrenceRule.bySetPositions != null) {
-            rr.setByPart(Rrule.Part.BYSETPOS, recurrenceRule.bySetPositions!!)
+        if (recurrenceRule.bysetpos != null) {
+            rr.setByPart(Rrule.Part.BYSETPOS, recurrenceRule.bysetpos!!)
         }
+        Log.d("ANDROID_HERE", "RR-STRING: $rr")
         return rr.toString()
     }
 
-    private fun buildByDayPart(recurrenceRule: RecurrenceRule): List<Rrule.WeekdayNum>? {
-        return if (recurrenceRule.byWeekDays?.isEmpty() == true) {
-            null
-        } else {
-            recurrenceRule.byWeekDays?.map { dayOfWeek ->
-                dayOfWeek
-            }?.map {
-                Rrule.WeekdayNum(
-                    it.occurrence ?: 0,
-                    Weekday.values().firstOrNull { weekday -> weekday.ordinal == it.day })
-            }
-        }
-    }
+    private fun parseDateTime(string: String): DateTime {
+        val year = Regex("""(?<year>\d{4})""").pattern
+        val month = Regex("""(?<month>\d{2})""").pattern
+        val day = Regex("""(?<day>\d{2})""").pattern
+        val hour = Regex("""(?<hour>\d{2})""").pattern
+        val minute = Regex("""(?<minute>\d{2})""").pattern
+        val second = Regex("""(?<second>\d{2})""").pattern
 
+        val regEx = Regex("^$year-$month-${day}T$hour:$minute:${second}Z?\$")
 
-    private fun String.addPartWithValues(partName: String, values: Int?): String {
-        if (values != null) {
-            return this + PART_TEMPLATE.format(partName) + values
-        }
+        val match = regEx.matchEntire(string)
+//        Log.d("REGEX", "MATCH = ${match?.groupValues}")
+//        Log.d("REGEX", "MATCH Group 1 = ${match?.groups?.get(1)?.value?.toIntOrNull() ?: 0}")
+//        Log.d("REGEX", "MATCH Group 2 = ${match?.groups?.get(2)?.value?.toIntOrNull() ?: 0}")
+//        Log.d("REGEX", "MATCH Group 3 = ${match?.groups?.get(3)?.value?.toIntOrNull() ?: 0}")
+//        Log.d("REGEX", "MATCH Group 4 = ${match?.groups?.get(4)?.value?.toIntOrNull() ?: 0}")
+//        Log.d("REGEX", "MATCH Group 5 = ${match?.groups?.get(5)?.value?.toIntOrNull() ?: 0}")
+//        Log.d("REGEX", "MATCH Group 6 = ${match?.groups?.get(6)?.value?.toIntOrNull() ?: 0}")
 
-        return this
+        return DateTime(
+            UTC,
+            match?.groups?.get(1)?.value?.toIntOrNull() ?: 0,
+            match?.groups?.get(2)?.value?.toIntOrNull()?.minus(1) ?: 0,
+            match?.groups?.get(3)?.value?.toIntOrNull() ?: 0,
+            match?.groups?.get(4)?.value?.toIntOrNull() ?: 0,
+            match?.groups?.get(5)?.value?.toIntOrNull() ?: 0,
+            match?.groups?.get(6)?.value?.toIntOrNull() ?: 0
+        )
+
     }
 
     private fun parseAvailability(availability: Int): Availability? = when (availability) {
