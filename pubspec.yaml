@@ -9,12 +9,6 @@ dependencies:
   timezone: ^0.8.0
   intl: ^0.17.0
   rrule: ^0.2.7
-#  rrule:
-#    git:
-#      url: git://github.com/GoldenSoju/rrule.git
-#      ref: main
-#  rrule:
-#    path: ../rrule
 
 dev_dependencies:
   flutter_test:
