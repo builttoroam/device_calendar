@@ -75,6 +75,7 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private val CALENDAR_COLOR_ARGUMENT = "calendarColor"
     private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
     private val EVENT_AVAILABILITY_ARGUMENT = "availability"
+    private val ATTENDANCE_STATUS_ARGUMENT = "attendanceStatus"
 
     private lateinit var _calendarDelegate: CalendarDelegate
 
@@ -199,28 +200,20 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             event.recurrenceRule = recurrenceRule
         }
 
-        if (call.hasArgument(ATTENDEES_ARGUMENT) && call.argument<List<Map<String, Any>>>(
-                ATTENDEES_ARGUMENT
-            ) != null
-        ) {
+        if (call.hasArgument(ATTENDEES_ARGUMENT) && call.argument<List<Map<String, Any>>>(ATTENDEES_ARGUMENT) != null) {
             event.attendees = mutableListOf()
             val attendeesArgs = call.argument<List<Map<String, Any>>>(ATTENDEES_ARGUMENT)!!
             for (attendeeArgs in attendeesArgs) {
-                event.attendees.add(
-                    Attendee(
+                event.attendees.add(Attendee(
                         attendeeArgs[EMAIL_ADDRESS_ARGUMENT] as String,
                         attendeeArgs[NAME_ARGUMENT] as String?,
                         attendeeArgs[ROLE_ARGUMENT] as Int,
-                        null, null
-                    )
-                )
+                        attendeeArgs[ATTENDANCE_STATUS_ARGUMENT] as Int?,
+                        null, null))
             }
         }
 
-        if (call.hasArgument(REMINDERS_ARGUMENT) && call.argument<List<Map<String, Any>>>(
-                REMINDERS_ARGUMENT
-            ) != null
-        ) {
+        if (call.hasArgument(REMINDERS_ARGUMENT) && call.argument<List<Map<String, Any>>>(REMINDERS_ARGUMENT) != null) {
             event.reminders = mutableListOf()
             val remindersArgs = call.argument<List<Map<String, Any>>>(REMINDERS_ARGUMENT)!!
             for (reminderArgs in remindersArgs) {
