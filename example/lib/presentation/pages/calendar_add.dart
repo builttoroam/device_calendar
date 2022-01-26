@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 
@@ -116,7 +117,6 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
 
   void showInSnackBar(String value) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
-    // _scaffoldKey.currentState?.showSnackBar(SnackBar(content: Text(value)));
   }
 }
 

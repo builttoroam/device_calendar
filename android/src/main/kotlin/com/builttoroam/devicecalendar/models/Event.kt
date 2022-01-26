@@ -1,6 +1,5 @@
 package com.builttoroam.devicecalendar.models
 
-
 class Event {
     var eventTitle: String? = null
     var eventId: String? = null

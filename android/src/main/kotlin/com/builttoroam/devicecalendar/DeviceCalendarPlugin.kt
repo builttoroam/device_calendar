@@ -2,7 +2,6 @@ package com.builttoroam.devicecalendar
 
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import androidx.annotation.NonNull
 import com.builttoroam.devicecalendar.common.Constants
 import com.builttoroam.devicecalendar.models.*
@@ -196,24 +195,32 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             ) != null
         ) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)
-            Log.d("Rrule onParse EventArgs", recurrenceRule.toDebugString())
             event.recurrenceRule = recurrenceRule
         }
 
-        if (call.hasArgument(ATTENDEES_ARGUMENT) && call.argument<List<Map<String, Any>>>(ATTENDEES_ARGUMENT) != null) {
+        if (call.hasArgument(ATTENDEES_ARGUMENT) && call.argument<List<Map<String, Any>>>(
+                ATTENDEES_ARGUMENT
+            ) != null
+        ) {
             event.attendees = mutableListOf()
             val attendeesArgs = call.argument<List<Map<String, Any>>>(ATTENDEES_ARGUMENT)!!
             for (attendeeArgs in attendeesArgs) {
-                event.attendees.add(Attendee(
+                event.attendees.add(
+                    Attendee(
                         attendeeArgs[EMAIL_ADDRESS_ARGUMENT] as String,
                         attendeeArgs[NAME_ARGUMENT] as String?,
                         attendeeArgs[ROLE_ARGUMENT] as Int,
                         attendeeArgs[ATTENDANCE_STATUS_ARGUMENT] as Int?,
-                        null, null))
+                        null, null
+                    )
+                )
             }
         }
 
-        if (call.hasArgument(REMINDERS_ARGUMENT) && call.argument<List<Map<String, Any>>>(REMINDERS_ARGUMENT) != null) {
+        if (call.hasArgument(REMINDERS_ARGUMENT) && call.argument<List<Map<String, Any>>>(
+                REMINDERS_ARGUMENT
+            ) != null
+        ) {
             event.reminders = mutableListOf()
             val remindersArgs = call.argument<List<Map<String, Any>>>(REMINDERS_ARGUMENT)!!
             for (reminderArgs in remindersArgs) {
@@ -229,7 +236,6 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val recurrenceFrequencyString = recurrenceRuleArgs[FREQUENCY_ARGUMENT] as String
         val recurrenceFrequency = Freq.valueOf(recurrenceFrequencyString)
         val recurrenceRule = RecurrenceRule(recurrenceFrequency)
-//        Log.d("ANDROID_parseRRuleArgs:", "Arguments from Flutter: $recurrenceRuleArgs")
 
         if (recurrenceRuleArgs.containsKey(COUNT_ARGUMENT)) {
             recurrenceRule.count = recurrenceRuleArgs[COUNT_ARGUMENT] as Int?
@@ -240,7 +246,6 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
 
         if (recurrenceRuleArgs.containsKey(UNTIL_ARGUMENT)) {
-//            recurrenceRule.until = recurrenceRuleArgs[UNTIL_ARGUMENT] as Long?
             recurrenceRule.until = recurrenceRuleArgs[UNTIL_ARGUMENT] as String?
         }
 
@@ -271,10 +276,6 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             recurrenceRule.bysetpos =
                 recurrenceRuleArgs[BY_SET_POSITION_ARGUMENT] as MutableList<Int>?
         }
-//        Log.d(
-//            "ANDROID_parseRRuleArgs:",
-//            "Recurrence Rule result: ${recurrenceRule.toDebugString()}"
-//        )
         return recurrenceRule
     }
 
@@ -282,31 +283,10 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         return (this as List<*>?)?.filterIsInstance<T>()?.toList()
     }
 
-//  private inline fun <reified T : Any> Any?.toMutableListOf(): MutableList<T>? {
-//    return this?.toListOf<T>()?.toMutableList()
-//  }
-
     private fun parseAvailability(value: String?): Availability? =
         if (value == null || value == Constants.AVAILABILITY_UNAVAILABLE) {
             null
         } else {
             Availability.valueOf(value)
         }
-
-//    private fun getFrequencyByNumber(index: Int): RecurrenceFrequency {
-//        return when (index) {
-//            0 -> RecurrenceFrequency.YEARLY
-//            1 -> RecurrenceFrequency.MONTHLY
-//            2 -> RecurrenceFrequency.WEEKLY
-//            3 -> RecurrenceFrequency.DAILY
-//            4 -> RecurrenceFrequency.HOURLY
-//            5 -> RecurrenceFrequency.MINUTELY
-//            6 -> RecurrenceFrequency.SECONDLY
-//            else -> {
-//                Log.d("ANDROID", "Error getting correct Frequency by Number, fall back to YEARLY")
-//                RecurrenceFrequency.YEARLY
-//            }
-//        }
-//    }
-
 }

@@ -15,15 +15,26 @@ class Constants {
 
         // API 17 or higher
         val CALENDAR_PROJECTION: Array<String> = arrayOf(
-                CalendarContract.Calendars._ID,                           // 0
-                CalendarContract.Calendars.ACCOUNT_NAME,                  // 1
-                CalendarContract.Calendars.ACCOUNT_TYPE,                  // 2
-                CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,         // 3
-                CalendarContract.Calendars.OWNER_ACCOUNT,                 // 4
-                CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,         // 5
-                CalendarContract.Calendars.CALENDAR_COLOR,                // 6
-                CalendarContract.Calendars.IS_PRIMARY                     // 7
+            CalendarContract.Calendars._ID,                           // 0
+            CalendarContract.Calendars.ACCOUNT_NAME,                  // 1
+            CalendarContract.Calendars.ACCOUNT_TYPE,                  // 2
+            CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,         // 3
+            CalendarContract.Calendars.OWNER_ACCOUNT,                 // 4
+            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,         // 5
+            CalendarContract.Calendars.CALENDAR_COLOR,                // 6
+            CalendarContract.Calendars.IS_PRIMARY                     // 7
 
+        )
+
+        // API 16 or lower
+        val CALENDAR_PROJECTION_OLDER_API: Array<String> = arrayOf(
+            CalendarContract.Calendars._ID,                           // 0
+            CalendarContract.Calendars.ACCOUNT_NAME,                  // 1
+            CalendarContract.Calendars.ACCOUNT_TYPE,                  // 2
+            CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,         // 3
+            CalendarContract.Calendars.OWNER_ACCOUNT,                 // 4
+            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,         // 5
+            CalendarContract.Calendars.CALENDAR_COLOR                 // 6
         )
 
         const val EVENT_PROJECTION_ID_INDEX: Int = 0
@@ -40,20 +51,20 @@ class Constants {
         const val EVENT_PROJECTION_AVAILABILITY_INDEX: Int = 13
 
         val EVENT_PROJECTION: Array<String> = arrayOf(
-                CalendarContract.Instances.EVENT_ID,
-                CalendarContract.Events.TITLE,
-                CalendarContract.Events.DESCRIPTION,
-                CalendarContract.Instances.BEGIN,
-                CalendarContract.Instances.END,
-                CalendarContract.Instances.DURATION,
-                CalendarContract.Events.RDATE,
-                CalendarContract.Events.RRULE,
-                CalendarContract.Events.ALL_DAY,
-                CalendarContract.Events.EVENT_LOCATION,
-                CalendarContract.Events.CUSTOM_APP_URI,
-                CalendarContract.Events.EVENT_TIMEZONE,
-                CalendarContract.Events.EVENT_END_TIMEZONE,
-                CalendarContract.Events.AVAILABILITY
+            CalendarContract.Instances.EVENT_ID,
+            CalendarContract.Events.TITLE,
+            CalendarContract.Events.DESCRIPTION,
+            CalendarContract.Instances.BEGIN,
+            CalendarContract.Instances.END,
+            CalendarContract.Instances.DURATION,
+            CalendarContract.Events.RDATE,
+            CalendarContract.Events.RRULE,
+            CalendarContract.Events.ALL_DAY,
+            CalendarContract.Events.EVENT_LOCATION,
+            CalendarContract.Events.CUSTOM_APP_URI,
+            CalendarContract.Events.EVENT_TIMEZONE,
+            CalendarContract.Events.EVENT_END_TIMEZONE,
+            CalendarContract.Events.AVAILABILITY
         )
 
         const val EVENT_INSTANCE_DELETION_ID_INDEX: Int = 0
@@ -63,11 +74,11 @@ class Constants {
         const val EVENT_INSTANCE_DELETION_END_INDEX: Int = 4
 
         val EVENT_INSTANCE_DELETION: Array<String> = arrayOf(
-                CalendarContract.Instances.EVENT_ID,
-                CalendarContract.Events.RRULE,
-                CalendarContract.Events.LAST_DATE,
-                CalendarContract.Instances.BEGIN,
-                CalendarContract.Instances.END
+            CalendarContract.Instances.EVENT_ID,
+            CalendarContract.Events.RRULE,
+            CalendarContract.Events.LAST_DATE,
+            CalendarContract.Instances.BEGIN,
+            CalendarContract.Instances.END
         )
 
         const val ATTENDEE_ID_INDEX: Int = 0
@@ -79,19 +90,19 @@ class Constants {
         const val ATTENDEE_STATUS_INDEX: Int = 6
 
         val ATTENDEE_PROJECTION: Array<String> = arrayOf(
-                CalendarContract.Attendees._ID,
-                CalendarContract.Attendees.EVENT_ID,
-                CalendarContract.Attendees.ATTENDEE_NAME,
-                CalendarContract.Attendees.ATTENDEE_EMAIL,
-                CalendarContract.Attendees.ATTENDEE_TYPE,
-                CalendarContract.Attendees.ATTENDEE_RELATIONSHIP,
-                CalendarContract.Attendees.ATTENDEE_STATUS
+            CalendarContract.Attendees._ID,
+            CalendarContract.Attendees.EVENT_ID,
+            CalendarContract.Attendees.ATTENDEE_NAME,
+            CalendarContract.Attendees.ATTENDEE_EMAIL,
+            CalendarContract.Attendees.ATTENDEE_TYPE,
+            CalendarContract.Attendees.ATTENDEE_RELATIONSHIP,
+            CalendarContract.Attendees.ATTENDEE_STATUS
         )
 
         const val REMINDER_MINUTES_INDEX = 1
         val REMINDER_PROJECTION: Array<String> = arrayOf(
-                CalendarContract.Reminders.EVENT_ID,
-                CalendarContract.Reminders.MINUTES
+            CalendarContract.Reminders.EVENT_ID,
+            CalendarContract.Reminders.MINUTES
         )
 
         const val AVAILABILITY_UNAVAILABLE = "UNAVAILABLE"
