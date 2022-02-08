@@ -73,6 +73,7 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
     private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
     private val EVENT_AVAILABILITY_ARGUMENT = "availability"
     private val ATTENDANCE_STATUS_ARGUMENT = "attendanceStatus"
+    private val EVENT_STATUS_ARGUMENT = "eventStatus"
 
     private lateinit var _calendarDelegate: CalendarDelegate
 
@@ -177,6 +178,7 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
         event.eventLocation = call.argument<String>(EVENT_LOCATION_ARGUMENT)
         event.eventURL = call.argument<String>(EVENT_URL_ARGUMENT)
         event.availability = parseAvailability(call.argument<String>(EVENT_AVAILABILITY_ARGUMENT))
+        event.eventStatus = parseEventStatus(call.argument<String>(EVENT_STATUS_ARGUMENT))
 
         if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)
@@ -256,4 +258,11 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
             } else {
                 Availability.valueOf(value)
             }
+
+    private fun parseEventStatus(value: String?): EventStatus? =
+        if (value == null || value == Constants.EVENT_STATUS_NONE) {
+            null
+        } else {
+            EventStatus.valueOf(value)
+        }
 }
