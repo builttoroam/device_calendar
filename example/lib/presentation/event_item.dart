@@ -209,6 +209,27 @@ class _EventItemState extends State<EventItem> {
                       ],
                     ),
                   ),
+                  SizedBox(
+                    height: 10.0,
+                  ),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: _eventFieldNameWidth,
+                          child: Text('Status'),
+                        ),
+                        Expanded(
+                          child: Text(
+                            widget._calendarEvent?.status?.enumToString ??
+                                '',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
