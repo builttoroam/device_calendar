@@ -211,7 +211,8 @@ void main() {
         description: 'Test description',
         recurrenceRule: recurrence,
         reminders: [reminder],
-        availability: Availability.Busy);
+        availability: Availability.Busy,
+        status: EventStatus.Confirmed);
 
     final stringEvent = event.toJson();
     expect(stringEvent, isNotNull);
@@ -235,5 +236,6 @@ void main() {
     expect(newEvent.reminders, isNotNull);
     expect(newEvent.reminders?.length, equals(1));
     expect(newEvent.availability, equals(event.availability));
+    expect(newEvent.status, equals(event.status));
   });
 }
