@@ -50,6 +50,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTIO
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_ID_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_RECURRING_RULE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_START_TIMEZONE_INDEX
+import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_STATUS_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.EVENT_PROJECTION_TITLE_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_MINUTES_INDEX
 import com.builttoroam.devicecalendar.common.Constants.Companion.REMINDER_PROJECTION
@@ -106,6 +107,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         gsonBuilder.registerTypeAdapter(RecurrenceFrequency::class.java, RecurrenceFrequencySerializer())
         gsonBuilder.registerTypeAdapter(DayOfWeek::class.java, DayOfWeekSerializer())
         gsonBuilder.registerTypeAdapter(Availability::class.java, AvailabilitySerializer())
+        gsonBuilder.registerTypeAdapter(EventStatus::class.java, EventStatusSerializer())
         _gson = gsonBuilder.create()
     }
 
@@ -492,6 +494,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         values.put(Events.CALENDAR_ID, calendarId)
         values.put(Events.DURATION, duration)
         values.put(Events.AVAILABILITY, getAvailability(event.availability))
+        values.put(Events.STATUS, getEventStatus(event.eventStatus))
 
         if (event.recurrenceRule != null) {
             val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
@@ -516,6 +519,13 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         Availability.BUSY -> Events.AVAILABILITY_BUSY
         Availability.FREE -> Events.AVAILABILITY_FREE
         Availability.TENTATIVE -> Events.AVAILABILITY_TENTATIVE
+        else -> null
+    }
+
+    private fun getEventStatus(eventStatus: EventStatus?): Int? = when (eventStatus) {
+        EventStatus.CONFIRMED -> Events.STATUS_CONFIRMED
+        EventStatus.TENTATIVE -> Events.STATUS_TENTATIVE
+        EventStatus.CANCELED -> Events.STATUS_CANCELED
         else -> null
     }
 
@@ -726,6 +736,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         val startTimeZone = cursor.getString(EVENT_PROJECTION_START_TIMEZONE_INDEX)
         val endTimeZone = cursor.getString(EVENT_PROJECTION_END_TIMEZONE_INDEX)
         val availability = parseAvailability(cursor.getInt(EVENT_PROJECTION_AVAILABILITY_INDEX))
+        val eventStatus = parseEventStatus(cursor.getInt(EVENT_PROJECTION_STATUS_INDEX))
 
         val event = Event()
         event.eventTitle = title ?: "New Event"
@@ -741,6 +752,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         event.eventStartTimeZone = startTimeZone
         event.eventEndTimeZone = endTimeZone
         event.availability = availability
+        event.eventStatus = eventStatus
 
         return event
     }
@@ -980,6 +992,13 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         Events.AVAILABILITY_BUSY -> Availability.BUSY
         Events.AVAILABILITY_FREE -> Availability.FREE
         Events.AVAILABILITY_TENTATIVE -> Availability.TENTATIVE
+        else -> null
+    }
+
+    private fun parseEventStatus(status: Int): EventStatus? = when(status) {
+        Events.STATUS_CONFIRMED -> EventStatus.CONFIRMED
+        Events.STATUS_CANCELED -> EventStatus.CANCELED
+        Events.STATUS_TENTATIVE -> EventStatus.TENTATIVE
         else -> null
     }
 }
