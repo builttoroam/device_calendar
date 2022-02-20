@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sprintf/sprintf.dart';
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart';
 
 import 'common/channel_constants.dart';
@@ -14,8 +15,6 @@ import 'models/calendar.dart';
 import 'models/event.dart';
 import 'models/result.dart';
 import 'models/retrieve_events_params.dart';
-
-import 'package:timezone/data/latest.dart' as tz;
 
 /// Provides functionality for working with device calendar(s)
 class DeviceCalendarPlugin {
@@ -320,6 +319,24 @@ class DeviceCalendarPlugin {
       },
     );
   }
+
+  /// Displays a native iOS view [EKEventViewController]
+  /// https://developer.apple.com/documentation/eventkitui/ekeventviewcontroller
+  /// 
+  /// Allows to change the event's attendance status
+  /// Works only on iOS
+  /// Returns after dismissing EKEventViewController's dialog
+  Future<Result<void>> showiOSEventModal(
+    String eventId,
+  ) {
+    return _invokeChannelMethod(
+      ChannelConstants.methodNameShowiOSEventModal,
+      arguments: () => <String, String>{
+        ChannelConstants.parameterNameEventId: eventId,
+      },
+    );
+  }
+
 
   Future<Result<T>> _invokeChannelMethod<T>(
     String channelMethodName, {
