@@ -815,7 +815,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             ekEvent!.notes = description
             ekEvent!.isAllDay = isAllDay
             ekEvent!.startDate = startDate
-            if (isAllDay) { ekEvent!.endDate = startDate }
+            if (isAllDay) { ekEvent!.endDate = endDate }
             else {
                 ekEvent!.endDate = endDate
 
