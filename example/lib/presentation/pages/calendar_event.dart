@@ -60,6 +60,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   WeekNumber? _weekOfMonth;
   DayOfWeek? _selectedDayOfWeek = DayOfWeek.Monday;
   Availability _availability = Availability.Busy;
+  EventStatus? _eventStatus;
 
   List<Attendee> _attendees = [];
   List<Reminder> _reminders = [];
@@ -103,6 +104,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       _monthOfYear = MonthOfYear.January;
       _weekOfMonth = WeekNumber.First;
       _availability = Availability.Busy;
+      _eventStatus = EventStatus.None;
     } else {
       _startDate = _event!.start!;
       _endDate = _event!.end!;
@@ -145,6 +147,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
       }
 
       _availability = _event!.availability;
+      _eventStatus = _event!.status;
     }
 
     _startTime = TimeOfDay(hour: _startDate!.hour, minute: _startDate!.minute);
@@ -262,6 +265,32 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         }).toList(),
                       ),
                     ),
+                    if(Platform.isAndroid)
+                      ListTile(
+                        leading: Text(
+                          'Status',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        trailing: DropdownButton<EventStatus>(
+                          value: _eventStatus,
+                          onChanged: (EventStatus? newValue) {
+                            setState(() {
+                              if (newValue != null) {
+                                _eventStatus = newValue;
+                                _event?.status = newValue;
+                              }
+                            });
+                          },
+                          items: EventStatus.values
+                              .map<DropdownMenuItem<EventStatus>>(
+                                  (EventStatus value) {
+                            return DropdownMenuItem<EventStatus>(
+                              value: value,
+                              child: Text(value.enumToString),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     SwitchListTile(
                       value: _event?.allDay ?? false,
                       onChanged: (value) =>
@@ -899,6 +928,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
               _event?.attendees = _attendees;
               _event?.reminders = _reminders;
               _event?.availability = _availability;
+              _event?.status = _eventStatus;
               var createEventResult =
                   await _deviceCalendarPlugin.createOrUpdateEvent(_event);
               if (createEventResult?.isSuccess == true) {
