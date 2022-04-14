@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:timezone/timezone.dart';
 
@@ -45,6 +47,16 @@ class Event {
   /// Indicates if this event counts as busy time, tentative, unavaiable or is still free time
   late Availability availability;
 
+  ///Note for development:
+  ///
+  ///JSON field names are coded in dart, swift and kotlin to facilitate data exchange.
+  ///Make sure all locations are updated if changes needed to be made.
+  ///Swift:
+  ///`ios/Classes/SwiftDeviceCalendarPlugin.swift`
+  ///Kotlin:
+  ///`android/src/main/kotlin/com/builttoroam/devicecalendar/models/Event.kt`
+  ///`android/src/main/kotlin/com/builttoroam/devicecalendar/CalendarDelegate.kt`
+  ///`android/src/main/kotlin/com/builttoroam/devicecalendar/DeviceCalendarPlugin.kt`
   Event(this.calendarId,
       {this.eventId,
       this.title,
@@ -59,44 +71,84 @@ class Event {
       this.url,
       this.allDay = false});
 
+  ///Get Event from JSON.
+  ///
+  ///Sample JSON:
+  ///{calendarId: 00, eventId: 0000, eventTitle: Sample Event, eventDescription: This is a sample event, eventStartDate: 1563719400000, eventStartTimeZone: Asia/Hong_Kong, eventEndDate: 1640532600000, eventEndTimeZone: Asia/Hong_Kong, eventAllDay: false, eventLocation: Yuenlong Station, eventURL: null, availability: BUSY, attendees: [{name: commonfolk, emailAddress: total.loss@hong.com, role: 1, isOrganizer: false, attendanceStatus: 3}], reminders: [{minutes: 39}]}
   Event.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
+
+    String? foundUrl;
+    String? startLocationName;
+    String? endLocationName;
+    int? startTimestamp;
+    int? endTimestamp;
+    bool legacyJSON = false;
+    var legacyName = {
+      title: 'title',
+      description: 'description',
+      startTimestamp: 'start',
+      endTimestamp: 'end',
+      startLocationName: 'startTimeZone',
+      endLocationName: 'endTimeZone',
+      allDay: 'allDay',
+      location: 'location',
+      foundUrl: 'url',
+    };
+    legacyName.forEach((key, value) {
+      if (json[value] != null) {
+        key = json[value];
+        legacyJSON = true;
+      }
+    });
 
     eventId = json['eventId'];
     calendarId = json['calendarId'];
     title = json['eventTitle'];
     description = json['eventDescription'];
 
-    final int? startTimestamp = json['eventStartDate'];
-    final String? startLocationName = json['startTimeZone'];
+    startTimestamp = json['eventStartDate'];
+    startLocationName = json['eventStartTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
     start = startTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp)
         : TZDateTime.now(local);
 
-    final int? endTimestamp = json['eventEndDate'];
-    final String? endLocationName = json['endTimeZone'];
+    endTimestamp = json['eventEndDate'];
+    endLocationName = json['eventEndTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
-    endLocation ??= local;
+    endLocation ??= startTimeZone;
     end = endTimestamp != null
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
-
     allDay = json['eventAllDay'] ?? false;
+    if (Platform.isAndroid && (allDay ?? false)) {
+      // On Android, the datetime in an allDay event is adjusted to local
+      // timezone, which can result in the wrong day, so we need to bring the
+      // date back to midnight UTC to get the correct date
+      var startOffset = start?.timeZoneOffset.inMilliseconds ?? 0;
+      var endOffset = end?.timeZoneOffset.inMilliseconds ?? 0;
+      // subtract the offset to get back to midnight on the correct date
+      start = start?.subtract(Duration(milliseconds: startOffset));
+      end = end?.subtract(Duration(milliseconds: endOffset));
+      // The Event End Date for allDay events is midnight of the next day, so
+      // subtract one day
+      end = end?.subtract(Duration(days: 1));
+    }
     location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
 
-    var foundUrl = json['eventUrl']?.toString();
+    foundUrl = json['eventURL']?.toString();
     if (foundUrl?.isEmpty ?? true) {
       url = null;
     } else {
       url = Uri.dataFromString(foundUrl as String);
     }
 
-    availability = parseStringToAvailability(json['availability']);
+    // availability = parseStringToAvailability(json['availability']);
 
     if (json['attendees'] != null) {
       attendees = json['attendees'].map<Attendee>((decodedAttendee) {
@@ -160,6 +212,10 @@ class Event {
         return Reminder.fromJson(decodedReminder);
       }).toList();
     }
+    if (legacyJSON) {
+      throw FormatException(
+          'legacy JSON detected. Please update your current JSONs as they may not be supported later on.');
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -190,8 +246,8 @@ class Event {
     }
 
     if (recurrenceRule != null) {
-      // debugPrint("EVENT_TO_JSON_RRULE: $recurrenceRule");
       data['recurrenceRule'] = recurrenceRule?.toJson();
+      // debugPrint("EVENT_TO_JSON_RRULE: ${recurrenceRule?.toJson()}");
     }
 
     if (reminders != null) {
