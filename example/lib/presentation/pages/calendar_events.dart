@@ -50,14 +50,8 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
                   ListView.builder(
                     itemCount: _calendarEvents.length,
                     itemBuilder: (BuildContext context, int index) {
-                      return EventItem(
-                          _calendarEvents[index],
-                          _deviceCalendarPlugin,
-                          _onLoading,
-                          _onDeletedFinished,
-                          _onTapped,
-                          _calendar.isReadOnly != null &&
-                              _calendar.isReadOnly as bool);
+                      return EventItem(_calendarEvents[index], _deviceCalendarPlugin, _onLoading, _onDeletedFinished,
+                          _onTapped, _calendar.isReadOnly != null && _calendar.isReadOnly as bool);
                     },
                   ),
                   if (_isLoading)
@@ -75,8 +69,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
       return FloatingActionButton(
         key: Key('addEventButton'),
         onPressed: () async {
-          final refreshEvents = await Navigator.push(context,
-              MaterialPageRoute(builder: (BuildContext context) {
+          final refreshEvents = await Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
             return CalendarEventPage(_calendar);
           }));
           if (refreshEvents == true) {
@@ -112,8 +105,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   }
 
   Future _onTapped(Event event) async {
-    final refreshEvents = await Navigator.push(context,
-        MaterialPageRoute(builder: (BuildContext context) {
+    final refreshEvents = await Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
       return CalendarEventPage(
         _calendar,
         event,
@@ -134,8 +126,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
     final startDate = DateTime.now().add(Duration(days: -30));
     final endDate = DateTime.now().add(Duration(days: 30));
     var calendarEventsResult = await _deviceCalendarPlugin.retrieveEvents(
-        _calendar.id,
-        RetrieveEventsParams(startDate: startDate, endDate: endDate));
+        _calendar.id, RetrieveEventsParams(startDate: startDate, endDate: endDate));
     setState(() {
       _calendarEvents = calendarEventsResult.data as List<Event>;
       _isLoading = false;
@@ -167,10 +158,8 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
           actions: <Widget>[
             TextButton(
               onPressed: () async {
-                var returnValue =
-                    await _deviceCalendarPlugin.deleteCalendar(_calendar.id!);
-                print(
-                    'returnValue: ${returnValue.data}, ${returnValue.errors}');
+                var returnValue = await _deviceCalendarPlugin.deleteCalendar(_calendar.id!);
+                print('returnValue: ${returnValue.data}, ${returnValue.errors}');
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               },

@@ -1,9 +1,10 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
+import 'package:timezone/timezone.dart';
+
 import '../../device_calendar.dart';
 import '../common/error_messages.dart';
-import 'package:timezone/timezone.dart';
-import 'package:collection/collection.dart';
 
 /// An event associated with a calendar
 class Event {
@@ -119,9 +120,8 @@ class Event {
     endLocationName = json['eventEndTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= startTimeZone;
-    end = endTimestamp != null
-        ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
-        : TZDateTime.now(local);
+    end =
+        endTimestamp != null ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp) : TZDateTime.now(local);
     allDay = json['eventAllDay'] ?? false;
     if (Platform.isAndroid && (allDay ?? false)) {
       // On Android, the datetime in an allDay event is adjusted to local
@@ -158,9 +158,7 @@ class Event {
       // Getting and setting an organiser for iOS
       var organiser = Attendee.fromJson(json['organizer']);
 
-      var attendee = attendees?.firstWhereOrNull((at) =>
-          at?.name == organiser.name &&
-          at?.emailAddress == organiser.emailAddress);
+      var attendee = attendees?.firstWhereOrNull((at) => at?.emailAddress == organiser.emailAddress);
       if (attendee != null) {
         attendee.isOrganiser = true;
       }
@@ -188,11 +186,9 @@ class Event {
     data['eventId'] = eventId;
     data['eventTitle'] = title;
     data['eventDescription'] = description;
-    data['eventStartDate'] = start?.millisecondsSinceEpoch ??
-        TZDateTime.now(local).millisecondsSinceEpoch;
+    data['eventStartDate'] = start?.millisecondsSinceEpoch ?? TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventStartTimeZone'] = start?.location.name;
-    data['eventEndDate'] = end?.millisecondsSinceEpoch ??
-        TZDateTime.now(local).millisecondsSinceEpoch;
+    data['eventEndDate'] = end?.millisecondsSinceEpoch ?? TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventEndTimeZone'] = end?.location.name;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
@@ -201,11 +197,7 @@ class Event {
 
     if (attendees != null) {
       data['attendees'] = attendees?.map((a) => a?.toJson()).toList();
-    }
-
-    if (attendees != null) {
-      data['organizer'] =
-          attendees?.firstWhereOrNull((a) => a!.isOrganiser)?.toJson();
+      data['organizer'] = attendees?.firstWhereOrNull((a) => a!.isOrganiser)?.toJson();
     }
 
     if (recurrenceRule != null) {
@@ -254,5 +246,10 @@ class Event {
     } on LocationNotFoundException {
       return false;
     }
+  }
+
+  @override
+  String toString() {
+    return 'Event{title: $title, calendarId: $calendarId, start: $start, end: $end, allDay: $allDay, recurrenceRule: $recurrenceRule, availability: $availability}';
   }
 }

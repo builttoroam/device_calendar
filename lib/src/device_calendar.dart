@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:isolate_handler/isolate_handler.dart';
 import 'package:sprintf/sprintf.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart';
@@ -18,10 +21,10 @@ import 'models/retrieve_events_params.dart';
 
 /// Provides functionality for working with device calendar(s)
 class DeviceCalendarPlugin {
-  static const MethodChannel channel =
-      MethodChannel(ChannelConstants.channelName);
+  static const MethodChannel channel = MethodChannel(ChannelConstants.channelName);
 
   static final DeviceCalendarPlugin _instance = DeviceCalendarPlugin.private();
+  final isolates = IsolateHandler();
 
   factory DeviceCalendarPlugin({bool shouldInitTimezone = true}) {
     if (shouldInitTimezone) {
@@ -56,7 +59,9 @@ class DeviceCalendarPlugin {
   /// Retrieves all of the device defined calendars
   ///
   /// Returns a [Result] containing a list of device [Calendar]
-  Future<Result<UnmodifiableListView<Calendar>>> retrieveCalendars() async {
+  Future<Result<UnmodifiableListView<Calendar>>> retrieveCalendars({
+    bool useIsolate = false,
+  }) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameRetrieveCalendars,
       evaluateResponse: (rawData) => UnmodifiableListView(
@@ -64,6 +69,7 @@ class DeviceCalendarPlugin {
               (decodedCalendar) => Calendar.fromJson(decodedCalendar),
             ),
       ),
+      useIsolate: useIsolate,
     );
   }
 
@@ -78,43 +84,61 @@ class DeviceCalendarPlugin {
   /// into the specified parameters
   Future<Result<UnmodifiableListView<Event>>> retrieveEvents(
     String? calendarId,
-    RetrieveEventsParams? retrieveEventsParams,
-  ) async {
+    RetrieveEventsParams? retrieveEventsParams, {
+    bool useIsolate = true,
+  }) async {
+    return retrieveEventsFromAnyCalendars(
+      calendarIds: [calendarId ?? ''],
+      params: retrieveEventsParams,
+      useIsolate: useIsolate,
+    );
+  }
+
+  /// Retrieves the events from the specified calendar
+  ///
+  /// The `calendarId` paramter is the id of the calendar that plugin will return events for
+  /// The `retrieveEventsParams` parameter combines multiple properties that
+  /// specifies conditions of the events retrieval. For instance, defining [RetrieveEventsParams.startDate]
+  /// and [RetrieveEventsParams.endDate] will return events only happening in that time range
+  ///
+  /// Returns a [Result] containing a list [Event], that fall
+  /// into the specified parameters
+  Future<Result<UnmodifiableListView<Event>>> retrieveEventsFromAnyCalendars({
+    List<String>? calendarIds,
+    RetrieveEventsParams? params,
+    bool useIsolate = true,
+  }) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameRetrieveEvents,
       assertParameters: (result) {
-        _validateCalendarIdParameter(
+        _validateCalendarIdsParameter(
           result,
-          calendarId,
+          calendarIds,
         );
 
         _assertParameter(
           result,
-          !((retrieveEventsParams?.eventIds?.isEmpty ?? true) &&
-              ((retrieveEventsParams?.startDate == null ||
-                      retrieveEventsParams?.endDate == null) ||
-                  (retrieveEventsParams?.startDate != null &&
-                      retrieveEventsParams?.endDate != null &&
-                      (retrieveEventsParams != null &&
-                          retrieveEventsParams.startDate!
-                              .isAfter(retrieveEventsParams.endDate!))))),
+          !((params?.eventIds?.isEmpty ?? true) &&
+              ((params?.startDate == null || params?.endDate == null) ||
+                  (params?.startDate != null &&
+                      params?.endDate != null &&
+                      (params != null && params.startDate!.isAfter(params.endDate!))))),
           ErrorCodes.invalidArguments,
           ErrorMessages.invalidRetrieveEventsParams,
         );
       },
       arguments: () => <String, Object?>{
-        ChannelConstants.parameterNameCalendarId: calendarId,
-        ChannelConstants.parameterNameStartDate:
-            retrieveEventsParams?.startDate?.millisecondsSinceEpoch,
-        ChannelConstants.parameterNameEndDate:
-            retrieveEventsParams?.endDate?.millisecondsSinceEpoch,
-        ChannelConstants.parameterNameEventIds: retrieveEventsParams?.eventIds,
+        ChannelConstants.parameterNameCalendarIds: calendarIds,
+        ChannelConstants.parameterNameStartDate: params?.startDate?.millisecondsSinceEpoch,
+        ChannelConstants.parameterNameEndDate: params?.endDate?.millisecondsSinceEpoch,
+        ChannelConstants.parameterNameEventIds: params?.eventIds,
       },
-      evaluateResponse: (rawData) => UnmodifiableListView(
-        json
-            .decode(rawData)
-            .map<Event>((decodedEvent) => Event.fromJson(decodedEvent)),
-      ),
+      useIsolate: useIsolate,
+      evaluateResponse: (rawData) {
+        return UnmodifiableListView(
+          json.decode(rawData).map<Event>((decodedEvent) => Event.fromJson(decodedEvent)),
+        );
+      },
     );
   }
 
@@ -125,10 +149,11 @@ class DeviceCalendarPlugin {
   /// The `eventId` parameter is the id of the event that plugin will try to delete
   ///
   /// Returns a [Result] indicating if the event has (true) or has not (false) been deleted from the calendar
-  Future<Result<bool>> deleteEvent(
+  Future<Result<bool?>> deleteEvent(
     String? calendarId,
-    String? eventId,
-  ) async {
+    String? eventId, {
+    bool useIsolate = false,
+  }) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameDeleteEvent,
       assertParameters: (result) {
@@ -148,6 +173,7 @@ class DeviceCalendarPlugin {
         ChannelConstants.parameterNameCalendarId: calendarId,
         ChannelConstants.parameterNameEventId: eventId,
       },
+      useIsolate: useIsolate,
     );
   }
 
@@ -161,13 +187,14 @@ class DeviceCalendarPlugin {
   /// The `deleteFollowingInstances` parameter will also delete the following instances if set to true
   ///
   /// Returns a [Result] indicating if the instance of the event has (true) or has not (false) been deleted from the calendar
-  Future<Result<bool>> deleteEventInstance(
+  Future<Result<bool?>> deleteEventInstance(
     String? calendarId,
     String? eventId,
-    int? startDate,
-    int? endDate,
-    bool deleteFollowingInstances,
-  ) async {
+    DateTime? startDate,
+    DateTime? endDate,
+    bool deleteFollowingInstances, {
+    bool useIsolate = false,
+  }) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameDeleteEventInstance,
       assertParameters: (result) {
@@ -186,11 +213,11 @@ class DeviceCalendarPlugin {
       arguments: () => <String, Object?>{
         ChannelConstants.parameterNameCalendarId: calendarId,
         ChannelConstants.parameterNameEventId: eventId,
-        ChannelConstants.parameterNameEventStartDate: startDate,
-        ChannelConstants.parameterNameEventEndDate: endDate,
-        ChannelConstants.parameterNameFollowingInstances:
-            deleteFollowingInstances,
+        ChannelConstants.parameterNameEventStartDate: startDate?.millisecondsSinceEpoch,
+        ChannelConstants.parameterNameEventEndDate: endDate?.millisecondsSinceEpoch,
+        ChannelConstants.parameterNameFollowingInstances: deleteFollowingInstances,
       },
+      useIsolate: useIsolate,
     );
   }
 
@@ -201,7 +228,10 @@ class DeviceCalendarPlugin {
   /// it should create or update the event.
   ///
   /// Returns a [Result] with the newly created or updated [Event.eventId]
-  Future<Result<String>?> createOrUpdateEvent(Event? event) async {
+  Future<Result<UnmodifiableListView<Event>>?> createOrUpdateEvent(
+    Event? event, {
+    bool useIsolate = false,
+  }) async {
     if (event == null) return null;
     return _invokeChannelMethod(
       ChannelConstants.methodNameCreateOrUpdateEvent,
@@ -209,35 +239,26 @@ class DeviceCalendarPlugin {
         // Setting time to 0 for all day events
         if (event.allDay == true) {
           if (event.start != null) {
-            var dateStart = DateTime(event.start!.year, event.start!.month,
-                event.start!.day, 0, 0, 0);
+            var dateStart = DateTime(event.start!.year, event.start!.month, event.start!.day, 0, 0, 0);
             // allDay events on Android need to be at midnight UTC
             event.start = Platform.isAndroid
-                ? TZDateTime.utc(event.start!.year, event.start!.month,
-                event.start!.day, 0, 0, 0)
-                : TZDateTime.from(dateStart,
-                timeZoneDatabase.locations[event.start!.location.name]!);
+                ? TZDateTime.utc(event.start!.year, event.start!.month, event.start!.day, 0, 0, 0)
+                : TZDateTime.from(dateStart, timeZoneDatabase.locations[event.start!.location.name]!);
           }
           if (event.end != null) {
-            var dateEnd = DateTime(
-                event.end!.year, event.end!.month, event.end!.day, 0, 0, 0);
+            var dateEnd = DateTime(event.end!.year, event.end!.month, event.end!.day, 0, 0, 0);
             // allDay events on Android need to be at midnight UTC on the
             // day after the last day. For example, a 2-day allDay event on
             // Jan 1 and 2, should be from Jan 1 00:00:00 to Jan 3 00:00:00
             event.end = Platform.isAndroid
-                ? TZDateTime.utc(event.end!.year, event.end!.month,
-                event.end!.day, 0, 0, 0)
-                .add(Duration(days: 1))
-                : TZDateTime.from(dateEnd,
-                timeZoneDatabase.locations[event.end!.location.name]!);
+                ? TZDateTime.utc(event.end!.year, event.end!.month, event.end!.day, 0, 0, 0).add(Duration(days: 1))
+                : TZDateTime.from(dateEnd, timeZoneDatabase.locations[event.end!.location.name]!);
           }
         }
 
         _assertParameter(
           result,
-          !(event.allDay == true && (event.calendarId?.isEmpty ?? true) ||
-              event.start == null ||
-              event.end == null),
+          !(event.allDay == true && (event.calendarId?.isEmpty ?? true) || event.start == null || event.end == null),
           ErrorCodes.invalidArguments,
           ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay,
         );
@@ -248,14 +269,89 @@ class DeviceCalendarPlugin {
               ((event.calendarId?.isEmpty ?? true) ||
                   event.start == null ||
                   event.end == null ||
-                  (event.start != null &&
-                      event.end != null &&
-                      event.start!.isAfter(event.end!)))),
+                  (event.start != null && event.end != null && event.start!.isAfter(event.end!)))),
           ErrorCodes.invalidArguments,
           ErrorMessages.createOrUpdateEventInvalidArgumentsMessage,
         );
       },
+      evaluateResponse: (rawData) {
+        return UnmodifiableListView(
+          json.decode(rawData).map<Event>((decodedEvent) => Event.fromJson(decodedEvent)),
+        );
+      },
       arguments: () => event.toJson(),
+      useIsolate: useIsolate,
+    );
+  }
+
+  /// Creates or updates an event
+  ///
+  /// The `event` paramter specifies how event data should be saved into the calendar
+  /// Always specify the [Event.calendarId], to inform the plugin in which calendar
+  /// it should create or update the event.
+  ///
+  /// Returns a [Result] with the newly created or updated [Event.eventId]
+  Future<Result<UnmodifiableListView<Event>>?> updateEventInstance(
+    Event? event,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool deleteFollowingInstances, {
+    bool useIsolate = false,
+  }) async {
+    if (event == null) return null;
+    return _invokeChannelMethod(
+      ChannelConstants.methodNameUpdateEventInstance,
+      assertParameters: (result) {
+        // Setting time to 0 for all day events
+        if (event.allDay == true) {
+          if (event.start != null) {
+            var dateStart = DateTime(event.start!.year, event.start!.month, event.start!.day, 0, 0, 0);
+            // allDay events on Android need to be at midnight UTC
+            event.start = Platform.isAndroid
+                ? TZDateTime.utc(event.start!.year, event.start!.month, event.start!.day, 0, 0, 0)
+                : TZDateTime.from(dateStart, timeZoneDatabase.locations[event.start!.location.name]!);
+          }
+          if (event.end != null) {
+            var dateEnd = DateTime(event.end!.year, event.end!.month, event.end!.day, 0, 0, 0);
+            // allDay events on Android need to be at midnight UTC on the
+            // day after the last day. For example, a 2-day allDay event on
+            // Jan 1 and 2, should be from Jan 1 00:00:00 to Jan 3 00:00:00
+            event.end = Platform.isAndroid
+                ? TZDateTime.utc(event.end!.year, event.end!.month, event.end!.day, 0, 0, 0).add(Duration(days: 1))
+                : TZDateTime.from(dateEnd, timeZoneDatabase.locations[event.end!.location.name]!);
+          }
+        }
+
+        _assertParameter(
+          result,
+          !(event.allDay == true && (event.calendarId?.isEmpty ?? true) || event.start == null || event.end == null),
+          ErrorCodes.invalidArguments,
+          ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay,
+        );
+
+        _assertParameter(
+          result,
+          !(event.allDay != true &&
+              ((event.calendarId?.isEmpty ?? true) ||
+                  event.start == null ||
+                  event.end == null ||
+                  (event.start != null && event.end != null && event.start!.isAfter(event.end!)))),
+          ErrorCodes.invalidArguments,
+          ErrorMessages.createOrUpdateEventInvalidArgumentsMessage,
+        );
+      },
+      evaluateResponse: (rawData) {
+        return UnmodifiableListView(
+          json.decode(rawData).map<Event>((decodedEvent) => Event.fromJson(decodedEvent)),
+        );
+      },
+      arguments: () => event.toJson()
+        ..addAll({
+          ChannelConstants.parameterNameEventStartDate: startDate?.millisecondsSinceEpoch,
+          ChannelConstants.parameterNameEventEndDate: endDate?.millisecondsSinceEpoch,
+          ChannelConstants.parameterNameFollowingInstances: deleteFollowingInstances,
+        }),
+      useIsolate: useIsolate,
     );
   }
 
@@ -275,37 +371,35 @@ class DeviceCalendarPlugin {
     String? calendarName, {
     Color? calendarColor,
     String? localAccountName,
+    bool useIsolate = false,
   }) async {
-    return _invokeChannelMethod(
-      ChannelConstants.methodNameCreateCalendar,
-      assertParameters: (result) {
-        calendarColor ??= Colors.red;
+    return _invokeChannelMethod(ChannelConstants.methodNameCreateCalendar,
+        assertParameters: (result) {
+          calendarColor ??= Colors.red;
 
-        _assertParameter(
-          result,
-          calendarName?.isNotEmpty == true,
-          ErrorCodes.invalidArguments,
-          ErrorMessages.createCalendarInvalidCalendarNameMessage,
-        );
-      },
-      arguments: () => <String, Object?>{
-        ChannelConstants.parameterNameCalendarName: calendarName,
-        ChannelConstants.parameterNameCalendarColor:
-            '0x${calendarColor?.value.toRadixString(16)}',
-        ChannelConstants.parameterNameLocalAccountName:
-            localAccountName?.isEmpty ?? true
-                ? 'Device Calendar'
-                : localAccountName
-      },
-    );
+          _assertParameter(
+            result,
+            calendarName?.isNotEmpty == true,
+            ErrorCodes.invalidArguments,
+            ErrorMessages.createCalendarInvalidCalendarNameMessage,
+          );
+        },
+        arguments: () => <String, Object?>{
+              ChannelConstants.parameterNameCalendarName: calendarName,
+              ChannelConstants.parameterNameCalendarColor: '0x${calendarColor?.value.toRadixString(16)}',
+              ChannelConstants.parameterNameLocalAccountName:
+                  localAccountName?.isEmpty ?? true ? 'Device Calendar' : localAccountName
+            },
+        useIsolate: useIsolate);
   }
 
   /// Deletes a calendar.
   /// The `calendarId` parameter is the id of the calendar that plugin will try to delete the event from\///
   /// Returns a [Result] indicating if the instance of the calendar has (true) or has not (false) been deleted
-  Future<Result<bool>> deleteCalendar(
-    String calendarId,
-  ) async {
+  Future<Result<bool?>> deleteCalendar(
+    String calendarId, {
+    bool useIsolate = false,
+  }) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameDeleteCalendar,
       assertParameters: (result) {
@@ -317,12 +411,13 @@ class DeviceCalendarPlugin {
       arguments: () => <String, Object>{
         ChannelConstants.parameterNameCalendarId: calendarId,
       },
+      useIsolate: useIsolate,
     );
   }
 
   /// Displays a native iOS view [EKEventViewController]
   /// https://developer.apple.com/documentation/eventkitui/ekeventviewcontroller
-  /// 
+  ///
   /// Allows to change the event's attendance status
   /// Works only on iOS
   /// Returns after dismissing EKEventViewController's dialog
@@ -337,12 +432,12 @@ class DeviceCalendarPlugin {
     );
   }
 
-
   Future<Result<T>> _invokeChannelMethod<T>(
     String channelMethodName, {
     Function(Result<T>)? assertParameters,
     Map<String, Object?> Function()? arguments,
     T Function(dynamic)? evaluateResponse,
+    bool useIsolate = false,
   }) async {
     final result = Result<T>();
 
@@ -353,17 +448,49 @@ class DeviceCalendarPlugin {
           return result;
         }
       }
-
-      var rawData = await channel.invokeMethod(
-        channelMethodName,
-        arguments != null ? arguments() : null,
-      );
-
-      if (evaluateResponse != null) {
-        result.data = evaluateResponse(rawData);
+      final resultCompleter = Completer<Result<T>>();
+      final receive = (dynamic message) {
+        if (evaluateResponse != null) {
+          result.data = evaluateResponse(message);
+        } else {
+          result.data = message as T;
+        }
+        resultCompleter.complete(result);
+      };
+      final createArguments = () {
+        final map = arguments?.call() ?? {};
+        map[ChannelConstants.parameterFuncName] = channelMethodName;
+        map[ChannelConstants.parameterIsAsync] = useIsolate;
+        return map;
+      };
+      if (useIsolate) {
+        final isolateName = '$channelMethodName${DateTime.now().microsecondsSinceEpoch}';
+        isolates.spawn(_callChannelMethod, name: isolateName,
+            // Executed every time data is received from the spawned isolate.
+            onReceive: (message) {
+          if (message is Map<String, dynamic> && message['isError']) {
+            result.errors.add(ResultError.fromMap(message));
+            resultCompleter.complete(result);
+          } else {
+            receive(message);
+          }
+          isolates.kill(isolateName, priority: Isolate.immediate);
+        },
+            // Executed once when spawned isolate is ready for communication.
+            onInitialized: () {
+          isolates.send(
+            createArguments(),
+            to: isolateName,
+          );
+        });
       } else {
-        result.data = rawData;
+        var rawData = await channel.invokeMethod(
+          channelMethodName,
+          createArguments(),
+        );
+        receive(rawData);
       }
+      return resultCompleter.future;
     } catch (e) {
       _parsePlatformExceptionAndUpdateResult<T>(e as Exception?, result);
     }
@@ -371,35 +498,46 @@ class DeviceCalendarPlugin {
     return result;
   }
 
-  void _parsePlatformExceptionAndUpdateResult<T>(
-      Exception? exception, Result<T> result) {
+  // Isolate entry point must be static or top-level.
+  static Future<void> _callChannelMethod(Map<String, dynamic> context) async {
+    final messenger = HandledIsolate.initialize(context);
+    messenger.listen((message) async {
+      try {
+        var rawData = await channel.invokeMethod(
+          message[ChannelConstants.parameterFuncName],
+          message,
+        );
+        messenger.send(rawData);
+      } catch (e) {
+        final error = _parsePlatformException(e as Exception?);
+        messenger.send(error.toMap());
+      }
+    });
+  }
+
+  void _parsePlatformExceptionAndUpdateResult<T>(Exception? exception, Result<T> result) {
+    result.errors.add(_parsePlatformException(exception));
+  }
+
+  static ResultError _parsePlatformException(Exception? exception) {
     if (exception == null) {
-      result.errors.add(
-        ResultError(
-          ErrorCodes.unknown,
-          ErrorMessages.unknownDeviceIssue,
-        ),
+      return ResultError(
+        ErrorCodes.unknown,
+        ErrorMessages.unknownDeviceIssue,
       );
-      return;
     }
 
     print(exception);
 
     if (exception is PlatformException) {
-      result.errors.add(
-        ResultError(
-          ErrorCodes.platformSpecific,
-          sprintf(ErrorMessages.unknownDeviceExceptionTemplate,
-              [exception.code, exception.message]),
-        ),
+      return ResultError(
+        ErrorCodes.platformSpecific,
+        sprintf(ErrorMessages.unknownDeviceExceptionTemplate, [exception.code, exception.message]),
       );
     } else {
-      result.errors.add(
-        ResultError(
-          ErrorCodes.generic,
-          sprintf(ErrorMessages.unknownDeviceGenericExceptionTemplate,
-              [exception.toString()]),
-        ),
+      return ResultError(
+        ErrorCodes.generic,
+        sprintf(ErrorMessages.unknownDeviceGenericExceptionTemplate, [exception.toString()]),
       );
     }
   }
@@ -424,6 +562,19 @@ class DeviceCalendarPlugin {
     _assertParameter(
       result,
       calendarId?.isNotEmpty ?? false,
+      ErrorCodes.invalidArguments,
+      ErrorMessages.invalidMissingCalendarId,
+    );
+  }
+
+  void _validateCalendarIdsParameter<T>(
+    Result<T> result,
+    List<String>? calendarIds,
+  ) {
+    _assertParameter(
+      result,
+      (calendarIds?.isNotEmpty ?? true) &&
+          calendarIds?.where((element) => element.isNotEmpty).length == calendarIds?.length,
       ErrorCodes.invalidArguments,
       ErrorMessages.invalidMissingCalendarId,
     );

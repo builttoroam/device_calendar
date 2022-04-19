@@ -30,4 +30,19 @@ class ResultError {
   final String errorMessage;
 
   const ResultError(this.errorCode, this.errorMessage);
+
+  ResultError.fromMap(Map<String, dynamic> map)
+      : errorCode = map['errorCode'],
+        errorMessage = map['errorMessage'];
+
+  @override
+  String toString() {
+    return 'ResultError{errorCode: $errorCode, errorMessage: $errorMessage}';
+  }
+
+  Map<String, dynamic> toMap() => {
+        'errorCode': errorCode,
+        'errorMessage': errorMessage,
+        'isError': true,
+      };
 }

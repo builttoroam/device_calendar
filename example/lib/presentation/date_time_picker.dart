@@ -26,9 +26,7 @@ class DateTimePicker extends StatelessWidget {
   Future<Null> _selectDate(BuildContext context) async {
     final picked = await showDatePicker(
         context: context,
-        initialDate: selectedDate != null
-            ? DateTime.parse(selectedDate.toString())
-            : DateTime.now(),
+        initialDate: selectedDate != null ? DateTime.parse(selectedDate.toString()) : DateTime.now(),
         firstDate: DateTime(2015, 8),
         lastDate: DateTime(2101));
     if (picked != null && picked != selectedDate && selectDate != null) {
@@ -38,8 +36,7 @@ class DateTimePicker extends StatelessWidget {
 
   Future<Null> _selectTime(BuildContext context) async {
     if (selectedTime == null) return;
-    final picked =
-        await showTimePicker(context: context, initialTime: selectedTime!);
+    final picked = await showTimePicker(context: context, initialTime: selectedTime!);
     if (picked != null && picked != selectedTime) selectTime!(picked);
   }
 
@@ -53,9 +50,7 @@ class DateTimePicker extends StatelessWidget {
           flex: 4,
           child: InputDropdown(
             labelText: labelText,
-            valueText: selectedDate == null
-                ? ''
-                : DateFormat.yMMMd().format(selectedDate as DateTime),
+            valueText: selectedDate == null ? '' : DateFormat.yMMMd().format(selectedDate as DateTime),
             valueStyle: valueStyle,
             onPressed: () {
               _selectDate(context);

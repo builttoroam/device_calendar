@@ -12,8 +12,7 @@ class AndroidAttendeeDetails {
     }
 
     if (json['attendanceStatus'] != null && json['attendanceStatus'] is int) {
-      attendanceStatus =
-          AndroidAttendanceStatus.values[json['attendanceStatus']];
+      attendanceStatus = AndroidAttendanceStatus.values[json['attendanceStatus']];
     }
   }
 

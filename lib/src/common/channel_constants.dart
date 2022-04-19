@@ -8,19 +8,24 @@ class ChannelConstants {
   static const String methodNameDeleteEvent = 'deleteEvent';
   static const String methodNameDeleteEventInstance = 'deleteEventInstance';
   static const String methodNameCreateOrUpdateEvent = 'createOrUpdateEvent';
+  static const String methodNameUpdateEventInstance = 'updateEventInstance';
   static const String methodNameCreateCalendar = 'createCalendar';
   static const String methodNameDeleteCalendar = 'deleteCalendar';
   static const String methodNameShowiOSEventModal = 'showiOSEventModal';
 
   static const String parameterNameCalendarId = 'calendarId';
+  static const String parameterNameCalendarIds = 'calendarIds';
   static const String parameterNameStartDate = 'startDate';
   static const String parameterNameEndDate = 'endDate';
   static const String parameterNameEventId = 'eventId';
   static const String parameterNameEventIds = 'eventIds';
-  static const String parameterNameEventStartDate = 'eventStartDate';
-  static const String parameterNameEventEndDate = 'eventEndDate';
+  static const String parameterNameEventStartDate = 'startDate';
+  static const String parameterNameEventEndDate = 'endDate';
   static const String parameterNameFollowingInstances = 'followingInstances';
   static const String parameterNameCalendarName = 'calendarName';
   static const String parameterNameCalendarColor = 'calendarColor';
   static const String parameterNameLocalAccountName = 'localAccountName';
+
+  static const String parameterFuncName = 'funcName';
+  static const String parameterIsAsync = 'isAsync';
 }

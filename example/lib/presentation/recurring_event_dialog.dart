@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:device_calendar/device_calendar.dart';
+import 'package:flutter/material.dart';
 
 class RecurringEventDialog extends StatefulWidget {
   final DeviceCalendarPlugin _deviceCalendarPlugin;
@@ -8,16 +8,13 @@ class RecurringEventDialog extends StatefulWidget {
   final VoidCallback _onLoadingStarted;
   final Function(bool) _onDeleteFinished;
 
-  RecurringEventDialog(this._deviceCalendarPlugin, this._calendarEvent,
-      this._onLoadingStarted, this._onDeleteFinished,
+  RecurringEventDialog(this._deviceCalendarPlugin, this._calendarEvent, this._onLoadingStarted, this._onDeleteFinished,
       {Key? key})
       : super(key: key);
 
   @override
-  _RecurringEventDialogState createState() =>
-      _RecurringEventDialogState(_deviceCalendarPlugin, _calendarEvent,
-          onLoadingStarted: _onLoadingStarted,
-          onDeleteFinished: _onDeleteFinished);
+  _RecurringEventDialogState createState() => _RecurringEventDialogState(_deviceCalendarPlugin, _calendarEvent,
+      onLoadingStarted: _onLoadingStarted, onDeleteFinished: _onDeleteFinished);
 }
 
 class _RecurringEventDialogState extends State<RecurringEventDialog> {
@@ -26,8 +23,7 @@ class _RecurringEventDialogState extends State<RecurringEventDialog> {
   VoidCallback? _onLoadingStarted;
   Function(bool)? _onDeleteFinished;
 
-  _RecurringEventDialogState(
-      DeviceCalendarPlugin deviceCalendarPlugin, Event calendarEvent,
+  _RecurringEventDialogState(DeviceCalendarPlugin deviceCalendarPlugin, Event calendarEvent,
       {VoidCallback? onLoadingStarted, Function(bool)? onDeleteFinished}) {
     _deviceCalendarPlugin = deviceCalendarPlugin;
     _calendarEvent = calendarEvent;
@@ -44,16 +40,14 @@ class _RecurringEventDialogState extends State<RecurringEventDialog> {
           onPressed: () async {
             Navigator.of(context).pop(true);
             if (_onLoadingStarted != null) _onLoadingStarted!();
-            final deleteResult =
-                await _deviceCalendarPlugin.deleteEventInstance(
-                    _calendarEvent.calendarId,
-                    _calendarEvent.eventId,
-                    _calendarEvent.start?.millisecondsSinceEpoch,
-                    _calendarEvent.end?.millisecondsSinceEpoch,
-                    false);
+            final deleteResult = await _deviceCalendarPlugin.deleteEventInstance(
+                _calendarEvent.calendarId,
+                _calendarEvent.eventId,
+                _calendarEvent.start,
+                _calendarEvent.end,
+                false);
             if (_onDeleteFinished != null) {
-              _onDeleteFinished!(
-                  deleteResult.isSuccess && deleteResult.data != null);
+              _onDeleteFinished!(deleteResult.isSuccess && deleteResult.data != null);
             }
           },
           child: Text('This instance only'),
@@ -62,16 +56,14 @@ class _RecurringEventDialogState extends State<RecurringEventDialog> {
           onPressed: () async {
             Navigator.of(context).pop(true);
             if (_onLoadingStarted != null) _onLoadingStarted!();
-            final deleteResult =
-                await _deviceCalendarPlugin.deleteEventInstance(
-                    _calendarEvent.calendarId,
-                    _calendarEvent.eventId,
-                    _calendarEvent.start?.millisecondsSinceEpoch,
-                    _calendarEvent.end?.millisecondsSinceEpoch,
-                    true);
+            final deleteResult = await _deviceCalendarPlugin.deleteEventInstance(
+                _calendarEvent.calendarId,
+                _calendarEvent.eventId,
+                _calendarEvent.start,
+                _calendarEvent.end,
+                true);
             if (_onDeleteFinished != null) {
-              _onDeleteFinished!(
-                  deleteResult.isSuccess && deleteResult.data != null);
+              _onDeleteFinished!(deleteResult.isSuccess && deleteResult.data != null);
             }
           },
           child: Text('This and following instances'),
@@ -80,11 +72,10 @@ class _RecurringEventDialogState extends State<RecurringEventDialog> {
           onPressed: () async {
             Navigator.of(context).pop(true);
             if (_onLoadingStarted != null) _onLoadingStarted!();
-            final deleteResult = await _deviceCalendarPlugin.deleteEvent(
-                _calendarEvent.calendarId, _calendarEvent.eventId);
+            final deleteResult =
+                await _deviceCalendarPlugin.deleteEvent(_calendarEvent.calendarId, _calendarEvent.eventId);
             if (_onDeleteFinished != null) {
-              _onDeleteFinished!(
-                  deleteResult.isSuccess && deleteResult.data != null);
+              _onDeleteFinished!(deleteResult.isSuccess && deleteResult.data != null);
             }
           },
           child: Text('All instances'),

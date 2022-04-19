@@ -1,13 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:device_calendar/device_calendar.dart';
+import 'package:flutter/material.dart';
 
 class EventRemindersPage extends StatefulWidget {
   final List<Reminder> _reminders;
+
   EventRemindersPage(this._reminders, {Key? key}) : super(key: key);
 
   @override
-  _EventRemindersPageState createState() =>
-      _EventRemindersPageState(_reminders);
+  _EventRemindersPageState createState() => _EventRemindersPageState(_reminders);
 }
 
 class _EventRemindersPageState extends State<EventRemindersPage> {
@@ -43,23 +43,19 @@ class _EventRemindersPageState extends State<EventRemindersPage> {
                     child: TextFormField(
                       controller: _minutesController,
                       validator: (value) {
-                        if (value == null ||
-                            value.isEmpty ||
-                            int.tryParse(value) == null) {
+                        if (value == null || value.isEmpty || int.tryParse(value) == null) {
                           return 'Please enter a reminder time in minutes';
                         }
                         return null;
                       },
-                      decoration: const InputDecoration(
-                          labelText: 'Minutes before start'),
+                      decoration: const InputDecoration(labelText: 'Minutes before start'),
                     ),
                   ),
                   ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
                         setState(() {
-                          _reminders.add(Reminder(
-                              minutes: int.parse(_minutesController.text)));
+                          _reminders.add(Reminder(minutes: int.parse(_minutesController.text)));
                           _minutesController.clear();
                         });
                       }
@@ -79,8 +75,7 @@ class _EventRemindersPageState extends State<EventRemindersPage> {
                   trailing: ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        _reminders.removeWhere(
-                            (a) => a.minutes == _reminders[index].minutes);
+                        _reminders.removeWhere((a) => a.minutes == _reminders[index].minutes);
                       });
                     },
                     child: Text('Delete'),
