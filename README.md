@@ -61,7 +61,7 @@ event.start = TZDateTime.from(oldDateTime, _currentLocation);
 ### Editing single instances of recurring events
 
 To edit a single instance of the recurring event on Android, set the `originalInstanceTime`
-field of an `Event`. If an original event is recognized as recurring an exception is be created or updated. 
+field of an `Event`. If an original event is recognized as recurring, an exception is created or updated. 
 Otherwise the entire event is created or updated. 
 
 For other use cases, feedback or future developments on the feature, feel free to open a discussion on GitHub.
