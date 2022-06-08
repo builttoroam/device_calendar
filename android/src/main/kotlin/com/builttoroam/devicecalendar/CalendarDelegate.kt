@@ -388,9 +388,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 return
             }
 
-            val context:Context = _context ?: return
-
-            val contentResolver: ContentResolver = context.contentResolver
+            val contentResolver: ContentResolver = _context?.contentResolver ?: return
             val values = buildEventContentValues(event, calendarId)
 
             val exceptionHandler = CoroutineExceptionHandler { _, exception ->
