@@ -74,6 +74,7 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
     private val EVENT_AVAILABILITY_ARGUMENT = "availability"
     private val ATTENDANCE_STATUS_ARGUMENT = "attendanceStatus"
     private val EVENT_STATUS_ARGUMENT = "eventStatus"
+    private val EVENT_ORIGINAL_INSTANCE_TIME_ARGUMENT = "originalInstanceTime"
 
     private lateinit var _calendarDelegate: CalendarDelegate
 
@@ -179,6 +180,7 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
         event.eventURL = call.argument<String>(EVENT_URL_ARGUMENT)
         event.availability = parseAvailability(call.argument<String>(EVENT_AVAILABILITY_ARGUMENT))
         event.eventStatus = parseEventStatus(call.argument<String>(EVENT_STATUS_ARGUMENT))
+        event.originalInstanceTime = call.argument<Long>(EVENT_ORIGINAL_INSTANCE_TIME_ARGUMENT)
 
         if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)

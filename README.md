@@ -17,7 +17,6 @@ A cross platform plugin for modifying calendars on the user's device.
 * Retrieve events associated with a calendar
 * Add, update or delete events from a calendar
 * Set up, edit or delete recurring events
-  * **NOTE**: Editing a recurring event will currently edit all instances of it
   * **NOTE**: Deleting multiple instances in **Android** takes time to update, you'll see the changes after a few seconds
 * Add, modify or remove attendees and receive if an attendee is an organiser for an event
 * Setup reminders for an event
@@ -58,6 +57,12 @@ Future setCurentLocation() async {
 
 event.start = TZDateTime.from(oldDateTime, _currentLocation);
 ```
+
+### Editing single instances of recurring events
+
+To edit a single instance of the recurring event on Android, set the `originalInstanceTime`
+field of an `Event`. If an original event is recognized as recurring an exception is be created or updated. 
+Otherwise the entire event is created or updated. 
 
 For other use cases, feedback or future developments on the feature, feel free to open a discussion on GitHub.
 
