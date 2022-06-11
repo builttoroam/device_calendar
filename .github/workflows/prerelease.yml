@@ -20,8 +20,8 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v1
+      - uses: actions/checkout@v3.0.2
+      - uses: subosito/flutter-action@v2.4.0
         with:
           channel: "stable"
       - run: dart --version
@@ -34,7 +34,7 @@ jobs:
         uses: mindsers/changelog-reader-action@v2.0.0
       - name: Edit changelog.md for dev release
         run: |
-          sed -i "0,/\#\# \[.*/s//## [${{steps.changelog_reader.outputs.version}}-$GITHUB_RUN_ID]/" CHANGELOG.md
+          sed -i "0,/\#\# \[.*/s//## [${{steps.changelog_reader.outputs.version}}+$GITHUB_RUN_ID]/" CHANGELOG.md
           cat CHANGELOG.md
       - name: Setup credentials
         run: |
