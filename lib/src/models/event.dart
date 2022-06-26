@@ -47,6 +47,9 @@ class Event {
   /// Indicates if this event counts as busy time, tentative, unavaiable or is still free time
   late Availability availability;
 
+  /// Indicates if this event is of confirmed, canceled, tentative or none status
+  EventStatus? status;
+
   ///Note for development:
   ///
   ///JSON field names are coded in dart, swift and kotlin to facilitate data exchange.
@@ -69,7 +72,8 @@ class Event {
       this.availability = Availability.Busy,
       this.location,
       this.url,
-      this.allDay = false});
+      this.allDay = false,
+      this.status});
 
   ///Get Event from JSON.
   ///
@@ -140,6 +144,7 @@ class Event {
     }
     location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
+    status = parseStringToEventStatus(json['eventStatus']);
 
     foundUrl = json['eventURL']?.toString();
     if (foundUrl?.isEmpty ?? true) {
@@ -147,8 +152,6 @@ class Event {
     } else {
       url = Uri.dataFromString(foundUrl as String);
     }
-
-    // availability = parseStringToAvailability(json['availability']);
 
     if (json['attendees'] != null) {
       attendees = json['attendees'].map<Attendee>((decodedAttendee) {
@@ -235,6 +238,7 @@ class Event {
     data['eventLocation'] = location;
     data['eventURL'] = url?.data?.contentText;
     data['availability'] = availability.enumToString;
+    data['eventStatus'] = status?.enumToString;
 
     if (attendees != null) {
       data['attendees'] = attendees?.map((a) => a?.toJson()).toList();
@@ -247,7 +251,7 @@ class Event {
 
     if (recurrenceRule != null) {
       data['recurrenceRule'] = recurrenceRule?.toJson();
-      // debugPrint("EVENT_TO_JSON_RRULE: ${recurrenceRule?.toJson()}");
+      // print("EVENT_TO_JSON_RRULE: ${recurrenceRule?.toJson()}");
     }
 
     if (reminders != null) {
@@ -270,6 +274,21 @@ class Event {
         return Availability.Unavailable;
     }
     return Availability.Busy;
+  }
+
+  EventStatus? parseStringToEventStatus(String? value) {
+    var testValue = value?.toUpperCase();
+    switch (testValue) {
+      case 'CONFIRMED':
+        return EventStatus.Confirmed;
+      case 'TENTATIVE':
+        return EventStatus.Tentative;
+      case 'CANCELED':
+        return EventStatus.Canceled;
+      case 'NONE':
+        return EventStatus.None;
+    }
+    return null;
   }
 
   bool updateStartLocation(String? newStartLocation) {

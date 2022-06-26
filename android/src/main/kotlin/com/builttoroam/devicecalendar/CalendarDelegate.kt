@@ -38,15 +38,16 @@ import com.builttoroam.devicecalendar.common.ErrorMessages.Companion as EM
 import org.dmfs.rfc5545.recur.Freq as RruleFreq
 import org.dmfs.rfc5545.recur.RecurrenceRule as Rrule
 
+private const val RETRIEVE_CALENDARS_REQUEST_CODE = 0
+private const val RETRIEVE_EVENTS_REQUEST_CODE = RETRIEVE_CALENDARS_REQUEST_CODE + 1
+private const val RETRIEVE_CALENDAR_REQUEST_CODE = RETRIEVE_EVENTS_REQUEST_CODE + 1
+private const val CREATE_OR_UPDATE_EVENT_REQUEST_CODE = RETRIEVE_CALENDAR_REQUEST_CODE + 1
+private const val DELETE_EVENT_REQUEST_CODE = CREATE_OR_UPDATE_EVENT_REQUEST_CODE + 1
+private const val REQUEST_PERMISSIONS_REQUEST_CODE = DELETE_EVENT_REQUEST_CODE + 1
+private const val DELETE_CALENDAR_REQUEST_CODE = REQUEST_PERMISSIONS_REQUEST_CODE + 1
+
 class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
     PluginRegistry.RequestPermissionsResultListener {
-    private val RETRIEVE_CALENDARS_REQUEST_CODE = 0
-    private val RETRIEVE_EVENTS_REQUEST_CODE = RETRIEVE_CALENDARS_REQUEST_CODE + 1
-    private val RETRIEVE_CALENDAR_REQUEST_CODE = RETRIEVE_EVENTS_REQUEST_CODE + 1
-    private val CREATE_OR_UPDATE_EVENT_REQUEST_CODE = RETRIEVE_CALENDAR_REQUEST_CODE + 1
-    private val DELETE_EVENT_REQUEST_CODE = CREATE_OR_UPDATE_EVENT_REQUEST_CODE + 1
-    private val REQUEST_PERMISSIONS_REQUEST_CODE = DELETE_EVENT_REQUEST_CODE + 1
-    private val DELETE_CALENDAR_REQUEST_CODE = REQUEST_PERMISSIONS_REQUEST_CODE + 1
 
     private val _cachedParametersMap: MutableMap<Int, CalendarMethodsParametersCacheModel> =
         mutableMapOf()
@@ -59,6 +60,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
     init {
         val gsonBuilder = GsonBuilder()
         gsonBuilder.registerTypeAdapter(Availability::class.java, AvailabilitySerializer())
+        gsonBuilder.registerTypeAdapter(EventStatus::class.java, EventStatusSerializer())
         _gson = gsonBuilder.create()
     }
 
@@ -275,7 +277,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
 
             val contentResolver: ContentResolver? = _context?.contentResolver
 
-            val calendar = retrieveCalendar(calendarId, pendingChannelResult, true);
+            val calendar = retrieveCalendar(calendarId, pendingChannelResult, true)
             if (calendar != null) {
                 val calenderUriWithId = ContentUris.withAppendedId(
                     CalendarContract.Calendars.CONTENT_URI,
@@ -610,6 +612,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         values.put(Events.CALENDAR_ID, calendarId)
         values.put(Events.DURATION, duration)
         values.put(Events.AVAILABILITY, getAvailability(event.availability))
+        values.put(Events.STATUS, getEventStatus(event.eventStatus))
 
         if (event.recurrenceRule != null) {
             val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
@@ -634,6 +637,13 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         Availability.BUSY -> Events.AVAILABILITY_BUSY
         Availability.FREE -> Events.AVAILABILITY_FREE
         Availability.TENTATIVE -> Events.AVAILABILITY_TENTATIVE
+        else -> null
+    }
+
+    private fun getEventStatus(eventStatus: EventStatus?): Int? = when (eventStatus) {
+        EventStatus.CONFIRMED -> Events.STATUS_CONFIRMED
+        EventStatus.TENTATIVE -> Events.STATUS_TENTATIVE
+        EventStatus.CANCELED -> Events.STATUS_CANCELED
         else -> null
     }
 
@@ -922,6 +932,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         val startTimeZone = cursor.getString(Cst.EVENT_PROJECTION_START_TIMEZONE_INDEX)
         val endTimeZone = cursor.getString(Cst.EVENT_PROJECTION_END_TIMEZONE_INDEX)
         val availability = parseAvailability(cursor.getInt(Cst.EVENT_PROJECTION_AVAILABILITY_INDEX))
+        val eventStatus = parseEventStatus(cursor.getInt(Cst.EVENT_PROJECTION_STATUS_INDEX))
         val event = Event()
         event.eventTitle = title ?: "New Event"
         event.eventId = eventId.toString()
@@ -936,6 +947,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         event.eventStartTimeZone = startTimeZone
         event.eventEndTimeZone = endTimeZone
         event.availability = availability
+        event.eventStatus = eventStatus
 
         return event
     }
@@ -951,7 +963,8 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
             RruleFreq.WEEKLY -> RruleFreq.WEEKLY
             RruleFreq.DAILY -> RruleFreq.DAILY
             else -> null
-        } ?: return null //Avoid handling HOURLY/MINUTELY/SECONDLY frequencies for now
+        } ?: return null
+        //Avoid handling HOURLY/MINUTELY/SECONDLY frequencies for now
 
         val recurrenceRule = RecurrenceRule(frequency)
 
@@ -965,28 +978,30 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
 
         recurrenceRule.sourceRruleString = recurrenceRuleString
 
-        recurrenceRule.wkst =
-            Weekday.MO.name //TODO: Force set to Monday (need to find out why RRULE package only supports Monday)
-
+        //TODO: Force set to Monday (need to find out why RRULE package only supports Monday)
+        recurrenceRule.wkst = /*rfcRecurrenceRule.weekStart.name*/Weekday.MO.name
         recurrenceRule.byday = rfcRecurrenceRule.byDayPart?.mapNotNull {
             it.toString()
         }?.toMutableList()
-
         recurrenceRule.bymonthday = rfcRecurrenceRule.getByPart(Rrule.Part.BYMONTHDAY)
         recurrenceRule.byyearday = rfcRecurrenceRule.getByPart(Rrule.Part.BYYEARDAY)
         recurrenceRule.byweekno = rfcRecurrenceRule.getByPart(Rrule.Part.BYWEEKNO)
 
-        val rruleMonthList = rfcRecurrenceRule.getByPart(Rrule.Part.BYMONTH)
-
-        if (rruleMonthList != null) {
-            val newMonthList = mutableListOf<Int>()
-            for (month in rfcRecurrenceRule.getByPart(Rrule.Part.BYMONTH)) {
-                val newMonthNum = month + 1
-                newMonthList.add(newMonthNum)
+        // Below adjustment of byMonth ints is necessary as the library somehow gives a wrong int
+        // See also [buildRecurrenceRuleParams] where 1 is subtracted.
+        val oldByMonth = rfcRecurrenceRule.getByPart(Rrule.Part.BYMONTH)
+        if (oldByMonth != null) {
+            val newByMonth = mutableListOf<Int>()
+            for (month in oldByMonth) {
+                newByMonth.add(month + 1)
             }
-            recurrenceRule.bymonth = newMonthList
+            recurrenceRule.bymonth = newByMonth
+        } else {
+            recurrenceRule.bymonth = rfcRecurrenceRule.getByPart(Rrule.Part.BYMONTH)
         }
+
         recurrenceRule.bysetpos = rfcRecurrenceRule.getByPart(Rrule.Part.BYSETPOS)
+
         return recurrenceRule
     }
 
@@ -1189,12 +1204,13 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         if (recurrenceRule.byweekno != null) {
             rr.setByPart(Rrule.Part.BYWEEKNO, recurrenceRule.byweekno!!)
         }
-
+        // Below adjustment of byMonth ints is necessary as the library somehow gives a wrong int
+        // See also [parseRecurrenceRuleString] where +1 is added.
         if (recurrenceRule.bymonth != null) {
-            val month = recurrenceRule.bymonth!!
+            val byMonth = recurrenceRule.bymonth!!
             val newMonth = mutableListOf<Int>()
-            month.forEach {
-                newMonth.add(it)
+            byMonth.forEach {
+                newMonth.add(it - 1)
             }
             rr.setByPart(Rrule.Part.BYMONTH, newMonth)
         }
@@ -1232,6 +1248,13 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         Events.AVAILABILITY_BUSY -> Availability.BUSY
         Events.AVAILABILITY_FREE -> Availability.FREE
         Events.AVAILABILITY_TENTATIVE -> Availability.TENTATIVE
+        else -> null
+    }
+
+    private fun parseEventStatus(status: Int): EventStatus? = when(status) {
+        Events.STATUS_CONFIRMED -> EventStatus.CONFIRMED
+        Events.STATUS_CANCELED -> EventStatus.CANCELED
+        Events.STATUS_TENTATIVE -> EventStatus.TENTATIVE
         else -> null
     }
 }

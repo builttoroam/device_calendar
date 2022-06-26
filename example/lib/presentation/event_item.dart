@@ -1,11 +1,12 @@
 import 'dart:io';
+
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart';
 
 import 'recurring_event_dialog.dart';
-import 'package:timezone/timezone.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 
 class EventItem extends StatefulWidget {
   final Event? _calendarEvent;
@@ -203,6 +204,26 @@ class _EventItemState extends State<EventItem> {
                           child: Text(
                             widget._calendarEvent?.availability.enumToString ??
                                 '',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10.0,
+                  ),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: _eventFieldNameWidth,
+                          child: Text('Status'),
+                        ),
+                        Expanded(
+                          child: Text(
+                            widget._calendarEvent?.status?.enumToString ?? '',
                             overflow: TextOverflow.ellipsis,
                           ),
                         )

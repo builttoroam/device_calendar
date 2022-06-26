@@ -50,6 +50,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         let organizer: Attendee?
         let reminders: [Reminder]
         let availability: Availability?
+        let eventStatus: EventStatus?
     }
 
     struct RecurrenceRule: Codable {
@@ -83,6 +84,13 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         case FREE
         case TENTATIVE
         case UNAVAILABLE
+    }
+
+    enum EventStatus: String, Codable {
+        case CONFIRMED
+        case TENTATIVE
+        case CANCELED
+        case NONE
     }
     
     static let channelName = "plugins.builttoroam.com/device_calendar"
@@ -143,6 +151,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     let calendarColorArgument = "calendarColor"
     let availabilityArgument = "availability"
     let attendanceStatusArgument = "attendanceStatus"
+    let eventStatusArgument = "eventStatus"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
     
     var flutterResult : FlutterResult?
@@ -390,7 +399,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             recurrenceRule: recurrenceRule,
             organizer: convertEkParticipantToAttendee(ekParticipant: ekEvent.organizer),
             reminders: reminders,
-            availability: convertEkEventAvailability(ekEventAvailability: ekEvent.availability)
+            availability: convertEkEventAvailability(ekEventAvailability: ekEvent.availability),
+            eventStatus: convertEkEventStatus(ekEventStatus: ekEvent.status)
         )
 
         return event
@@ -422,6 +432,21 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             return Availability.TENTATIVE
         case .unavailable:
             return Availability.UNAVAILABLE
+        default:
+            return nil
+        }
+    }
+
+    private func convertEkEventStatus(ekEventStatus: EKEventStatus?) -> EventStatus? {
+        switch ekEventStatus {
+        case .confirmed:
+			return EventStatus.CONFIRMED
+        case .tentative:
+            return EventStatus.TENTATIVE
+		case .canceled:
+			return EventStatus.CANCELED
+		case .none?:
+			return EventStatus.NONE
         default:
             return nil
         }

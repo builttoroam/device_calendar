@@ -15,6 +15,58 @@ import org.dmfs.rfc5545.recur.Freq
 
 const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar"
 
+// Methods
+private const val REQUEST_PERMISSIONS_METHOD = "requestPermissions"
+private const val HAS_PERMISSIONS_METHOD = "hasPermissions"
+private const val RETRIEVE_CALENDARS_METHOD = "retrieveCalendars"
+private const val RETRIEVE_EVENTS_METHOD = "retrieveEvents"
+private const val DELETE_EVENT_METHOD = "deleteEvent"
+private const val DELETE_EVENT_INSTANCE_METHOD = "deleteEventInstance"
+private const val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
+private const val CREATE_CALENDAR_METHOD = "createCalendar"
+private const val DELETE_CALENDAR_METHOD = "deleteCalendar"
+
+// Method arguments
+private const val CALENDAR_ID_ARGUMENT = "calendarId"
+private const val CALENDAR_NAME_ARGUMENT = "calendarName"
+private const val START_DATE_ARGUMENT = "startDate"
+private const val END_DATE_ARGUMENT = "endDate"
+private const val EVENT_IDS_ARGUMENT = "eventIds"
+private const val EVENT_ID_ARGUMENT = "eventId"
+private const val EVENT_TITLE_ARGUMENT = "eventTitle"
+private const val EVENT_LOCATION_ARGUMENT = "eventLocation"
+private const val EVENT_URL_ARGUMENT = "eventURL"
+private const val EVENT_DESCRIPTION_ARGUMENT = "eventDescription"
+private const val EVENT_ALL_DAY_ARGUMENT = "eventAllDay"
+private const val EVENT_START_DATE_ARGUMENT = "eventStartDate"
+private const val EVENT_END_DATE_ARGUMENT = "eventEndDate"
+private const val EVENT_START_TIMEZONE_ARGUMENT = "eventStartTimeZone"
+private const val EVENT_END_TIMEZONE_ARGUMENT = "eventEndTimeZone"
+private const val RECURRENCE_RULE_ARGUMENT = "recurrenceRule"
+private const val FREQUENCY_ARGUMENT = "freq"
+private const val COUNT_ARGUMENT = "count"
+private const val UNTIL_ARGUMENT = "until"
+private const val INTERVAL_ARGUMENT = "interval"
+private const val BY_WEEK_DAYS_ARGUMENT = "byday"
+private const val BY_MONTH_DAYS_ARGUMENT = "bymonthday"
+private const val BY_YEAR_DAYS_ARGUMENT = "byyearday"
+private const val BY_WEEKS_ARGUMENT = "byweekno"
+private const val BY_MONTH_ARGUMENT = "bymonth"
+private const val BY_SET_POSITION_ARGUMENT = "bysetpos"
+
+private const val ATTENDEES_ARGUMENT = "attendees"
+private const val EMAIL_ADDRESS_ARGUMENT = "emailAddress"
+private const val NAME_ARGUMENT = "name"
+private const val ROLE_ARGUMENT = "role"
+private const val REMINDERS_ARGUMENT = "reminders"
+private const val MINUTES_ARGUMENT = "minutes"
+private const val FOLLOWING_INSTANCES = "followingInstances"
+private const val CALENDAR_COLOR_ARGUMENT = "calendarColor"
+private const val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
+private const val EVENT_AVAILABILITY_ARGUMENT = "availability"
+private const val ATTENDANCE_STATUS_ARGUMENT = "attendanceStatus"
+private const val EVENT_STATUS_ARGUMENT = "eventStatus"
+
 class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     /// The MethodChannel that will the communication between Flutter and native Android
@@ -24,57 +76,6 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var channel: MethodChannel
     private var context: Context? = null
     private var activity: Activity? = null
-
-    // Methods
-    private val REQUEST_PERMISSIONS_METHOD = "requestPermissions"
-    private val HAS_PERMISSIONS_METHOD = "hasPermissions"
-    private val RETRIEVE_CALENDARS_METHOD = "retrieveCalendars"
-    private val RETRIEVE_EVENTS_METHOD = "retrieveEvents"
-    private val DELETE_EVENT_METHOD = "deleteEvent"
-    private val DELETE_EVENT_INSTANCE_METHOD = "deleteEventInstance"
-    private val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
-    private val CREATE_CALENDAR_METHOD = "createCalendar"
-    private val DELETE_CALENDAR_METHOD = "deleteCalendar"
-
-    // Method arguments
-    private val CALENDAR_ID_ARGUMENT = "calendarId"
-    private val CALENDAR_NAME_ARGUMENT = "calendarName"
-    private val START_DATE_ARGUMENT = "startDate"
-    private val END_DATE_ARGUMENT = "endDate"
-    private val EVENT_IDS_ARGUMENT = "eventIds"
-    private val EVENT_ID_ARGUMENT = "eventId"
-    private val EVENT_TITLE_ARGUMENT = "eventTitle"
-    private val EVENT_LOCATION_ARGUMENT = "eventLocation"
-    private val EVENT_URL_ARGUMENT = "eventURL"
-    private val EVENT_DESCRIPTION_ARGUMENT = "eventDescription"
-    private val EVENT_ALL_DAY_ARGUMENT = "eventAllDay"
-    private val EVENT_START_DATE_ARGUMENT = "eventStartDate"
-    private val EVENT_END_DATE_ARGUMENT = "eventEndDate"
-    private val EVENT_START_TIMEZONE_ARGUMENT = "eventStartTimeZone"
-    private val EVENT_END_TIMEZONE_ARGUMENT = "eventEndTimeZone"
-    private val RECURRENCE_RULE_ARGUMENT = "recurrenceRule"
-    private val FREQUENCY_ARGUMENT = "freq"
-    private val COUNT_ARGUMENT = "count"
-    private val UNTIL_ARGUMENT = "until"
-    private val INTERVAL_ARGUMENT = "interval"
-    private val BY_WEEK_DAYS_ARGUMENT = "byday"
-    private val BY_MONTH_DAYS_ARGUMENT = "bymonthday"
-    private val BY_YEAR_DAYS_ARGUMENT = "byyearday"
-    private val BY_WEEKS_ARGUMENT = "byweekno"
-    private val BY_MONTH_ARGUMENT = "bymonth"
-    private val BY_SET_POSITION_ARGUMENT = "bysetpos"
-
-    private val ATTENDEES_ARGUMENT = "attendees"
-    private val EMAIL_ADDRESS_ARGUMENT = "emailAddress"
-    private val NAME_ARGUMENT = "name"
-    private val ROLE_ARGUMENT = "role"
-    private val REMINDERS_ARGUMENT = "reminders"
-    private val MINUTES_ARGUMENT = "minutes"
-    private val FOLLOWING_INSTANCES = "followingInstances"
-    private val CALENDAR_COLOR_ARGUMENT = "calendarColor"
-    private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
-    private val EVENT_AVAILABILITY_ARGUMENT = "availability"
-    private val ATTENDANCE_STATUS_ARGUMENT = "attendanceStatus"
 
     private lateinit var _calendarDelegate: CalendarDelegate
 
@@ -189,6 +190,7 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         event.eventLocation = call.argument<String>(EVENT_LOCATION_ARGUMENT)
         event.eventURL = call.argument<String>(EVENT_URL_ARGUMENT)
         event.availability = parseAvailability(call.argument<String>(EVENT_AVAILABILITY_ARGUMENT))
+        event.eventStatus = parseEventStatus(call.argument<String>(EVENT_STATUS_ARGUMENT))
 
         if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(
                 RECURRENCE_RULE_ARGUMENT
@@ -227,7 +229,6 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 event.reminders.add(Reminder(reminderArgs[MINUTES_ARGUMENT] as Int))
             }
         }
-
         return event
     }
 
@@ -288,5 +289,12 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             null
         } else {
             Availability.valueOf(value)
+        }
+
+    private fun parseEventStatus(value: String?): EventStatus? =
+        if (value == null || value == Constants.EVENT_STATUS_NONE) {
+            null
+        } else {
+            EventStatus.valueOf(value)
         }
 }
