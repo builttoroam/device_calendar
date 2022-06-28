@@ -40,7 +40,7 @@ class _EventItemState extends State<EventItem> {
   @override
   void initState() {
     super.initState();
-    setCurentLocation();
+    WidgetsBinding.instance.addPostFrameCallback((_) => setCurentLocation());
   }
 
   @override

@@ -32,6 +32,8 @@ import org.dmfs.rfc5545.Weekday
 import org.dmfs.rfc5545.recur.RecurrenceRule.WeekdayNum
 import java.util.*
 import kotlin.math.absoluteValue
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import com.builttoroam.devicecalendar.common.Constants.Companion as Cst
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion as EC
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion as EM
@@ -584,40 +586,42 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
 
     private fun buildEventContentValues(event: Event, calendarId: String): ContentValues {
         val values = ContentValues()
-        val duration: String? = null
-        values.put(Events.ALL_DAY, event.eventAllDay)
 
-        if (event.eventAllDay) {
-            val calendar = java.util.Calendar.getInstance()
-            calendar.timeInMillis = event.eventStartDate!!
-            calendar.set(java.util.Calendar.HOUR, 0)
-            calendar.set(java.util.Calendar.MINUTE, 0)
-            calendar.set(java.util.Calendar.SECOND, 0)
-            calendar.set(java.util.Calendar.MILLISECOND, 0)
-
-            values.put(Events.DTSTART, calendar.timeInMillis)
-            values.put(Events.DTEND, calendar.timeInMillis)
-            values.put(Events.EVENT_TIMEZONE, getTimeZone(event.eventStartTimeZone).id)
-        } else {
-            values.put(Events.DTSTART, event.eventStartDate!!)
-            values.put(Events.EVENT_TIMEZONE, getTimeZone(event.eventStartTimeZone).id)
-
-            values.put(Events.DTEND, event.eventEndDate!!)
-            values.put(Events.EVENT_END_TIMEZONE, getTimeZone(event.eventEndTimeZone).id)
-        }
+        values.put(Events.ALL_DAY, if (event.eventAllDay) 1 else 0)
+        values.put(Events.DTSTART, event.eventStartDate!!)
+        values.put(Events.EVENT_TIMEZONE, getTimeZone(event.eventStartTimeZone).id)
         values.put(Events.TITLE, event.eventTitle)
         values.put(Events.DESCRIPTION, event.eventDescription)
         values.put(Events.EVENT_LOCATION, event.eventLocation)
         values.put(Events.CUSTOM_APP_URI, event.eventURL)
         values.put(Events.CALENDAR_ID, calendarId)
-        values.put(Events.DURATION, duration)
         values.put(Events.AVAILABILITY, getAvailability(event.availability))
         values.put(Events.STATUS, getEventStatus(event.eventStatus))
+
+        var duration: String? = null
+        var end: Long? = null
+        var endTimeZone: String? = null
 
         if (event.recurrenceRule != null) {
             val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
             values.put(Events.RRULE, recurrenceRuleParams)
+            val difference = event.eventEndDate!!.minus(event.eventStartDate!!)
+            val rawDuration = difference.toDuration(DurationUnit.MILLISECONDS)
+            rawDuration.toComponents { days, hours, minutes, seconds, _ ->
+                if (days > 0 || hours > 0 || minutes > 0 || seconds > 0) duration = "P"
+                if (days > 0) duration = duration.plus("${days}D")
+                if (hours > 0 || minutes > 0 || seconds > 0) duration = duration.plus("T")
+                if (hours > 0) duration = duration.plus("${hours}H")
+                if (minutes > 0) duration = duration.plus("${minutes}M")
+                if (seconds > 0) duration = duration.plus("${seconds}S")
+            }
+        } else {
+            end = event.eventEndDate!!
+            endTimeZone = getTimeZone(event.eventEndTimeZone).id
         }
+        values.put(Events.DTEND, end)
+        values.put(Events.EVENT_END_TIMEZONE, endTimeZone)
+        values.put(Events.DURATION, duration)
         return values
     }
 
@@ -978,7 +982,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
 
         recurrenceRule.sourceRruleString = recurrenceRuleString
 
-        //TODO: Force set to Monday (need to find out why RRULE package only supports Monday)
+        //TODO: Force set to Monday (atm RRULE package only seem to support Monday)
         recurrenceRule.wkst = /*rfcRecurrenceRule.weekStart.name*/Weekday.MO.name
         recurrenceRule.byday = rfcRecurrenceRule.byDayPart?.mapNotNull {
             it.toString()

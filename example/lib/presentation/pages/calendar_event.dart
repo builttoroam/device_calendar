@@ -923,7 +923,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           ),
                       ],
                       ...[
-                        //TODO: on iPhone (e.g. 8) this seems neccesary to be able to access UI below the FAB
+                        // TODO: on iPhone (e.g. 8) this seems neccesary to be able to access UI below the FAB
                         const SizedBox(height: 75),
                       ]
                     ],
@@ -976,26 +976,24 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                   context, 'Please fix the errors in red before submitting.');
             } else {
               form?.save();
-              if (_rrule != null) {
-                _adjustStartEnd();
-                _event?.recurrenceRule = _rrule;
-                // debugPrint('FINAL_RRULE: ${_rrule.toString()}');
-              }
-              _event?.attendees = _attendees;
-              _event?.reminders = _reminders;
-              _event?.availability = _availability;
-              _event?.status = _eventStatus;
-              var createEventResult =
-                  await _deviceCalendarPlugin.createOrUpdateEvent(_event);
-              if (createEventResult?.isSuccess == true) {
-                Navigator.pop(context, true);
-              } else {
-                showInSnackBar(
-                    context,
-                    createEventResult?.errors
-                        .map((err) => '[${err.errorCode}] ${err.errorMessage}')
-                        .join(' | ') as String);
-              }
+              _adjustStartEnd();
+              _event?.recurrenceRule = _rrule;
+              // debugPrint('FINAL_RRULE: ${_rrule.toString()}');
+            }
+            _event?.attendees = _attendees;
+            _event?.reminders = _reminders;
+            _event?.availability = _availability;
+            _event?.status = _eventStatus;
+            var createEventResult =
+                await _deviceCalendarPlugin.createOrUpdateEvent(_event);
+            if (createEventResult?.isSuccess == true) {
+              Navigator.pop(context, true);
+            } else {
+              showInSnackBar(
+                  context,
+                  createEventResult?.errors
+                      .map((err) => '[${err.errorCode}] ${err.errorMessage}')
+                      .join(' | ') as String);
             }
           },
           child: const Icon(Icons.check),
@@ -1187,24 +1185,30 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     }
   }
 
+  /// In order to avoid an event instance to appear outside of the recurrence
+  /// rrule, the start and end date have to be adjusted to match the first
+  /// instance.
   void _adjustStartEnd() {
     final start = _event?.start;
     final end = _event?.end;
     final rrule = _rrule;
     if (start != null && end != null && rrule != null) {
+      final allDay = _event?.allDay ?? false;
       final duration = end.difference(start);
       final instances = rrule.getAllInstances(
-          start: DateTime(
-                  start.year, start.month, start.day, start.hour, start.minute)
-              .toUtc(),
+          start: allDay
+              ? DateTime.utc(start.year, start.month, start.day)
+              : DateTime(start.year, start.month, start.day, start.hour,
+                      start.minute)
+                  .toUtc(),
           before: rrule.count == null && rrule.until == null
-              ? DateTime(start.year + 5, start.month, start.day, start.hour,
+              ? DateTime(start.year + 2, start.month, start.day, start.hour,
                       start.minute)
                   .toUtc()
               : null);
       if (instances.isNotEmpty) {
-        final newStart = TZDateTime.from(instances.first, start.location);
-        final newEnd = newStart.add(duration);
+        var newStart = TZDateTime.from(instances.first, start.location);
+        var newEnd = newStart.add(duration);
         _event?.start = newStart;
         _event?.end = newEnd;
       }
