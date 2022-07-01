@@ -596,7 +596,10 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         values.put(Events.CUSTOM_APP_URI, event.eventURL)
         values.put(Events.CALENDAR_ID, calendarId)
         values.put(Events.AVAILABILITY, getAvailability(event.availability))
-        values.put(Events.STATUS, getEventStatus(event.eventStatus))
+        var status: Int? = getEventStatus(event.eventStatus)
+        if (status != null) {
+            values.put(Events.STATUS, status)
+        }
 
         var duration: String? = null
         var end: Long? = null
