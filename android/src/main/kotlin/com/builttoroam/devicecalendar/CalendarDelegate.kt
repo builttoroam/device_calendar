@@ -568,7 +568,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private fun buildEventContentValues(event: Event, calendarId: String): ContentValues {
         val values = ContentValues()
         val duration: String? = null
-        values.put(Events.ALL_DAY, event.eventAllDay)
+        values.put(Events.ALL_DAY, if (event.eventAllDay) 1 else 0)
         values.put(Events.DTSTART, event.eventStartDate!!)
         values.put(Events.EVENT_TIMEZONE, getTimeZone(event.eventStartTimeZone).id)
         values.put(Events.DTEND, event.eventEndDate!!)
@@ -579,8 +579,12 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         values.put(Events.CUSTOM_APP_URI, event.eventURL)
         values.put(Events.CALENDAR_ID, calendarId)
         values.put(Events.DURATION, duration)
-        values.put(Events.AVAILABILITY, getAvailability(event.availability))
-        values.put(Events.STATUS, getEventStatus(event.eventStatus))
+        val availability = getAvailability(event.availability)
+        if (availability != null)
+            values.put(Events.AVAILABILITY, availability)
+        val eventStatus = getEventStatus(event.eventStatus)
+        if (eventStatus != null)
+            values.put(Events.STATUS, eventStatus)
 
         if (event.recurrenceRule != null) {
             val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
