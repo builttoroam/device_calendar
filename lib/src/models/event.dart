@@ -48,7 +48,11 @@ class Event {
 
   /// Indicates if this event is of confirmed, canceled, tentative or none status
   EventStatus? status;
-  
+
+  /// Write-only. The original instance time of the recurring event for which this event is an exception.
+  /// Used only on Android for editing recurring events, ignored on iOS
+  TZDateTime? originalInstanceTime;
+
   ///Note for development:
   ///
   ///JSON field names are coded in dart, swift and kotlin to facilitate data exchange.
@@ -72,7 +76,8 @@ class Event {
       this.location,
       this.url,
       this.allDay = false,
-      this.status});
+      this.status,
+      this.originalInstanceTime});
 
   ///Get Event from JSON.
   ///
@@ -202,6 +207,7 @@ class Event {
     data['eventURL'] = url?.data?.contentText;
     data['availability'] = availability.enumToString;
     data['eventStatus'] = status?.enumToString;
+    data['originalInstanceTime'] = originalInstanceTime?.millisecondsSinceEpoch;
 
     if (attendees != null) {
       data['attendees'] = attendees?.map((a) => a?.toJson()).toList();

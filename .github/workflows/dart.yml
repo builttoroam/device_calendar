@@ -18,10 +18,12 @@ jobs:
     name: Build test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v1
+      - uses: actions/checkout@v3.0.2
+      - uses: subosito/flutter-action@v2.4.0
         with:
           channel: "stable"
+          cache: true
+          cache-key: flutter-android # optional, change this to force refresh cache
       - run: dart --version
       - run: flutter --version
       - run: flutter test
@@ -36,13 +38,12 @@ jobs:
     name: iOS build test
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
-        with:
-          java-version: "12.x"
-      - uses: subosito/flutter-action@v1
+      - uses: actions/checkout@v3.0.2
+      - uses: subosito/flutter-action@v2.4.0
         with:
           channel: "stable"
+          cache: true
+          cache-key: flutter-android # optional, change this to force refresh cache
       - run: dart --version
       - run: flutter --version
       - name: iOS build

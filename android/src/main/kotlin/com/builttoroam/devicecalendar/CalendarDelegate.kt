@@ -78,6 +78,8 @@ import org.dmfs.rfc5545.DateTime
 import org.dmfs.rfc5545.Weekday
 import org.dmfs.rfc5545.recur.Freq
 import java.text.SimpleDateFormat
+import java.time.Duration
+import java.time.Instant
 import java.util.*
 
 class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
@@ -150,7 +152,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     finishWithSuccess(permissionGranted, cachedValues.pendingChannelResult)
                 }
                 DELETE_CALENDAR_REQUEST_CODE -> {
-                    deleteCalendar(cachedValues.calendarId,cachedValues.pendingChannelResult)
+                    deleteCalendar(cachedValues.calendarId, cachedValues.pendingChannelResult)
                 }
             }
 
@@ -259,7 +261,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             val contentResolver: ContentResolver? = _context?.contentResolver
 
-            val calendar = retrieveCalendar(calendarId,pendingChannelResult,true);
+            val calendar = retrieveCalendar(calendarId,pendingChannelResult,true)
             if(calendar != null) {
                 val calenderUriWithId = ContentUris.withAppendedId(CalendarContract.Calendars.CONTENT_URI, calendarIdNumber)
                 val deleteSucceeded = contentResolver?.delete(calenderUriWithId, null, null) ?: 0
@@ -386,7 +388,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 return
             }
 
-            val contentResolver: ContentResolver? = _context?.contentResolver
+            val contentResolver: ContentResolver = _context?.contentResolver ?: return
             val values = buildEventContentValues(event, calendarId)
 
             val exceptionHandler = CoroutineExceptionHandler { _, exception ->
@@ -396,58 +398,142 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             }
 
             val job: Job
-            var eventId: Long? = event.eventId?.toLongOrNull()
-            if (eventId == null) {
-                val uri = contentResolver?.insert(Events.CONTENT_URI, values)
+            val existingEventId: Long? = event.eventId?.toLongOrNull()
+            if (existingEventId == null) {
+                val uri = contentResolver.insert(Events.CONTENT_URI, values)
                 // get the event ID that is the last element in the Uri
-                eventId = java.lang.Long.parseLong(uri?.lastPathSegment!!)
+                val eventId = java.lang.Long.parseLong(uri?.lastPathSegment!!)
                 job = GlobalScope.launch(Dispatchers.IO + exceptionHandler) {
                     insertAttendees(event.attendees, eventId, contentResolver)
                     insertReminders(event.reminders, eventId, contentResolver)
                 }
             } else {
                 job = GlobalScope.launch(Dispatchers.IO + exceptionHandler) {
-                    contentResolver?.update(ContentUris.withAppendedId(Events.CONTENT_URI, eventId), values, null, null)
-                    val existingAttendees = retrieveAttendees(calendar, eventId.toString(), contentResolver)
-                    val attendeesToDelete = if (event.attendees.isNotEmpty()) existingAttendees.filter { existingAttendee -> event.attendees.all { it.emailAddress != existingAttendee.emailAddress } } else existingAttendees
-                    for (attendeeToDelete in attendeesToDelete) {
-                        deleteAttendee(eventId, attendeeToDelete, contentResolver)
+                    val originalSyncId = when (event.originalInstanceTime == null) {
+                        true -> null
+                        false -> getOriginalSyncId(contentResolver, existingEventId)
                     }
 
-                    val attendeesToInsert = event.attendees.filter { existingAttendees.all { existingAttendee -> existingAttendee.emailAddress != it.emailAddress } }
-                    insertAttendees(attendeesToInsert, eventId, contentResolver)
-                    deleteExistingReminders(contentResolver, eventId)
-                    insertReminders(event.reminders, eventId, contentResolver!!)
+                    if (originalSyncId != null) {
+                        val instanceValues = ContentValues()
+                        instanceValues.put(Events.DTSTART, event.eventStartDate)
+                        instanceValues.put(
+                            Events.DURATION,
+                            Duration.between(
+                                Instant.ofEpochMilli(event.originalInstanceTime!!),
+                                Instant.ofEpochMilli(event.eventEndDate!!)
+                            ).toString()
+                        )
+                        instanceValues.put(Events.ALL_DAY, event.eventAllDay)
+                        instanceValues.put(Events.TITLE, event.eventTitle)
+                        instanceValues.put(Events.DESCRIPTION, event.eventDescription)
+                        instanceValues.put(Events.EVENT_LOCATION, event.eventLocation)
 
-                    val existingSelfAttendee = existingAttendees.firstOrNull {
-                        it.emailAddress == calendar.ownerAccount
+                        instanceValues.put(Events.ORIGINAL_SYNC_ID, originalSyncId)
+                        instanceValues.put(Events.ORIGINAL_INSTANCE_TIME, event.originalInstanceTime)
+                        val uri = contentResolver.insert(
+                            ContentUris.withAppendedId(
+                                Events.CONTENT_EXCEPTION_URI,
+                                existingEventId
+                            ), instanceValues
+                        )
+                        val exceptionEventId = java.lang.Long.parseLong(uri?.lastPathSegment!!)
+                        updateAttendees(
+                            calendar,
+                            exceptionEventId,
+                            contentResolver,
+                            event.attendees
+                        )
+                        updateReminders(contentResolver, exceptionEventId, event)
+                        return@launch
+                    } else {
+                        contentResolver.update(
+                            ContentUris.withAppendedId(
+                                Events.CONTENT_URI,
+                                existingEventId
+                            ), values, null, null
+                        )
                     }
-                    val newSelfAttendee = event.attendees.firstOrNull {
-                        it.emailAddress == calendar.ownerAccount
-                    }
-                    if (existingSelfAttendee != null && newSelfAttendee != null &&
-                        newSelfAttendee.attendanceStatus != null &&
-                        existingSelfAttendee.attendanceStatus != newSelfAttendee.attendanceStatus) {
-                        updateAttendeeStatus(eventId, newSelfAttendee, contentResolver)
-                    }
+                    updateAttendees(calendar, existingEventId, contentResolver, event.attendees)
+                    updateReminders(contentResolver, existingEventId, event)
                 }
             }
-            job.invokeOnCompletion {
-                cause ->
+            job.invokeOnCompletion { cause ->
                 if (cause == null) {
                     uiThreadHandler.post {
-                        finishWithSuccess(eventId.toString(), pendingChannelResult)
+                        finishWithSuccess(existingEventId.toString(), pendingChannelResult)
                     }
                 }
             }
         } else {
-            val parameters = CalendarMethodsParametersCacheModel(pendingChannelResult, CREATE_OR_UPDATE_EVENT_REQUEST_CODE, calendarId)
+            val parameters = CalendarMethodsParametersCacheModel(
+                pendingChannelResult,
+                CREATE_OR_UPDATE_EVENT_REQUEST_CODE,
+                calendarId
+            )
             parameters.event = event
             requestPermissions(parameters)
         }
     }
 
-    private fun deleteExistingReminders(contentResolver: ContentResolver?, eventId: Long) {
+    private fun updateReminders(
+        contentResolver: ContentResolver,
+        eventId: Long,
+        event: Event
+    ) {
+        deleteExistingReminders(contentResolver, eventId)
+        insertReminders(event.reminders, eventId, contentResolver)
+    }
+
+    private fun getOriginalSyncId(
+        contentResolver: ContentResolver,
+        existingEventId: Long
+    ) = contentResolver.query(
+        ContentUris.withAppendedId(
+            Events.CONTENT_URI,
+            existingEventId
+        ), arrayOf(Events.RRULE, Events._SYNC_ID), null, null, null
+    )?.use {
+        if (it.moveToFirst() && it.getString(it.getColumnIndexOrThrow(Events.RRULE)) != null) {
+            it.getString(it.getColumnIndexOrThrow(Events._SYNC_ID))
+        } else {
+            null
+        }
+    }
+
+    private fun updateAttendees(
+        calendar: Calendar,
+        eventId: Long,
+        contentResolver: ContentResolver,
+        attendees: List<Attendee>
+    ) {
+        val existingAttendees =
+            retrieveAttendees(calendar, eventId.toString(), contentResolver)
+        val attendeesToDelete =
+            if (attendees.isNotEmpty()) existingAttendees.filter { existingAttendee -> attendees.all { it.emailAddress != existingAttendee.emailAddress } } else existingAttendees
+        for (attendeeToDelete in attendeesToDelete) {
+            deleteAttendee(eventId, attendeeToDelete, contentResolver)
+        }
+
+        val attendeesToInsert =
+            attendees.filter { existingAttendees.all { existingAttendee -> existingAttendee.emailAddress != it.emailAddress } }
+        insertAttendees(attendeesToInsert, eventId, contentResolver)
+
+        val existingSelfAttendee = existingAttendees.firstOrNull {
+            it.emailAddress == calendar.ownerAccount
+        }
+        val newSelfAttendee = attendees.firstOrNull {
+            it.emailAddress == calendar.ownerAccount
+        }
+        if (existingSelfAttendee != null && newSelfAttendee != null &&
+            newSelfAttendee.attendanceStatus != null &&
+            existingSelfAttendee.attendanceStatus != newSelfAttendee.attendanceStatus
+        ) {
+            updateAttendeeStatus(eventId, newSelfAttendee, contentResolver)
+        }
+    }
+
+    private fun deleteExistingReminders(contentResolver: ContentResolver, eventId: Long) {
         val cursor = CalendarContract.Reminders.query(contentResolver, eventId, arrayOf(
           CalendarContract.Reminders._ID
         ))
@@ -458,7 +544,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 reminderUri = ContentUris.withAppendedId(CalendarContract.Reminders.CONTENT_URI, reminderId)
             }
             if (reminderUri != null) {
-                contentResolver?.delete(reminderUri, null, null)
+                contentResolver.delete(reminderUri, null, null)
             }
         }
         cursor?.close()
@@ -482,7 +568,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     private fun buildEventContentValues(event: Event, calendarId: String): ContentValues {
         val values = ContentValues()
         val duration: String? = null
-        values.put(Events.ALL_DAY, event.eventAllDay)
+        values.put(Events.ALL_DAY, if (event.eventAllDay) 1 else 0)
         values.put(Events.DTSTART, event.eventStartDate!!)
         values.put(Events.EVENT_TIMEZONE, getTimeZone(event.eventStartTimeZone).id)
         values.put(Events.DTEND, event.eventEndDate!!)
@@ -493,8 +579,12 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         values.put(Events.CUSTOM_APP_URI, event.eventURL)
         values.put(Events.CALENDAR_ID, calendarId)
         values.put(Events.DURATION, duration)
-        values.put(Events.AVAILABILITY, getAvailability(event.availability))
-        values.put(Events.STATUS, getEventStatus(event.eventStatus))
+        val availability = getAvailability(event.availability)
+        if (availability != null)
+            values.put(Events.AVAILABILITY, availability)
+        val eventStatus = getEventStatus(event.eventStatus)
+        if (eventStatus != null)
+            values.put(Events.STATUS, eventStatus)
 
         if (event.recurrenceRule != null) {
             val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
@@ -563,12 +653,12 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
     }
 
-    private fun updateAttendeeStatus(eventId: Long, attendee: Attendee, contentResolver: ContentResolver?) {
+    private fun updateAttendeeStatus(eventId: Long, attendee: Attendee, contentResolver: ContentResolver) {
         val selection = "(" + CalendarContract.Attendees.EVENT_ID + " = ?) AND (" + CalendarContract.Attendees.ATTENDEE_EMAIL + " = ?)"
         val selectionArgs = arrayOf(eventId.toString() + "", attendee.emailAddress)
         val values = ContentValues()
         values.put(CalendarContract.Attendees.ATTENDEE_STATUS, attendee.attendanceStatus)
-        contentResolver?.update(CalendarContract.Attendees.CONTENT_URI, values, selection, selectionArgs)
+        contentResolver.update(CalendarContract.Attendees.CONTENT_URI, values, selection, selectionArgs)
     }
 
     fun deleteEvent(calendarId: String, eventId: String, pendingChannelResult: MethodChannel.Result, startDate: Long? = null, endDate: Long? = null, followingInstances: Boolean? = null) {
