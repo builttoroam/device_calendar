@@ -787,6 +787,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                     DayOfWeek.values().find { dayOfWeek -> dayOfWeek.ordinal == it.weekday.ordinal }
                 }?.toMutableList()
             }
+            
+            else -> throw IllegalStateException("Someone forgot to add enough fragment cases to 'when' clause!")
         }
 
         val rfcRecurrenceRuleString = rfcRecurrenceRule.toString()
