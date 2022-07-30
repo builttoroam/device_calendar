@@ -788,7 +788,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 }?.toMutableList()
             }
             
-            else -> throw IllegalStateException("Someone forgot to add enough fragment cases to 'when' clause!")
+            else -> throw IllegalStateException("Only Freq WEEKLY, MONTHLY or YEARLY acceptable as a rfcRecurrenceRule!")
         }
 
         val rfcRecurrenceRuleString = rfcRecurrenceRule.toString()
