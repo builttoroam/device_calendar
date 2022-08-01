@@ -788,7 +788,11 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
                 }?.toMutableList()
             }
             
-            else -> throw IllegalStateException("Only Freq WEEKLY, MONTHLY or YEARLY acceptable as a rfcRecurrenceRule!")
+            Freq.DAILY -> {
+                recurrenceRule.daysOfWeek = DayOfWeek.values().toMutableList()
+            }
+
+            else -> throw IllegalStateException("The recurrence rule frequency ${rfcRecurrenceRule.freq}  is not supported")
         }
 
         val rfcRecurrenceRuleString = rfcRecurrenceRule.toString()
