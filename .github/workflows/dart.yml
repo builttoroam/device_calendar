@@ -43,6 +43,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: "stable"
+          architecture: arm64
       - run: dart --version
       - run: flutter --version
       - name: iOS build
