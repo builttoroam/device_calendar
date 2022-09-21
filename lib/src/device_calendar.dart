@@ -290,12 +290,16 @@ class DeviceCalendarPlugin {
   /// Always specify the [Event.calendarId], to inform the plugin in which calendar
   /// it should create or update the event.
   ///
+  /// The `startDate` parameter is the start date of the instance to update\
+  /// The `endDate` parameter is the end date of the instance to update\
+  /// The `updateFollowingInstances` parameter will also update the following instances if set to true
+  ///
   /// Returns a [Result] with the newly created or updated [Event.eventId]
   Future<Result<UnmodifiableListView<Event>>?> updateEventInstance(
     Event? event,
     DateTime? startDate,
     DateTime? endDate,
-    bool deleteFollowingInstances, {
+    bool updateFollowingInstances, {
     bool useIsolate = false,
   }) async {
     if (event == null) return null;
@@ -349,7 +353,7 @@ class DeviceCalendarPlugin {
         ..addAll({
           ChannelConstants.parameterNameEventStartDate: startDate?.millisecondsSinceEpoch,
           ChannelConstants.parameterNameEventEndDate: endDate?.millisecondsSinceEpoch,
-          ChannelConstants.parameterNameFollowingInstances: deleteFollowingInstances,
+          ChannelConstants.parameterNameFollowingInstances: updateFollowingInstances,
         }),
       useIsolate: useIsolate,
     );
