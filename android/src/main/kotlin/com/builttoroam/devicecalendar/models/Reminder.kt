@@ -1,3 +1,6 @@
 package com.builttoroam.devicecalendar.models
 
-class Reminder(val minutes: Int)
+class Reminder(
+    val eventId: String,
+    val minutes: Int
+)

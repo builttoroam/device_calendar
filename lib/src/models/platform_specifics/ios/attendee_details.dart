@@ -3,6 +3,7 @@ import 'attendance_status.dart';
 
 class IosAttendeeDetails {
   IosAttendanceStatus? attendanceStatus;
+
   IosAttendeeDetails({this.attendanceStatus});
 
   IosAttendeeDetails.fromJson(Map<String, dynamic>? json) {

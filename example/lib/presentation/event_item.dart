@@ -1,11 +1,12 @@
 import 'dart:io';
+
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart';
 
 import 'recurring_event_dialog.dart';
-import 'package:timezone/timezone.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 
 class EventItem extends StatefulWidget {
   final Event? _calendarEvent;
@@ -16,13 +17,8 @@ class EventItem extends StatefulWidget {
   final VoidCallback _onLoadingStarted;
   final Function(bool) _onDeleteFinished;
 
-  EventItem(
-      this._calendarEvent,
-      this._deviceCalendarPlugin,
-      this._onLoadingStarted,
-      this._onDeleteFinished,
-      this._onTapped,
-      this._isReadOnly,
+  EventItem(this._calendarEvent, this._deviceCalendarPlugin, this._onLoadingStarted, this._onDeleteFinished,
+      this._onTapped, this._isReadOnly,
       {Key? key})
       : super(key: key);
 
@@ -117,8 +113,7 @@ class _EventItemState extends State<EventItem> {
                           width: _eventFieldNameWidth,
                           child: Text('All day?'),
                         ),
-                        Text(widget._calendarEvent?.allDay != null &&
-                                widget._calendarEvent?.allDay == true
+                        Text(widget._calendarEvent?.allDay != null && widget._calendarEvent?.allDay == true
                             ? 'Yes'
                             : 'No')
                       ],
@@ -201,8 +196,7 @@ class _EventItemState extends State<EventItem> {
                         ),
                         Expanded(
                           child: Text(
-                            widget._calendarEvent?.availability.enumToString ??
-                                '',
+                            widget._calendarEvent?.availability.enumToString ?? '',
                             overflow: TextOverflow.ellipsis,
                           ),
                         )
@@ -231,8 +225,7 @@ class _EventItemState extends State<EventItem> {
                         builder: (BuildContext context) {
                           if (widget._calendarEvent?.recurrenceRule == null) {
                             return AlertDialog(
-                              title: Text(
-                                  'Are you sure you want to delete this event?'),
+                              title: Text('Are you sure you want to delete this event?'),
                               actions: [
                                 TextButton(
                                   onPressed: () {
@@ -244,14 +237,9 @@ class _EventItemState extends State<EventItem> {
                                   onPressed: () async {
                                     Navigator.of(context).pop();
                                     widget._onLoadingStarted();
-                                    final deleteResult = await widget
-                                        ._deviceCalendarPlugin
-                                        .deleteEvent(
-                                            widget._calendarEvent?.calendarId,
-                                            widget._calendarEvent?.eventId);
-                                    widget._onDeleteFinished(
-                                        deleteResult.isSuccess &&
-                                            deleteResult.data != null);
+                                    final deleteResult = await widget._deviceCalendarPlugin
+                                        .deleteEvent(widget._calendarEvent?.calendarId, widget._calendarEvent?.eventId);
+                                    widget._onDeleteFinished(deleteResult.isSuccess && deleteResult.data != null);
                                   },
                                   child: Text('Delete'),
                                 ),
@@ -261,11 +249,8 @@ class _EventItemState extends State<EventItem> {
                             if (widget._calendarEvent == null) {
                               return SizedBox();
                             }
-                            return RecurringEventDialog(
-                                widget._deviceCalendarPlugin,
-                                widget._calendarEvent!,
-                                widget._onLoadingStarted,
-                                widget._onDeleteFinished);
+                            return RecurringEventDialog(widget._deviceCalendarPlugin, widget._calendarEvent!,
+                                widget._onLoadingStarted, widget._onDeleteFinished);
                           }
                         },
                       );
@@ -314,8 +299,7 @@ class _EventItemState extends State<EventItem> {
       // just the dates, no times
       output = DateFormat.yMd().format(dateTime);
     } else {
-      output = DateFormat('yyyy-MM-dd HH:mm:ss')
-          .format(TZDateTime.from(dateTime, _currentLocation!));
+      output = DateFormat('yyyy-MM-dd HH:mm:ss').format(TZDateTime.from(dateTime, _currentLocation!));
     }
     return output;
   }

@@ -18,11 +18,14 @@ class RecurrenceRule {
   /// The days of the week that this event occurs on. Only applicable to recurrence rules with a weekly, monthly or yearly frequency
   List<DayOfWeek>? daysOfWeek = [];
 
+  /// The first day of the week that is used to calculate event dates. Used when it depends on the day of the week
+  DayOfWeek startWeek = DayOfWeek.Monday;
+
   /// A day of the month that this event occurs on. Only applicable to recurrence rules with a monthly or yearly frequency
-  int? dayOfMonth;
+  List<int>? dayOfMonth;
 
   /// A month of the year that the event occurs on. Only applicable to recurrence rules with a yearly frequency
-  MonthOfYear? monthOfYear;
+  List<MonthOfYear>? monthOfYear;
 
   /// Filters which recurrences to include in the recurrence rule’s frequency. Only applicable when _isByDayOfMonth is false
   WeekNumber? weekOfMonth;
@@ -33,6 +36,7 @@ class RecurrenceRule {
   final String _endDateKey = 'endDate';
   final String _daysOfWeekKey = 'daysOfWeek';
   final String _dayOfMonthKey = 'dayOfMonth';
+  final String _startWeekKey = 'startWeek';
   final String _monthOfYearKey = 'monthOfYear';
   final String _weekOfMonthKey = 'weekOfMonth';
 
@@ -40,6 +44,7 @@ class RecurrenceRule {
       {this.totalOccurrences,
       this.interval,
       this.endDate,
+      this.startWeek = DayOfWeek.Monday,
       this.daysOfWeek,
       this.dayOfMonth,
       this.monthOfYear,
@@ -53,8 +58,7 @@ class RecurrenceRule {
     }
 
     int? recurrenceFrequencyIndex = json[_recurrenceFrequencyKey];
-    if (recurrenceFrequencyIndex == null ||
-        recurrenceFrequencyIndex >= RecurrenceFrequency.values.length) {
+    if (recurrenceFrequencyIndex == null || recurrenceFrequencyIndex >= RecurrenceFrequency.values.length) {
       throw ArgumentError(ErrorMessages.invalidRecurrencyFrequency);
     }
     recurrenceFrequency = RecurrenceFrequency.values[recurrenceFrequencyIndex];
@@ -65,23 +69,17 @@ class RecurrenceRule {
 
     int? endDateMillisecondsSinceEpoch = json[_endDateKey];
     if (endDateMillisecondsSinceEpoch != null) {
-      endDate =
-          DateTime.fromMillisecondsSinceEpoch(endDateMillisecondsSinceEpoch);
+      endDate = DateTime.fromMillisecondsSinceEpoch(endDateMillisecondsSinceEpoch);
     }
-
+    startWeek = (json[_startWeekKey] as int?)?.getDayOfWeekEnumValue ?? DayOfWeek.Monday;
     List<dynamic>? daysOfWeekValues = json[_daysOfWeekKey];
     if (daysOfWeekValues != null && daysOfWeekValues is! List<int>) {
-      daysOfWeek = daysOfWeekValues
-          .cast<int>()
-          .map((value) => value.getDayOfWeekEnumValue)
-          .toList();
+      daysOfWeek = daysOfWeekValues.cast<int>().map((value) => value.getDayOfWeekEnumValue).toList();
     }
-
-    dayOfMonth = json[_dayOfMonthKey];
+    dayOfMonth = json[_dayOfMonthKey]?.cast<int>();
     monthOfYear =
-        convertDynamicToInt(json[_monthOfYearKey])?.getMonthOfYearEnumValue;
-    weekOfMonth =
-        convertDynamicToInt(json[_weekOfMonthKey])?.getWeekNumberEnumValue;
+        json[_monthOfYearKey]?.cast<int>().map<MonthOfYear>((value) => (value as int).getMonthOfYearEnumValue).toList();
+    weekOfMonth = convertDynamicToInt(json[_weekOfMonthKey])?.getWeekNumberEnumValue;
   }
 
   int? convertDynamicToInt(dynamic value) {
@@ -106,17 +104,17 @@ class RecurrenceRule {
 
     data[_recurrenceFrequencyKey] = recurrenceFrequency?.index;
 
+    data[_startWeekKey] = startWeek.value;
+
     if (daysOfWeek?.isNotEmpty == true) {
       data[_daysOfWeekKey] = daysOfWeek!.map((d) => d.value).toList();
     }
 
-    if (monthOfYear != null &&
-        recurrenceFrequency == RecurrenceFrequency.Yearly) {
-      data[_monthOfYearKey] = monthOfYear!.value;
+    if (monthOfYear != null && recurrenceFrequency == RecurrenceFrequency.Yearly) {
+      data[_monthOfYearKey] = monthOfYear!.map((e) => e.value).toList();
     }
 
-    if (recurrenceFrequency == RecurrenceFrequency.Monthly ||
-        recurrenceFrequency == RecurrenceFrequency.Yearly) {
+    if (recurrenceFrequency == RecurrenceFrequency.Monthly || recurrenceFrequency == RecurrenceFrequency.Yearly) {
       if (weekOfMonth != null) {
         data[_weekOfMonthKey] = weekOfMonth!.value;
       } else {

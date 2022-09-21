@@ -1,7 +1,7 @@
 import 'package:device_calendar/device_calendar.dart';
 import 'package:device_calendar_example/presentation/pages/calendar_add.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'calendar_events.dart';
 
@@ -17,11 +17,10 @@ class CalendarsPage extends StatefulWidget {
 class _CalendarsPageState extends State<CalendarsPage> {
   late DeviceCalendarPlugin _deviceCalendarPlugin;
   List<Calendar> _calendars = [];
-  List<Calendar> get _writableCalendars =>
-      _calendars.where((c) => c.isReadOnly == false).toList();
 
-  List<Calendar> get _readOnlyCalendars =>
-      _calendars.where((c) => c.isReadOnly == true).toList();
+  List<Calendar> get _writableCalendars => _calendars.where((c) => c.isReadOnly == false).toList();
+
+  List<Calendar> get _readOnlyCalendars => _calendars.where((c) => c.isReadOnly == true).toList();
 
   _CalendarsPageState() {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
@@ -59,10 +58,8 @@ class _CalendarsPageState extends State<CalendarsPage> {
                       ? 'readOnlyCalendar${_readOnlyCalendars.indexWhere((c) => c.id == _calendars[index].id)}'
                       : 'writableCalendar${_writableCalendars.indexWhere((c) => c.id == _calendars[index].id)}'),
                   onTap: () async {
-                    await Navigator.push(context,
-                        MaterialPageRoute(builder: (BuildContext context) {
-                      return CalendarEventsPage(_calendars[index],
-                          key: Key('calendarEventsPage'));
+                    await Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
+                      return CalendarEventsPage(_calendars[index], key: Key('calendarEventsPage'));
                     }));
                   },
                   child: Padding(
@@ -79,21 +76,16 @@ class _CalendarsPageState extends State<CalendarsPage> {
                         Container(
                           width: 15,
                           height: 15,
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(_calendars[index].color!)),
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: Color(_calendars[index].color!)),
                         ),
                         SizedBox(width: 10),
                         Container(
                           margin: const EdgeInsets.fromLTRB(0, 0, 5.0, 0),
                           padding: const EdgeInsets.all(3.0),
-                          decoration: BoxDecoration(
-                              border: Border.all(color: Colors.blueAccent)),
+                          decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent)),
                           child: Text('Default'),
                         ),
-                        Icon(_calendars[index].isReadOnly == true
-                            ? Icons.lock
-                            : Icons.lock_open)
+                        Icon(_calendars[index].isReadOnly == true ? Icons.lock : Icons.lock_open)
                       ],
                     ),
                   ),
@@ -105,8 +97,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final createCalendar = await Navigator.push(context,
-              MaterialPageRoute(builder: (BuildContext context) {
+          final createCalendar = await Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
             return CalendarAddPage();
           }));
 
@@ -122,13 +113,9 @@ class _CalendarsPageState extends State<CalendarsPage> {
   void _retrieveCalendars() async {
     try {
       var permissionsGranted = await _deviceCalendarPlugin.hasPermissions();
-      if (permissionsGranted.isSuccess &&
-          (permissionsGranted.data == null ||
-              permissionsGranted.data == false)) {
+      if (permissionsGranted.isSuccess && (permissionsGranted.data == null || permissionsGranted.data == false)) {
         permissionsGranted = await _deviceCalendarPlugin.requestPermissions();
-        if (!permissionsGranted.isSuccess ||
-            permissionsGranted.data == null ||
-            permissionsGranted.data == false) {
+        if (!permissionsGranted.isSuccess || permissionsGranted.data == null || permissionsGranted.data == false) {
           return;
         }
       }

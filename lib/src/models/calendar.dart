@@ -15,20 +15,29 @@ class Calendar {
   /// Read-only. Color of the calendar
   int? color;
 
-  // Read-only. Account name associated with the calendar
+  /// Read-only. Account name associated with the calendar
   String? accountName;
 
-  // Read-only. Account type associated with the calendar
+  /// Read-only. Account type associated with the calendar
   String? accountType;
 
-  Calendar(
-      {this.id,
-      this.name,
-      this.isReadOnly,
-      this.isDefault,
-      this.color,
-      this.accountName,
-      this.accountType});
+  /// Read-only. Is it possible to add an event participant in this calendar
+  bool? canAddAttendees;
+
+  /// Read-only. Indicates whether the invitation is guaranteed to be sent to participants
+  bool? possibleAttendeeProblems;
+
+  Calendar({
+    this.id,
+    this.name,
+    this.isReadOnly,
+    this.isDefault,
+    this.color,
+    this.accountName,
+    this.accountType,
+    this.canAddAttendees,
+    this.possibleAttendeeProblems,
+  });
 
   Calendar.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -38,6 +47,8 @@ class Calendar {
     color = json['color'];
     accountName = json['accountName'];
     accountType = json['accountType'];
+    canAddAttendees = json['canAddAttendees'];
+    possibleAttendeeProblems = json['possibleAttendeeProblems'];
   }
 
   Map<String, dynamic> toJson() {
@@ -48,7 +59,9 @@ class Calendar {
       'isDefault': isDefault,
       'color': color,
       'accountName': accountName,
-      'accountType': accountType
+      'accountType': accountType,
+      'canAddAttendees': canAddAttendees,
+      'possibleAttendeeProblems': possibleAttendeeProblems,
     };
 
     return data;

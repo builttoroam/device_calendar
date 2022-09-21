@@ -17,7 +17,7 @@ enum DayOfWeekGroup {
 
 enum MonthOfYear {
   January,
-  Feburary,
+  February,
   March,
   April,
   May,
@@ -43,6 +43,7 @@ enum AttendeeRole {
   Required,
   Optional,
   Resource,
+  NonParticipant,
 }
 
 enum Availability {
@@ -79,6 +80,7 @@ extension DayOfWeekExtension on DayOfWeek {
   }
 
   int get value => _value(this);
+
   String get enumToString => _enumToString(this);
 }
 
@@ -91,10 +93,13 @@ extension DaysOfWeekGroupExtension on DayOfWeekGroup {
           DayOfWeek.Tuesday,
           DayOfWeek.Wednesday,
           DayOfWeek.Thursday,
-          DayOfWeek.Friday
+          DayOfWeek.Friday,
         ];
       case DayOfWeekGroup.Weekend:
-        return [DayOfWeek.Saturday, DayOfWeek.Sunday];
+        return [
+          DayOfWeek.Saturday,
+          DayOfWeek.Sunday,
+        ];
       case DayOfWeekGroup.AllDays:
         return [
           DayOfWeek.Monday,
@@ -115,6 +120,7 @@ extension DaysOfWeekGroupExtension on DayOfWeekGroup {
   }
 
   List<DayOfWeek> get getDays => _getDays(this);
+
   String get enumToString => _enumToString(this);
 }
 
@@ -123,7 +129,7 @@ extension MonthOfYearExtension on MonthOfYear {
     switch (val) {
       case MonthOfYear.January:
         return 1;
-      case MonthOfYear.Feburary:
+      case MonthOfYear.February:
         return 2;
       case MonthOfYear.March:
         return 3;
@@ -155,6 +161,7 @@ extension MonthOfYearExtension on MonthOfYear {
   }
 
   int get value => _value(this);
+
   String get enumToString => _enumToString(this);
 }
 
@@ -181,6 +188,7 @@ extension WeekNumberExtension on WeekNumber {
   }
 
   int get value => _value(this);
+
   String get enumToString => _enumToString(this);
 }
 
@@ -211,7 +219,7 @@ extension IntExtensions on int {
       case 1:
         return MonthOfYear.January;
       case 2:
-        return MonthOfYear.Feburary;
+        return MonthOfYear.February;
       case 3:
         return MonthOfYear.March;
       case 4:
@@ -255,7 +263,9 @@ extension IntExtensions on int {
   }
 
   DayOfWeek get getDayOfWeekEnumValue => _getDayOfWeekEnumValue(this);
+
   MonthOfYear get getMonthOfYearEnumValue => _getMonthOfYearEnumValue(this);
+
   WeekNumber get getWeekNumberEnumValue => _getWeekNumberEnumValue(this);
 }
 

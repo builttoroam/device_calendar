@@ -14,6 +14,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.plugin.common.StandardMethodCodec
 
 const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar"
 
@@ -35,11 +36,14 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
     private val DELETE_EVENT_METHOD = "deleteEvent"
     private val DELETE_EVENT_INSTANCE_METHOD = "deleteEventInstance"
     private val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
+    private val UPDATE_EVENT_INSTANCE_METHOD = "updateEventInstance"
     private val CREATE_CALENDAR_METHOD = "createCalendar"
     private val DELETE_CALENDAR_METHOD = "deleteCalendar"
 
     // Method arguments
+    private val IS_ASYNC_ARGUMENT = "isAsync"
     private val CALENDAR_ID_ARGUMENT = "calendarId"
+    private val CALENDAR_IDS_ARGUMENT = "calendarIds"
     private val CALENDAR_NAME_ARGUMENT = "calendarName"
     private val START_DATE_ARGUMENT = "startDate"
     private val END_DATE_ARGUMENT = "endDate"
@@ -50,8 +54,10 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
     private val EVENT_URL_ARGUMENT = "eventURL"
     private val EVENT_DESCRIPTION_ARGUMENT = "eventDescription"
     private val EVENT_ALL_DAY_ARGUMENT = "eventAllDay"
-    private val EVENT_START_DATE_ARGUMENT = "eventStartDate"
-    private val EVENT_END_DATE_ARGUMENT = "eventEndDate"
+    private val EVENT_START_DATE_FIELD = "eventStartDate"
+    private val EVENT_END_DATE_FIELD = "eventEndDate"
+    private val EVENT_START_DATE_ARGUMENT = "startDate"
+    private val EVENT_END_DATE_ARGUMENT = "endDate"
     private val EVENT_START_TIMEZONE_ARGUMENT = "eventStartTimeZone"
     private val EVENT_END_TIMEZONE_ARGUMENT = "eventEndTimeZone"
     private val RECURRENCE_RULE_ARGUMENT = "recurrenceRule"
@@ -63,6 +69,7 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
     private val MONTH_OF_YEAR_ARGUMENT = "monthOfYear"
     private val WEEK_OF_MONTH_ARGUMENT = "weekOfMonth"
     private val ATTENDEES_ARGUMENT = "attendees"
+    private val ID = "id"
     private val EMAIL_ADDRESS_ARGUMENT = "emailAddress"
     private val NAME_ARGUMENT = "name"
     private val ROLE_ARGUMENT = "role"
@@ -73,12 +80,18 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
     private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
     private val EVENT_AVAILABILITY_ARGUMENT = "availability"
     private val ATTENDANCE_STATUS_ARGUMENT = "attendanceStatus"
-
     private lateinit var _calendarDelegate: CalendarDelegate
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        val taskQueue = flutterPluginBinding.binaryMessenger.makeBackgroundTaskQueue()
         context = flutterPluginBinding.applicationContext
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, CHANNEL_NAME)
+        _calendarDelegate = CalendarDelegate(null, context!!)
+        channel = MethodChannel(
+            flutterPluginBinding.binaryMessenger,
+            CHANNEL_NAME,
+            StandardMethodCodec.INSTANCE,
+            taskQueue
+        )
         channel.setMethodCallHandler(this)
     }
 
@@ -107,35 +120,60 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
+        val isAsync = call.argument<Boolean>(IS_ASYNC_ARGUMENT) ?: false
         when (call.method) {
             REQUEST_PERMISSIONS_METHOD -> {
-                _calendarDelegate.requestPermissions(result)
+                _calendarDelegate.requestPermissions(isAsync, result)
             }
             HAS_PERMISSIONS_METHOD -> {
-                _calendarDelegate.hasPermissions(result)
+                _calendarDelegate.hasPermissions(isAsync, result)
             }
             RETRIEVE_CALENDARS_METHOD -> {
-                _calendarDelegate.retrieveCalendars(result)
+                _calendarDelegate.retrieveCalendars(isAsync, result)
             }
             RETRIEVE_EVENTS_METHOD -> {
-                val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
+                val calendarIds = call.argument<List<String>>(CALENDAR_IDS_ARGUMENT)
                 val startDate = call.argument<Long>(START_DATE_ARGUMENT)
                 val endDate = call.argument<Long>(END_DATE_ARGUMENT)
                 val eventIds = call.argument<List<String>>(EVENT_IDS_ARGUMENT) ?: listOf()
 
-                _calendarDelegate.retrieveEvents(calendarId!!, startDate, endDate, eventIds, result)
+                _calendarDelegate.retrieveEvents(
+                    calendarIds,
+                    startDate,
+                    endDate,
+                    eventIds,
+                    isAsync,
+                    result
+                )
             }
             CREATE_OR_UPDATE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
                 val event = parseEventArgs(call, calendarId)
 
-                _calendarDelegate.createOrUpdateEvent(calendarId!!, event, result)
+                _calendarDelegate.createOrUpdateEvent(calendarId!!, event, isAsync, result)
+            }
+            UPDATE_EVENT_INSTANCE_METHOD -> {
+                val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
+                val event = parseEventArgs(call, calendarId)
+                val startDate = call.argument<Long>(EVENT_START_DATE_ARGUMENT)
+                val endDate = call.argument<Long>(EVENT_END_DATE_ARGUMENT)
+                val followingInstances = call.argument<Boolean>(FOLLOWING_INSTANCES)
+
+                _calendarDelegate.createOrUpdateEvent(
+                    calendarId!!,
+                    event,
+                    isAsync,
+                    result,
+                    startDate,
+                    endDate,
+                    followingInstances
+                )
             }
             DELETE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
                 val eventId = call.argument<String>(EVENT_ID_ARGUMENT)
 
-                _calendarDelegate.deleteEvent(calendarId!!, eventId!!, result)
+                _calendarDelegate.deleteEvent(calendarId!!, eventId!!, isAsync, result)
             }
             DELETE_EVENT_INSTANCE_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
@@ -144,18 +182,32 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val endDate = call.argument<Long>(EVENT_END_DATE_ARGUMENT)
                 val followingInstances = call.argument<Boolean>(FOLLOWING_INSTANCES)
 
-                _calendarDelegate.deleteEvent(calendarId!!, eventId!!, result, startDate, endDate, followingInstances)
+                _calendarDelegate.deleteEvent(
+                    calendarId!!,
+                    eventId!!,
+                    isAsync,
+                    result,
+                    startDate,
+                    endDate,
+                    followingInstances
+                )
             }
             CREATE_CALENDAR_METHOD -> {
                 val calendarName = call.argument<String>(CALENDAR_NAME_ARGUMENT)
                 val calendarColor = call.argument<String>(CALENDAR_COLOR_ARGUMENT)
                 val localAccountName = call.argument<String>(LOCAL_ACCOUNT_NAME_ARGUMENT)
 
-                _calendarDelegate.createCalendar(calendarName!!, calendarColor, localAccountName!!, result)
+                _calendarDelegate.createCalendar(
+                    calendarName!!,
+                    calendarColor,
+                    localAccountName!!,
+                    isAsync,
+                    result
+                )
             }
             DELETE_CALENDAR_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
-                _calendarDelegate.deleteCalendar(calendarId!!,result)
+                _calendarDelegate.deleteCalendar(calendarId!!, isAsync, result)
             }
             else -> {
                 result.notImplemented()
@@ -170,37 +222,56 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
         event.eventId = call.argument<String>(EVENT_ID_ARGUMENT)
         event.eventDescription = call.argument<String>(EVENT_DESCRIPTION_ARGUMENT)
         event.eventAllDay = call.argument<Boolean>(EVENT_ALL_DAY_ARGUMENT) ?: false
-        event.eventStartDate = call.argument<Long>(EVENT_START_DATE_ARGUMENT)!!
-        event.eventEndDate = call.argument<Long>(EVENT_END_DATE_ARGUMENT)!!
+        event.eventStartDate = call.argument<Long>(EVENT_START_DATE_FIELD)!!
+        event.eventEndDate = call.argument<Long>(EVENT_END_DATE_FIELD)!!
         event.eventStartTimeZone = call.argument<String>(EVENT_START_TIMEZONE_ARGUMENT)
         event.eventEndTimeZone = call.argument<String>(EVENT_END_TIMEZONE_ARGUMENT)
         event.eventLocation = call.argument<String>(EVENT_LOCATION_ARGUMENT)
         event.eventURL = call.argument<String>(EVENT_URL_ARGUMENT)
         event.availability = parseAvailability(call.argument<String>(EVENT_AVAILABILITY_ARGUMENT))
 
-        if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(RECURRENCE_RULE_ARGUMENT) != null) {
+        if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(
+                RECURRENCE_RULE_ARGUMENT
+            ) != null
+        ) {
             val recurrenceRule = parseRecurrenceRuleArgs(call)
             event.recurrenceRule = recurrenceRule
         }
 
-        if (call.hasArgument(ATTENDEES_ARGUMENT) && call.argument<List<Map<String, Any>>>(ATTENDEES_ARGUMENT) != null) {
+        if (call.hasArgument(ATTENDEES_ARGUMENT) && call.argument<List<Map<String, Any>>>(
+                ATTENDEES_ARGUMENT
+            ) != null
+        ) {
             event.attendees = mutableListOf()
             val attendeesArgs = call.argument<List<Map<String, Any>>>(ATTENDEES_ARGUMENT)!!
             for (attendeeArgs in attendeesArgs) {
-                event.attendees.add(Attendee(
+                event.attendees.add(
+                    Attendee(
+                        attendeeArgs[ID] as? String ?: "",
+                        event.eventId ?: "",
                         attendeeArgs[EMAIL_ADDRESS_ARGUMENT] as String,
-                        attendeeArgs[NAME_ARGUMENT] as String?,
+                        attendeeArgs[NAME_ARGUMENT] as? String?,
                         attendeeArgs[ROLE_ARGUMENT] as Int,
-                        attendeeArgs[ATTENDANCE_STATUS_ARGUMENT] as Int?,
-                        null, null))
+                        attendeeArgs[ATTENDANCE_STATUS_ARGUMENT] as? Int?,
+                        null, null
+                    )
+                )
             }
         }
 
-        if (call.hasArgument(REMINDERS_ARGUMENT) && call.argument<List<Map<String, Any>>>(REMINDERS_ARGUMENT) != null) {
+        if (call.hasArgument(REMINDERS_ARGUMENT) && call.argument<List<Map<String, Any>>>(
+                REMINDERS_ARGUMENT
+            ) != null
+        ) {
             event.reminders = mutableListOf()
             val remindersArgs = call.argument<List<Map<String, Any>>>(REMINDERS_ARGUMENT)!!
             for (reminderArgs in remindersArgs) {
-                event.reminders.add(Reminder(reminderArgs[MINUTES_ARGUMENT] as Int))
+                event.reminders.add(
+                    Reminder(
+                        event.eventId ?: "",
+                        reminderArgs[MINUTES_ARGUMENT] as Int
+                    )
+                )
             }
         }
 
@@ -224,15 +295,18 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
 
         if (recurrenceRuleArgs.containsKey(DAYS_OF_WEEK_ARGUMENT)) {
-            recurrenceRule.daysOfWeek = recurrenceRuleArgs[DAYS_OF_WEEK_ARGUMENT].toListOf<Int>()?.map { DayOfWeek.values()[it] }?.toMutableList()
+            recurrenceRule.daysOfWeek = recurrenceRuleArgs[DAYS_OF_WEEK_ARGUMENT].toListOf<Int>()
+                ?.map { DayOfWeek.values()[it] }?.toMutableList()
         }
 
         if (recurrenceRuleArgs.containsKey(DAY_OF_MONTH_ARGUMENT)) {
-            recurrenceRule.dayOfMonth = recurrenceRuleArgs[DAY_OF_MONTH_ARGUMENT] as Int
+            recurrenceRule.dayOfMonth =
+                recurrenceRuleArgs[DAY_OF_MONTH_ARGUMENT].toListOf<Int>()?.toMutableList()
         }
 
         if (recurrenceRuleArgs.containsKey(MONTH_OF_YEAR_ARGUMENT)) {
-            recurrenceRule.monthOfYear = recurrenceRuleArgs[MONTH_OF_YEAR_ARGUMENT] as Int
+            recurrenceRule.monthOfYear =
+                recurrenceRuleArgs[MONTH_OF_YEAR_ARGUMENT].toListOf<Int>()?.toMutableList()
         }
 
         if (recurrenceRuleArgs.containsKey(WEEK_OF_MONTH_ARGUMENT)) {
@@ -251,9 +325,9 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     private fun parseAvailability(value: String?): Availability? =
-            if (value == null || value == Constants.AVAILABILITY_UNAVAILABLE) {
-                null
-            } else {
-                Availability.valueOf(value)
-            }
+        if (value == null || value == Constants.AVAILABILITY_UNAVAILABLE) {
+            null
+        } else {
+            Availability.valueOf(value)
+        }
 }

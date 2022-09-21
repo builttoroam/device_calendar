@@ -81,8 +81,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
         onPressed: () async {
           final form = _formKey.currentState;
           if (form?.validate() == false) {
-            _autovalidate =
-                AutovalidateMode.always; // Start validating on every change.
+            _autovalidate = AutovalidateMode.always; // Start validating on every change.
             showInSnackBar('Please fix the errors in red before submitting.');
           } else {
             form?.save();
@@ -95,9 +94,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
             if (result.isSuccess) {
               Navigator.pop(context, true);
             } else {
-              showInSnackBar(result.errors
-                  .map((err) => '[${err.errorCode}] ${err.errorMessage}')
-                  .join(' | '));
+              showInSnackBar(result.errors.map((err) => '[${err.errorCode}] ${err.errorMessage}').join(' | '));
             }
           }
         },
@@ -121,17 +118,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
   }
 }
 
-enum ColorChoice {
-  Red,
-  Orange,
-  Yellow,
-  Green,
-  Blue,
-  Purple,
-  Brown,
-  Black,
-  White
-}
+enum ColorChoice { Red, Orange, Yellow, Green, Blue, Purple, Brown, Black, White }
 
 extension ColorChoiceExtension on ColorChoice {
   static Color _value(ColorChoice val) {
