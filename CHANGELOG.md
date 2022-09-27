@@ -2,6 +2,11 @@
 
 <!-- To benefit from the current changelog reader in CI/CD, please follow the changelog format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). -->
 
+## [4.2.1](https://github.com/builttoroam/device_calendar/releases/tag/4.2.1)
+
+- Updated multiple underlying dependencies
+  - *Note:* `timezone 0.9.0` [removed named database files](https://pub.dev/packages/timezone/changelog#090). If you are only using `device_calendar`, you can ignore this note.
+
 ## [4.2.0](https://github.com/builttoroam/device_calendar/releases/tag/4.2.0)
 
 - Fix: apks can be build correctly now
