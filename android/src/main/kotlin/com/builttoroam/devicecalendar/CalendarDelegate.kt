@@ -782,7 +782,7 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
         }
 
         when (rfcRecurrenceRule.freq) {
-            Freq.WEEKLY, Freq.MONTHLY, Freq.YEARLY -> {
+            Freq.WEEKLY, Freq.MONTHLY, Freq.YEARLY, Freq.DAILY, Freq.HOURLY, Freq.MINUTELY, Freq.SECONDLY -> {
                 recurrenceRule.daysOfWeek = rfcRecurrenceRule.byDayPart?.mapNotNull {
                     DayOfWeek.values().find { dayOfWeek -> dayOfWeek.ordinal == it.weekday.ordinal }
                 }?.toMutableList()
