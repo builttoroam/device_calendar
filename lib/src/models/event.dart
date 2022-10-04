@@ -137,7 +137,6 @@ class Event {
       end = end?.subtract(Duration(days: 1));
     }
     location = json['eventLocation'];
-    availability = parseStringToAvailability(json['availability']);
 
     foundUrl = json['eventURL']?.toString();
     if (foundUrl?.isEmpty ?? true) {
