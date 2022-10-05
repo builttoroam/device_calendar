@@ -4,14 +4,14 @@ import 'package:collection/collection.dart';
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart';
 
 import '../date_time_picker.dart';
 import '../recurring_event_dialog.dart';
 import 'event_attendee.dart';
 import 'event_reminders.dart';
-import 'package:timezone/timezone.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 
 enum RecurrenceRuleEndType { Indefinite, MaxOccurrences, SpecifiedEndDate }
 
@@ -934,7 +934,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                   ElevatedButton(
                     key: const Key('deleteEventButton'),
                     style: ElevatedButton.styleFrom(
-                        primary: Colors.red, onPrimary: Colors.white),
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.red),
                     onPressed: () async {
                       bool? result = true;
                       if (!(_rrule != null)) {
