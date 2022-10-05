@@ -1,11 +1,12 @@
 import 'dart:io';
+
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart';
 
 import 'recurring_event_dialog.dart';
-import 'package:timezone/timezone.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 
 class EventItem extends StatefulWidget {
   final Event? _calendarEvent;
@@ -39,7 +40,7 @@ class _EventItemState extends State<EventItem> {
   @override
   void initState() {
     super.initState();
-    setCurentLocation();
+    WidgetsBinding.instance.addPostFrameCallback((_) => setCurentLocation());
   }
 
   @override
@@ -222,8 +223,7 @@ class _EventItemState extends State<EventItem> {
                         ),
                         Expanded(
                           child: Text(
-                            widget._calendarEvent?.status?.enumToString ??
-                                '',
+                            widget._calendarEvent?.status?.enumToString ?? '',
                             overflow: TextOverflow.ellipsis,
                           ),
                         )
@@ -316,7 +316,7 @@ class _EventItemState extends State<EventItem> {
     try {
       timezone = await FlutterNativeTimezone.getLocalTimezone();
     } catch (e) {
-      print('Could not get the local timezone');
+      debugPrint('Could not get the local timezone');
     }
     timezone ??= 'Etc/UTC';
     _currentLocation = timeZoneDatabase.locations[timezone];
