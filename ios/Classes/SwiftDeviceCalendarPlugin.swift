@@ -93,13 +93,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         case NONE
     }
 
-    enum EventStatus: String, Codable {
-        case CONFIRMED
-		case TENTATIVE
-		case CANCELED
-		case NONE
-    }
-    
     static let channelName = "plugins.builttoroam.com/device_calendar"
     let notFoundErrorCode = "404"
     let notAllowed = "405"
