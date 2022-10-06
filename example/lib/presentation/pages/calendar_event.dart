@@ -260,7 +260,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       ),
                       if (Platform.isAndroid)
                         ListTile(
-                          leading: Text(
+                          leading: const Text(
                             'Status',
                             style: TextStyle(fontSize: 16),
                           ),
@@ -288,7 +288,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         value: _event?.allDay ?? false,
                         onChanged: (value) =>
                             setState(() => _event?.allDay = value),
-                        title: Text('All Day'),
+                        title: const Text('All Day'),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(10.0),
@@ -373,7 +373,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                           padding: const EdgeInsets.all(10.0),
                           child: TextFormField(
                             initialValue: _event?.end?.location.name,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                                 labelText: 'End date time zone',
                                 hintText: 'Australia/Sydney'),
                             onSaved: (String? value) =>
@@ -387,18 +387,16 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) =>
-                                            EventAttendeePage()));
+                                            const EventAttendeePage()));
                                 if (result != null) {
-                                  if (_attendees == null) {
-                                    _attendees = [];
-                                  }
+                                  _attendees ??= [];
                                   setState(() {
                                     _attendees?.add(result);
                                   });
                                 }
                               }
                             : null,
-                        leading: Icon(Icons.people),
+                        leading: const Icon(Icons.people),
                         title: Text(_calendar.isReadOnly == false
                             ? 'Add Attendees'
                             : 'Attendees'),
@@ -476,7 +474,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                           decoration: BoxDecoration(
                                               border: Border.all(
                                                   color: Colors.blueAccent)),
-                                          child: Text('current user'))),
+                                          child: const Text('current user'))),
                                   Visibility(
                                       visible: _attendees?[index].isOrganiser ??
                                           false,
@@ -487,7 +485,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                           decoration: BoxDecoration(
                                               border: Border.all(
                                                   color: Colors.blueAccent)),
-                                          child: Text('Organiser'))),
+                                          child: const Text('Organiser'))),
                                   Container(
                                     margin: const EdgeInsets.symmetric(
                                         vertical: 10.0),
@@ -505,7 +503,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                         _attendees?.removeAt(index);
                                       });
                                     },
-                                    icon: Icon(
+                                    icon: const Icon(
                                       Icons.remove_circle,
                                       color: Colors.redAccent,
                                     ),
@@ -748,10 +746,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                                 _rrule?.frequency)
                                             .data !=
                                         null
-                                    ? Text(_recurrenceFrequencyToText(
-                                                _rrule?.frequency)
-                                            .data! +
-                                        ' on the ')
+                                    ? Text(
+                                        '${_recurrenceFrequencyToText(_rrule?.frequency).data!} on the ')
                                     : const Text('')),
                           ),
                           Padding(
