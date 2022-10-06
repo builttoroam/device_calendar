@@ -198,7 +198,7 @@ void main() {
         emailAddress: 'test@t.com',
         role: AttendeeRole.Required,
         isOrganiser: true);
-    final recurrence = RecurrenceRule(RecurrenceFrequency.Daily);
+    final recurrence = RecurrenceRule(frequency: Frequency.daily);
     final reminder = Reminder(minutes: 10);
     var event = Event('calendarId',
         eventId: 'eventId',
@@ -231,8 +231,8 @@ void main() {
     expect(newEvent.attendees, isNotNull);
     expect(newEvent.attendees?.length, equals(1));
     expect(newEvent.recurrenceRule, isNotNull);
-    expect(newEvent.recurrenceRule?.recurrenceFrequency,
-        equals(event.recurrenceRule?.recurrenceFrequency));
+    expect(newEvent.recurrenceRule?.frequency,
+        equals(event.recurrenceRule?.frequency));
     expect(newEvent.reminders, isNotNull);
     expect(newEvent.reminders?.length, equals(1));
     expect(newEvent.availability, equals(event.availability));
