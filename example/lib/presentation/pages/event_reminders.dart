@@ -3,7 +3,7 @@ import 'package:device_calendar/device_calendar.dart';
 
 class EventRemindersPage extends StatefulWidget {
   final List<Reminder> _reminders;
-  EventRemindersPage(this._reminders, {Key? key}) : super(key: key);
+  const EventRemindersPage(this._reminders, {Key? key}) : super(key: key);
 
   @override
   _EventRemindersPageState createState() =>
@@ -29,7 +29,7 @@ class _EventRemindersPageState extends State<EventRemindersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reminders'),
+        title: const Text('Reminders'),
       ),
       body: Column(
         children: [
@@ -64,7 +64,7 @@ class _EventRemindersPageState extends State<EventRemindersPage> {
                         });
                       }
                     },
-                    child: Text('Add'),
+                    child: const Text('Add'),
                   ),
                 ],
               ),
@@ -83,7 +83,7 @@ class _EventRemindersPageState extends State<EventRemindersPage> {
                             (a) => a.minutes == _reminders[index].minutes);
                       });
                     },
-                    child: Text('Delete'),
+                    child: const Text('Delete'),
                   ),
                 );
               },
@@ -93,7 +93,7 @@ class _EventRemindersPageState extends State<EventRemindersPage> {
             onPressed: () {
               Navigator.pop(context, _reminders);
             },
-            child: Text('Done'),
+            child: const Text('Done'),
           )
         ],
       ),

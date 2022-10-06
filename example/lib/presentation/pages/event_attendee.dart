@@ -90,7 +90,7 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
                   ),
                 ),
                 ListTile(
-                  leading: Text('Role'),
+                  leading: const Text('Role'),
                   trailing: DropdownButton<AttendeeRole>(
                     onChanged: (value) {
                       setState(() {
@@ -118,14 +118,14 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
                           context, ModalRoute.withName(AppRoutes.calendars));
                       //TODO: finish calling and getting attendee details from iOS
                     },
-                    leading: Icon(Icons.edit),
-                    title: Text('View / edit iOS attendance details'),
+                    leading: const Icon(Icons.edit),
+                    title: const Text('View / edit iOS attendance details'),
                   ),
                 ),
                 Visibility(
                   visible: Platform.isAndroid,
                   child: ListTile(
-                    leading: Text('Android attendee status'),
+                    leading: const Text('Android attendee status'),
                     trailing: DropdownButton<AndroidAttendanceStatus>(
                       onChanged: (value) {
                         setState(() {

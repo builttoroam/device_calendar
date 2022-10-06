@@ -7,8 +7,7 @@ import 'package:timezone/timezone.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  final channel =
-      const MethodChannel('plugins.builttoroam.com/device_calendar');
+  const channel = MethodChannel('plugins.builttoroam.com/device_calendar');
   var deviceCalendarPlugin = DeviceCalendarPlugin();
 
   final log = <MethodCall>[];
@@ -47,9 +46,9 @@ void main() {
   });
 
   test('RetrieveCalendars_Returns_Successfully', () async {
-    final fakeCalendarName = 'fakeCalendarName';
+    const fakeCalendarName = 'fakeCalendarName';
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      return '[{\"id\":\"1\",\"isReadOnly\":false,\"name\":\"$fakeCalendarName\"}]';
+      return '[{"id":"1","isReadOnly":false,"name":"$fakeCalendarName"}]';
     });
 
     final result = await deviceCalendarPlugin.retrieveCalendars();
@@ -61,8 +60,8 @@ void main() {
   });
 
   test('RetrieveEvents_CalendarId_IsRequired', () async {
-    final String? calendarId = null;
-    final params = RetrieveEventsParams();
+    const String? calendarId = null;
+    const params = RetrieveEventsParams();
 
     final result =
         await deviceCalendarPlugin.retrieveEvents(calendarId, params);
@@ -72,8 +71,8 @@ void main() {
   });
 
   test('DeleteEvent_CalendarId_IsRequired', () async {
-    final String? calendarId = null;
-    final eventId = 'fakeEventId';
+    const String? calendarId = null;
+    const eventId = 'fakeEventId';
 
     final result = await deviceCalendarPlugin.deleteEvent(calendarId, eventId);
     expect(result.isSuccess, false);
@@ -82,8 +81,8 @@ void main() {
   });
 
   test('DeleteEvent_EventId_IsRequired', () async {
-    final calendarId = 'fakeCalendarId';
-    final String? eventId = null;
+    const calendarId = 'fakeCalendarId';
+    const String? eventId = null;
 
     final result = await deviceCalendarPlugin.deleteEvent(calendarId, eventId);
     expect(result.isSuccess, false);
@@ -92,8 +91,8 @@ void main() {
   });
 
   test('DeleteEvent_PassesArguments_Correctly', () async {
-    final calendarId = 'fakeCalendarId';
-    final eventId = 'fakeEventId';
+    const calendarId = 'fakeCalendarId';
+    const eventId = 'fakeEventId';
 
     await deviceCalendarPlugin.deleteEvent(calendarId, eventId);
     expect(log, <Matcher>[
@@ -105,7 +104,7 @@ void main() {
   });
 
   test('CreateEvent_Arguments_Invalid', () async {
-    final String? fakeCalendarId = null;
+    const String? fakeCalendarId = null;
     final event = Event(fakeCalendarId);
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
@@ -115,16 +114,16 @@ void main() {
   });
 
   test('CreateEvent_Returns_Successfully', () async {
-    final fakeNewEventId = 'fakeNewEventId';
+    const fakeNewEventId = 'fakeNewEventId';
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
       return fakeNewEventId;
     });
 
-    final fakeCalendarId = 'fakeCalendarId';
+    const fakeCalendarId = 'fakeCalendarId';
     final event = Event(fakeCalendarId);
     event.title = 'fakeEventTitle';
     event.start = TZDateTime.now(local);
-    event.end = event.start!.add(Duration(hours: 1));
+    event.end = event.start!.add(const Duration(hours: 1));
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result?.isSuccess, true);
@@ -134,7 +133,7 @@ void main() {
   });
 
   test('UpdateEvent_Returns_Successfully', () async {
-    final fakeNewEventId = 'fakeNewEventId';
+    const fakeNewEventId = 'fakeNewEventId';
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
       final arguments = methodCall.arguments as Map<dynamic, dynamic>;
       if (!arguments.containsKey('eventId') || arguments['eventId'] == null) {
@@ -144,12 +143,12 @@ void main() {
       return fakeNewEventId;
     });
 
-    final fakeCalendarId = 'fakeCalendarId';
+    const fakeCalendarId = 'fakeCalendarId';
     final event = Event(fakeCalendarId);
     event.eventId = 'fakeEventId';
     event.title = 'fakeEventTitle';
     event.start = TZDateTime.now(local);
-    event.end = event.start!.add(Duration(hours: 1));
+    event.end = event.start!.add(const Duration(hours: 1));
 
     final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
     expect(result?.isSuccess, true);

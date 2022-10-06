@@ -138,7 +138,7 @@ class Event {
       end = end?.subtract(Duration(milliseconds: endOffset));
       // The Event End Date for allDay events is midnight of the next day, so
       // subtract one day
-      end = end?.subtract(Duration(days: 1));
+      end = end?.subtract(const Duration(days: 1));
     }
     location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
@@ -179,7 +179,7 @@ class Event {
       }).toList();
     }
     if (legacyJSON) {
-      throw FormatException(
+      throw const FormatException(
           'legacy JSON detected. Please update your current JSONs as they may not be supported later on.');
     }
   }
