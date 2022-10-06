@@ -61,19 +61,19 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
                     },
                   ),
                   if (_isLoading)
-                    Center(
+                    const Center(
                       child: CircularProgressIndicator(),
                     )
                 ],
               )
-            : Center(child: Text('No events found')),
+            : const Center(child: Text('No events found')),
         floatingActionButton: _getAddEventButton(context));
   }
 
   Widget? _getAddEventButton(BuildContext context) {
     if (_calendar.isReadOnly == false || _calendar.isReadOnly == null) {
       return FloatingActionButton(
-        key: Key('addEventButton'),
+        key: const Key('addEventButton'),
         onPressed: () async {
           final refreshEvents = await Navigator.push(context,
               MaterialPageRoute(builder: (BuildContext context) {
@@ -83,7 +83,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
             await _retrieveCalendarEvents();
           }
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       );
     } else {
       return null;
@@ -100,7 +100,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
     if (deleteSucceeded) {
       await _retrieveCalendarEvents();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Oops, we ran into an issue deleting the event'),
         backgroundColor: Colors.red,
         duration: Duration(seconds: 5),
@@ -131,9 +131,9 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   }
 
   Future _retrieveCalendarEvents() async {
-    final startDate = DateTime.now().add(Duration(days: -30));
+    final startDate = DateTime.now().add(const Duration(days: -30));
     // final endDate = DateTime.now().add(Duration(days: 365 * 2));
-    final endDate = DateTime.now().add(Duration(days: 365 * 10));
+    final endDate = DateTime.now().add(const Duration(days: 365 * 10));
     var calendarEventsResult = await _deviceCalendarPlugin.retrieveEvents(
         _calendar.id,
         RetrieveEventsParams(startDate: startDate, endDate: endDate));
@@ -145,7 +145,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
 
   Widget _getDeleteButton() {
     return IconButton(
-        icon: Icon(Icons.delete),
+        icon: const Icon(Icons.delete),
         onPressed: () async {
           await _showDeleteDialog();
         });
@@ -156,10 +156,10 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Warning'),
+          title: const Text('Warning'),
           content: SingleChildScrollView(
             child: ListBody(
-              children: <Widget>[
+              children: const <Widget>[
                 Text('This will delete this calendar'),
                 Text('Are you sure?'),
               ],
@@ -175,13 +175,13 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               },
-              child: Text('Delete!'),
+              child: const Text('Delete!'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
           ],
         );
