@@ -232,7 +232,7 @@ class DeviceCalendarPlugin {
             event.end = Platform.isAndroid
                 ? TZDateTime.utc(event.end!.year, event.end!.month,
                         event.end!.day, 0, 0, 0)
-                    .add(Duration(days: 1))
+                    .add(const Duration(days: 1))
                 : TZDateTime.from(dateEnd,
                     timeZoneDatabase.locations[event.end!.location.name]!);
           }
