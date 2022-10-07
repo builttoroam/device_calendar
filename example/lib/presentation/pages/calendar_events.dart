@@ -10,7 +10,7 @@ import 'calendar_event.dart';
 class CalendarEventsPage extends StatefulWidget {
   final Calendar _calendar;
 
-  CalendarEventsPage(this._calendar, {Key? key}) : super(key: key);
+  const CalendarEventsPage(this._calendar, {Key? key}) : super(key: key);
 
   @override
   _CalendarEventsPageState createState() {

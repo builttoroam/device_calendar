@@ -28,7 +28,7 @@ class EventItem extends StatefulWidget {
       : super(key: key);
 
   @override
-  _EventItemState createState() {
+  State<EventItem> createState() {
     return _EventItemState();
   }
 }
