@@ -17,7 +17,7 @@ class EventItem extends StatefulWidget {
   final VoidCallback _onLoadingStarted;
   final Function(bool) _onDeleteFinished;
 
-  EventItem(
+  const EventItem(
       this._calendarEvent,
       this._deviceCalendarPlugin,
       this._onLoadingStarted,
@@ -28,7 +28,7 @@ class EventItem extends StatefulWidget {
       : super(key: key);
 
   @override
-  _EventItemState createState() {
+  State<EventItem> createState() {
     return _EventItemState();
   }
 }
@@ -55,15 +55,15 @@ class _EventItemState extends State<EventItem> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 10.0),
               child: FlutterLogo(),
             ),
             ListTile(
                 title: Text(widget._calendarEvent?.title ?? ''),
                 subtitle: Text(widget._calendarEvent?.description ?? '')),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 children: [
                   if (_currentLocation != null)
@@ -71,9 +71,9 @@ class _EventItemState extends State<EventItem> {
                       alignment: Alignment.topLeft,
                       child: Row(
                         children: [
-                          Container(
+                          SizedBox(
                             width: _eventFieldNameWidth,
-                            child: Text('Starts'),
+                            child: const Text('Starts'),
                           ),
                           Text(
                             widget._calendarEvent == null
@@ -85,7 +85,7 @@ class _EventItemState extends State<EventItem> {
                         ],
                       ),
                     ),
-                  Padding(
+                  const Padding(
                     padding: EdgeInsets.symmetric(vertical: 5.0),
                   ),
                   if (_currentLocation != null)
@@ -93,9 +93,9 @@ class _EventItemState extends State<EventItem> {
                       alignment: Alignment.topLeft,
                       child: Row(
                         children: [
-                          Container(
+                          SizedBox(
                             width: _eventFieldNameWidth,
-                            child: Text('Ends'),
+                            child: const Text('Ends'),
                           ),
                           Text(
                             widget._calendarEvent?.end == null
@@ -107,16 +107,16 @@ class _EventItemState extends State<EventItem> {
                         ],
                       ),
                     ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10.0,
                   ),
                   Align(
                     alignment: Alignment.topLeft,
                     child: Row(
                       children: [
-                        Container(
+                        SizedBox(
                           width: _eventFieldNameWidth,
-                          child: Text('All day?'),
+                          child: const Text('All day?'),
                         ),
                         Text(widget._calendarEvent?.allDay != null &&
                                 widget._calendarEvent?.allDay == true
@@ -125,16 +125,16 @@ class _EventItemState extends State<EventItem> {
                       ],
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10.0,
                   ),
                   Align(
                     alignment: Alignment.topLeft,
                     child: Row(
                       children: [
-                        Container(
+                        SizedBox(
                           width: _eventFieldNameWidth,
-                          child: Text('Location'),
+                          child: const Text('Location'),
                         ),
                         Expanded(
                           child: Text(
@@ -145,16 +145,16 @@ class _EventItemState extends State<EventItem> {
                       ],
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10.0,
                   ),
                   Align(
                     alignment: Alignment.topLeft,
                     child: Row(
                       children: [
-                        Container(
+                        SizedBox(
                           width: _eventFieldNameWidth,
-                          child: Text('URL'),
+                          child: const Text('URL'),
                         ),
                         Expanded(
                           child: Text(
@@ -165,16 +165,16 @@ class _EventItemState extends State<EventItem> {
                       ],
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10.0,
                   ),
                   Align(
                     alignment: Alignment.topLeft,
                     child: Row(
                       children: [
-                        Container(
+                        SizedBox(
                           width: _eventFieldNameWidth,
-                          child: Text('Attendees'),
+                          child: const Text('Attendees'),
                         ),
                         Expanded(
                           child: Text(
@@ -189,16 +189,16 @@ class _EventItemState extends State<EventItem> {
                       ],
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10.0,
                   ),
                   Align(
                     alignment: Alignment.topLeft,
                     child: Row(
                       children: [
-                        Container(
+                        SizedBox(
                           width: _eventFieldNameWidth,
-                          child: Text('Availability'),
+                          child: const Text('Availability'),
                         ),
                         Expanded(
                           child: Text(
@@ -210,16 +210,16 @@ class _EventItemState extends State<EventItem> {
                       ],
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10.0,
                   ),
                   Align(
                     alignment: Alignment.topLeft,
                     child: Row(
                       children: [
-                        Container(
+                        SizedBox(
                           width: _eventFieldNameWidth,
-                          child: Text('Status'),
+                          child: const Text('Status'),
                         ),
                         Expanded(
                           child: Text(
@@ -242,7 +242,7 @@ class _EventItemState extends State<EventItem> {
                         widget._onTapped(widget._calendarEvent as Event);
                       }
                     },
-                    icon: Icon(Icons.edit),
+                    icon: const Icon(Icons.edit),
                   ),
                   IconButton(
                     onPressed: () async {
@@ -252,14 +252,14 @@ class _EventItemState extends State<EventItem> {
                         builder: (BuildContext context) {
                           if (widget._calendarEvent?.recurrenceRule == null) {
                             return AlertDialog(
-                              title: Text(
+                              title: const Text(
                                   'Are you sure you want to delete this event?'),
                               actions: [
                                 TextButton(
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                   },
-                                  child: Text('Cancel'),
+                                  child: const Text('Cancel'),
                                 ),
                                 TextButton(
                                   onPressed: () async {
@@ -274,13 +274,13 @@ class _EventItemState extends State<EventItem> {
                                         deleteResult.isSuccess &&
                                             deleteResult.data != null);
                                   },
-                                  child: Text('Delete'),
+                                  child: const Text('Delete'),
                                 ),
                               ],
                             );
                           } else {
                             if (widget._calendarEvent == null) {
-                              return SizedBox();
+                              return const SizedBox();
                             }
                             return RecurringEventDialog(
                                 widget._deviceCalendarPlugin,
@@ -291,7 +291,7 @@ class _EventItemState extends State<EventItem> {
                         },
                       );
                     },
-                    icon: Icon(Icons.delete),
+                    icon: const Icon(Icons.delete),
                   ),
                 ] else ...[
                   IconButton(
@@ -300,7 +300,7 @@ class _EventItemState extends State<EventItem> {
                         widget._onTapped(widget._calendarEvent!);
                       }
                     },
-                    icon: Icon(Icons.remove_red_eye),
+                    icon: const Icon(Icons.remove_red_eye),
                   ),
                 ]
               ],

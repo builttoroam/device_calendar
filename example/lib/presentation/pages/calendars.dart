@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'calendar_events.dart';
 
 class CalendarsPage extends StatefulWidget {
-  CalendarsPage({Key? key}) : super(key: key);
+  const CalendarsPage({Key? key}) : super(key: key);
 
   @override
   _CalendarsPageState createState() {
@@ -37,7 +37,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Calendars'),
+        title: const Text('Calendars'),
         actions: [_getRefreshButton()],
       ),
       body: Column(
@@ -62,7 +62,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
                     await Navigator.push(context,
                         MaterialPageRoute(builder: (BuildContext context) {
                       return CalendarEventsPage(_calendars[index],
-                          key: Key('calendarEventsPage'));
+                          key: const Key('calendarEventsPage'));
                     }));
                   },
                   child: Padding(
@@ -70,12 +70,20 @@ class _CalendarsPageState extends State<CalendarsPage> {
                     child: Row(
                       children: [
                         Expanded(
-                          flex: 1,
-                          child: Text(
-                            _calendars[index].name!,
-                            style: Theme.of(context).textTheme.subtitle1,
-                          ),
-                        ),
+                            flex: 1,
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "${_calendars[index].id}: ${_calendars[index].name!}",
+                                    style:
+                                        Theme.of(context).textTheme.subtitle1,
+                                  ),
+                                  Text(
+                                      "Account: ${_calendars[index].accountName!}"),
+                                  Text(
+                                      "type: ${_calendars[index].accountType}"),
+                                ])),
                         Container(
                           width: 15,
                           height: 15,
@@ -83,14 +91,15 @@ class _CalendarsPageState extends State<CalendarsPage> {
                               shape: BoxShape.circle,
                               color: Color(_calendars[index].color!)),
                         ),
-                        SizedBox(width: 10),
-                        Container(
-                          margin: const EdgeInsets.fromLTRB(0, 0, 5.0, 0),
-                          padding: const EdgeInsets.all(3.0),
-                          decoration: BoxDecoration(
-                              border: Border.all(color: Colors.blueAccent)),
-                          child: Text('Default'),
-                        ),
+                        const SizedBox(width: 10),
+                        if (_calendars[index].isDefault!)
+                          Container(
+                            margin: const EdgeInsets.fromLTRB(0, 0, 5.0, 0),
+                            padding: const EdgeInsets.all(3.0),
+                            decoration: BoxDecoration(
+                                border: Border.all(color: Colors.blueAccent)),
+                            child: const Text('Default'),
+                          ),
                         Icon(_calendars[index].isReadOnly == true
                             ? Icons.lock
                             : Icons.lock_open)
@@ -107,14 +116,14 @@ class _CalendarsPageState extends State<CalendarsPage> {
         onPressed: () async {
           final createCalendar = await Navigator.push(context,
               MaterialPageRoute(builder: (BuildContext context) {
-            return CalendarAddPage();
+            return const CalendarAddPage();
           }));
 
           if (createCalendar == true) {
             _retrieveCalendars();
           }
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -144,7 +153,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
 
   Widget _getRefreshButton() {
     return IconButton(
-        icon: Icon(Icons.refresh),
+        icon: const Icon(Icons.refresh),
         onPressed: () async {
           _retrieveCalendars();
         });

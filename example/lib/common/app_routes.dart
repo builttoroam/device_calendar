@@ -1,3 +1,3 @@
 class AppRoutes {
-  static final calendars = '/';
+  static const calendars = '/';
 }
