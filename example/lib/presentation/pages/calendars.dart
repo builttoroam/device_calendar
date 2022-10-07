@@ -116,7 +116,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
         onPressed: () async {
           final createCalendar = await Navigator.push(context,
               MaterialPageRoute(builder: (BuildContext context) {
-            return CalendarAddPage();
+            return const CalendarAddPage();
           }));
 
           if (createCalendar == true) {
