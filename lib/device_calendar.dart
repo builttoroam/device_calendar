@@ -14,3 +14,4 @@ export 'src/models/platform_specifics/ios/attendance_status.dart';
 export 'src/models/platform_specifics/android/attendee_details.dart';
 export 'src/models/platform_specifics/android/attendance_status.dart';
 export 'src/device_calendar.dart';
+export 'package:timezone/timezone.dart';

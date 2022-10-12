@@ -1,9 +1,9 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
+
 import '../../device_calendar.dart';
 import '../common/error_messages.dart';
-import 'package:timezone/timezone.dart';
-import 'package:collection/collection.dart';
 
 /// An event associated with a calendar
 class Event {
@@ -48,7 +48,7 @@ class Event {
 
   /// Indicates if this event is of confirmed, canceled, tentative or none status
   EventStatus? status;
-  
+
   ///Note for development:
   ///
   ///JSON field names are coded in dart, swift and kotlin to facilitate data exchange.
