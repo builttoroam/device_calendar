@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:timezone/timezone.dart';
 
 import '../../device_calendar.dart';
 import '../common/error_messages.dart';
@@ -83,7 +82,6 @@ class Event {
     if (json == null) {
       throw ArgumentError(ErrorMessages.fromJsonMapIsNull);
     }
-
     String? foundUrl;
     String? startLocationName;
     String? endLocationName;
