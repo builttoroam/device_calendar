@@ -440,13 +440,13 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     private func convertEkEventStatus(ekEventStatus: EKEventStatus?) -> EventStatus? {
         switch ekEventStatus {
         case .confirmed:
-			return EventStatus.CONFIRMED
+            return EventStatus.CONFIRMED
         case .tentative:
             return EventStatus.TENTATIVE
-		case .canceled:
-			return EventStatus.CANCELED
-		case .none?:
-			return EventStatus.NONE
+        case .canceled:
+            return EventStatus.CANCELED
+        case .none?:
+            return EventStatus.NONE
         default:
             return nil
         }
@@ -817,7 +817,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             ekEvent!.startDate = startDate
             ekEvent!.endDate = endDate
             
-			if (!isAllDay) { 
+            if (!isAllDay) { 
                 let timeZone = TimeZone(identifier: startTimeZoneString ?? TimeZone.current.identifier) ?? .current
                 ekEvent!.timeZone = timeZone
             }
