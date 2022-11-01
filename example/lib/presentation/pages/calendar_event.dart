@@ -407,7 +407,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         itemBuilder: (context, index) {
                           return Container(
                             color: (_attendees?[index].isOrganiser ?? false)
-                                ? Colors.greenAccent[100]
+                                ? MediaQuery.of(context).platformBrightness ==
+                                Brightness.dark
+                                ? Colors.black26
+                                : Colors.greenAccent[100]
                                 : Colors.transparent,
                             child: ListTile(
                               onTap: () async {
