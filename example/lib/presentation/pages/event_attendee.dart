@@ -64,7 +64,7 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
                   child: TextFormField(
                     controller: _nameController,
                     validator: (value) {
-                      if (_attendee!.isCurrentUser == false &&
+                      if (_attendee?.isCurrentUser == false &&
                           (value == null || value.isEmpty)) {
                         return 'Please enter a name';
                       }
@@ -153,9 +153,9 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
                       name: _nameController.text,
                       emailAddress: _emailAddressController.text,
                       role: _role,
-                      isOrganiser: _attendee!.isOrganiser,
-                      isCurrentUser: _attendee!.isCurrentUser,
-                      iosAttendeeDetails: _attendee!.iosAttendeeDetails,
+                      isOrganiser: _attendee?.isOrganiser ?? false,
+                      isCurrentUser: _attendee?.isCurrentUser ?? false,
+                      iosAttendeeDetails: _attendee?.iosAttendeeDetails,
                       androidAttendeeDetails: AndroidAttendeeDetails.fromJson(
                           {'attendanceStatus': _status.index}));
 
