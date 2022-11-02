@@ -332,41 +332,38 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             },
                           ),
                         ),
-                      // Only add the 'To' Date for non-allDay events on all
-                      // platforms except Android (which allows multiple-day allDay events)
-                      if (_event?.allDay == false || Platform.isAndroid)
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: DateTimePicker(
-                            labelText: 'To',
-                            selectedDate: _endDate,
-                            selectedTime: _endTime,
-                            enableTime: _event?.allDay == false,
-                            selectDate: (DateTime date) {
-                              setState(
-                                () {
-                                  var currentLocation =
-                                      timeZoneDatabase.locations[_timezone];
-                                  if (currentLocation != null) {
-                                    _endDate =
-                                        TZDateTime.from(date, currentLocation);
-                                    _event?.end = _combineDateWithTime(
-                                        _endDate, _endTime);
-                                  }
-                                },
-                              );
-                            },
-                            selectTime: (TimeOfDay time) {
-                              setState(
-                                () {
-                                  _endTime = time;
-                                  _event?.end =
-                                      _combineDateWithTime(_endDate, _endTime);
-                                },
-                              );
-                            },
-                          ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: DateTimePicker(
+                          labelText: 'To',
+                          selectedDate: _endDate,
+                          selectedTime: _endTime,
+                          enableTime: _event?.allDay == false,
+                          selectDate: (DateTime date) {
+                            setState(
+                              () {
+                                var currentLocation =
+                                    timeZoneDatabase.locations[_timezone];
+                                if (currentLocation != null) {
+                                  _endDate =
+                                      TZDateTime.from(date, currentLocation);
+                                  _event?.end = _combineDateWithTime(
+                                      _endDate, _endTime);
+                                }
+                              },
+                            );
+                          },
+                          selectTime: (TimeOfDay time) {
+                            setState(
+                              () {
+                                _endTime = time;
+                                _event?.end =
+                                    _combineDateWithTime(_endDate, _endTime);
+                              },
+                            );
+                          },
                         ),
+                      ),
                       if (_event?.allDay == false && Platform.isAndroid)
                         Padding(
                           padding: const EdgeInsets.all(10.0),
