@@ -214,9 +214,9 @@ class DeviceCalendarPlugin {
             // allDay events on Android need to be at midnight UTC
             event.start = Platform.isAndroid
                 ? TZDateTime.utc(event.start!.year, event.start!.month,
-                event.start!.day, 0, 0, 0)
+                    event.start!.day, 0, 0, 0)
                 : TZDateTime.from(dateStart,
-                timeZoneDatabase.locations[event.start!.location.name]!);
+                    timeZoneDatabase.locations[event.start!.location.name]!);
           }
           if (event.end != null) {
             var dateEnd = DateTime(
@@ -226,10 +226,10 @@ class DeviceCalendarPlugin {
             // Jan 1 and 2, should be from Jan 1 00:00:00 to Jan 3 00:00:00
             event.end = Platform.isAndroid
                 ? TZDateTime.utc(event.end!.year, event.end!.month,
-                event.end!.day, 0, 0, 0)
-                .add(Duration(days: 1))
+                        event.end!.day, 0, 0, 0)
+                    .add(const Duration(days: 1))
                 : TZDateTime.from(dateEnd,
-                timeZoneDatabase.locations[event.end!.location.name]!);
+                    timeZoneDatabase.locations[event.end!.location.name]!);
           }
         }
 
@@ -322,7 +322,7 @@ class DeviceCalendarPlugin {
 
   /// Displays a native iOS view [EKEventViewController]
   /// https://developer.apple.com/documentation/eventkitui/ekeventviewcontroller
-  /// 
+  ///
   /// Allows to change the event's attendance status
   /// Works only on iOS
   /// Returns after dismissing EKEventViewController's dialog
@@ -336,7 +336,6 @@ class DeviceCalendarPlugin {
       },
     );
   }
-
 
   Future<Result<T>> _invokeChannelMethod<T>(
     String channelMethodName, {
@@ -375,7 +374,7 @@ class DeviceCalendarPlugin {
       Exception? exception, Result<T> result) {
     if (exception == null) {
       result.errors.add(
-        ResultError(
+        const ResultError(
           ErrorCodes.unknown,
           ErrorMessages.unknownDeviceIssue,
         ),

@@ -4,6 +4,8 @@ import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 
 class CalendarAddPage extends StatefulWidget {
+  const CalendarAddPage({Key? key}) : super(key: key);
+
   @override
   _CalendarAddPageState createState() {
     return _CalendarAddPageState();
@@ -29,13 +31,13 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text('Create Calendar'),
+        title: const Text('Create Calendar'),
       ),
       body: Form(
         autovalidateMode: _autovalidate,
         key: _formKey,
         child: Container(
-          padding: EdgeInsets.all(10),
+          padding: const EdgeInsets.all(10),
           child: Column(
             children: [
               TextFormField(
@@ -46,11 +48,11 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
                 validator: _validateCalendarName,
                 onSaved: (String? value) => _calendarName = value ?? '',
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Calendar Color'),
+                  const Text('Calendar Color'),
                   DropdownButton<ColorChoice>(
                     onChanged: (selectedColor) {
                       setState(() => _colorChoice = selectedColor);
@@ -101,7 +103,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
             }
           }
         },
-        child: Icon(Icons.check),
+        child: const Icon(Icons.check),
       ),
     );
   }

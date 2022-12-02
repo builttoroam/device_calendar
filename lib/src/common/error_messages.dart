@@ -21,7 +21,7 @@ class ErrorMessages {
   static const String unknownDeviceIssue =
       'Device calendar plugin ran into an unknown issue';
   static const String unknownDeviceExceptionTemplate =
-      'Device calendar plugin ran into an issue. Platform specific exception [%s], with message :\"%s\", has been thrown.';
+      'Device calendar plugin ran into an issue. Platform specific exception [%s], with message :"%s", has been thrown.';
   static const String unknownDeviceGenericExceptionTemplate =
-      'Device calendar plugin ran into an issue, with message \"%s\"';
+      'Device calendar plugin ran into an issue, with message "%s"';
 }
