@@ -10,7 +10,7 @@ import 'package:device_calendar_example/main.dart' as app;
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   group('Calendar plugin example', () {
-    final eventTitle = Uuid().v1();
+    final eventTitle = const Uuid().v1();
     final saveEventButtonFinder = find.byKey(const Key('saveEventButton'));
     final eventTitleFinder = find.text(eventTitle);
     final firstWritableCalendarFinder =
@@ -27,7 +27,7 @@ void main() {
     testWidgets('select first writable calendar', (WidgetTester tester) async {
       app.main();
 
-      await tester.pumpAndSettle(Duration(milliseconds: 500));
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
       expect(firstWritableCalendarFinder, findsOneWidget);
     });
     testWidgets('go to add event page', (WidgetTester tester) async {
