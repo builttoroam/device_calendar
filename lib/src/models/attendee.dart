@@ -56,7 +56,7 @@ class Attendee {
       androidAttendeeDetails = AndroidAttendeeDetails.fromJson(json);
     }
 
-    if (Platform.isIOS) {
+    if (Platform.isIOS || Platform.isMacOS) {
       iosAttendeeDetails = IosAttendeeDetails.fromJson(json);
     }
   }
