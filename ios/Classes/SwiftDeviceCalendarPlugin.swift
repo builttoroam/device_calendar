@@ -1024,7 +1024,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         self.finishWithUnauthorizedError(result: result)
     }
 
-    private func requestPermissions(completion: @escaping (Bool) -> Void) {
+    private func requestPermissions(_ completion: @escaping (Bool) -> Void) {
         if hasEventPermissions() {
             completion(true)
             return
@@ -1038,16 +1038,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     private func hasEventPermissions() -> Bool {
         let status = EKEventStore.authorizationStatus(for: .event)
         return status == EKAuthorizationStatus.authorized
-    }
-
-    private func requestPermissions(_ result: @escaping FlutterResult) {
-        if hasEventPermissions()  {
-            result(true)
-        }
-        eventStore.requestAccess(to: .event, completion: {
-            (accessGranted: Bool, _: Error?) in
-            result(accessGranted)
-        })
     }
 }
 
