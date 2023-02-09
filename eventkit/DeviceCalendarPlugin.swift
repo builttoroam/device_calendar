@@ -39,7 +39,10 @@ extension String {
 #if os(macOS)
 public class DeviceCalendarPluginBase: NSObject {}
 #elseif os(iOS)
-public class DeviceCalendarPluginBase: NSObject, EKEventViewDelegate, UINavigationControllerDelegate {}
+public class DeviceCalendarPluginBase: NSObject, EKEventViewDelegate, UINavigationControllerDelegate {
+
+    public func eventViewController(_ controller: EKEventViewController, didCompleteWith action: EKEventViewAction) {}
+}
 #endif
 
 public class DeviceCalendarPlugin: DeviceCalendarPluginBase, FlutterPlugin {
@@ -271,12 +274,17 @@ public class DeviceCalendarPlugin: DeviceCalendarPluginBase, FlutterPlugin {
                 let defaultCalendar = self.eventStore.defaultCalendarForNewEvents
                 var calendars = [DeviceCalendar]()
                 for ekCalendar in ekCalendars {
+#if os(macOS)
+                    let calendarColor = ekCalendar.color.rgb()!
+#elseif os(iOS)
+                    let calendarColor = UIColor(cgColor: ekCalendar.cgColor).rgb()!
+#endif
                     let calendar = DeviceCalendar(
                         id: ekCalendar.calendarIdentifier,
                         name: ekCalendar.title,
                         isReadOnly: !ekCalendar.allowsContentModifications,
                         isDefault: defaultCalendar?.calendarIdentifier == ekCalendar.calendarIdentifier,
-                        color: ekCalendar.color.rgb()!,
+                        color: calendarColor,
                         accountName: ekCalendar.source.title,
                         accountType: getAccountType(ekCalendar.source.sourceType))
                     calendars.append(calendar)
@@ -986,7 +994,7 @@ public class DeviceCalendarPlugin: DeviceCalendarPluginBase, FlutterPlugin {
         }
 
 #if os(iOS)
-        public func eventViewController(_ controller: EKEventViewController, didCompleteWith action: EKEventViewAction) {
+        override public func eventViewController(_ controller: EKEventViewController, didCompleteWith action: EKEventViewAction) {
             controller.dismiss(animated: true, completion: nil)
 
             if flutterResult != nil {
@@ -1076,6 +1084,7 @@ extension Date {
 }
 
 extension XColor {
+#if os(macOS)
     func rgb() -> Int? {
         let ciColor:CIColor = CIColor(color: self)!
         let fRed : CGFloat = ciColor.red
@@ -1092,6 +1101,27 @@ extension XColor {
         let rgb = (iAlpha << 24) + (iRed << 16) + (iGreen << 8) + iBlue
         return rgb
     }
+#elseif os(iOS)
+    func rgb() -> Int? {
+        var fRed : CGFloat = 0
+        var fGreen : CGFloat = 0
+        var fBlue : CGFloat = 0
+        var fAlpha: CGFloat = 0
+        if self.getRed(&fRed, green: &fGreen, blue: &fBlue, alpha: &fAlpha) {
+            let iRed = Int(fRed * 255.0)
+            let iGreen = Int(fGreen * 255.0)
+            let iBlue = Int(fBlue * 255.0)
+            let iAlpha = Int(fAlpha * 255.0)
+
+            //  (Bits 24-31 are alpha, 16-23 are red, 8-15 are green, 0-7 are blue).
+            let rgb = (iAlpha << 24) + (iRed << 16) + (iGreen << 8) + iBlue
+            return rgb
+        } else {
+            // Could not extract RGBA components:
+            return nil
+        }
+    }
+#endif
 
     public convenience init?(hex: String) {
         let r, g, b, a: CGFloat
