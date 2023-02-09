@@ -2,6 +2,10 @@
 
 <!-- To benefit from the current changelog reader in CI/CD, please follow the changelog format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). -->
 
+## [4.4.0](https://github.com/builttoroam/device_calendar/releases/tag/4.4.0)
+
+- Added macOS as a supported platform
+
 ## [4.2.1](https://github.com/builttoroam/device_calendar/releases/tag/4.2.1)
 
 - Updated multiple underlying dependencies
