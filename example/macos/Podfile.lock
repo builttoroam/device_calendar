@@ -1,0 +1,28 @@
+PODS:
+  - device_calendar (0.0.1):
+    - FlutterMacOS
+  - flutter_native_timezone (0.0.1):
+    - FlutterMacOS
+  - FlutterMacOS (1.0.0)
+
+DEPENDENCIES:
+  - device_calendar (from `Flutter/ephemeral/.symlinks/plugins/device_calendar/macos`)
+  - flutter_native_timezone (from `Flutter/ephemeral/.symlinks/plugins/flutter_native_timezone/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral`)
+
+EXTERNAL SOURCES:
+  device_calendar:
+    :path: Flutter/ephemeral/.symlinks/plugins/device_calendar/macos
+  flutter_native_timezone:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_native_timezone/macos
+  FlutterMacOS:
+    :path: Flutter/ephemeral
+
+SPEC CHECKSUMS:
+  device_calendar: e02d56bbb3061e725d2aab3f0b5503a9db60f14b
+  flutter_native_timezone: 3a4724189c47dea215bb3e168e555e18308d312c
+  FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
+
+PODFILE CHECKSUM: 353c8bcc5d5b0994e508d035b5431cfe18c1dea7
+
+COCOAPODS: 1.11.3
