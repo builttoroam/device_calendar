@@ -23,7 +23,7 @@ extension String {
     }
 }
 
-public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDelegate, UINavigationControllerDelegate {
+public class DeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDelegate, UINavigationControllerDelegate {
     struct DeviceCalendar: Codable {
         let id: String
         let name: String
@@ -158,7 +158,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
 
     public static func register(with registrar: FlutterPluginRegistrar) {
             let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
-            let instance = SwiftDeviceCalendarPlugin()
+            let instance = DeviceCalendarPlugin()
             registrar.addMethodCallDelegate(instance, channel: channel)
         }
 
