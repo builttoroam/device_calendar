@@ -4,7 +4,7 @@
 
 ## [4.4.0](https://github.com/builttoroam/device_calendar/releases/tag/4.4.0)
 
-- Added macOS as a supported platform
+- Added macOS 10.15+ (Beta) as a supported platform (tested only on Intel based Macs)
 
 ## [4.2.1](https://github.com/builttoroam/device_calendar/releases/tag/4.2.1)
 

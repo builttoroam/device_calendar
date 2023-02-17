@@ -109,7 +109,8 @@ For iOS 10+ support, you'll need to modify the `Info.plist` to add the following
 
 Note that on iOS, this is a Swift plugin. There is a known issue being tracked [here](https://github.com/flutter/flutter/issues/16049) by the Flutter team, where adding a plugin developed in Swift to an Objective-C project causes problems. If you run into such issues, please look at the suggested workarounds there.
 
-## macOS Integration
+## macOS Integration (Beta)
 
-Available for macOS 10.15+.
+Available for macOS 10.15+. Tested only on Intel based Macs.
+
 Make sure, you enable 'Calendar' in the 'App Sandbox' section under 'Signing & Capabilities' in Xcode.
