@@ -2,6 +2,10 @@
 
 <!-- To benefit from the current changelog reader in CI/CD, please follow the changelog format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). -->
 
+## [4.3.1](https://github.com/builttoroam/device_calendar/releases/tag/4.3.1)
+
+- Fixed an [issue](https://github.com/builttoroam/device_calendar/issues/470) that prevented the plugin from being used with Kotlin 1.7.10
+
 ## [4.3.0](https://github.com/builttoroam/device_calendar/releases/tag/4.3.0)
 
 - Updated multiple underlying dependencies
