@@ -416,7 +416,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         itemCount: _attendees.length,
                         itemBuilder: (context, index) {
                           return Container(
-                            color: (_attendees?[index].isOrganiser ?? false)
+                            color: (_attendees[index].isOrganiser)
                                 ? MediaQuery.of(context).platformBrightness ==
                                         Brightness.dark
                                     ? Colors.black26
