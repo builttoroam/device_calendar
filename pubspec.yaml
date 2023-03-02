@@ -7,9 +7,7 @@ dependencies:
   flutter:
     sdk: flutter
   collection: ^1.17.0
-  sprintf: ^7.0.0
   timezone: ^0.9.1
-  flutter_native_timezone: ^2.0.0
   rrule: ^0.2.10
 
 dev_dependencies:
