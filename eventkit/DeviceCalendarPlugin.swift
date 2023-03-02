@@ -1,8 +1,21 @@
 import EventKit
+import Foundation
+
+#if os(macOS)
+import FlutterMacOS
+#elseif os(iOS)
 import EventKitUI
 import Flutter
-import Foundation
 import UIKit
+#endif
+
+#if os(macOS)
+typealias XColor = NSColor
+typealias EKEventViewDelegate = NSObject
+typealias UINavigationControllerDelegate = NSObject
+#elseif os(iOS)
+typealias XColor = UIColor
+#endif
 
 extension Date {
     var millisecondsSinceEpoch: Double { return self.timeIntervalSince1970 * 1000.0 }
@@ -23,7 +36,16 @@ extension String {
     }
 }
 
-public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDelegate, UINavigationControllerDelegate {
+#if os(macOS)
+public class DeviceCalendarPluginBase: NSObject {}
+#elseif os(iOS)
+public class DeviceCalendarPluginBase: NSObject, EKEventViewDelegate, UINavigationControllerDelegate {
+
+    public func eventViewController(_ controller: EKEventViewController, didCompleteWith action: EKEventViewAction) {}
+}
+#endif
+
+public class DeviceCalendarPlugin: DeviceCalendarPluginBase, FlutterPlugin {
     struct DeviceCalendar: Codable {
         let id: String
         let name: String
@@ -157,8 +179,12 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     var flutterResult : FlutterResult?
 
     public static func register(with registrar: FlutterPluginRegistrar) {
+#if os(macOS)
+            let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger)
+#elseif os(iOS)
             let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
-            let instance = SwiftDeviceCalendarPlugin()
+#endif
+            let instance = DeviceCalendarPlugin()
             registrar.addMethodCallDelegate(instance, channel: channel)
         }
 
@@ -220,10 +246,10 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
                 let calendarColor = arguments[calendarColorArgument] as? String
 
                 if (calendarColor != nil) {
-                    calendar.cgColor = UIColor(hex: calendarColor!)?.cgColor
+                    calendar.cgColor = XColor(hex: calendarColor!)?.cgColor
                 }
                 else {
-                    calendar.cgColor = UIColor(red: 255, green: 0, blue: 0, alpha: 0).cgColor // Red colour as a default
+                    calendar.cgColor = XColor(red: 255, green: 0, blue: 0, alpha: 0).cgColor // Red colour as a default
                 }
 
                 guard let source = getSource() else {
@@ -248,12 +274,17 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
                 let defaultCalendar = self.eventStore.defaultCalendarForNewEvents
                 var calendars = [DeviceCalendar]()
                 for ekCalendar in ekCalendars {
+#if os(macOS)
+                    let calendarColor = ekCalendar.color.rgb()!
+#elseif os(iOS)
+                    let calendarColor = UIColor(cgColor: ekCalendar.cgColor).rgb()!
+#endif
                     let calendar = DeviceCalendar(
                         id: ekCalendar.calendarIdentifier,
                         name: ekCalendar.title,
                         isReadOnly: !ekCalendar.allowsContentModifications,
                         isDefault: defaultCalendar?.calendarIdentifier == ekCalendar.calendarIdentifier,
-                        color: UIColor(cgColor: ekCalendar.cgColor).rgb()!,
+                        color: calendarColor,
                         accountName: ekCalendar.source.title,
                         accountType: getAccountType(ekCalendar.source.sourceType))
                     calendars.append(calendar)
@@ -932,6 +963,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     }
 
     private func showEventModal(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+#if os(iOS)
             checkPermissionsThenExecute(permissionsGrantedAction: {
                 let arguments = call.arguments as! Dictionary<String, AnyObject>
                 let eventId = arguments[eventIdArgument] as! String
@@ -958,9 +990,11 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
                     result(FlutterError(code: self.genericError, message: self.eventNotFoundErrorMessageFormat, details: nil))
                 }
             }, result: result)
+#endif
         }
 
-        public func eventViewController(_ controller: EKEventViewController, didCompleteWith action: EKEventViewAction) {
+#if os(iOS)
+        override public func eventViewController(_ controller: EKEventViewController, didCompleteWith action: EKEventViewAction) {
             controller.dismiss(animated: true, completion: nil)
 
             if flutterResult != nil {
@@ -985,6 +1019,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
 
              return topController!
         }
+#endif
 
     private func finishWithUnauthorizedError(result: @escaping FlutterResult) {
         result(FlutterError(code:self.unauthorizedErrorCode, message: self.unauthorizedErrorMessage, details: nil))
@@ -1048,7 +1083,25 @@ extension Date {
     }
 }
 
-extension UIColor {
+extension XColor {
+#if os(macOS)
+    func rgb() -> Int? {
+        let ciColor:CIColor = CIColor(color: self)!
+        let fRed : CGFloat = ciColor.red
+        let fGreen : CGFloat = ciColor.green
+        let fBlue : CGFloat = ciColor.blue
+        let fAlpha: CGFloat = ciColor.alpha
+
+        let iRed = Int(fRed * 255.0)
+        let iGreen = Int(fGreen * 255.0)
+        let iBlue = Int(fBlue * 255.0)
+        let iAlpha = Int(fAlpha * 255.0)
+
+        //  (Bits 24-31 are alpha, 16-23 are red, 8-15 are green, 0-7 are blue).
+        let rgb = (iAlpha << 24) + (iRed << 16) + (iGreen << 8) + iBlue
+        return rgb
+    }
+#elseif os(iOS)
     func rgb() -> Int? {
         var fRed : CGFloat = 0
         var fGreen : CGFloat = 0
@@ -1068,6 +1121,7 @@ extension UIColor {
             return nil
         }
     }
+#endif
 
     public convenience init?(hex: String) {
         let r, g, b, a: CGFloat

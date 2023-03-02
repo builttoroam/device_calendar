@@ -14,9 +14,7 @@ A new flutter plugin project.
   s.source           = { :path => '.' }
   s.swift_version = '5.0'
   s.source_files = 'Classes/**/*'
-  s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
   
   s.ios.deployment_target = '8.0'
 end
-
