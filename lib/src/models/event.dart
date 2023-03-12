@@ -250,6 +250,7 @@ class Event {
       case 'NONE':
         return EventStatus.None;
     }
+    return null;
   }
 
   bool updateStartLocation(String? newStartLocation) {
