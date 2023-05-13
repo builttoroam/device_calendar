@@ -322,11 +322,47 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
                     let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch!.doubleValue / 1000.0)
                     let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
                     if ekCalendar != nil {
-                        let predicate = self.eventStore.predicateForEvents(
-                            withStart: startDate,
-                            end: endDate,
-                            calendars: [ekCalendar!])
-                        let ekEvents = self.eventStore.events(matching: predicate)
+                        var ekEvents = [EKEvent]()
+                        let fourYearsInSeconds = 4 * 365 * 24 * 60 * 60
+                        var currentStartDate = startDate
+                        // Adding 4 years to the start date
+                        var currentEndDate = startDate.addingTimeInterval(TimeInterval(fourYearsInSeconds))
+                        while currentEndDate <= endDate {
+                            let rangeSize = currentEndDate.timeIntervalSince(currentStartDate)
+                            let roundedRangeSize = Int(rangeSize / Double(fourYearsInSeconds)) * fourYearsInSeconds
+                            
+                            // debugPrint("Start date of current range: \(currentStartDate)")
+                            // debugPrint("End date of current range: \(currentEndDate.addingTimeInterval(-1))")
+                            // debugPrint("Range size: \(roundedRangeSize / (365 * 24 * 60 * 60)) years\n")
+                            
+                            let predicate = self.eventStore.predicateForEvents(
+                                withStart: currentStartDate,
+                                end: currentEndDate.addingTimeInterval(-1),
+                                calendars: [ekCalendar!])
+                            let batch = self.eventStore.events(matching: predicate)
+                            ekEvents.append(contentsOf: batch)
+                            
+                            // Move the start and end dates forward by the rounded range size
+                            currentStartDate = currentEndDate
+                            currentEndDate = currentStartDate.addingTimeInterval(TimeInterval(roundedRangeSize))
+                        }
+                        
+                        // If the cycle doesn't end exactly on the end date
+                        if currentStartDate <= endDate {
+                            let finalRangeSize = endDate.timeIntervalSince(currentStartDate)
+                            
+                            // debugPrint("Start date of final range: \(currentStartDate)")
+                            // debugPrint("End date of final range: \(endDate)")
+                            // debugPrint("Range size: \(finalRangeSize / (365 * 24 * 60 * 60)) years\n")
+                            
+                            let predicate = self.eventStore.predicateForEvents(
+                                withStart: currentStartDate,
+                                end: endDate,
+                                calendars: [ekCalendar!])
+                            let batch = self.eventStore.events(matching: predicate)
+                            ekEvents.append(contentsOf: batch)
+                        }
+                        
                         for ekEvent in ekEvents {
                             let event = createEventFromEkEvent(calendarId: calendarId, ekEvent: ekEvent)
                             events.append(event)
