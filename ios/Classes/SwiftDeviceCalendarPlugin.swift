@@ -324,13 +324,11 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
                     if ekCalendar != nil {
                         var ekEvents = [EKEvent]()
                         let fourYearsInSeconds = 4 * 365 * 24 * 60 * 60
+                        let fourYearsTimeInterval = TimeInterval(fourYearsInSeconds)
                         var currentStartDate = startDate
                         // Adding 4 years to the start date
-                        var currentEndDate = startDate.addingTimeInterval(TimeInterval(fourYearsInSeconds))
+                        var currentEndDate = startDate.addingTimeInterval(fourYearsTimeInterval)
                         while currentEndDate <= endDate {
-                            let rangeSize = currentEndDate.timeIntervalSince(currentStartDate)
-                            let roundedRangeSize = Int(rangeSize / Double(fourYearsInSeconds)) * fourYearsInSeconds
-                            
                             // debugPrint("Start date of current range: \(currentStartDate)")
                             // debugPrint("End date of current range: \(currentEndDate.addingTimeInterval(-1))")
                             // debugPrint("Range size: \(roundedRangeSize / (365 * 24 * 60 * 60)) years\n")
@@ -342,9 +340,9 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
                             let batch = self.eventStore.events(matching: predicate)
                             ekEvents.append(contentsOf: batch)
                             
-                            // Move the start and end dates forward by the rounded range size
+                            // Move the start and end dates forward by the [fourYearsTimeInterval]
                             currentStartDate = currentEndDate
-                            currentEndDate = currentStartDate.addingTimeInterval(TimeInterval(roundedRangeSize))
+                            currentEndDate = currentStartDate.addingTimeInterval(fourYearsTimeInterval)
                         }
                         
                         // If the cycle doesn't end exactly on the end date
