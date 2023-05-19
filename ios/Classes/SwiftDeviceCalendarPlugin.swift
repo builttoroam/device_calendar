@@ -329,10 +329,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
                         // Adding 4 years to the start date
                         var currentEndDate = startDate.addingTimeInterval(fourYearsTimeInterval)
                         while currentEndDate <= endDate {
-                            // debugPrint("Start date of current range: \(currentStartDate)")
-                            // debugPrint("End date of current range: \(currentEndDate.addingTimeInterval(-1))")
-                            // debugPrint("Range size: \(roundedRangeSize / (365 * 24 * 60 * 60)) years\n")
-                            
                             let predicate = self.eventStore.predicateForEvents(
                                 withStart: currentStartDate,
                                 end: currentEndDate.addingTimeInterval(-1),
@@ -347,12 +343,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
                         
                         // If the cycle doesn't end exactly on the end date
                         if currentStartDate <= endDate {
-                            let finalRangeSize = endDate.timeIntervalSince(currentStartDate)
-                            
-                            // debugPrint("Start date of final range: \(currentStartDate)")
-                            // debugPrint("End date of final range: \(endDate)")
-                            // debugPrint("Range size: \(finalRangeSize / (365 * 24 * 60 * 60)) years\n")
-                            
                             let predicate = self.eventStore.predicateForEvents(
                                 withStart: currentStartDate,
                                 end: endDate,
