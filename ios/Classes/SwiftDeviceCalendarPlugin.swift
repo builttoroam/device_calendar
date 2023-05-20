@@ -322,11 +322,35 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
                     let endDate = Date (timeIntervalSince1970: endDateDateMillisecondsSinceEpoch!.doubleValue / 1000.0)
                     let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
                     if ekCalendar != nil {
-                        let predicate = self.eventStore.predicateForEvents(
-                            withStart: startDate,
-                            end: endDate,
-                            calendars: [ekCalendar!])
-                        let ekEvents = self.eventStore.events(matching: predicate)
+                        var ekEvents = [EKEvent]()
+                        let fourYearsInSeconds = 4 * 365 * 24 * 60 * 60
+                        let fourYearsTimeInterval = TimeInterval(fourYearsInSeconds)
+                        var currentStartDate = startDate
+                        // Adding 4 years to the start date
+                        var currentEndDate = startDate.addingTimeInterval(fourYearsTimeInterval)
+                        while currentEndDate <= endDate {
+                            let predicate = self.eventStore.predicateForEvents(
+                                withStart: currentStartDate,
+                                end: currentEndDate.addingTimeInterval(-1),
+                                calendars: [ekCalendar!])
+                            let batch = self.eventStore.events(matching: predicate)
+                            ekEvents.append(contentsOf: batch)
+                            
+                            // Move the start and end dates forward by the [fourYearsTimeInterval]
+                            currentStartDate = currentEndDate
+                            currentEndDate = currentStartDate.addingTimeInterval(fourYearsTimeInterval)
+                        }
+                        
+                        // If the cycle doesn't end exactly on the end date
+                        if currentStartDate <= endDate {
+                            let predicate = self.eventStore.predicateForEvents(
+                                withStart: currentStartDate,
+                                end: endDate,
+                                calendars: [ekCalendar!])
+                            let batch = self.eventStore.events(matching: predicate)
+                            ekEvents.append(contentsOf: batch)
+                        }
+                        
                         for ekEvent in ekEvents {
                             let event = createEventFromEkEvent(calendarId: calendarId, ekEvent: ekEvent)
                             events.append(event)
