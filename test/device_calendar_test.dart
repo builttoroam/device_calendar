@@ -12,7 +12,8 @@ void main() {
   final log = <MethodCall>[];
 
   setUp(() {
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       print('Calling channel method ${methodCall.method}');
       log.add(methodCall);
 
@@ -23,7 +24,8 @@ void main() {
   });
 
   test('HasPermissions_Returns_Successfully', () async {
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       return true;
     });
 
@@ -34,7 +36,8 @@ void main() {
   });
 
   test('RequestPermissions_Returns_Successfully', () async {
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       return true;
     });
 
@@ -46,7 +49,8 @@ void main() {
 
   test('RetrieveCalendars_Returns_Successfully', () async {
     const fakeCalendarName = 'fakeCalendarName';
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       return '[{"id":"1","isReadOnly":false,"name":"$fakeCalendarName"}]';
     });
 
@@ -114,7 +118,8 @@ void main() {
 
   test('CreateEvent_Returns_Successfully', () async {
     const fakeNewEventId = 'fakeNewEventId';
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       return fakeNewEventId;
     });
 
@@ -133,7 +138,8 @@ void main() {
 
   test('UpdateEvent_Returns_Successfully', () async {
     const fakeNewEventId = 'fakeNewEventId';
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       final arguments = methodCall.arguments as Map<dynamic, dynamic>;
       if (!arguments.containsKey('eventId') || arguments['eventId'] == null) {
         return null;

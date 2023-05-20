@@ -112,7 +112,7 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
                     onTap: () async {
                       _deviceCalendarPlugin = DeviceCalendarPlugin();
 
-                      var result = await _deviceCalendarPlugin
+                      await _deviceCalendarPlugin
                           .showiOSEventModal(_eventId);
                       Navigator.popUntil(
                           context, ModalRoute.withName(AppRoutes.calendars));

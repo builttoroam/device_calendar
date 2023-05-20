@@ -132,7 +132,6 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
 
   Future _retrieveCalendarEvents() async {
     final startDate = DateTime.now().add(const Duration(days: -30));
-    // final endDate = DateTime.now().add(Duration(days: 365 * 2));
     final endDate = DateTime.now().add(const Duration(days: 365 * 10));
     var calendarEventsResult = await _deviceCalendarPlugin.retrieveEvents(
         _calendar.id,
