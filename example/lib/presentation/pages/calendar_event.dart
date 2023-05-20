@@ -289,36 +289,37 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             setState(() => _event?.allDay = value),
                         title: const Text('All Day'),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: DateTimePicker(
-                          labelText: 'From',
-                          enableTime: _event?.allDay == false,
-                          selectedDate: _startDate,
-                          selectedTime: _startTime,
-                          selectDate: (DateTime date) {
-                            setState(() {
-                              var currentLocation =
-                                  timeZoneDatabase.locations[_timezone];
-                              if (currentLocation != null) {
-                                _startDate =
-                                    TZDateTime.from(date, currentLocation);
-                                _event?.start = _combineDateWithTime(
-                                    _startDate, _startTime);
-                              }
-                            });
-                          },
-                          selectTime: (TimeOfDay time) {
-                            setState(
-                              () {
-                                _startTime = time;
-                                _event?.start = _combineDateWithTime(
-                                    _startDate, _startTime);
-                              },
-                            );
-                          },
+                      if (_startDate != null)
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: DateTimePicker(
+                            labelText: 'From',
+                            enableTime: _event?.allDay == false,
+                            selectedDate: _startDate,
+                            selectedTime: _startTime,
+                            selectDate: (DateTime date) {
+                              setState(() {
+                                var currentLocation =
+                                    timeZoneDatabase.locations[_timezone];
+                                if (currentLocation != null) {
+                                  _startDate =
+                                      TZDateTime.from(date, currentLocation);
+                                  _event?.start = _combineDateWithTime(
+                                      _startDate, _startTime);
+                                }
+                              });
+                            },
+                            selectTime: (TimeOfDay time) {
+                              setState(
+                                () {
+                                  _startTime = time;
+                                  _event?.start = _combineDateWithTime(
+                                      _startDate, _startTime);
+                                },
+                              );
+                            },
+                          ),
                         ),
-                      ),
                       if ((_event?.allDay == false) && Platform.isAndroid)
                         Padding(
                           padding: const EdgeInsets.all(10.0),
@@ -403,14 +404,14 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       ListView.builder(
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
-                        itemCount: (_attendees ?? []).length,
+                        itemCount: _attendees?.length ?? 0,
                         itemBuilder: (context, index) {
                           return Container(
                             color: (_attendees?[index].isOrganiser ?? false)
                                 ? MediaQuery.of(context).platformBrightness ==
-                                Brightness.dark
-                                ? Colors.black26
-                                : Colors.greenAccent[100]
+                                        Brightness.dark
+                                    ? Colors.black26
+                                    : Colors.greenAccent[100]
                                 : Colors.transparent,
                             child: ListTile(
                               onTap: () async {
@@ -537,7 +538,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               spacing: 10.0,
                               children: [
                                 const Icon(Icons.alarm),
-                                if (_reminders?.isEmpty ?? false)
+                                if (_reminders?.isEmpty ?? true)
                                   Text(_calendar.isReadOnly == false
                                       ? 'Add reminders'
                                       : 'Reminders'),
@@ -973,6 +974,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                   AutovalidateMode.always; // Start validating on every change.
               showInSnackBar(
                   context, 'Please fix the errors in red before submitting.');
+              return;
             } else {
               form?.save();
               _adjustStartEnd();
