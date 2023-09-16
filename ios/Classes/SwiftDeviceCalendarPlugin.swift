@@ -916,15 +916,26 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             completion(true)
             return
         }
-        eventStore.requestAccess(to: .event, completion: {
-            (accessGranted: Bool, _: Error?) in
-            completion(accessGranted)
-        })
+        if #available(iOS 17, *) {
+            eventStore.requestFullAccessToEvents {
+                (accessGranted: Bool, _: Error?) in
+                completion(accessGranted)
+            }
+        } else {
+            eventStore.requestAccess(to: .event, completion: {
+                (accessGranted: Bool, _: Error?) in
+                completion(accessGranted)
+            })
+        }
     }
 
     private func hasEventPermissions() -> Bool {
         let status = EKEventStore.authorizationStatus(for: .event)
-        return status == EKAuthorizationStatus.authorized
+        if #available(iOS 17, *) {
+            return status == EKAuthorizationStatus.fullAccess
+        } else {
+            return status == EKAuthorizationStatus.authorized
+        }
     }
 
     private func requestPermissions(_ result: @escaping FlutterResult) {
