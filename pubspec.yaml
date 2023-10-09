@@ -9,7 +9,11 @@ dependencies:
   collection: ^1.16.0
   sprintf: ^7.0.0
   timezone: ^0.9.0
-  flutter_native_timezone: ^2.0.0
+  flutter_native_timezone:
+    git:
+      ref: a9669f7e84fb704dc85dc7c88f771f36d52bf318
+      url: git@github.com:curefit/flutter_native_timezone.git
+      path: .
 
 dev_dependencies:
   flutter_test:
