@@ -7,16 +7,14 @@ dependencies:
   flutter:
     sdk: flutter
   collection: ^1.16.0
-  sprintf: ^7.0.0
   timezone: ^0.9.0
-  flutter_native_timezone: ^2.0.0
+  rrule: ^0.2.10
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.1
 
-# The following section is specific to Flutter.
 flutter:
   plugin:
     platforms:
@@ -28,4 +26,4 @@ flutter:
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=1.12.13"
+  flutter: ">=1.20.0"

@@ -170,7 +170,42 @@ class Event {
     }
 
     if (json['recurrenceRule'] != null) {
+      // debugPrint(
+      //     "EVENT_MODEL: $title; START: $start, END: $end RRULE = ${json['recurrenceRule']}");
+
+      //TODO: If we don't cast it to List<String>, the rrule package throws an error as it detects it as List<dynamic> ('Invalid JSON in 'byday'')
+      if (json['recurrenceRule']['byday'] != null) {
+        json['recurrenceRule']['byday'] =
+            json['recurrenceRule']['byday'].cast<String>();
+      }
+      //TODO: If we don't cast it to List<int>, the rrule package throws an error as it detects it as List<dynamic> ('Invalid JSON in 'bymonthday'')
+      if (json['recurrenceRule']['bymonthday'] != null) {
+        json['recurrenceRule']['bymonthday'] =
+            json['recurrenceRule']['bymonthday'].cast<int>();
+      }
+      //TODO: If we don't cast it to List<int>, the rrule package throws an error as it detects it as List<dynamic> ('Invalid JSON in 'byyearday'')
+      if (json['recurrenceRule']['byyearday'] != null) {
+        json['recurrenceRule']['byyearday'] =
+            json['recurrenceRule']['byyearday'].cast<int>();
+      }
+      //TODO: If we don't cast it to List<int>, the rrule package throws an error as it detects it as List<dynamic> ('Invalid JSON in 'byweekno'')
+      if (json['recurrenceRule']['byweekno'] != null) {
+        json['recurrenceRule']['byweekno'] =
+            json['recurrenceRule']['byweekno'].cast<int>();
+      }
+      //TODO: If we don't cast it to List<int>, the rrule package throws an error as it detects it as List<dynamic> ('Invalid JSON in 'bymonth'')
+      if (json['recurrenceRule']['bymonth'] != null) {
+        json['recurrenceRule']['bymonth'] =
+            json['recurrenceRule']['bymonth'].cast<int>();
+      }
+      //TODO: If we don't cast it to List<int>, the rrule package throws an error as it detects it as List<dynamic> ('Invalid JSON in 'bysetpos'')
+      if (json['recurrenceRule']['bysetpos'] != null) {
+        json['recurrenceRule']['bysetpos'] =
+            json['recurrenceRule']['bysetpos'].cast<int>();
+      }
+      // debugPrint("EVENT_MODEL: $title; RRULE = ${json['recurrenceRule']}");
       recurrenceRule = RecurrenceRule.fromJson(json['recurrenceRule']);
+      // debugPrint("EVENT_MODEL_recurrenceRule: ${recurrenceRule.toString()}");
     }
 
     if (json['reminders'] != null) {
@@ -214,12 +249,13 @@ class Event {
 
     if (recurrenceRule != null) {
       data['recurrenceRule'] = recurrenceRule?.toJson();
+      // print("EVENT_TO_JSON_RRULE: ${recurrenceRule?.toJson()}");
     }
 
     if (reminders != null) {
       data['reminders'] = reminders?.map((r) => r.toJson()).toList();
     }
-
+    // debugPrint("EVENT_TO_JSON: $data");
     return data;
   }
 

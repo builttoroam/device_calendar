@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sprintf/sprintf.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart';
 
@@ -80,42 +79,48 @@ class DeviceCalendarPlugin {
     String? calendarId,
     RetrieveEventsParams? retrieveEventsParams,
   ) async {
-    return _invokeChannelMethod(
-      ChannelConstants.methodNameRetrieveEvents,
-      assertParameters: (result) {
-        _validateCalendarIdParameter(
-          result,
-          calendarId,
-        );
+    return _invokeChannelMethod(ChannelConstants.methodNameRetrieveEvents,
+        assertParameters: (result) {
+          _validateCalendarIdParameter(
+            result,
+            calendarId,
+          );
 
-        _assertParameter(
-          result,
-          !((retrieveEventsParams?.eventIds?.isEmpty ?? true) &&
-              ((retrieveEventsParams?.startDate == null ||
-                      retrieveEventsParams?.endDate == null) ||
-                  (retrieveEventsParams?.startDate != null &&
-                      retrieveEventsParams?.endDate != null &&
-                      (retrieveEventsParams != null &&
-                          retrieveEventsParams.startDate!
-                              .isAfter(retrieveEventsParams.endDate!))))),
-          ErrorCodes.invalidArguments,
-          ErrorMessages.invalidRetrieveEventsParams,
-        );
-      },
-      arguments: () => <String, Object?>{
-        ChannelConstants.parameterNameCalendarId: calendarId,
-        ChannelConstants.parameterNameStartDate:
-            retrieveEventsParams?.startDate?.millisecondsSinceEpoch,
-        ChannelConstants.parameterNameEndDate:
-            retrieveEventsParams?.endDate?.millisecondsSinceEpoch,
-        ChannelConstants.parameterNameEventIds: retrieveEventsParams?.eventIds,
-      },
-      evaluateResponse: (rawData) => UnmodifiableListView(
+          _assertParameter(
+            result,
+            !((retrieveEventsParams?.eventIds?.isEmpty ?? true) &&
+                ((retrieveEventsParams?.startDate == null ||
+                        retrieveEventsParams?.endDate == null) ||
+                    (retrieveEventsParams?.startDate != null &&
+                        retrieveEventsParams?.endDate != null &&
+                        (retrieveEventsParams != null &&
+                            retrieveEventsParams.startDate!
+                                .isAfter(retrieveEventsParams.endDate!))))),
+            ErrorCodes.invalidArguments,
+            ErrorMessages.invalidRetrieveEventsParams,
+          );
+        },
+        arguments: () => <String, Object?>{
+              ChannelConstants.parameterNameCalendarId: calendarId,
+              ChannelConstants.parameterNameStartDate:
+                  retrieveEventsParams?.startDate?.millisecondsSinceEpoch,
+              ChannelConstants.parameterNameEndDate:
+                  retrieveEventsParams?.endDate?.millisecondsSinceEpoch,
+              ChannelConstants.parameterNameEventIds:
+                  retrieveEventsParams?.eventIds,
+            },
+        /*evaluateResponse: (rawData) => UnmodifiableListView(
         json
             .decode(rawData)
             .map<Event>((decodedEvent) => Event.fromJson(decodedEvent)),
-      ),
-    );
+      ),*/
+        evaluateResponse: (rawData) => UnmodifiableListView(
+              json.decode(rawData).map<Event>((decodedEvent) {
+                // debugPrint(
+                //     "JSON_RRULE: ${decodedEvent['recurrenceRule']}, ${(decodedEvent['recurrenceRule']['byday'])}");
+                return Event.fromJson(decodedEvent);
+              }),
+            ));
   }
 
   /// Deletes an event from a calendar. For a recurring event, this will delete all instances of it.\
@@ -363,8 +368,15 @@ class DeviceCalendarPlugin {
       } else {
         result.data = rawData;
       }
-    } catch (e) {
-      _parsePlatformExceptionAndUpdateResult<T>(e as Exception?, result);
+    } catch (e, s) {
+      if (e is ArgumentError) {
+        debugPrint(
+            "INVOKE_CHANNEL_METHOD_ERROR! Name: ${e.name}, InvalidValue: ${e.invalidValue}, Message: ${e.message}, ${e.toString()}");
+      } else if (e is PlatformException) {
+        debugPrint('INVOKE_CHANNEL_METHOD_ERROR: $e\n$s');
+      } else {
+        _parsePlatformExceptionAndUpdateResult<T>(e as Exception?, result);
+      }
     }
 
     return result;
@@ -382,22 +394,20 @@ class DeviceCalendarPlugin {
       return;
     }
 
-    print(exception);
+    debugPrint('$exception');
 
     if (exception is PlatformException) {
       result.errors.add(
         ResultError(
           ErrorCodes.platformSpecific,
-          sprintf(ErrorMessages.unknownDeviceExceptionTemplate,
-              [exception.code, exception.message]),
+          '${ErrorMessages.unknownDeviceExceptionTemplate}, Code: ${exception.code}, Exception: ${exception.message}',
         ),
       );
     } else {
       result.errors.add(
         ResultError(
           ErrorCodes.generic,
-          sprintf(ErrorMessages.unknownDeviceGenericExceptionTemplate,
-              [exception.toString()]),
+          '${ErrorMessages.unknownDeviceGenericExceptionTemplate} ${exception.toString}',
         ),
       );
     }
@@ -409,6 +419,9 @@ class DeviceCalendarPlugin {
     int errorCode,
     String errorMessage,
   ) {
+    if (result.data != null) {
+      debugPrint("RESULT of _assertParameter: ${result.data}");
+    }
     if (!predicate) {
       result.errors.add(
         ResultError(errorCode, errorMessage),

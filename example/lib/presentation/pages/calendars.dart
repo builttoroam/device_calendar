@@ -1,7 +1,7 @@
 import 'package:device_calendar/device_calendar.dart';
 import 'package:device_calendar_example/presentation/pages/calendar_add.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'calendar_events.dart';
 
@@ -146,8 +146,8 @@ class _CalendarsPageState extends State<CalendarsPage> {
       setState(() {
         _calendars = calendarsResult.data as List<Calendar>;
       });
-    } on PlatformException catch (e) {
-      print(e);
+    } on PlatformException catch (e, s) {
+      debugPrint('RETRIEVE_CALENDARS: $e, $s');
     }
   }
 
