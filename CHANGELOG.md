@@ -2,6 +2,10 @@
 
 <!-- To benefit from the current changelog reader in CI/CD, please follow the changelog format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). -->
 
+## [4.3.2](https://github.com/builttoroam/device_calendar/releases/tag/4.3.2)
+
+- Removed unnecessary package to reduce build error
+
 ## [4.3.1](https://github.com/builttoroam/device_calendar/releases/tag/4.3.1)
 
 - Fixed an [issue](https://github.com/builttoroam/device_calendar/issues/470) that prevented the plugin from being used with Kotlin 1.7.10
@@ -9,7 +13,7 @@
 ## [4.3.0](https://github.com/builttoroam/device_calendar/releases/tag/4.3.0)
 
 - Updated multiple underlying dependencies
-  - *Note:* `timezone 0.9.0` [removed named database files](https://pub.dev/packages/timezone/changelog#090). If you are only using `device_calendar`, you can ignore this note.
+  - _Note:_ `timezone 0.9.0` [removed named database files](https://pub.dev/packages/timezone/changelog#090). If you are only using `device_calendar`, you can ignore this note.
 - Added support for all-day multi-day events on iOS
 - Fixed iOS issue of adding attendees to events
 - Fixed Android issue of the `ownerAccount` being null
@@ -114,7 +118,7 @@
 
 ## 1.0.0 28th August 2019
 
-- **BREAKING CHANGE** `retrieveCalendars` and `retrieveEvents` now return lists that cannot be modified (`UnmodifiableListView`) to address part of  issue [113](https://github.com/builttoroam/device_calendar/issues/113)
+- **BREAKING CHANGE** `retrieveCalendars` and `retrieveEvents` now return lists that cannot be modified (`UnmodifiableListView`) to address part of issue [113](https://github.com/builttoroam/device_calendar/issues/113)
 - Support for more advanced recurrence rules
 - Update README to include information about using ProGuard for issue [99](https://github.com/builttoroam/device_calendar/issues/99)
 - Made event title optional to fix issue [72](https://github.com/builttoroam/device_calendar/issues/72)
