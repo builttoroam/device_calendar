@@ -1,0 +1,34 @@
+PODS:
+  - device_calendar (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+  - flutter_native_timezone (0.0.1):
+    - Flutter
+  - integration_test (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - device_calendar (from `.symlinks/plugins/device_calendar/ios`)
+  - Flutter (from `Flutter`)
+  - flutter_native_timezone (from `.symlinks/plugins/flutter_native_timezone/ios`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
+
+EXTERNAL SOURCES:
+  device_calendar:
+    :path: ".symlinks/plugins/device_calendar/ios"
+  Flutter:
+    :path: Flutter
+  flutter_native_timezone:
+    :path: ".symlinks/plugins/flutter_native_timezone/ios"
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
+
+SPEC CHECKSUMS:
+  device_calendar: 9cb33f88a02e19652ec7b8b122ca778f751b1f7b
+  Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  flutter_native_timezone: 5f05b2de06c9776b4cc70e1839f03de178394d22
+  integration_test: 13825b8a9334a850581300559b8839134b124670
+
+PODFILE CHECKSUM: 10625bdc9b9ef8574174815aabd5b048e6e29bff
+
+COCOAPODS: 1.11.3
