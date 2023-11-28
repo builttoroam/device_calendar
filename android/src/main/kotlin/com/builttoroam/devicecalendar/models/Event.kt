@@ -18,4 +18,7 @@ class Event {
     var reminders: MutableList<Reminder> = mutableListOf()
     var availability: Availability? = null
     var eventStatus: EventStatus? = null
+//    #####
+    var eventColor: Long? = null
+
 }

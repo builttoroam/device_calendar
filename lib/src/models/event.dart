@@ -49,6 +49,10 @@ class Event {
   /// Indicates if this event is of confirmed, canceled, tentative or none status
   EventStatus? status;
 
+  //#####
+  /// Read-only. Color of the event
+  int? color;
+
   ///Note for development:
   ///
   ///JSON field names are coded in dart, swift and kotlin to facilitate data exchange.
@@ -59,20 +63,23 @@ class Event {
   ///`android/src/main/kotlin/com/builttoroam/devicecalendar/models/Event.kt`
   ///`android/src/main/kotlin/com/builttoroam/devicecalendar/CalendarDelegate.kt`
   ///`android/src/main/kotlin/com/builttoroam/devicecalendar/DeviceCalendarPlugin.kt`
-  Event(this.calendarId,
-      {this.eventId,
-      this.title,
-      this.start,
-      this.end,
-      this.description,
-      this.attendees,
-      this.recurrenceRule,
-      this.reminders,
-      this.availability = Availability.Busy,
-      this.location,
-      this.url,
-      this.allDay = false,
-      this.status});
+  Event(
+    this.calendarId, {
+    this.eventId,
+    this.title,
+    this.start,
+    this.end,
+    this.description,
+    this.attendees,
+    this.recurrenceRule,
+    this.reminders,
+    this.availability = Availability.Busy,
+    this.location,
+    this.url,
+    this.allDay = false,
+    this.status,
+    this.color,
+  });
 
   ///Get Event from JSON.
   ///
@@ -110,22 +117,19 @@ class Event {
     calendarId = json['calendarId'];
     title = json['eventTitle'];
     description = json['eventDescription'];
+    color = json['eventColor']; //#####
 
     startTimestamp = json['eventStartDate'];
     startLocationName = json['eventStartTimeZone'];
     var startTimeZone = timeZoneDatabase.locations[startLocationName];
     startTimeZone ??= local;
-    start = startTimestamp != null
-        ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp)
-        : TZDateTime.now(local);
+    start = startTimestamp != null ? TZDateTime.fromMillisecondsSinceEpoch(startTimeZone, startTimestamp) : TZDateTime.now(local);
 
     endTimestamp = json['eventEndDate'];
     endLocationName = json['eventEndTimeZone'];
     var endLocation = timeZoneDatabase.locations[endLocationName];
     endLocation ??= startTimeZone;
-    end = endTimestamp != null
-        ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
-        : TZDateTime.now(local);
+    end = endTimestamp != null ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp) : TZDateTime.now(local);
     allDay = json['eventAllDay'] ?? false;
     if (Platform.isAndroid && (allDay ?? false)) {
       // On Android, the datetime in an allDay event is adjusted to local
@@ -161,9 +165,7 @@ class Event {
       // Getting and setting an organiser for iOS
       var organiser = Attendee.fromJson(json['organizer']);
 
-      var attendee = attendees?.firstWhereOrNull((at) =>
-          at?.name == organiser.name &&
-          at?.emailAddress == organiser.emailAddress);
+      var attendee = attendees?.firstWhereOrNull((at) => at?.name == organiser.name && at?.emailAddress == organiser.emailAddress);
       if (attendee != null) {
         attendee.isOrganiser = true;
       }
@@ -175,33 +177,27 @@ class Event {
 
       //TODO: If we don't cast it to List<String>, the rrule package throws an error as it detects it as List<dynamic> ('Invalid JSON in 'byday'')
       if (json['recurrenceRule']['byday'] != null) {
-        json['recurrenceRule']['byday'] =
-            json['recurrenceRule']['byday'].cast<String>();
+        json['recurrenceRule']['byday'] = json['recurrenceRule']['byday'].cast<String>();
       }
       //TODO: If we don't cast it to List<int>, the rrule package throws an error as it detects it as List<dynamic> ('Invalid JSON in 'bymonthday'')
       if (json['recurrenceRule']['bymonthday'] != null) {
-        json['recurrenceRule']['bymonthday'] =
-            json['recurrenceRule']['bymonthday'].cast<int>();
+        json['recurrenceRule']['bymonthday'] = json['recurrenceRule']['bymonthday'].cast<int>();
       }
       //TODO: If we don't cast it to List<int>, the rrule package throws an error as it detects it as List<dynamic> ('Invalid JSON in 'byyearday'')
       if (json['recurrenceRule']['byyearday'] != null) {
-        json['recurrenceRule']['byyearday'] =
-            json['recurrenceRule']['byyearday'].cast<int>();
+        json['recurrenceRule']['byyearday'] = json['recurrenceRule']['byyearday'].cast<int>();
       }
       //TODO: If we don't cast it to List<int>, the rrule package throws an error as it detects it as List<dynamic> ('Invalid JSON in 'byweekno'')
       if (json['recurrenceRule']['byweekno'] != null) {
-        json['recurrenceRule']['byweekno'] =
-            json['recurrenceRule']['byweekno'].cast<int>();
+        json['recurrenceRule']['byweekno'] = json['recurrenceRule']['byweekno'].cast<int>();
       }
       //TODO: If we don't cast it to List<int>, the rrule package throws an error as it detects it as List<dynamic> ('Invalid JSON in 'bymonth'')
       if (json['recurrenceRule']['bymonth'] != null) {
-        json['recurrenceRule']['bymonth'] =
-            json['recurrenceRule']['bymonth'].cast<int>();
+        json['recurrenceRule']['bymonth'] = json['recurrenceRule']['bymonth'].cast<int>();
       }
       //TODO: If we don't cast it to List<int>, the rrule package throws an error as it detects it as List<dynamic> ('Invalid JSON in 'bysetpos'')
       if (json['recurrenceRule']['bysetpos'] != null) {
-        json['recurrenceRule']['bysetpos'] =
-            json['recurrenceRule']['bysetpos'].cast<int>();
+        json['recurrenceRule']['bysetpos'] = json['recurrenceRule']['bysetpos'].cast<int>();
       }
       // debugPrint("EVENT_MODEL: $title; RRULE = ${json['recurrenceRule']}");
       recurrenceRule = RecurrenceRule.fromJson(json['recurrenceRule']);
@@ -214,8 +210,7 @@ class Event {
       }).toList();
     }
     if (legacyJSON) {
-      throw const FormatException(
-          'legacy JSON detected. Please update your current JSONs as they may not be supported later on.');
+      throw const FormatException('legacy JSON detected. Please update your current JSONs as they may not be supported later on.');
     }
   }
 
@@ -226,25 +221,23 @@ class Event {
     data['eventId'] = eventId;
     data['eventTitle'] = title;
     data['eventDescription'] = description;
-    data['eventStartDate'] = start?.millisecondsSinceEpoch ??
-        TZDateTime.now(local).millisecondsSinceEpoch;
+    data['eventStartDate'] = start?.millisecondsSinceEpoch ?? TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventStartTimeZone'] = start?.location.name;
-    data['eventEndDate'] = end?.millisecondsSinceEpoch ??
-        TZDateTime.now(local).millisecondsSinceEpoch;
+    data['eventEndDate'] = end?.millisecondsSinceEpoch ?? TZDateTime.now(local).millisecondsSinceEpoch;
     data['eventEndTimeZone'] = end?.location.name;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
     data['eventURL'] = url?.data?.contentText;
     data['availability'] = availability.enumToString;
     data['eventStatus'] = status?.enumToString;
+    data['eventColor'] = color; //#####
 
     if (attendees != null) {
       data['attendees'] = attendees?.map((a) => a?.toJson()).toList();
     }
 
     if (attendees != null) {
-      data['organizer'] =
-          attendees?.firstWhereOrNull((a) => a!.isOrganiser)?.toJson();
+      data['organizer'] = attendees?.firstWhereOrNull((a) => a!.isOrganiser)?.toJson();
     }
 
     if (recurrenceRule != null) {
