@@ -25,7 +25,7 @@ class Constants {
             CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,         // 5
             CalendarContract.Calendars.CALENDAR_COLOR,                // 6
             CalendarContract.Calendars.IS_PRIMARY,                    // 7
-            NAME                                                      // 8
+            "name"                                                    // 8
         )
 
         // API 16 or lower
