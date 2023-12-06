@@ -21,14 +21,19 @@ class Calendar {
   // Read-only. Account type associated with the calendar
   String? accountType;
 
-  Calendar(
-      {this.id,
-      this.name,
-      this.isReadOnly,
-      this.isDefault,
-      this.color,
-      this.accountName,
-      this.accountType});
+  /// The name of this calendar (the other one up is the "display name")
+  String? name_;
+
+  Calendar({
+    this.id,
+    this.name,
+    this.isReadOnly,
+    this.isDefault,
+    this.color,
+    this.accountName,
+    this.accountType,
+    this.name_,
+  });
 
   Calendar.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -38,6 +43,7 @@ class Calendar {
     color = json['color'];
     accountName = json['accountName'];
     accountType = json['accountType'];
+    name_ = json['name_'];
   }
 
   Map<String, dynamic> toJson() {
@@ -48,7 +54,8 @@ class Calendar {
       'isDefault': isDefault,
       'color': color,
       'accountName': accountName,
-      'accountType': accountType
+      'accountType': accountType,
+      'name_': name_
     };
 
     return data;
