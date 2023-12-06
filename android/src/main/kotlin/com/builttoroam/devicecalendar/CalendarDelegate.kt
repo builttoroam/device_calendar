@@ -901,7 +901,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         val accountName = cursor.getString(Cst.CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX)
         val accountType = cursor.getString(Cst.CALENDAR_PROJECTION_ACCOUNT_TYPE_INDEX)
         val ownerAccount = cursor.getString(Cst.CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX)
-        val name = cursor.getString(Cst.CALENDAR_PROJECTION_NAME_INDEX)
+//        val name = cursor.getString(Cst.CALENDAR_PROJECTION_NAME_INDEX)
 
 
         val calendar = Calendar(
@@ -911,7 +911,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
             accountName,
             accountType,
             ownerAccount,
-            name,
+//            name,
         )
 
         calendar.isReadOnly = isCalendarReadOnly(accessLevel)

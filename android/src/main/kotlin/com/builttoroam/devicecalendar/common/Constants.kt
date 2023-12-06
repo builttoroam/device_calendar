@@ -12,7 +12,7 @@ class Constants {
         const val CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX: Int = 5
         const val CALENDAR_PROJECTION_COLOR_INDEX: Int = 6
         const val CALENDAR_PROJECTION_IS_PRIMARY_INDEX: Int = 7
-        const val CALENDAR_PROJECTION_NAME_INDEX: Int = 8
+//        const val CALENDAR_PROJECTION_NAME_INDEX: Int = 8
 
 
         // API 17 or higher
@@ -25,7 +25,7 @@ class Constants {
             CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,         // 5
             CalendarContract.Calendars.CALENDAR_COLOR,                // 6
             CalendarContract.Calendars.IS_PRIMARY,                    // 7
-            "name"                                                    // 8
+//            CalendarContract.Calendars.NAME                           // 8
         )
 
         // API 16 or lower

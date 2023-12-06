@@ -32,7 +32,7 @@ class Calendar {
     this.color,
     this.accountName,
     this.accountType,
-    this.name_,
+    // this.name_,
   });
 
   Calendar.fromJson(Map<String, dynamic> json) {
@@ -43,7 +43,7 @@ class Calendar {
     color = json['color'];
     accountName = json['accountName'];
     accountType = json['accountType'];
-    name_ = json['name_'];
+    // name_ = json['name_'];
   }
 
   Map<String, dynamic> toJson() {
@@ -55,7 +55,7 @@ class Calendar {
       'color': color,
       'accountName': accountName,
       'accountType': accountType,
-      'name_': name_
+      // 'name_': name_
     };
 
     return data;
