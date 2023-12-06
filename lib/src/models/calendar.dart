@@ -22,7 +22,7 @@ class Calendar {
   String? accountType;
 
   /// The name of this calendar (the other one up is the "display name")
-  String? name_;
+  // String? name_;
 
   Calendar({
     this.id,
