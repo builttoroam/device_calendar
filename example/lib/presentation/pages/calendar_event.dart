@@ -864,7 +864,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                   ElevatedButton(
                     key: const Key('deleteEventButton'),
                     style: ElevatedButton.styleFrom(
-                        primary: Colors.red, onPrimary: Colors.white),
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.red,
+                    ),
                     onPressed: () async {
                       bool? result = true;
                       if (!_isRecurringEvent) {
