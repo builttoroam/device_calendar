@@ -2,6 +2,10 @@
 
 <!-- To benefit from the current changelog reader in CI/CD, please follow the changelog format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). -->
 
+## [4.3.3](https://github.com/builttoroam/device_calendar/releases/tag/4.3.3)
+
+- Fixed an [issue](https://github.com/builttoroam/device_calendar/issues/490) that prevented the plugin from being used with iOS 17+
+
 ## [4.3.2](https://github.com/builttoroam/device_calendar/releases/tag/4.3.2)
 
 - Removed unnecessary package to reduce build error
