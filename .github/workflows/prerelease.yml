@@ -17,6 +17,8 @@ jobs:
     name: Development Release
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required for authentication using OIDC
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -36,13 +38,8 @@ jobs:
         run: |
           sed -i "0,/\#\# \[.*/s//## [${{steps.changelog_reader.outputs.version}}-$GITHUB_RUN_ID]/" CHANGELOG.md
           cat CHANGELOG.md
-      - name: Setup credentials
-        run: |
-          cat <<EOF > $PUB_CACHE/credentials.json
-          ${{ secrets.CREDENTIALS }}
-          EOF
       - name: Publish package
-        run: flutter pub publish --force
+        uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
       - name: Add entry to Github release
         uses: softprops/action-gh-release@v1
         with:
