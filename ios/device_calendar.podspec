@@ -4,13 +4,13 @@
 Pod::Spec.new do |s|
   s.name             = 'device_calendar'
   s.version          = '0.0.1'
-  s.summary          = 'A new flutter plugin project.'
+  s.summary          = 'Cross Platform plugin to modify calendars'
   s.description      = <<-DESC
-A new flutter plugin project.
+  A cross platform plugin for modifying calendars on the user's device
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'https://github.com/builttoroam/device_calendar'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { 'Built to Roam' => 'info@builttoroam.com' }
   s.source           = { :path => '.' }
   s.swift_version = '5.0'
   s.source_files = 'Classes/**/*'
@@ -18,5 +18,6 @@ A new flutter plugin project.
   s.dependency 'Flutter'
   
   s.ios.deployment_target = '8.0'
+  s.resource_bundles = {'device_calendar' => ['Resources/PrivacyInfo.xcprivacy']}
 end
 
