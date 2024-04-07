@@ -625,6 +625,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         values.put(Events.DTEND, end)
         values.put(Events.EVENT_END_TIMEZONE, endTimeZone)
         values.put(Events.DURATION, duration)
+        values.put(Events.EVENT_COLOR, event.eventColor)
         return values
     }
 
