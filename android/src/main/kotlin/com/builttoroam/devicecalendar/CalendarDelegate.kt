@@ -625,6 +625,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         values.put(Events.DTEND, end)
         values.put(Events.EVENT_END_TIMEZONE, endTimeZone)
         values.put(Events.DURATION, duration)
+        values.put(Events.EVENT_COLOR, event.eventColor)
         return values
     }
 
@@ -901,6 +902,8 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         val accountName = cursor.getString(Cst.CALENDAR_PROJECTION_ACCOUNT_NAME_INDEX)
         val accountType = cursor.getString(Cst.CALENDAR_PROJECTION_ACCOUNT_TYPE_INDEX)
         val ownerAccount = cursor.getString(Cst.CALENDAR_PROJECTION_OWNER_ACCOUNT_INDEX)
+//        val name = cursor.getString(Cst.CALENDAR_PROJECTION_NAME_INDEX)
+
 
         val calendar = Calendar(
             calId.toString(),
@@ -908,7 +911,8 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
             calendarColor,
             accountName,
             accountType,
-            ownerAccount
+            ownerAccount,
+//            name,
         )
 
         calendar.isReadOnly = isCalendarReadOnly(accessLevel)
@@ -938,6 +942,8 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         val endTimeZone = cursor.getString(Cst.EVENT_PROJECTION_END_TIMEZONE_INDEX)
         val availability = parseAvailability(cursor.getInt(Cst.EVENT_PROJECTION_AVAILABILITY_INDEX))
         val eventStatus = parseEventStatus(cursor.getInt(Cst.EVENT_PROJECTION_STATUS_INDEX))
+        val eventColor = cursor.getLong(Cst.EVENT_PROJECTION_EVENT_COLOR_INDEX)
+
         val event = Event()
         event.eventTitle = title ?: "New Event"
         event.eventId = eventId.toString()
@@ -953,6 +959,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         event.eventEndTimeZone = endTimeZone
         event.availability = availability
         event.eventStatus = eventStatus
+        event.eventColor = eventColor
 
         return event
     }

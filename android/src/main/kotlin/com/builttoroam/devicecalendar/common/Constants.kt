@@ -12,6 +12,8 @@ class Constants {
         const val CALENDAR_PROJECTION_ACCESS_LEVEL_INDEX: Int = 5
         const val CALENDAR_PROJECTION_COLOR_INDEX: Int = 6
         const val CALENDAR_PROJECTION_IS_PRIMARY_INDEX: Int = 7
+//        const val CALENDAR_PROJECTION_NAME_INDEX: Int = 8
+
 
         // API 17 or higher
         val CALENDAR_PROJECTION: Array<String> = arrayOf(
@@ -22,8 +24,8 @@ class Constants {
             CalendarContract.Calendars.OWNER_ACCOUNT,                 // 4
             CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,         // 5
             CalendarContract.Calendars.CALENDAR_COLOR,                // 6
-            CalendarContract.Calendars.IS_PRIMARY                     // 7
-
+            CalendarContract.Calendars.IS_PRIMARY,                    // 7
+//            CalendarContract.Calendars.NAME                           // 8
         )
 
         // API 16 or lower
@@ -50,6 +52,8 @@ class Constants {
         const val EVENT_PROJECTION_END_TIMEZONE_INDEX: Int = 12
         const val EVENT_PROJECTION_AVAILABILITY_INDEX: Int = 13
         const val EVENT_PROJECTION_STATUS_INDEX: Int = 14
+        const val EVENT_PROJECTION_EVENT_COLOR_INDEX: Int = 15
+
 
         val EVENT_PROJECTION: Array<String> = arrayOf(
                 CalendarContract.Instances.EVENT_ID,
@@ -66,7 +70,8 @@ class Constants {
                 CalendarContract.Events.EVENT_TIMEZONE,
                 CalendarContract.Events.EVENT_END_TIMEZONE,
                 CalendarContract.Events.AVAILABILITY,
-                CalendarContract.Events.STATUS
+                CalendarContract.Events.STATUS,
+                CalendarContract.Events.EVENT_COLOR,
         )
 
         const val EVENT_INSTANCE_DELETION_ID_INDEX: Int = 0

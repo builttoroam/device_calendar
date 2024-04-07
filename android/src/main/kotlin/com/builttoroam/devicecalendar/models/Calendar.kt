@@ -6,7 +6,8 @@ class Calendar(
     val color: Int,
     val accountName: String,
     val accountType: String,
-    val ownerAccount: String?
+    val ownerAccount: String?,
+//    val name_: String
 ) {
     var isReadOnly: Boolean = false
     var isDefault: Boolean = false
