@@ -302,11 +302,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             final colors = _eventColors;
                             if (colors != null) {
                               final newColor = await selectColorDialog(colors);
-                              if (newColor != null) {
-                                setState(() {
-                                  _event?.updateEventColor(newColor);
-                                });
-                              }}
+                              setState(() {
+                                _event?.updateEventColor(newColor);
+                              });
+                              }
                           },
                         ),
                       SwitchListTile(
@@ -1288,10 +1287,19 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   Future<EventColor?> selectColorDialog(List<EventColor> colors) async {
     return await showDialog<EventColor>(
         context: context,
+        barrierDismissible: false,
         builder: (BuildContext context) {
           return SimpleDialog(
             title: const Text('Select Event color'),
-            children: colors.map((color) =>
+            children: [
+              SimpleDialogOption(
+                onPressed: () { Navigator.pop(context, null); },
+                child:  const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('Reset', textAlign: TextAlign.center,),
+                ),
+              ),
+              ...colors.map((color) =>
                 SimpleDialogOption(
                   onPressed: () { Navigator.pop(context, color); },
                   child:  Container(
@@ -1302,7 +1310,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                         color: Color(color.color)),
                   ),
                 )
-            ).toList()
+            )]
           );
         }
     );
