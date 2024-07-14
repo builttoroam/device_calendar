@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:device_calendar/src/models/event_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -340,6 +341,21 @@ class DeviceCalendarPlugin {
         ChannelConstants.parameterNameEventId: eventId,
       },
     );
+  }
+
+   Future<List<EventColor>?> retrieveEventColors(Calendar calendar) async {
+    if (!Platform.isAndroid) {
+      return null;
+    }
+    final accountName = calendar.accountName;
+    if (accountName == null) {
+      return [];
+    }
+    final dynamic colors = await _invokeChannelMethod(ChannelConstants.methodNameRetrieveEventColors,
+      arguments: () => <String, String>{
+      ChannelConstants.parameterAccountName: accountName,
+    },);
+    return (colors.data as List).cast<List>().map((color) => EventColor(color[0], color[1])).toList();
   }
 
   Future<Result<T>> _invokeChannelMethod<T>(

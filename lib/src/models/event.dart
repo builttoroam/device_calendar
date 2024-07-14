@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'event_color.dart';
 
 import '../../device_calendar.dart';
 import '../common/error_messages.dart';
@@ -48,6 +49,15 @@ class Event {
 
   /// Indicates if this event is of confirmed, canceled, tentative or none status
   EventStatus? status;
+
+  /// Read-only. Color of the event
+  int? get color=> _color;
+
+  /// The color of this event
+  int? _color;
+
+  /// The color key of this event. This is needed to change the event color
+  int? _colorKey;
 
   ///Note for development:
   ///
@@ -110,6 +120,7 @@ class Event {
     calendarId = json['calendarId'];
     title = json['eventTitle'];
     description = json['eventDescription'];
+    _color = json['eventColor'];
 
     startTimestamp = json['eventStartDate'];
     startLocationName = json['eventStartTimeZone'];
@@ -237,6 +248,8 @@ class Event {
     data['eventURL'] = url?.data?.contentText;
     data['availability'] = availability.enumToString;
     data['eventStatus'] = status?.enumToString;
+    data['eventColor'] = color;
+    data['eventColorKey'] = _colorKey;
 
     if (attendees != null) {
       data['attendees'] = attendees?.map((a) => a?.toJson()).toList();
@@ -309,5 +322,10 @@ class Event {
     } on LocationNotFoundException {
       return false;
     }
+  }
+
+  void updateEventColor(EventColor eventColor) {
+    _color = eventColor.color;
+    _colorKey = eventColor.colorKey;
   }
 }
