@@ -324,8 +324,8 @@ class Event {
     }
   }
 
-  void updateEventColor(EventColor eventColor) {
-    _color = eventColor.color;
-    _colorKey = eventColor.colorKey;
+  void updateEventColor(EventColor? eventColor) {
+    _color = eventColor?.color;
+    _colorKey = eventColor?.colorKey;
   }
 }
