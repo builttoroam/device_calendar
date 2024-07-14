@@ -39,6 +39,8 @@ import com.builttoroam.devicecalendar.common.ErrorCodes.Companion as EC
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion as EM
 import org.dmfs.rfc5545.recur.Freq as RruleFreq
 import org.dmfs.rfc5545.recur.RecurrenceRule as Rrule
+import android.provider.CalendarContract.Colors
+import androidx.collection.SparseArrayCompat
 
 private const val RETRIEVE_CALENDARS_REQUEST_CODE = 0
 private const val RETRIEVE_EVENTS_REQUEST_CODE = RETRIEVE_CALENDARS_REQUEST_CODE + 1
@@ -625,6 +627,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         values.put(Events.DTEND, end)
         values.put(Events.EVENT_END_TIMEZONE, endTimeZone)
         values.put(Events.DURATION, duration)
+        values.put(Events.EVENT_COLOR_KEY, event.eventColorKey)
         return values
     }
 
@@ -938,6 +941,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         val endTimeZone = cursor.getString(Cst.EVENT_PROJECTION_END_TIMEZONE_INDEX)
         val availability = parseAvailability(cursor.getInt(Cst.EVENT_PROJECTION_AVAILABILITY_INDEX))
         val eventStatus = parseEventStatus(cursor.getInt(Cst.EVENT_PROJECTION_STATUS_INDEX))
+        val eventColor = cursor.getInt(Cst.EVENT_PROJECTION_EVENT_COLOR_INDEX)
         val event = Event()
         event.eventTitle = title ?: "New Event"
         event.eventId = eventId.toString()
@@ -953,6 +957,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         event.eventEndTimeZone = endTimeZone
         event.availability = availability
         event.eventStatus = eventStatus
+        event.eventColor = if (eventColor == 0) null else eventColor
 
         return event
     }
@@ -1123,6 +1128,54 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         }
 
         return reminders
+    }
+
+    /**
+     * load available event colors for the given account name
+     * unable to find official documentation, so logic is based on https://android.googlesource.com/platform/packages/apps/Calendar.git/+/refs/heads/pie-release/src/com/android/calendar/EventInfoFragment.java
+     **/
+    fun retrieveEventColors(accountName: String): List<Pair<Int, Int>> {
+        val contentResolver: ContentResolver? = _context?.contentResolver
+        val uri: Uri = Colors.CONTENT_URI
+        val colors = mutableListOf<Int>()
+        val displayColorKeyMap = SparseArrayCompat<Int>()
+
+        val projection = arrayOf(
+            Colors.COLOR,
+            Colors.COLOR_KEY,
+        )
+
+        // load only event colors for the given account name
+        val selection = "${Colors.COLOR_TYPE} = ? AND ${Colors.ACCOUNT_NAME} = ?"
+        val selectionArgs = arrayOf(Colors.TYPE_EVENT.toString(), accountName)
+
+        val cursor: Cursor? = contentResolver?.query(uri, projection, selection, selectionArgs, null)
+        cursor?.use {
+            while (it.moveToNext()) {
+                val color = it.getInt(it.getColumnIndexOrThrow(Colors.COLOR))
+                val colorKey = it.getInt(it.getColumnIndexOrThrow(Colors.COLOR_KEY))
+                displayColorKeyMap.put(color, colorKey);
+                colors.add(color)
+            }
+            cursor.close();
+            // sort colors by colorValue, since they are loaded unordered
+            colors.sortWith(HsvColorComparator())
+        }
+        return colors.map { Pair(it, displayColorKeyMap[it]!! ) }.toList()
+    }
+
+    /**
+     * Compares colors based on their hue values in the HSV color space.
+     * https://android.googlesource.com/platform/prebuilts/fullsdk/sources/+/refs/heads/androidx-compose-integration-release/android-34/com/android/colorpicker/HsvColorComparator.java
+     */
+    private class HsvColorComparator : Comparator<Int> {
+        override fun compare(color1: Int, color2: Int): Int {
+            val hsv1 = FloatArray(3)
+            val hsv2 = FloatArray(3)
+            Color.colorToHSV(color1, hsv1)
+            Color.colorToHSV(color2, hsv2)
+            return hsv1[0].compareTo(hsv2[0])
+        }
     }
 
     @Synchronized

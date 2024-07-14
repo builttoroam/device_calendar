@@ -18,14 +18,15 @@ class CalendarEventPage extends StatefulWidget {
   final Calendar _calendar;
   final Event? _event;
   final RecurringEventDialog? _recurringEventDialog;
+  final List<EventColor>? _eventColors;
 
   const CalendarEventPage(this._calendar,
-      [this._event, this._recurringEventDialog, Key? key])
+      [this._event, this._recurringEventDialog, this._eventColors, Key? key])
       : super(key: key);
 
   @override
   _CalendarEventPageState createState() {
-    return _CalendarEventPageState(_calendar, _event, _recurringEventDialog);
+    return _CalendarEventPageState(_calendar, _event, _recurringEventDialog, _eventColors);
   }
 }
 
@@ -61,10 +62,11 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   EventStatus? _eventStatus;
   List<Attendee>? _attendees;
   List<Reminder>? _reminders;
+  List<EventColor>? _eventColors;
   String _timezone = 'Etc/UTC';
 
   _CalendarEventPageState(
-      this._calendar, this._event, this._recurringEventDialog) {
+      this._calendar, this._event, this._recurringEventDialog, this._eventColors) {
     getCurentLocation();
   }
 
@@ -282,6 +284,30 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               );
                             }).toList(),
                           ),
+                        ),
+                      if (_eventColors?.isNotEmpty ?? false)
+                        ListTile(
+                          leading: const Text(
+                            'EventColor',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          trailing: widget._event?.color == null ? const Text("not set") :  Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(widget._event?.color ?? 0),
+                              )),
+                          onTap: () async {
+                            final colors = _eventColors;
+                            if (colors != null) {
+                              final newColor = await selectColorDialog(colors);
+                              if (newColor != null) {
+                                setState(() {
+                                  _event?.updateEventColor(newColor);
+                                });
+                              }}
+                          },
                         ),
                       SwitchListTile(
                         value: _event?.allDay ?? false,
@@ -674,11 +700,11 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               setState(() {
                                 if (value) {
                                   _rrule = _rrule?.copyWith(
-                                      byMonthDays: {1}, byWeekDays: {});
+                                      byMonthDays: [1], byWeekDays: []);
                                 } else {
                                   _rrule = _rrule?.copyWith(
-                                      byMonthDays: {},
-                                      byWeekDays: {ByWeekDayEntry(1, 1)});
+                                      byMonthDays: [],
+                                      byWeekDays: [ByWeekDayEntry(1, 1)]);
                                 }
                               });
                             },
@@ -694,7 +720,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 if (value != null) {
                                   setState(() {
                                     _rrule = _rrule
-                                        ?.copyWith(byMonths: {value.index + 1});
+                                        ?.copyWith(byMonths: [value.index + 1]);
                                     _getValidDaysOfMonth(_rrule?.frequency);
                                   });
                                 }
@@ -722,7 +748,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 if (value != null) {
                                   setState(() {
                                     _rrule =
-                                        _rrule?.copyWith(byMonthDays: {value});
+                                        _rrule?.copyWith(byMonthDays: [value]);
                                   });
                                 }
                               },
@@ -766,10 +792,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                             _rrule?.byWeekDays.first.day ?? 1;
                                         setState(() {
                                           _rrule = _rrule?.copyWith(
-                                              byWeekDays: {
+                                              byWeekDays: [
                                                 ByWeekDayEntry(
                                                     weekDay, value.index + 1)
-                                              });
+                                              ]);
                                         });
                                       }
                                     },
@@ -795,10 +821,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                             1;
                                         setState(() {
                                           _rrule = _rrule?.copyWith(
-                                              byWeekDays: {
+                                              byWeekDays: [
                                                 ByWeekDayEntry(
                                                     value.index + 1, weekNo)
-                                              });
+                                              ]);
                                         });
                                       }
                                     },
@@ -825,7 +851,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                         if (value != null) {
                                           setState(() {
                                             _rrule = _rrule?.copyWith(
-                                                byMonths: {value.index + 1});
+                                                byMonths: [value.index + 1]);
                                           });
                                         }
                                       },
@@ -1068,22 +1094,22 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   void _updateDaysOfWeek() {
     switch (_dayOfWeekGroup) {
       case DayOfWeekGroup.Weekday:
-        _rrule = _rrule?.copyWith(byWeekDays: {
+        _rrule = _rrule?.copyWith(byWeekDays: [
           ByWeekDayEntry(1),
           ByWeekDayEntry(2),
           ByWeekDayEntry(3),
           ByWeekDayEntry(4),
           ByWeekDayEntry(5),
-        });
+        ]);
         break;
       case DayOfWeekGroup.Weekend:
-        _rrule = _rrule?.copyWith(byWeekDays: {
+        _rrule = _rrule?.copyWith(byWeekDays: [
           ByWeekDayEntry(6),
           ByWeekDayEntry(7),
-        });
+        ]);
         break;
       case DayOfWeekGroup.AllDays:
-        _rrule = _rrule?.copyWith(byWeekDays: {
+        _rrule = _rrule?.copyWith(byWeekDays: [
           ByWeekDayEntry(1),
           ByWeekDayEntry(2),
           ByWeekDayEntry(3),
@@ -1091,7 +1117,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
           ByWeekDayEntry(5),
           ByWeekDayEntry(6),
           ByWeekDayEntry(7),
-        });
+        ]);
         break;
       case DayOfWeekGroup.None:
       default:
@@ -1138,7 +1164,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
     }
   }
 
-  int _weekNumFromWeekDayOccurence(Set<ByWeekDayEntry> weekdays) {
+  int _weekNumFromWeekDayOccurence(List<ByWeekDayEntry> weekdays) {
     final weekNum = weekdays.first.occurrence;
     if (weekNum != null) {
       return weekNum - 1;
@@ -1168,7 +1194,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         }
         if (!hasByWeekDays && !hasByMonthDays) {
           _rrule = rrule
-              .copyWith(frequency: freq, byWeekDays: {ByWeekDayEntry(1, 1)});
+              .copyWith(frequency: freq, byWeekDays: [ByWeekDayEntry(1, 1)]);
         } else {
           _rrule = rrule.copyWith(frequency: freq);
         }
@@ -1177,8 +1203,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         if (!hasByWeekDays || !hasByMonths) {
           _rrule = rrule.copyWith(
               frequency: freq,
-              byWeekDays: {ByWeekDayEntry(1, 1)},
-              byMonths: {1});
+              byWeekDays: [ByWeekDayEntry(1, 1)],
+              byMonths: [1]);
         } else {
           _rrule = rrule.copyWith(frequency: freq);
         }
@@ -1257,5 +1283,28 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   void showInSnackBar(BuildContext context, String value) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
+  }
+
+  Future<EventColor?> selectColorDialog(List<EventColor> colors) async {
+    return await showDialog<EventColor>(
+        context: context,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            title: const Text('Select Event color'),
+            children: colors.map((color) =>
+                SimpleDialogOption(
+                  onPressed: () { Navigator.pop(context, color); },
+                  child:  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(color.color)),
+                  ),
+                )
+            ).toList()
+          );
+        }
+    );
   }
 }

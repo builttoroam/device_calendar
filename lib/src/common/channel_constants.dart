@@ -11,6 +11,7 @@ class ChannelConstants {
   static const String methodNameCreateCalendar = 'createCalendar';
   static const String methodNameDeleteCalendar = 'deleteCalendar';
   static const String methodNameShowiOSEventModal = 'showiOSEventModal';
+  static const String methodNameRetrieveEventColors = 'retrieveEventColors';
 
   static const String parameterNameCalendarId = 'calendarId';
   static const String parameterNameStartDate = 'startDate';
@@ -23,4 +24,5 @@ class ChannelConstants {
   static const String parameterNameCalendarName = 'calendarName';
   static const String parameterNameCalendarColor = 'calendarColor';
   static const String parameterNameLocalAccountName = 'localAccountName';
+  static const String parameterAccountName = "accountName";
 }
