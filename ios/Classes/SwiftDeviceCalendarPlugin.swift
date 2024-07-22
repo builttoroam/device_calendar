@@ -248,31 +248,36 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         }
     }
 
-
-
-    private func createCalendar(_ call: FlutterMethodCall, _ result: FlutterResult) {
-        let arguments = call.arguments as! Dictionary<String, AnyObject>
+    private func updateCalendarColor(_ call: FlutterMethodCall, _ result: FlutterResult) {
         let arguments = call.arguments as! Dictionary<String, AnyObject>
         let calendarId = arguments[calendarIdArgument] as! String
         let color = arguments[calendarColorArgument] as! Int
-        
-        guard let calendar = eventStore.calendar(withIdentifier: calendarIdentifier) else {
+
+        guard let calendar = eventStore.calendar(withIdentifier: calendarId) else {
             print("Calendar not found")
             result(false)
             return
         }
-        
+
         // Update the calendar color
-        calendar.cgColor = UIColorFromRGB(color ?? 0)?.cgColor
-        
+        calendar.cgColor = UIColorFromRGB(color).cgColor
+
         // Save the changes
         do {
             try eventStore.saveCalendar(calendar, commit: true)
-            result(false)
+            result(true)  // Assuming the operation was successful, return true
         } catch {
             result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
         }
     }
+
+    func UIColorFromRGB(_ rgbValue: Int) -> UIColor {
+        return UIColor(
+            red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0,
+            blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
+            alpha: CGFloat(1.0)
+        )
     }
 
     private func retrieveCalendars(_ result: @escaping FlutterResult) {
