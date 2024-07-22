@@ -1134,7 +1134,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
      * load available event colors for the given account name
      * unable to find official documentation, so logic is based on https://android.googlesource.com/platform/packages/apps/Calendar.git/+/refs/heads/pie-release/src/com/android/calendar/EventInfoFragment.java
      **/
-    fun retrieveEventColors(accountName: String): List<Pair<Int, Int>> {
+    private fun retrieveColors(accountName: String, colorType: Int): List<Pair<Int, Int>> {
         val contentResolver: ContentResolver? = _context?.contentResolver
         val uri: Uri = Colors.CONTENT_URI
         val colors = mutableListOf<Int>()
@@ -1147,7 +1147,8 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
 
         // load only event colors for the given account name
         val selection = "${Colors.COLOR_TYPE} = ? AND ${Colors.ACCOUNT_NAME} = ?"
-        val selectionArgs = arrayOf(Colors.TYPE_EVENT.toString(), accountName)
+        val selectionArgs = arrayOf(colorType.toString(), accountName)
+
 
         val cursor: Cursor? = contentResolver?.query(uri, projection, selection, selectionArgs, null)
         cursor?.use {
@@ -1162,6 +1163,24 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
             colors.sortWith(HsvColorComparator())
         }
         return colors.map { Pair(it, displayColorKeyMap[it]!! ) }.toList()
+    }
+
+    fun retrieveEventColors(accountName: String): List<Pair<Int, Int>> {
+        return  retrieveColors(accountName, Colors.TYPE_EVENT)
+    }
+    fun retrieveCalendarColors(accountName: String): List<Pair<Int, Int>> {
+        return  retrieveColors(accountName, Colors.TYPE_CALENDAR)
+    }
+
+    fun updateCalendarColor(calendarId: Long, newColorKey: Int?, newColor: Int?): Boolean {
+        val contentResolver: ContentResolver? = _context?.contentResolver
+        val uri: Uri = ContentUris.withAppendedId(CalendarContract.Calendars.CONTENT_URI, calendarId)
+        val values = ContentValues().apply {
+            put(CalendarContract.Calendars.CALENDAR_COLOR_KEY, newColorKey)
+            put(CalendarContract.Calendars.CALENDAR_COLOR, newColor)
+        }
+        val rows = contentResolver?.update(uri, values, null, null)
+        return (rows ?: 0) > 0
     }
 
     /**

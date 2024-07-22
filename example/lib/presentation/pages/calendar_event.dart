@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:device_calendar/device_calendar.dart';
+import 'package:device_calendar_example/presentation/pages/color_picker_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
@@ -299,13 +300,13 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 color: Color(widget._event?.color ?? 0),
                               )),
                           onTap: () async {
-                            final colors = _eventColors;
-                            if (colors != null) {
-                              final newColor = await selectColorDialog(colors);
+                            if (_eventColors != null) {
+                              final colors = _eventColors?.map((eventColor) => Color(eventColor.color)).toList();
+                              final newColor = await ColorPickerDialog.selectColorDialog(colors ?? [], context);
                               setState(() {
-                                _event?.updateEventColor(newColor);
+                                _event?.updateEventColor(_eventColors?.firstWhereOrNull((eventColor) => eventColor.color == newColor?.value));
                               });
-                              }
+                            }
                           },
                         ),
                       SwitchListTile(
@@ -1282,37 +1283,5 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
 
   void showInSnackBar(BuildContext context, String value) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
-  }
-
-  Future<EventColor?> selectColorDialog(List<EventColor> colors) async {
-    return await showDialog<EventColor>(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return SimpleDialog(
-            title: const Text('Select Event color'),
-            children: [
-              SimpleDialogOption(
-                onPressed: () { Navigator.pop(context, null); },
-                child:  const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text('Reset', textAlign: TextAlign.center,),
-                ),
-              ),
-              ...colors.map((color) =>
-                SimpleDialogOption(
-                  onPressed: () { Navigator.pop(context, color); },
-                  child:  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(color.color)),
-                  ),
-                )
-            )]
-          );
-        }
-    );
   }
 }

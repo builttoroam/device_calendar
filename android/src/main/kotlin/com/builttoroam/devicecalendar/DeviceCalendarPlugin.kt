@@ -26,6 +26,8 @@ private const val CREATE_OR_UPDATE_EVENT_METHOD = "createOrUpdateEvent"
 private const val CREATE_CALENDAR_METHOD = "createCalendar"
 private const val DELETE_CALENDAR_METHOD = "deleteCalendar"
 private const val RETRIEVE_EVENT_COLORS_METHOD = "retrieveEventColors"
+private const val RETRIEVE_CALENDAR_COLORS_METHOD = "retrieveCalendarColors"
+private const val UPDATE_CALENDAR_COLOR = "updateCalendarColor"
 
 // Method arguments
 private const val CALENDAR_ID_ARGUMENT = "calendarId"
@@ -69,6 +71,7 @@ private const val EVENT_AVAILABILITY_ARGUMENT = "availability"
 private const val ATTENDANCE_STATUS_ARGUMENT = "attendanceStatus"
 private const val EVENT_STATUS_ARGUMENT = "eventStatus"
 private const val EVENT_COLOR_KEY_ARGUMENT = "eventColorKey"
+private const val CALENDAR_COLOR_KEY_ARGUMENT = "calendarColorKey"
 
 class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
@@ -176,8 +179,27 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
             RETRIEVE_EVENT_COLORS_METHOD -> {
                 val accountName  = call.argument<String>(CALENDAR_ACCOUNT_NAME_ARGUMENT)
-                val colors = _calendarDelegate.retrieveEventColors(accountName!!)
+                val colors = _calendarDelegate.retrieveEventColors(accountName!!, )
                 result.success(colors.map { listOf(it.first, it.second) })
+            }
+            RETRIEVE_CALENDAR_COLORS_METHOD -> {
+                val accountName  = call.argument<String>(CALENDAR_ACCOUNT_NAME_ARGUMENT)
+                if (accountName == null) {
+                    return [];
+                }
+                val colors = _calendarDelegate.retrieveCalendarColors(accountName)
+                result.success(colors.map { listOf(it.first, it.second) })
+            }
+            UPDATE_CALENDAR_COLOR -> {
+                val calendarId  = call.argument<Number>(CALENDAR_ID_ARGUMENT)?.toLong()
+                if (calendarId == null) {
+                    result.success(false)
+                    return
+                }
+                val newColorKey  = (call.argument<Number>(CALENDAR_COLOR_KEY_ARGUMENT))?.toInt()
+                val newColor  = (call.argument<Number>(CALENDAR_COLOR_ARGUMENT))?.toInt()
+                val success = _calendarDelegate.updateCalendarColor(calendarId, newColorKey, newColor)
+                result.success(success)
             }
             else -> {
                 result.notImplemented()
