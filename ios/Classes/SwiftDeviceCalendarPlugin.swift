@@ -114,6 +114,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     let deleteEventMethod = "deleteEvent"
     let deleteEventInstanceMethod = "deleteEventInstance"
     let showEventModalMethod = "showiOSEventModal"
+    let updateCalendarColor = "updateCalendarColor"
     let calendarIdArgument = "calendarId"
     let startDateArgument = "startDate"
     let endDateArgument = "endDate"
@@ -185,6 +186,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         case showEventModalMethod:
             self.flutterResult = result
             showEventModal(call, result)
+        case updateCalendarColor:
+            updateCalendarColor(call, result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -243,6 +246,33 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             eventStore.reset()
             result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
         }
+    }
+
+
+
+    private func createCalendar(_ call: FlutterMethodCall, _ result: FlutterResult) {
+        let arguments = call.arguments as! Dictionary<String, AnyObject>
+        let arguments = call.arguments as! Dictionary<String, AnyObject>
+        let calendarId = arguments[calendarIdArgument] as! String
+        let color = arguments[calendarColorArgument] as! Int
+        
+        guard let calendar = eventStore.calendar(withIdentifier: calendarIdentifier) else {
+            print("Calendar not found")
+            result(false)
+            return
+        }
+        
+        // Update the calendar color
+        calendar.cgColor = UIColorFromRGB(color ?? 0)?.cgColor
+        
+        // Save the changes
+        do {
+            try eventStore.saveCalendar(calendar, commit: true)
+            result(false)
+        } catch {
+            result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
+        }
+    }
     }
 
     private func retrieveCalendars(_ result: @escaping FlutterResult) {
