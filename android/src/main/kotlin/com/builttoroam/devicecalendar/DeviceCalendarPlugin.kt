@@ -179,13 +179,18 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
             RETRIEVE_EVENT_COLORS_METHOD -> {
                 val accountName  = call.argument<String>(CALENDAR_ACCOUNT_NAME_ARGUMENT)
+                if (accountName == null) {
+                    result.success(intArrayOf())
+                    return;
+                }
                 val colors = _calendarDelegate.retrieveEventColors(accountName!!, )
                 result.success(colors.map { listOf(it.first, it.second) })
             }
             RETRIEVE_CALENDAR_COLORS_METHOD -> {
                 val accountName  = call.argument<String>(CALENDAR_ACCOUNT_NAME_ARGUMENT)
                 if (accountName == null) {
-                    return [];
+                    result.success(intArrayOf())
+                    return;
                 }
                 val colors = _calendarDelegate.retrieveCalendarColors(accountName)
                 result.success(colors.map { listOf(it.first, it.second) })
