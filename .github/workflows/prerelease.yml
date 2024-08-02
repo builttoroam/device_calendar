@@ -20,10 +20,8 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v1
-        with:
-          channel: "stable"
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
       - run: dart --version
       - run: flutter --version
       - name: Edit pubspec.ymal for dev release
@@ -36,19 +34,28 @@ jobs:
         run: |
           sed -i "0,/\#\# \[.*/s//## [${{steps.changelog_reader.outputs.version}}-$GITHUB_RUN_ID]/" CHANGELOG.md
           cat CHANGELOG.md
-    outputs:
-      version: ${{steps.changelog_reader.outputs.version}}-$GITHUB_RUN_ID
-  publish:
-    needs: prerelease
-    permissions:
-      id-token: write # Required for authentication using OIDC
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
-  entry:
-    needs: [prerelease, publish]
-    runs-on: ubuntu-latest
-    steps:
+      # copied from https://github.com/dart-lang/setup-dart/issues/68#issuecomment-2251116730
+      - name: 🪪 Get Id Token
+        uses: actions/github-script@v6
+        with:
+          script: |
+            let pub_token = await core.getIDToken('https://pub.dev')
+            github.rest.actions.createOrUpdateRepoSecret({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            secret_name: PUB_TOKEN,
+            encrypted_value: pub_token
+            });
+      - name: 📢 Authenticate
+        run: flutter pub pub token add https://pub.dev --env-var ${{ secrets.PUB_TOKEN }}
+      - name: 📦 Install dependencies
+        run: flutter pub get
+      - name: 🌵 Dry Run
+        run: flutter pub publish --dry-run
+      - name: 📢 Publish
+        run: flutter pub publish -f
       - name: Add entry to Github release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ needs.prerelease.outputs.version }}
+          tag_name: ${{steps.changelog_reader.outputs.version}}-$GITHUB_RUN_ID
           prerelease: true
