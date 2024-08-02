@@ -25,13 +25,15 @@ jobs:
           channel: "stable"
       - run: dart --version
       - run: flutter --version
-      - name: Setup credentials
-        run: |
-          cat <<EOF > $PUB_CACHE/credentials.json
-          ${{ secrets.CREDENTIALS }}
-          EOF
-      - name: Publish package
-        run: flutter pub publish --force
+  publish:
+    needs: release
+    permissions:
+      id-token: write # Required for authentication using OIDC
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+  entry:
+    needs: [release, publish]
+    runs-on: ubuntu-latest
+    steps:
       - name: Get Changelog Entry
         id: changelog_reader
         uses: mindsers/changelog-reader-action@v2.0.0

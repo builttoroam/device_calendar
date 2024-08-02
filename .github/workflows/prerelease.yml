@@ -36,15 +36,19 @@ jobs:
         run: |
           sed -i "0,/\#\# \[.*/s//## [${{steps.changelog_reader.outputs.version}}-$GITHUB_RUN_ID]/" CHANGELOG.md
           cat CHANGELOG.md
-      - name: Setup credentials
-        run: |
-          cat <<EOF > $PUB_CACHE/credentials.json
-          ${{ secrets.CREDENTIALS }}
-          EOF
-      - name: Publish package
-        run: flutter pub publish --force
+    outputs:
+      version: ${{steps.changelog_reader.outputs.version}}-$GITHUB_RUN_ID
+  publish:
+    needs: prerelease
+    permissions:
+      id-token: write # Required for authentication using OIDC
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+  entry:
+    needs: [prerelease, publish]
+    runs-on: ubuntu-latest
+    steps:
       - name: Add entry to Github release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.changelog_reader.outputs.version }}+${{ github.run_id }}
+          tag_name: ${{ needs.prerelease.outputs.version }}
           prerelease: true
