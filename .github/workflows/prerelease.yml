@@ -34,9 +34,15 @@ jobs:
       - name: Get Changelog Entry
         id: changelog_reader
         uses: mindsers/changelog-reader-action@v2.0.0
+      - name: Get Git Tag
+        id: get_tag
+        run: echo "TAG=$(git describe --tags)" >> $GITHUB_ENV
+
+      - name: Use Git Tag
+        run: echo "The tag is ${{ env.TAG }}"
       - name: Edit changelog.md for dev release
         run: |
-          sed -i "0,/\#\# \[.*/s//## [${{steps.changelog_reader.outputs.version}}-$GITHUB_RUN_ID]/" CHANGELOG.md
+          sed -i "0,/\#\# \[.*/s//## [${{env.TAG}}]/" CHANGELOG.md
           cat CHANGELOG.md
       # copied from https://github.com/dart-lang/setup-dart/issues/68#issuecomment-2251116730
       - name: 🪪 Get Id Token
@@ -56,5 +62,5 @@ jobs:
       - name: Add entry to Github release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{steps.changelog_reader.outputs.version}}-$GITHUB_RUN_ID
+          tag_name: ${{ env.TAG }}
           prerelease: true
