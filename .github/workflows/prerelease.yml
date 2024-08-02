@@ -43,14 +43,14 @@ jobs:
           script: |
             let pub_token = await core.getIDToken('https://pub.dev')
             core.exportVariable('PUB_TOKEN', pub_token)
-      - name: 📢 Authenticate
-        run: flutter pub pub token add https://pub.dev --env-var PUB_TOKEN
       - name: 📦 Install dependencies
         run: flutter pub get
       - name: 🌵 Dry Run
         run: flutter pub publish --dry-run
       - name: 📢 Publish
-        run: flutter pub publish -f
+        run: |
+          flutter pub pub token add https://pub.dev --env-var PUB_TOKEN
+          flutter pub publish -f
       - name: Add entry to Github release
         uses: softprops/action-gh-release@v1
         with:
