@@ -42,14 +42,9 @@ jobs:
         with:
           script: |
             let pub_token = await core.getIDToken('https://pub.dev')
-            github.rest.actions.createOrUpdateRepoSecret({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            secret_name: PUB_TOKEN,
-            encrypted_value: pub_token
-            });
+            core.exportVariable('PUB_TOKEN', pub_token)
       - name: 📢 Authenticate
-        run: flutter pub pub token add https://pub.dev --env-var ${{ secrets.PUB_TOKEN }}
+        run: flutter pub pub token add https://pub.dev --env-var PUB_TOKEN
       - name: 📦 Install dependencies
         run: flutter pub get
       - name: 🌵 Dry Run
