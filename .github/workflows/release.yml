@@ -38,7 +38,7 @@ jobs:
         run: flutter pub publish --dry-run
       - name: 📢 Publish
         run: |
-          flutter pub pub token add https://pub.dev --env-var PUB_TOKEN
+          flutter pub token add https://pub.dev --env-var PUB_TOKEN
           flutter pub publish -f
       - name: Get Changelog Entry
         id: changelog_reader
