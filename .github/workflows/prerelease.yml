@@ -56,8 +56,3 @@ jobs:
         run: |
           flutter pub token add https://pub.dev --env-var PUB_TOKEN
           flutter pub publish -f
-      - name: Add entry to Github release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ env.TAG }}
-          prerelease: true
