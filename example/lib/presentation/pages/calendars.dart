@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:device_calendar/device_calendar.dart';
 import 'package:device_calendar_example/presentation/pages/calendar_add.dart';
-import 'package:device_calendar_example/presentation/pages/color_picker_dialog.dart';
+import 'package:device_calendar_example/presentation/color_picker_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:collection/collection.dart';
