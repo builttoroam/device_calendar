@@ -628,6 +628,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         values.put(Events.EVENT_END_TIMEZONE, endTimeZone)
         values.put(Events.DURATION, duration)
         values.put(Events.EVENT_COLOR_KEY, event.eventColorKey)
+        values.put(Events.EVENT_COLOR, event.eventColor)
         return values
     }
 
@@ -942,6 +943,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         val availability = parseAvailability(cursor.getInt(Cst.EVENT_PROJECTION_AVAILABILITY_INDEX))
         val eventStatus = parseEventStatus(cursor.getInt(Cst.EVENT_PROJECTION_STATUS_INDEX))
         val eventColor = cursor.getInt(Cst.EVENT_PROJECTION_EVENT_COLOR_INDEX)
+        val eventColorKey = cursor.getInt(Cst.EVENT_PROJECTION_EVENT_COLOR_KEY_INDEX)
         val event = Event()
         event.eventTitle = title ?: "New Event"
         event.eventId = eventId.toString()
@@ -958,6 +960,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         event.availability = availability
         event.eventStatus = eventStatus
         event.eventColor = if (eventColor == 0) null else eventColor
+        event.eventColorKey = if (eventColorKey == 0) null else eventColorKey
 
         return event
     }
