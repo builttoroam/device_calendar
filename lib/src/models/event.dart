@@ -53,10 +53,13 @@ class Event {
   /// Read-only. Color of the event
   int? get color=> _color;
 
-  /// The color of this event
+  /// Read-only. Color of the event
+  int? get colorKey=> _colorKey;
+
+  /// Only updatable for Android calendars where [DeviceCalendarPlugin.retrieveEventColors] returns an empty list.
   int? _color;
 
-  /// The color key of this event. This is needed to change the event color
+  /// Only updatable for colors of [DeviceCalendarPlugin.retrieveEventColors].
   int? _colorKey;
 
   ///Note for development:
