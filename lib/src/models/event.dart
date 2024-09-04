@@ -51,16 +51,13 @@ class Event {
   EventStatus? status;
 
   /// Read-only. Color of the event
-  int? get color=> _color;
 
-  /// Read-only. Color of the event
-  int? get colorKey=> _colorKey;
 
   /// Only updatable for Android calendars where [DeviceCalendarPlugin.retrieveEventColors] returns an empty list.
-  int? _color;
+  int? color;
 
   /// Only updatable for colors of [DeviceCalendarPlugin.retrieveEventColors].
-  int? _colorKey;
+  int? colorKey;
 
   ///Note for development:
   ///
@@ -123,7 +120,7 @@ class Event {
     calendarId = json['calendarId'];
     title = json['eventTitle'];
     description = json['eventDescription'];
-    _color = json['eventColor'];
+    color = json['eventColor'];
 
     startTimestamp = json['eventStartDate'];
     startLocationName = json['eventStartTimeZone'];
@@ -252,7 +249,7 @@ class Event {
     data['availability'] = availability.enumToString;
     data['eventStatus'] = status?.enumToString;
     data['eventColor'] = color;
-    data['eventColorKey'] = _colorKey;
+    data['eventColorKey'] = colorKey;
 
     if (attendees != null) {
       data['attendees'] = attendees?.map((a) => a?.toJson()).toList();
@@ -328,7 +325,7 @@ class Event {
   }
 
   void updateEventColor(EventColor? eventColor) {
-    _color = eventColor?.color;
-    _colorKey = eventColor?.colorKey;
+    color = eventColor?.color;
+    colorKey = eventColor?.colorKey;
   }
 }
