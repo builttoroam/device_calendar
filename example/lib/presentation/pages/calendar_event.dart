@@ -304,7 +304,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               final colors = _eventColors?.map((eventColor) => Color(eventColor.color)).toList();
                               final newColor = await ColorPickerDialog.selectColorDialog(colors ?? [], context);
                               setState(() {
-                                _event?.updateEventColor(_eventColors?.firstWhereOrNull((eventColor) => eventColor.color == newColor?.value));
+                                _event?.updateEventColor(_eventColors?.firstWhereOrNull((eventColor) => Color(eventColor.color).value == newColor?.value));
                               });
                             }
                           },

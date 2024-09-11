@@ -79,7 +79,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
         onPressed: () async {
           final refreshEvents = await Navigator.push(context,
               MaterialPageRoute(builder: (BuildContext context) {
-            return CalendarEventPage(_calendar);
+            return CalendarEventPage(_calendar, null, null, _eventColors);
           }));
           if (refreshEvents == true) {
             await _retrieveCalendarEvents();
