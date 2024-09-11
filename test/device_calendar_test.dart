@@ -216,8 +216,7 @@ void main() {
         recurrenceRule: recurrence,
         reminders: [reminder],
         availability: Availability.Busy,
-        status: EventStatus.Confirmed,
-        );
+        status: EventStatus.Confirmed);
     event.updateEventColor(EventColor(0xffff00ff, 1));
 
     final stringEvent = event.toJson();
