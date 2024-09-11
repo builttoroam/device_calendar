@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:device_calendar/device_calendar.dart';
-import 'package:device_calendar_example/presentation/pages/color_picker_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:intl/intl.dart';
 
+import '../color_picker_dialog.dart';
 import '../date_time_picker.dart';
 import '../recurring_event_dialog.dart';
 import 'event_attendee.dart';
