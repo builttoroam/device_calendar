@@ -63,7 +63,9 @@ class _CalendarsPageState extends State<CalendarsPage> {
               itemCount: _calendars.length,
               itemBuilder: (BuildContext context, int index) {
                 return GestureDetector(
-                  key: ValueKey(_calendars[index].color),
+                  key: Key(_calendars[index].isReadOnly == true
+                      ? 'readOnlyCalendar${_readOnlyCalendars.indexWhere((c) => c.id == _calendars[index].id)} color:${_calendars[index].color}'
+                      : 'writableCalendar${_writableCalendars.indexWhere((c) => c.id == _calendars[index].id)} color:${_calendars[index].color}'),
                   onTap: () async {
                     await Navigator.push(context,
                         MaterialPageRoute(builder: (BuildContext context) {
