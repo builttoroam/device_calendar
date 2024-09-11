@@ -118,6 +118,7 @@ class Event {
     title = json['eventTitle'];
     description = json['eventDescription'];
     color = json['eventColor'];
+    colorKey = json['eventColorKey'];
 
     startTimestamp = json['eventStartDate'];
     startLocationName = json['eventStartTimeZone'];
