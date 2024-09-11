@@ -50,13 +50,10 @@ class Event {
   /// Indicates if this event is of confirmed, canceled, tentative or none status
   EventStatus? status;
 
-  /// Read-only. Color of the event
-
-
-  /// Only updatable for Android calendars where [DeviceCalendarPlugin.retrieveEventColors] returns an empty list.
+  /// Read-only. Android exclusive. Updatable only using [Event.updateEventColor] with color from [DeviceCalendarPlugin.retrieveEventColors]
   int? color;
 
-  /// Only updatable for colors of [DeviceCalendarPlugin.retrieveEventColors].
+  /// Read-only. Android exclusive. Updatable only using [Event.updateEventColor] with color from [DeviceCalendarPlugin.retrieveEventColors]
   int? colorKey;
 
   ///Note for development:
