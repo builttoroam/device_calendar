@@ -2,19 +2,14 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sprintf/sprintf.dart';
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart';
 
 import 'common/channel_constants.dart';
 import 'common/error_codes.dart';
 import 'common/error_messages.dart';
-import 'models/calendar.dart';
-import 'models/event.dart';
-import 'models/result.dart';
-import 'models/retrieve_events_params.dart';
 
 /// Provides functionality for working with device calendar(s)
 class DeviceCalendarPlugin {
@@ -80,42 +75,48 @@ class DeviceCalendarPlugin {
     String? calendarId,
     RetrieveEventsParams? retrieveEventsParams,
   ) async {
-    return _invokeChannelMethod(
-      ChannelConstants.methodNameRetrieveEvents,
-      assertParameters: (result) {
-        _validateCalendarIdParameter(
-          result,
-          calendarId,
-        );
+    return _invokeChannelMethod(ChannelConstants.methodNameRetrieveEvents,
+        assertParameters: (result) {
+          _validateCalendarIdParameter(
+            result,
+            calendarId,
+          );
 
-        _assertParameter(
-          result,
-          !((retrieveEventsParams?.eventIds?.isEmpty ?? true) &&
-              ((retrieveEventsParams?.startDate == null ||
-                      retrieveEventsParams?.endDate == null) ||
-                  (retrieveEventsParams?.startDate != null &&
-                      retrieveEventsParams?.endDate != null &&
-                      (retrieveEventsParams != null &&
-                          retrieveEventsParams.startDate!
-                              .isAfter(retrieveEventsParams.endDate!))))),
-          ErrorCodes.invalidArguments,
-          ErrorMessages.invalidRetrieveEventsParams,
-        );
-      },
-      arguments: () => <String, Object?>{
-        ChannelConstants.parameterNameCalendarId: calendarId,
-        ChannelConstants.parameterNameStartDate:
-            retrieveEventsParams?.startDate?.millisecondsSinceEpoch,
-        ChannelConstants.parameterNameEndDate:
-            retrieveEventsParams?.endDate?.millisecondsSinceEpoch,
-        ChannelConstants.parameterNameEventIds: retrieveEventsParams?.eventIds,
-      },
-      evaluateResponse: (rawData) => UnmodifiableListView(
+          _assertParameter(
+            result,
+            !((retrieveEventsParams?.eventIds?.isEmpty ?? true) &&
+                ((retrieveEventsParams?.startDate == null ||
+                        retrieveEventsParams?.endDate == null) ||
+                    (retrieveEventsParams?.startDate != null &&
+                        retrieveEventsParams?.endDate != null &&
+                        (retrieveEventsParams != null &&
+                            retrieveEventsParams.startDate!
+                                .isAfter(retrieveEventsParams.endDate!))))),
+            ErrorCodes.invalidArguments,
+            ErrorMessages.invalidRetrieveEventsParams,
+          );
+        },
+        arguments: () => <String, Object?>{
+              ChannelConstants.parameterNameCalendarId: calendarId,
+              ChannelConstants.parameterNameStartDate:
+                  retrieveEventsParams?.startDate?.millisecondsSinceEpoch,
+              ChannelConstants.parameterNameEndDate:
+                  retrieveEventsParams?.endDate?.millisecondsSinceEpoch,
+              ChannelConstants.parameterNameEventIds:
+                  retrieveEventsParams?.eventIds,
+            },
+        /*evaluateResponse: (rawData) => UnmodifiableListView(
         json
             .decode(rawData)
             .map<Event>((decodedEvent) => Event.fromJson(decodedEvent)),
-      ),
-    );
+      ),*/
+        evaluateResponse: (rawData) => UnmodifiableListView(
+              json.decode(rawData).map<Event>((decodedEvent) {
+                // debugPrint(
+                //     "JSON_RRULE: ${decodedEvent['recurrenceRule']}, ${(decodedEvent['recurrenceRule']['byday'])}");
+                return Event.fromJson(decodedEvent);
+              }),
+            ));
   }
 
   /// Deletes an event from a calendar. For a recurring event, this will delete all instances of it.\
@@ -337,6 +338,80 @@ class DeviceCalendarPlugin {
     );
   }
 
+  Future<List<EventColor>?> retrieveEventColors(Calendar calendar) async {
+    if (!Platform.isAndroid) {
+      return null;
+    }
+    final accountName = calendar.accountName;
+    if (accountName == null) {
+      return [];
+    }
+    final dynamic colors = await _invokeChannelMethod(
+      ChannelConstants.methodNameRetrieveEventColors,
+      arguments: () => <String, String>{
+        ChannelConstants.parameterAccountName: accountName,
+      },
+    );
+    return (colors.data as List)
+        .cast<List>()
+        .map((color) => EventColor(color[0], color[1]))
+        .toList();
+  }
+
+  /// Retrieves available colors for Google Calendars.
+  ///
+  /// For non-Google calendars, an empty list is returned. Use the `color` parameter in [updateCalendarColor] for these.
+  ///
+  /// [calendar] The calendar to retrieve colors for.
+  ///
+  /// Returns a List with available colors for Google Calendars or an empty list for others.
+  Future<List<CalendarColor>> retrieveCalendarColors(Calendar calendar) async {
+    if (!Platform.isAndroid) {
+      return [];
+    }
+    final accountName = calendar.accountName;
+    if (accountName == null) {
+      return [];
+    }
+    final dynamic colors = await _invokeChannelMethod(
+      ChannelConstants.methodNameRetrieveCalendarColors,
+      arguments: () => <String, String>{
+        ChannelConstants.parameterAccountName: accountName,
+      },
+    );
+    return (colors.data as List)
+        .cast<List>()
+        .map((color) => CalendarColor(color[0], color[1]))
+        .toList();
+  }
+
+  /// Updates the color of a calendar using Google Calendar colors or platform-specific colors.
+  ///  [calendar] The calendar to update. Must have a non-null `id`.
+  ///  [calendarColor] Required for Google Calendars where [retrieveCalendarColors] is not empty.
+  ///  [color] Required for locale or iOS Calendars where [retrieveCalendarColors] is empty.
+  ///
+  /// Returns `true` if the update was successful, otherwise `false`.
+  Future<bool> updateCalendarColor(Calendar calendar,
+      {CalendarColor? calendarColor, Color? color}) async {
+    final calendarId = calendar.id;
+    if (calendarId == null || color == null && calendarColor == null) {
+      return false;
+    }
+    final result = await _invokeChannelMethod(
+      ChannelConstants.methodNameUpdateCalendarColor,
+      arguments: () => <String, dynamic>{
+        ChannelConstants.parameterNameCalendarId: Platform.isAndroid ? int.tryParse(calendarId) : calendarId,
+        ChannelConstants.parameterNameCalendarColorKey: calendarColor?.colorKey,
+        ChannelConstants.parameterNameCalendarColor: color?.value,
+      },
+    );
+    final success = (result.data as bool?) ?? false;
+    if (success) {
+      calendar.color = color?.value ?? calendarColor?.color;
+    }
+    return success;
+  }
+
   Future<Result<T>> _invokeChannelMethod<T>(
     String channelMethodName, {
     Function(Result<T>)? assertParameters,
@@ -363,8 +438,15 @@ class DeviceCalendarPlugin {
       } else {
         result.data = rawData;
       }
-    } catch (e) {
-      _parsePlatformExceptionAndUpdateResult<T>(e as Exception?, result);
+    } catch (e, s) {
+      if (e is ArgumentError) {
+        debugPrint(
+            "INVOKE_CHANNEL_METHOD_ERROR! Name: ${e.name}, InvalidValue: ${e.invalidValue}, Message: ${e.message}, ${e.toString()}");
+      } else if (e is PlatformException) {
+        debugPrint('INVOKE_CHANNEL_METHOD_ERROR: $e\n$s');
+      } else {
+        _parsePlatformExceptionAndUpdateResult<T>(e as Exception?, result);
+      }
     }
 
     return result;
@@ -382,22 +464,20 @@ class DeviceCalendarPlugin {
       return;
     }
 
-    print(exception);
+    debugPrint('$exception');
 
     if (exception is PlatformException) {
       result.errors.add(
         ResultError(
           ErrorCodes.platformSpecific,
-          sprintf(ErrorMessages.unknownDeviceExceptionTemplate,
-              [exception.code, exception.message]),
+          '${ErrorMessages.unknownDeviceExceptionTemplate}, Code: ${exception.code}, Exception: ${exception.message}',
         ),
       );
     } else {
       result.errors.add(
         ResultError(
           ErrorCodes.generic,
-          sprintf(ErrorMessages.unknownDeviceGenericExceptionTemplate,
-              [exception.toString()]),
+          '${ErrorMessages.unknownDeviceGenericExceptionTemplate} ${exception.toString}',
         ),
       );
     }
@@ -409,6 +489,9 @@ class DeviceCalendarPlugin {
     int errorCode,
     String errorMessage,
   ) {
+    if (result.data != null) {
+      debugPrint("RESULT of _assertParameter: ${result.data}");
+    }
     if (!predicate) {
       result.errors.add(
         ResultError(errorCode, errorMessage),

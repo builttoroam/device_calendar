@@ -1,15 +1,17 @@
 package com.builttoroam.devicecalendar.models
 
-import com.builttoroam.devicecalendar.common.DayOfWeek
-import com.builttoroam.devicecalendar.common.RecurrenceFrequency
+import org.dmfs.rfc5545.recur.Freq
 
-
-class RecurrenceRule(val recurrenceFrequency : RecurrenceFrequency) {
-    var totalOccurrences: Int? = null
+class RecurrenceRule(val freq: Freq) {
+    var count: Int? = null
     var interval: Int? = null
-    var endDate: Long? = null
-    var daysOfWeek: MutableList<DayOfWeek>? = null
-    var dayOfMonth: Int? = null
-    var monthOfYear: Int? = null
-    var weekOfMonth: Int? = null
+    var until: String? = null
+    var sourceRruleString: String? = null
+    var wkst: String? = null
+    var byday: MutableList<String>? = null
+    var bymonthday: MutableList<Int>? = null
+    var byyearday: MutableList<Int>? = null
+    var byweekno: MutableList<Int>? = null
+    var bymonth: MutableList<Int>? = null
+    var bysetpos: MutableList<Int>? = null
 }

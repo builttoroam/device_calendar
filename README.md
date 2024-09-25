@@ -40,6 +40,8 @@ If you don't need any timezone specific features in your app, you may use `flutt
 ```dart
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 
+initializeTimeZones();
+
 // As an example, our default timezone is UTC.
 Location _currentLocation = getLocation('Etc/UTC');
 
@@ -78,6 +80,8 @@ The following will need to be added to the `AndroidManifest.xml` file for your a
 ```
 
 ### Proguard / R8 exceptions
+> NOTE: From v4.3.2 developers no longer need to add proguard rule in their app.
+
 
 By default, all android apps go through R8 for file shrinking when building a release version. Currently, it interferes with some functions such as `retrieveCalendars()`.
 
@@ -105,6 +109,13 @@ For iOS 10+ support, you'll need to modify the `Info.plist` to add the following
 
 <key>NSContactsUsageDescription</key>
 <string>Access contacts for event attendee editing.</string>
+```
+
+For iOS 17+ support, add the following key/value pair as well.
+
+```xml
+<key>NSCalendarsFullAccessUsageDescription</key>
+<string>Access most functions for calendar viewing and editing.</string>
 ```
 
 Note that on iOS, this is a Swift plugin. There is a known issue being tracked [here](https://github.com/flutter/flutter/issues/16049) by the Flutter team, where adding a plugin developed in Swift to an Objective-C project causes problems. If you run into such issues, please look at the suggested workarounds there.

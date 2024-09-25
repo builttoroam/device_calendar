@@ -1,8 +1,8 @@
 import 'dart:io';
 
+import 'package:device_calendar/device_calendar.dart';
 import 'package:device_calendar_example/common/app_routes.dart';
 import 'package:flutter/material.dart';
-import 'package:device_calendar/device_calendar.dart';
 
 late DeviceCalendarPlugin _deviceCalendarPlugin;
 
@@ -14,7 +14,7 @@ class EventAttendeePage extends StatefulWidget {
 
   @override
   _EventAttendeePageState createState() =>
-      _EventAttendeePageState(attendee, eventId);
+      _EventAttendeePageState(attendee, eventId ?? '');
 }
 
 class _EventAttendeePageState extends State<EventAttendeePage> {
@@ -112,7 +112,7 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
                     onTap: () async {
                       _deviceCalendarPlugin = DeviceCalendarPlugin();
 
-                      var result = await _deviceCalendarPlugin
+                      await _deviceCalendarPlugin
                           .showiOSEventModal(_eventId);
                       Navigator.popUntil(
                           context, ModalRoute.withName(AppRoutes.calendars));
