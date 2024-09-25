@@ -2,18 +2,14 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart';
 
 import 'common/channel_constants.dart';
 import 'common/error_codes.dart';
 import 'common/error_messages.dart';
-import 'models/calendar.dart';
-import 'models/event.dart';
-import 'models/result.dart';
-import 'models/retrieve_events_params.dart';
 
 /// Provides functionality for working with device calendar(s)
 class DeviceCalendarPlugin {
@@ -340,6 +336,80 @@ class DeviceCalendarPlugin {
         ChannelConstants.parameterNameEventId: eventId,
       },
     );
+  }
+
+  Future<List<EventColor>?> retrieveEventColors(Calendar calendar) async {
+    if (!Platform.isAndroid) {
+      return null;
+    }
+    final accountName = calendar.accountName;
+    if (accountName == null) {
+      return [];
+    }
+    final dynamic colors = await _invokeChannelMethod(
+      ChannelConstants.methodNameRetrieveEventColors,
+      arguments: () => <String, String>{
+        ChannelConstants.parameterAccountName: accountName,
+      },
+    );
+    return (colors.data as List)
+        .cast<List>()
+        .map((color) => EventColor(color[0], color[1]))
+        .toList();
+  }
+
+  /// Retrieves available colors for Google Calendars.
+  ///
+  /// For non-Google calendars, an empty list is returned. Use the `color` parameter in [updateCalendarColor] for these.
+  ///
+  /// [calendar] The calendar to retrieve colors for.
+  ///
+  /// Returns a List with available colors for Google Calendars or an empty list for others.
+  Future<List<CalendarColor>> retrieveCalendarColors(Calendar calendar) async {
+    if (!Platform.isAndroid) {
+      return [];
+    }
+    final accountName = calendar.accountName;
+    if (accountName == null) {
+      return [];
+    }
+    final dynamic colors = await _invokeChannelMethod(
+      ChannelConstants.methodNameRetrieveCalendarColors,
+      arguments: () => <String, String>{
+        ChannelConstants.parameterAccountName: accountName,
+      },
+    );
+    return (colors.data as List)
+        .cast<List>()
+        .map((color) => CalendarColor(color[0], color[1]))
+        .toList();
+  }
+
+  /// Updates the color of a calendar using Google Calendar colors or platform-specific colors.
+  ///  [calendar] The calendar to update. Must have a non-null `id`.
+  ///  [calendarColor] Required for Google Calendars where [retrieveCalendarColors] is not empty.
+  ///  [color] Required for locale or iOS Calendars where [retrieveCalendarColors] is empty.
+  ///
+  /// Returns `true` if the update was successful, otherwise `false`.
+  Future<bool> updateCalendarColor(Calendar calendar,
+      {CalendarColor? calendarColor, Color? color}) async {
+    final calendarId = calendar.id;
+    if (calendarId == null || color == null && calendarColor == null) {
+      return false;
+    }
+    final result = await _invokeChannelMethod(
+      ChannelConstants.methodNameUpdateCalendarColor,
+      arguments: () => <String, dynamic>{
+        ChannelConstants.parameterNameCalendarId: Platform.isAndroid ? int.tryParse(calendarId) : calendarId,
+        ChannelConstants.parameterNameCalendarColorKey: calendarColor?.colorKey,
+        ChannelConstants.parameterNameCalendarColor: color?.value,
+      },
+    );
+    final success = (result.data as bool?) ?? false;
+    if (success) {
+      calendar.color = color?.value ?? calendarColor?.color;
+    }
+    return success;
   }
 
   Future<Result<T>> _invokeChannelMethod<T>(

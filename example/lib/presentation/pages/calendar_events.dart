@@ -24,6 +24,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
 
   late DeviceCalendarPlugin _deviceCalendarPlugin;
   List<Event> _calendarEvents = [];
+  List<EventColor>? _eventColors;
   bool _isLoading = true;
 
   _CalendarEventsPageState(this._calendar) {
@@ -33,6 +34,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
   @override
   void initState() {
     super.initState();
+    _retrieveEventColors();
     _retrieveCalendarEvents();
   }
 
@@ -77,7 +79,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
         onPressed: () async {
           final refreshEvents = await Navigator.push(context,
               MaterialPageRoute(builder: (BuildContext context) {
-            return CalendarEventPage(_calendar);
+            return CalendarEventPage(_calendar, null, null, _eventColors);
           }));
           if (refreshEvents == true) {
             await _retrieveCalendarEvents();
@@ -123,6 +125,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
           _onLoading,
           _onDeletedFinished,
         ),
+          _eventColors
       );
     }));
     if (refreshEvents != null && refreshEvents) {
@@ -140,6 +143,10 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
       _calendarEvents = calendarEventsResult.data ?? [];
       _isLoading = false;
     });
+  }
+
+  void _retrieveEventColors() async {
+    _eventColors = await _deviceCalendarPlugin.retrieveEventColors(_calendar);
   }
 
   Widget _getDeleteButton() {

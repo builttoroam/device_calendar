@@ -217,6 +217,7 @@ void main() {
         reminders: [reminder],
         availability: Availability.Busy,
         status: EventStatus.Confirmed);
+    event.updateEventColor(EventColor(0xffff00ff, 1));
 
     final stringEvent = event.toJson();
     expect(stringEvent, isNotNull);
@@ -241,5 +242,7 @@ void main() {
     expect(newEvent.reminders?.length, equals(1));
     expect(newEvent.availability, equals(event.availability));
     expect(newEvent.status, equals(event.status));
+    expect(newEvent.color, equals(event.color));
+    expect(newEvent.colorKey, equals(event.colorKey));
   });
 }

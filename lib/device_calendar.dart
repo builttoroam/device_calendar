@@ -6,6 +6,8 @@ export 'src/models/calendar.dart';
 export 'src/models/result.dart';
 export 'src/models/reminder.dart';
 export 'src/models/event.dart';
+export 'src/models/event_color.dart';
+export 'src/models/calendar_color.dart';
 export 'src/models/retrieve_events_params.dart';
 export 'package:rrule/rrule.dart';
 export 'package:rrule/src/frequency.dart';
