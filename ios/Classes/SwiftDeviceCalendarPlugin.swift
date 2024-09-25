@@ -114,6 +114,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     let deleteEventMethod = "deleteEvent"
     let deleteEventInstanceMethod = "deleteEventInstance"
     let showEventModalMethod = "showiOSEventModal"
+    let updateCalendarColor = "updateCalendarColor"
     let calendarIdArgument = "calendarId"
     let startDateArgument = "startDate"
     let endDateArgument = "endDate"
@@ -185,6 +186,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         case showEventModalMethod:
             self.flutterResult = result
             showEventModal(call, result)
+        case updateCalendarColor:
+            updateCalendarColor(call, result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -243,6 +246,38 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             eventStore.reset()
             result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
         }
+    }
+
+    private func updateCalendarColor(_ call: FlutterMethodCall, _ result: FlutterResult) {
+        let arguments = call.arguments as! Dictionary<String, AnyObject>
+        let calendarId = arguments[calendarIdArgument] as! String
+        let color = arguments[calendarColorArgument] as! Int
+
+        guard let calendar = eventStore.calendar(withIdentifier: calendarId) else {
+            print("Calendar not found")
+            result(false)
+            return
+        }
+
+        // Update the calendar color
+        calendar.cgColor = UIColorFromRGB(color).cgColor
+
+        // Save the changes
+        do {
+            try eventStore.saveCalendar(calendar, commit: true)
+            result(true)  // Assuming the operation was successful, return true
+        } catch {
+            result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
+        }
+    }
+
+    func UIColorFromRGB(_ rgbValue: Int) -> UIColor {
+        return UIColor(
+            red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0,
+            blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
+            alpha: CGFloat(1.0)
+        )
     }
 
     private func retrieveCalendars(_ result: @escaping FlutterResult) {
