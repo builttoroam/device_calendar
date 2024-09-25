@@ -156,11 +156,11 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Warning'),
-          content: SingleChildScrollView(
+          content: const SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                const Text('This will delete this calendar'),
-                const Text('Are you sure?'),
+                Text('This will delete this calendar'),
+                Text('Are you sure?'),
               ],
             ),
           ),

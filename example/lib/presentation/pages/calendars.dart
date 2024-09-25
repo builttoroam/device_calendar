@@ -46,7 +46,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
             padding: const EdgeInsets.all(10.0),
             child: Text(
               'WARNING: some aspects of saving events are hardcoded in this example app. As such we recommend you do not modify existing events as this may result in loss of information',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
           Expanded(
@@ -77,7 +77,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
                                   Text(
                                     "${_calendars[index].id}: ${_calendars[index].name!}",
                                     style:
-                                        Theme.of(context).textTheme.subtitle1,
+                                        Theme.of(context).textTheme.titleMedium,
                                   ),
                                   Text(
                                       "Account: ${_calendars[index].accountName!}"),

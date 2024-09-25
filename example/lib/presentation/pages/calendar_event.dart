@@ -15,11 +15,12 @@ import 'event_reminders.dart';
 enum RecurrenceRuleEndType { Indefinite, MaxOccurrences, SpecifiedEndDate }
 
 class CalendarEventPage extends StatefulWidget {
-  late final Calendar _calendar;
+  final Calendar _calendar;
   final Event? _event;
   final RecurringEventDialog? _recurringEventDialog;
 
-  CalendarEventPage(this._calendar, [this._event, this._recurringEventDialog]);
+  const CalendarEventPage(this._calendar,
+      [this._event, this._recurringEventDialog]);
 
   @override
   _CalendarEventPageState createState() {
@@ -721,10 +722,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                                 _recurrenceFrequency)
                                             .data !=
                                         null
-                                    ? Text(_recurrenceFrequencyToText(
-                                                _recurrenceFrequency)
-                                            .data! +
-                                        ' on the ')
+                                    ? Text(
+                                        '${_recurrenceFrequencyToText(_recurrenceFrequency).data!} on the ')
                                     : const Text('')),
                           ),
                           Padding(
