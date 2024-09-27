@@ -23,6 +23,16 @@ extension String {
     }
 }
 
+fileprivate class SingleEventStore {
+    public let eventStore: EKEventStore
+    
+    public static let shared = SingleEventStore()
+
+    private init() {
+        eventStore = EKEventStore()
+    }
+}
+
 public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDelegate, UINavigationControllerDelegate {
     struct DeviceCalendar: Codable {
         let id: String
@@ -102,7 +112,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     let calendarNotFoundErrorMessageFormat = "The calendar with the ID %@ could not be found"
     let calendarReadOnlyErrorMessageFormat = "Calendar with ID %@ is read-only"
     let eventNotFoundErrorMessageFormat = "The event with the ID %@ could not be found"
-    let eventStore = EKEventStore()
+    let eventStore = SingleEventStore.shared.eventStore
     let requestPermissionsMethod = "requestPermissions"
     let hasPermissionsMethod = "hasPermissions"
     let retrieveCalendarsMethod = "retrieveCalendars"
