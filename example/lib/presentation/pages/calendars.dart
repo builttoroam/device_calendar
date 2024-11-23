@@ -21,6 +21,7 @@ class CalendarsPage extends StatefulWidget {
 class _CalendarsPageState extends State<CalendarsPage> {
   late DeviceCalendarPlugin _deviceCalendarPlugin;
   List<Calendar> _calendars = [];
+  bool? _hasPermissions;
 
   List<Calendar> get _writableCalendars =>
       _calendars.where((c) => c.isReadOnly == false).toList();
@@ -35,7 +36,11 @@ class _CalendarsPageState extends State<CalendarsPage> {
   @override
   void initState() {
     super.initState();
-    _retrieveCalendars();
+    _retrieveCalendars().then((hasPermissions) {
+      setState(() {
+        _hasPermissions = hasPermissions;
+      });
+    });
   }
 
   @override
@@ -47,14 +52,23 @@ class _CalendarsPageState extends State<CalendarsPage> {
       ),
       body: Column(
         children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Text(
+                _hasPermissions == null
+                    ? 'Checking permissions...'
+                    : _hasPermissions == false
+                        ? 'Permissions not granted'
+                        : 'Permissions granted',
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: Text(
               'WARNING: some aspects of saving events are hardcoded in this example app. As such we recommend you do not modify existing events as this may result in loss of information',
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .titleLarge,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
           Expanded(
@@ -69,9 +83,9 @@ class _CalendarsPageState extends State<CalendarsPage> {
                   onTap: () async {
                     await Navigator.push(context,
                         MaterialPageRoute(builder: (BuildContext context) {
-                          return CalendarEventsPage(_calendars[index],
-                              key: const Key('calendarEventsPage'));
-                        }));
+                      return CalendarEventsPage(_calendars[index],
+                          key: const Key('calendarEventsPage'));
+                    }));
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
@@ -83,49 +97,49 @@ class _CalendarsPageState extends State<CalendarsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "${_calendars[index]
-                                        .id}: ${_calendars[index].name!}",
+                                    "${_calendars[index].id}: ${_calendars[index].name!}",
                                     style:
-                                    Theme
-                                        .of(context)
-                                        .textTheme
-                                        .titleSmall,
+                                        Theme.of(context).textTheme.titleSmall,
                                   ),
                                   Text(
-                                      "Account: ${_calendars[index]
-                                          .accountName!}"),
+                                      "Account: ${_calendars[index].accountName!}"),
                                   Text(
                                       "type: ${_calendars[index].accountType}"),
                                 ])),
                         GestureDetector(
                           onTap: () async {
                             final calendar = _calendars[index];
-                            final googleCalendarColors = await _deviceCalendarPlugin
-                                .retrieveCalendarColors(_calendars[index]);
+                            final googleCalendarColors =
+                                await _deviceCalendarPlugin
+                                    .retrieveCalendarColors(_calendars[index]);
                             final colors = googleCalendarColors.isNotEmpty
-                                ? googleCalendarColors.map((calendarColor) =>
-                                Color(calendarColor.color)).toList()
+                                ? googleCalendarColors
+                                    .map((calendarColor) =>
+                                        Color(calendarColor.color))
+                                    .toList()
                                 : [
-                              Colors.red,
-                              Colors.green,
-                              Colors.blue,
-                              Colors.yellow,
-                              Colors.orange,
-                              Colors.purple,
-                              Colors.cyan,
-                              Colors.pink,
-                              Colors.brown,
-                              Colors.grey,
-                            ];
-                            final color = await ColorPickerDialog
-                                .selectColorDialog(colors, context);
+                                    Colors.red,
+                                    Colors.green,
+                                    Colors.blue,
+                                    Colors.yellow,
+                                    Colors.orange,
+                                    Colors.purple,
+                                    Colors.cyan,
+                                    Colors.pink,
+                                    Colors.brown,
+                                    Colors.grey,
+                                  ];
+                            final color =
+                                await ColorPickerDialog.selectColorDialog(
+                                    colors, context);
                             if (color != null) {
                               final success = await _deviceCalendarPlugin
                                   .updateCalendarColor(calendar,
-                                  calendarColor: googleCalendarColors
-                                      .firstWhereOrNull((calendarColor) =>
-                                  calendarColor.color == color.value),
-                                  color: color);
+                                      calendarColor: googleCalendarColors
+                                          .firstWhereOrNull((calendarColor) =>
+                                              calendarColor.color ==
+                                              color.value),
+                                      color: color);
                               if (success) {
                                 _retrieveCalendars();
                               }
@@ -167,29 +181,28 @@ class _CalendarsPageState extends State<CalendarsPage> {
         onPressed: () async {
           final createCalendar = await Navigator.push(context,
               MaterialPageRoute(builder: (BuildContext context) {
-                return const CalendarAddPage();
-              }));
+            return const CalendarAddPage();
+          }));
 
           if (createCalendar == true) {
             _retrieveCalendars();
           }
         },
+        tooltip: 'Add calendar',
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  void _retrieveCalendars() async {
+  Future<bool> _retrieveCalendars() async {
     try {
       var permissionsGranted = await _deviceCalendarPlugin.hasPermissions();
-      if (permissionsGranted.isSuccess &&
-          (permissionsGranted.data == null ||
-              permissionsGranted.data == false)) {
+      if (permissionsGranted.isSuccess && permissionsGranted.data == false) {
         permissionsGranted = await _deviceCalendarPlugin.requestPermissions();
         if (!permissionsGranted.isSuccess ||
             permissionsGranted.data == null ||
             permissionsGranted.data == false) {
-          return;
+          return false;
         }
       }
 
@@ -200,11 +213,13 @@ class _CalendarsPageState extends State<CalendarsPage> {
     } on PlatformException catch (e, s) {
       debugPrint('RETRIEVE_CALENDARS: $e, $s');
     }
+    return true;
   }
 
   Widget _getRefreshButton() {
     return IconButton(
         icon: const Icon(Icons.refresh),
+        tooltip: 'Refresh calendars',
         onPressed: () async {
           _retrieveCalendars();
         });

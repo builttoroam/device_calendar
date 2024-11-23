@@ -21,3 +21,6 @@ example/ios/Flutter/Flutter.podspec
 **/.project
 **/.classpath
 .vscode
+
+# macOS
+.DS_Store

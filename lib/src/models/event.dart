@@ -61,7 +61,7 @@ class Event {
   ///JSON field names are coded in dart, swift and kotlin to facilitate data exchange.
   ///Make sure all locations are updated if changes needed to be made.
   ///Swift:
-  ///`ios/Classes/SwiftDeviceCalendarPlugin.swift`
+  ///`ios/Classes/DeviceCalendarPlugin.swift`
   ///Kotlin:
   ///`android/src/main/kotlin/com/builttoroam/devicecalendar/models/Event.kt`
   ///`android/src/main/kotlin/com/builttoroam/devicecalendar/CalendarDelegate.kt`
