@@ -1104,6 +1104,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         }
     }
 
+    /*
     private func hasEventPermissions() -> Bool {
         let status = EKEventStore.authorizationStatus(for: .event)
         if #available(iOS 17, *) {
@@ -1112,6 +1113,36 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             return status == EKAuthorizationStatus.authorized
         }
     }
+    */
+    private func hasEventPermissions(completion: @escaping (Bool) -> Void) {
+        let eventStore = EKEventStore()
+        let status = EKEventStore.authorizationStatus(for: .event)
+        
+        switch status {
+        case .notDetermined:
+            // Request appropriate access based on iOS version
+            if #available(iOS 17, *) {
+                eventStore.requestFullAccessToEvents { granted, error in
+                    completion(granted)
+                }
+            } else {
+                eventStore.requestAccess(to: .event) { granted, error in
+                    completion(granted)
+                }
+            }
+        case .authorized:
+            // Prior to iOS 17
+            completion(true)
+        case .fullAccess:
+            // iOS 17 and later
+            completion(true)
+        case .writeOnly, .denied, .restricted:
+            completion(false)
+        @unknown default:
+            completion(false)
+        }
+    }
+
 }
 
 extension Date {
