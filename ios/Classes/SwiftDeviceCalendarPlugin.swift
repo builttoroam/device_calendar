@@ -1112,7 +1112,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         }
     }
 
-    
     private func hasEventPermissions() -> Bool {
         let status = EKEventStore.authorizationStatus(for: .event)
         if #available(iOS 17, *) {
@@ -1121,8 +1120,6 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             return status == EKAuthorizationStatus.authorized
         }
     }
-    
-
 }
 
 extension Date {
@@ -1180,3 +1177,4 @@ extension UIColor {
     }
 
 }
+
