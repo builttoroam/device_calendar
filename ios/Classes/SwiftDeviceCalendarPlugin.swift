@@ -4,6 +4,14 @@ import Flutter
 import Foundation
 import UIKit
 
+class EventStoreManager: ObservableObject {
+    static let shared = EventStoreManager()
+    let eventStore: EKEventStore
+    private init() {
+        eventStore = EKEventStore()
+    }
+}
+
 extension Date {
     var millisecondsSinceEpoch: Double { return self.timeIntervalSince1970 * 1000.0 }
 }
@@ -102,7 +110,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     let calendarNotFoundErrorMessageFormat = "The calendar with the ID %@ could not be found"
     let calendarReadOnlyErrorMessageFormat = "Calendar with ID %@ is read-only"
     let eventNotFoundErrorMessageFormat = "The event with the ID %@ could not be found"
-    let eventStore = EKEventStore()
+    let eventStore = EventStoreManager.shared.eventStore
     let requestPermissionsMethod = "requestPermissions"
     let hasPermissionsMethod = "hasPermissions"
     let retrieveCalendarsMethod = "retrieveCalendars"
