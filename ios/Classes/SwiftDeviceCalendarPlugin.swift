@@ -841,7 +841,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             let arguments = call.arguments as! Dictionary<String, AnyObject>
             let calendarId = arguments[calendarIdArgument] as! String
             let eventId = arguments[eventIdArgument] as? String
-            let isAllDay = arguments[eventAllDayArgument] as! Bool
+            let isAllDay = (arguments[eventAllDayArgument] as? Bool) ?? false
             let startDateMillisecondsSinceEpoch = arguments[eventStartDateArgument] as! NSNumber
             let endDateDateMillisecondsSinceEpoch = arguments[eventEndDateArgument] as! NSNumber
             let startDate = Date (timeIntervalSince1970: startDateMillisecondsSinceEpoch.doubleValue / 1000.0)
