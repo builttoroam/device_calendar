@@ -12,7 +12,8 @@ void main() {
   final log = <MethodCall>[];
 
   setUp(() {
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       print('Calling channel method ${methodCall.method}');
       log.add(methodCall);
 
@@ -23,7 +24,8 @@ void main() {
   });
 
   test('HasPermissions_Returns_Successfully', () async {
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       return true;
     });
 
@@ -34,7 +36,8 @@ void main() {
   });
 
   test('RequestPermissions_Returns_Successfully', () async {
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       return true;
     });
 
@@ -46,7 +49,8 @@ void main() {
 
   test('RetrieveCalendars_Returns_Successfully', () async {
     const fakeCalendarName = 'fakeCalendarName';
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       return '[{"id":"1","isReadOnly":false,"name":"$fakeCalendarName"}]';
     });
 
@@ -114,7 +118,8 @@ void main() {
 
   test('CreateEvent_Returns_Successfully', () async {
     const fakeNewEventId = 'fakeNewEventId';
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       return fakeNewEventId;
     });
 
@@ -133,7 +138,8 @@ void main() {
 
   test('UpdateEvent_Returns_Successfully', () async {
     const fakeNewEventId = 'fakeNewEventId';
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       final arguments = methodCall.arguments as Map<dynamic, dynamic>;
       if (!arguments.containsKey('eventId') || arguments['eventId'] == null) {
         return null;
@@ -196,7 +202,7 @@ void main() {
         emailAddress: 'test@t.com',
         role: AttendeeRole.Required,
         isOrganiser: true);
-    final recurrence = RecurrenceRule(RecurrenceFrequency.Daily);
+    final recurrence = RecurrenceRule(frequency: Frequency.daily);
     final reminder = Reminder(minutes: 10);
     var event = Event('calendarId',
         eventId: 'eventId',
@@ -211,6 +217,7 @@ void main() {
         reminders: [reminder],
         availability: Availability.Busy,
         status: EventStatus.Confirmed);
+    event.updateEventColor(EventColor(0xffff00ff, 1));
 
     final stringEvent = event.toJson();
     expect(stringEvent, isNotNull);
@@ -229,11 +236,13 @@ void main() {
     expect(newEvent.attendees, isNotNull);
     expect(newEvent.attendees?.length, equals(1));
     expect(newEvent.recurrenceRule, isNotNull);
-    expect(newEvent.recurrenceRule?.recurrenceFrequency,
-        equals(event.recurrenceRule?.recurrenceFrequency));
+    expect(newEvent.recurrenceRule?.frequency,
+        equals(event.recurrenceRule?.frequency));
     expect(newEvent.reminders, isNotNull);
     expect(newEvent.reminders?.length, equals(1));
     expect(newEvent.availability, equals(event.availability));
     expect(newEvent.status, equals(event.status));
+    expect(newEvent.color, equals(event.color));
+    expect(newEvent.colorKey, equals(event.colorKey));
   });
 }

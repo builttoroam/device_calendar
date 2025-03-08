@@ -1,6 +1,5 @@
 package com.builttoroam.devicecalendar.models
 
-
 class Event {
     var eventTitle: String? = null
     var eventId: String? = null
@@ -19,4 +18,6 @@ class Event {
     var reminders: MutableList<Reminder> = mutableListOf()
     var availability: Availability? = null
     var eventStatus: EventStatus? = null
+    var eventColor: Int? = null
+    var eventColorKey: Int? = null
 }
