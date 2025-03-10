@@ -1009,15 +1009,13 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
                     let flutterViewController = getTopMostViewController()
                     let navigationController = UINavigationController(rootViewController: eventController)
 
-                    navigationController.toolbar.isTranslucent = false
-                    navigationController.toolbar.tintColor = .blue
-                    navigationController.toolbar.backgroundColor = .white
+                    navigationController.setToolbarHidden(true, animated: false)
 
                     flutterViewController.present(navigationController, animated: true, completion: nil)
 
 
                 } else {
-                    result(FlutterError(code: self.genericError, message: self.eventNotFoundErrorMessageFormat, details: nil))
+                    self.finishWithEventNotFoundError(result: result, eventId: eventId)
                 }
             }, result: result)
         }
