@@ -41,6 +41,7 @@ import org.dmfs.rfc5545.recur.Freq as RruleFreq
 import org.dmfs.rfc5545.recur.RecurrenceRule as Rrule
 import android.provider.CalendarContract.Colors
 import androidx.collection.SparseArrayCompat
+import android.util.Log
 
 private const val RETRIEVE_CALENDARS_REQUEST_CODE = 0
 private const val RETRIEVE_EVENTS_REQUEST_CODE = RETRIEVE_CALENDARS_REQUEST_CODE + 1
@@ -954,7 +955,11 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         event.eventAllDay = allDay
         event.eventLocation = location
         event.eventURL = url
-        event.recurrenceRule = parseRecurrenceRuleString(recurringRule)
+        event.recurrenceRule = runCatching { parseRecurrenceRuleString(recurringRule) }
+            .onFailure {
+                Log.e("parse", "Error parsing to ${event.eventTitle} recurring rule: ${it.message}")
+            }
+            .getOrNull()
         event.eventStartTimeZone = startTimeZone
         event.eventEndTimeZone = endTimeZone
         event.availability = availability
@@ -979,6 +984,8 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         } ?: return null
         //Avoid handling HOURLY/MINUTELY/SECONDLY frequencies for now
 
+        // Since we cannot identify which specific event is causing the issue,
+        // handle it in the parent function
         val recurrenceRule = RecurrenceRule(frequency)
 
         recurrenceRule.count = rfcRecurrenceRule.count
