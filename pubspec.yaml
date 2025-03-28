@@ -6,7 +6,7 @@ homepage: https://github.com/builttoroam/device_calendar/tree/master
 dependencies:
   flutter:
     sdk: flutter
-  collection: ^1.16.0
+  collection: ^1.18.0
   sprintf: ^7.0.0
   timezone: ^0.9.0
 
@@ -22,6 +22,7 @@ flutter:
       android:
         package: com.builttoroam.devicecalendar
         pluginClass: DeviceCalendarPlugin
+        fileName: device_calendar.dart
       ios:
         pluginClass: DeviceCalendarPlugin
 
