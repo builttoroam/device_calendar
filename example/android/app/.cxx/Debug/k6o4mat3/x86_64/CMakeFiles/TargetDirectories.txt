@@ -1,0 +1,2 @@
+C:/Users/crmado/Desktop/code/testPluginProject/device_calendar/example/android/app/.cxx/Debug/k6o4mat3/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/crmado/Desktop/code/testPluginProject/device_calendar/example/android/app/.cxx/Debug/k6o4mat3/x86_64/CMakeFiles/rebuild_cache.dir
