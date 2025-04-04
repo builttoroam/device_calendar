@@ -760,6 +760,12 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
             val contentResolver: ContentResolver? = _context?.contentResolver
             if (startDate == null && endDate == null && followingInstances == null) { // Delete all instances
                 val eventsUriWithId = ContentUris.withAppendedId(Events.CONTENT_URI, eventIdNumber)
+                val clearRecurrenceValues = ContentValues().apply {
+                    putNull(Events.RRULE)
+                    putNull(Events.EXRULE)
+                    putNull(Events.EXDATE)
+                } // Clear recurrence data to avoid leaving orphaned recurrence info
+                contentResolver?.update(eventsUriWithId, clearRecurrenceValues, null, null)
                 val deleteSucceeded = contentResolver?.delete(eventsUriWithId, null, null) ?: 0
                 finishWithSuccess(deleteSucceeded > 0, pendingChannelResult)
             } else {
