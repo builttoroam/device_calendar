@@ -27,7 +27,8 @@ class CalendarEventPage extends StatefulWidget {
 
   @override
   _CalendarEventPageState createState() {
-    return _CalendarEventPageState(_calendar, _event, _recurringEventDialog, _eventColors);
+    return _CalendarEventPageState(
+        _calendar, _event, _recurringEventDialog, _eventColors);
   }
 }
 
@@ -63,17 +64,18 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   EventStatus? _eventStatus;
   List<Attendee>? _attendees;
   List<Reminder>? _reminders;
-  List<EventColor>? _eventColors;
+  final List<EventColor>? _eventColors;
   String _timezone = 'Etc/UTC';
 
-  _CalendarEventPageState(
-      this._calendar, this._event, this._recurringEventDialog, this._eventColors) {
+  _CalendarEventPageState(this._calendar, this._event,
+      this._recurringEventDialog, this._eventColors) {
     getCurentLocation();
   }
 
   void getCurentLocation() async {
     try {
-      _timezone = await FlutterTimezone.getLocalTimezone();
+      final timezoneInfo = await FlutterTimezone.getLocalTimezone();
+      _timezone = timezoneInfo.identifier;
     } catch (e) {
       debugPrint('Could not get the local timezone');
     }
@@ -292,19 +294,28 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             'EventColor',
                             style: TextStyle(fontSize: 16),
                           ),
-                          trailing: widget._event?.color == null ? const Text("not set") :  Container(
-                              width: 30,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(widget._event?.color ?? 0),
-                              )),
+                          trailing: widget._event?.color == null
+                              ? const Text("not set")
+                              : Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(widget._event?.color ?? 0),
+                                  )),
                           onTap: () async {
                             if (_eventColors != null) {
-                              final colors = _eventColors?.map((eventColor) => Color(eventColor.color)).toList();
-                              final newColor = await ColorPickerDialog.selectColorDialog(colors ?? [], context);
+                              final colors = _eventColors
+                                  ?.map((eventColor) => Color(eventColor.color))
+                                  .toList();
+                              final newColor =
+                                  await ColorPickerDialog.selectColorDialog(
+                                      colors ?? [], context);
                               setState(() {
-                                _event?.updateEventColor(_eventColors?.firstWhereOrNull((eventColor) => Color(eventColor.color).value == newColor?.value));
+                                _event?.updateEventColor(_eventColors
+                                    ?.firstWhereOrNull((eventColor) =>
+                                        Color(eventColor.color).value ==
+                                        newColor?.value));
                               });
                             }
                           },

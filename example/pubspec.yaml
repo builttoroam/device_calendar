@@ -10,18 +10,19 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  intl: ^0.17.0
-  uuid: ^3.0.6
-  flutter_timezone: ^3.0.1
+  intl: ^0.20.2
+  uuid: ^4.5.1
+  flutter_timezone: ^5.0.0
   device_calendar:
     path: ../
+  collection: ^1.19.1
 
 dev_dependencies:
   integration_test:
     sdk: flutter
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.1
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
