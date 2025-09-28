@@ -51,6 +51,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         let reminders: [Reminder]
         let availability: Availability?
         let eventStatus: EventStatus?
+        let originalStartDate: Int64?
     }
 
     struct RecurrenceRule: Codable {
@@ -446,6 +447,19 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         }
 
         let recurrenceRule = parseEKRecurrenceRules(ekEvent)
+        
+        var originalStartDate: Int64? = nil
+
+    if let masterItem = eventStore.calendarItem(withIdentifier: ekEvent.calendarItemIdentifier) as? EKEvent {
+        originalStartDate = Int64(masterItem.startDate.millisecondsSinceEpoch)
+    } else {
+        if ekEvent.hasRecurrenceRules {
+            originalStartDate = Int64(ekEvent.startDate.millisecondsSinceEpoch)
+        } else {
+            originalStartDate = Int64(ekEvent.startDate.millisecondsSinceEpoch)
+        }
+    }
+        
         let event = Event(
             eventId: ekEvent.eventIdentifier,
             calendarId: calendarId,
@@ -462,7 +476,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             organizer: convertEkParticipantToAttendee(ekParticipant: ekEvent.organizer),
             reminders: reminders,
             availability: convertEkEventAvailability(ekEventAvailability: ekEvent.availability),
-            eventStatus: convertEkEventStatus(ekEventStatus: ekEvent.status)
+            eventStatus: convertEkEventStatus(ekEventStatus: ekEvent.status),
+            originalStartDate: originalStartDate
         )
 
         return event
