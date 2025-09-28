@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'event_color.dart';
 
 import '../../device_calendar.dart';
 import '../common/error_messages.dart';
@@ -56,6 +55,9 @@ class Event {
   /// Read-only. Android exclusive. Updatable only using [Event.updateEventColor] with color from [DeviceCalendarPlugin.retrieveEventColors]
   int? colorKey;
 
+  /// Read-only. The original start date for recurring events
+  TZDateTime? originalStart;
+
   ///Note for development:
   ///
   ///JSON field names are coded in dart, swift and kotlin to facilitate data exchange.
@@ -79,7 +81,8 @@ class Event {
       this.location,
       this.url,
       this.allDay = false,
-      this.status});
+      this.status,
+      this.originalStart});
 
   ///Get Event from JSON.
   ///
@@ -119,6 +122,14 @@ class Event {
     description = json['eventDescription'];
     color = json['eventColor'];
     colorKey = json['eventColorKey'];
+
+    // Parse original start date
+    var originalStartTimestamp = json['originalStartDate'];
+    if (originalStartTimestamp != null) {
+      // Use local timezone for original start date
+      originalStart =
+          TZDateTime.fromMillisecondsSinceEpoch(local, originalStartTimestamp);
+    }
 
     startTimestamp = json['eventStartDate'];
     startLocationName = json['eventStartTimeZone'];
@@ -248,6 +259,7 @@ class Event {
     data['eventStatus'] = status?.enumToString;
     data['eventColor'] = color;
     data['eventColorKey'] = colorKey;
+    data['originalStartDate'] = originalStart?.millisecondsSinceEpoch;
 
     if (attendees != null) {
       data['attendees'] = attendees?.map((a) => a?.toJson()).toList();

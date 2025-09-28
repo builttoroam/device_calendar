@@ -20,4 +20,5 @@ class Event {
     var eventStatus: EventStatus? = null
     var eventColor: Int? = null
     var eventColorKey: Int? = null
+    var originalStartDate: Long? = null
 }
