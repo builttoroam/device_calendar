@@ -232,7 +232,7 @@ class _EventItemState extends State<EventItem> {
                 ],
               ),
             ),
-            ButtonBar(
+            OverflowBar(
               children: [
                 if (!widget._isReadOnly) ...[
                   IconButton(
@@ -311,13 +311,14 @@ class _EventItemState extends State<EventItem> {
   }
 
   void setCurentLocation() async {
-    String? timezone;
+    String timezone;
     try {
-      timezone = await FlutterTimezone.getLocalTimezone();
+      final timezoneInfo = await FlutterTimezone.getLocalTimezone();
+      timezone = timezoneInfo.identifier;
     } catch (e) {
       debugPrint('Could not get the local timezone');
+      timezone = 'Etc/UTC';
     }
-    timezone ??= 'Etc/UTC';
     _currentLocation = timeZoneDatabase.locations[timezone];
     setState(() {});
   }
