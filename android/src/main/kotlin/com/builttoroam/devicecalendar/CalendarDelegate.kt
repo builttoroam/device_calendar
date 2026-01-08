@@ -598,14 +598,15 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         values.put(Events.CUSTOM_APP_URI, event.eventURL)
         values.put(Events.CALENDAR_ID, calendarId)
         values.put(Events.AVAILABILITY, getAvailability(event.availability))
-        var status: Int? = getEventStatus(event.eventStatus)
-        if (status != null) {
-            values.put(Events.STATUS, status)
-        }
 
         var duration: String? = null
         var end: Long? = null
         var endTimeZone: String? = null
+
+        var status: Int? = getEventStatus(event.eventStatus)
+        if (status != null) {
+            values.put(Events.STATUS, status)
+        }
 
         if (event.recurrenceRule != null) {
             val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
