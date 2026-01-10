@@ -157,7 +157,7 @@ class Event {
     if (foundUrl?.isEmpty ?? true) {
       url = null;
     } else {
-      url = Uri.dataFromString(foundUrl as String);
+      url = Uri.tryParse(foundUrl as String);
     }
 
     if (json['attendees'] != null) {
@@ -243,7 +243,7 @@ class Event {
     data['eventEndTimeZone'] = end?.location.name;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
-    data['eventURL'] = url?.data?.contentText;
+    data['eventURL'] = url?.toString();
     data['availability'] = availability.enumToString;
     data['eventStatus'] = status?.enumToString;
     data['eventColor'] = color;
