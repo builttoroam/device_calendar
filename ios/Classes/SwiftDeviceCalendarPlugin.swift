@@ -1088,19 +1088,26 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
 
     private func requestPermissions(_ completion: @escaping (Bool) -> Void) {
         if hasEventPermissions() {
+            // Permission already granted – refresh the store
+            self.eventStore = EKEventStore()
             completion(true)
             return
         }
+    
         if #available(iOS 17, *) {
-            eventStore.requestFullAccessToEvents {
-                (accessGranted: Bool, _: Error?) in
+            eventStore.requestFullAccessToEvents { (accessGranted, _) in
+                if accessGranted {
+                    self.eventStore = EKEventStore() // refresh store after granting
+                }
                 completion(accessGranted)
             }
         } else {
-            eventStore.requestAccess(to: .event, completion: {
-                (accessGranted: Bool, _: Error?) in
+            eventStore.requestAccess(to: .event) { (accessGranted, _) in
+                if accessGranted {
+                    self.eventStore = EKEventStore() // refresh store after granting
+                }
                 completion(accessGranted)
-            })
+            }
         }
     }
 
