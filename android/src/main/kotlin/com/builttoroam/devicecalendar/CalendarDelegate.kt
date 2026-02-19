@@ -966,7 +966,11 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
     }
 
     private fun parseRecurrenceRuleString(recurrenceRuleString: String?): RecurrenceRule? {
-        if (recurrenceRuleString == null) {
+        // Treat null and blank strings as "no recurrence rule".
+        // RFC 5545 §3.3.10 requires FREQ to be present in any RECUR value, so a blank
+        // string is invalid. Some third-party sync adapters write an
+        // empty string instead of omitting the RRULE column, so both cases must be handled.
+        if (recurrenceRuleString.isNullOrBlank()) {
             return null
         }
         val rfcRecurrenceRule = Rrule(recurrenceRuleString)
