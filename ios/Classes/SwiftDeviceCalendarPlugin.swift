@@ -102,7 +102,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     let calendarNotFoundErrorMessageFormat = "The calendar with the ID %@ could not be found"
     let calendarReadOnlyErrorMessageFormat = "Calendar with ID %@ is read-only"
     let eventNotFoundErrorMessageFormat = "The event with the ID %@ could not be found"
-    let eventStore = EKEventStore()
+    let eventStore = EventStoreManager.shared.eventStore
     let requestPermissionsMethod = "requestPermissions"
     let hasPermissionsMethod = "hasPermissions"
     let retrieveCalendarsMethod = "retrieveCalendars"
