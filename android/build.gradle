@@ -21,8 +21,12 @@ rootProject.allprojects {
     }
 }
 
+def isAgp9OrAbove = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0].toInteger() >= 9
+
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+if (!isAgp9OrAbove) {
+    apply plugin: 'org.jetbrains.kotlin.android'
+}
 
 android {
     compileSdkVersion 34
@@ -43,8 +47,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+    if (!isAgp9OrAbove) {
+        kotlinOptions {
+            jvmTarget = JavaVersion.VERSION_1_8.toString()
+        }
     }
     namespace 'com.builttoroam.devicecalendar'
 }
