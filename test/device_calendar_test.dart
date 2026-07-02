@@ -209,7 +209,7 @@ void main() {
         title: 'Test Event',
         start: startTime,
         location: 'Seattle, Washington',
-        url: Uri.dataFromString('http://www.example.com'),
+        url: 'http://www.example.com',
         end: endTime,
         attendees: [attendee],
         description: 'Test description',

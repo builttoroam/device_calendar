@@ -157,7 +157,7 @@ class _EventItemState extends State<EventItem> {
                         ),
                         Expanded(
                           child: Text(
-                            widget._calendarEvent?.url?.data?.contentText ?? '',
+                            widget._calendarEvent?.url ?? '',
                             overflow: TextOverflow.ellipsis,
                           ),
                         )

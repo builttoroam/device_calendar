@@ -596,6 +596,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         values.put(Events.DESCRIPTION, event.eventDescription)
         values.put(Events.EVENT_LOCATION, event.eventLocation)
         values.put(Events.CUSTOM_APP_URI, event.eventURL)
+        values.put(Events.CUSTOM_APP_PACKAGE, _context?.getPackageName() ?: "")
         values.put(Events.CALENDAR_ID, calendarId)
         values.put(Events.AVAILABILITY, getAvailability(event.availability))
         var status: Int? = getEventStatus(event.eventStatus)

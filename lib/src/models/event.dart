@@ -33,7 +33,7 @@ class Event {
   String? location;
 
   /// An URL for this event
-  Uri? url;
+  String? url;
 
   /// A list of attendees for this event
   List<Attendee?>? attendees;
@@ -153,12 +153,7 @@ class Event {
     availability = parseStringToAvailability(json['availability']);
     status = parseStringToEventStatus(json['eventStatus']);
 
-    foundUrl = json['eventURL']?.toString();
-    if (foundUrl?.isEmpty ?? true) {
-      url = null;
-    } else {
-      url = Uri.dataFromString(foundUrl as String);
-    }
+    url = json['eventURL'];
 
     if (json['attendees'] != null) {
       attendees = json['attendees'].map<Attendee>((decodedAttendee) {
@@ -243,7 +238,7 @@ class Event {
     data['eventEndTimeZone'] = end?.location.name;
     data['eventAllDay'] = allDay;
     data['eventLocation'] = location;
-    data['eventURL'] = url?.data?.contentText;
+    data['eventURL'] = url;
     data['availability'] = availability.enumToString;
     data['eventStatus'] = status?.enumToString;
     data['eventColor'] = color;

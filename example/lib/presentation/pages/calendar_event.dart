@@ -224,13 +224,12 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: TextFormField(
-                          initialValue: _event?.url?.data?.contentText ?? '',
+                          initialValue: _event?.url ?? '',
                           decoration: const InputDecoration(
                               labelText: 'URL', hintText: 'https://google.com'),
                           onSaved: (String? value) {
                             if (value != null) {
-                              var uri = Uri.dataFromString(value);
-                              _event?.url = uri;
+                              _event?.url = value;
                             }
                           },
                         ),
