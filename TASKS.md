@@ -243,13 +243,23 @@ Ordered newest-first (most likely to still be relevant first):
       whether `device_calendar` itself already has an equivalent
       `integration_test` setup, since it predates the federated-plugin
       convention that repo uses).
-- [ ] Specifically worth a regression test: the #605 EKEventStore
-      recreate-after-grant fix, and the new
-      `CalendarAccessLevel.writeOnly` request path — both are exactly
-      the kind of subtle, easy-to-silently-regress logic that caused
-      real bugs earlier in this project (calendar_sync.dart's original
-      wrong-filter and missing-trigger bugs, found the hard way, in the
-      Vikunja side of this work). Don't repeat that pattern here.
+- [x] Regression test for the new `CalendarAccessLevel.writeOnly`
+      request path, at the Dart/method-channel boundary: added
+      `RequestPermissions_Defaults_ToFullAccessLevel` and
+      `RequestPermissions_WriteOnly_PassesAccessLevelArgument` to
+      `test/device_calendar_test.dart`, asserting `requestPermissions()`
+      sends `calendarAccessLevel: 'FULL'` by default and `'WRITE_ONLY'`
+      when requested. All 15 tests in the file pass (`flutter test`),
+      `flutter analyze` clean (only pre-existing unrelated warnings).
+- [ ] The #605 EKEventStore recreate-after-grant fix and the
+      `hasEventPermissions(requireFullAccess:)` gating logic live
+      entirely in `SwiftDeviceCalendarPlugin.swift` and aren't
+      observable through the method channel (the store recreation is
+      an internal implementation detail, not a return value) — **not
+      testable from Dart**. Needs an Xcode-side unit/integration test
+      (`example/integration_test/` or an `XCTest` target), which
+      requires a Swift/Xcode toolchain not available in this
+      environment. Left for whoever picks this up on a Mac.
 
 ### 4. Prep for publishing
 

@@ -47,6 +47,26 @@ void main() {
     expect(result.data, true);
   });
 
+  test('RequestPermissions_Defaults_ToFullAccessLevel', () async {
+    await deviceCalendarPlugin.requestPermissions();
+    expect(log, <Matcher>[
+      isMethodCall('requestPermissions', arguments: <String, dynamic>{
+        'calendarAccessLevel': 'FULL',
+      })
+    ]);
+  });
+
+  test('RequestPermissions_WriteOnly_PassesAccessLevelArgument', () async {
+    await deviceCalendarPlugin.requestPermissions(
+      accessLevel: CalendarAccessLevel.writeOnly,
+    );
+    expect(log, <Matcher>[
+      isMethodCall('requestPermissions', arguments: <String, dynamic>{
+        'calendarAccessLevel': 'WRITE_ONLY',
+      })
+    ]);
+  });
+
   test('RetrieveCalendars_Returns_Successfully', () async {
     const fakeCalendarName = 'fakeCalendarName';
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
