@@ -290,25 +290,87 @@ Ordered newest-first (most likely to still be relevant first):
       merge (file has moved on, same staleness as #531/#502/#580) so
       hand-applied instead. `flutter analyze` clean. Author credited
       (Julius Bredemeyer / IVLIVS-III).
-- [ ] **#448** "[5.0] rrule legacy layer" (2022-10-12, base: `develop`)
-      and **#445** "5.0 prerelease" (2022-10-07, base: `release`) — look
-      like two pieces of the same abandoned major-version-bump attempt.
-      Review together, not separately. Likely candidates for "skip,
-      abandoned effort" but confirm by reading both before deciding.
-- [ ] **#435** "Adding new features" (2022-08-25, base: `master`) — vague
-      title, wrong base branch. Investigate contents before judging.
-- [ ] **#428** "Android recurring events, edit single instance"
-      (2022-06-10) — a real feature, not just a fix; check for overlap
-      with any recurring-event handling already in `develop` before
-      merging.
+- [x] **#448** "[5.0] rrule legacy layer" (2022-10-12, base: `develop`)
+      and **#445** "5.0 prerelease" (2022-10-07, base: `release`) —
+      **both reviewed, both skipped, confirmed abandoned effort**.
+      - #448: diffs cleanly against `develop` (only 2 new files, 162
+        lines), but adds a `RecurrenceRuleLegacy` class (a v4.x-API
+        compatibility shim for the old custom `RecurrenceRule`, from
+        before this repo's own `40b1135 Implementing Rrule package
+        (#403)` migration) that is never referenced anywhere else in
+        the diff — not wired into `Event`, not exported from
+        `lib/device_calendar.dart`. Dead code, and speculative: nothing
+        in this project's actual roadmap needs a 4.x-compat shim (the
+        rrule migration already fully landed and nothing consumes the
+        old API). Its own commit is literally titled "draft legacy
+        layer". Skip.
+      - #445: diffs against its true base (`release`, not `develop` —
+        confirmed via `git merge-base upstream/release pr-445`) at
+        ~2100 lines across 49 files — it's a wholesale snapshot from
+        before the rrule migration, the event-color feature, and
+        everything else currently on `develop`. Applying it would be a
+        massive regression, not an update. Confirmed abandoned, same
+        conclusion as the original triage guess, nothing to extract.
+- [x] **#435** "Adding new features" (2022-08-25, base: `master`) —
+      **reviewed, skipped**. Diffed against its true merge-base on
+      `upstream/master`: ~2150 lines across 44 files, touching nearly
+      every file in the repo (`CalendarDelegate.kt` alone: +1166/-...).
+      Same generation and same problem as #445/#448 above — a snapshot
+      old enough to predate the rrule migration, so applying it would
+      revert large amounts of work already done independently on
+      `develop` since. Too large and too stale to extract pieces from
+      safely; no distinguishable individual feature worth pulling out
+      by hand (title itself is vague — "Adding new features" — with no
+      itemized list to check against current `develop`). Skip.
+- [x] **#428** "Android recurring events, edit single instance"
+      (2022-06-10) — **extracted and merged by hand**. Real, valuable
+      feature: `Event.originalInstanceTime`, wired through so
+      `createOrUpdateEvent` creates/updates a `CONTENT_EXCEPTION_URI`
+      exception event instead of the whole recurring series when set —
+      confirmed no overlap, this is the same pattern
+      `deleteEventInstance` already uses for single-instance deletes,
+      just for updates instead of deletes. PR branch predates the rrule
+      migration so applying it whole would've regressed a lot; extracted
+      by hand instead, with three real bugs fixed along the way rather
+      than reproduced: (1) the original computed exception-event
+      duration from `originalInstanceTime` → new end, which is wrong
+      when an edit also moves the start time — now uses new start → new
+      end, matching how the normal (non-exception) path already
+      computes duration; (2) the original used `java.time.Duration`/
+      `Instant`, which needs API 26+ or desugaring (neither present,
+      minSdk 19) and would've crashed on older devices — reused this
+      file's own existing `kotlin.time`-based duration builder instead
+      (extracted into a shared `buildDurationString()` helper); (3)
+      fixed a pre-existing, unrelated latent bug noticed while in this
+      code: `Events.AVAILABILITY` was written from a nullable Int
+      without a null check (unlike the adjacent `Events.STATUS` write),
+      risking an NPE for `Availability.Unavailable`. Skipped the PR's
+      own stale `build.gradle`/CI/README hunks (superseded by this
+      repo's AGP9 modernization). Added
+      `Event_OriginalInstanceTime_SerializesWriteOnly` to
+      `test/device_calendar_test.dart` (16/16 pass). **Not
+      build-verified**: discovered this environment's Android toolchain
+      has its own pre-existing gap, separate from the iOS/Xcode one —
+      `example/android`'s Gradle wrapper is a stale 7.3 from 2020,
+      incompatible with whatever JDK Flutter resolves here (reports as
+      class-file major version 65 / JDK 21); confirmed by reproducing
+      the identical failure on a clean `develop` checkout with none of
+      these changes applied, so it's an environment gap, not something
+      this change caused. Worth fixing this Gradle/JDK mismatch before
+      relying on Android build verification for future PR reviews in
+      this project. Author credited (Karol Wrótniak).
 - [x] **#419** "update mac support" (2022-04-16) — **skipped, out of
       scope**, same reasoning and same conversation as #471 above.
-- [ ] **#213** "change ios part - migration to Objective-c"
-      (2020-03-31) — current iOS implementation is already Swift
-      (`SwiftDeviceCalendarPlugin.swift`); this PR appears to move the
-      *opposite* direction and is almost certainly obsolete. Very likely
-      "skip" but confirm by at least reading the diff before writing
-      that down as final.
+- [x] **#213** "change ios part - migration to Objective-c"
+      (2020-03-31) — **confirmed obsolete, skipped**. Diff deletes
+      `SwiftDeviceCalendarPlugin.swift` outright (845 lines) and
+      replaces it with a full Objective-C implementation
+      (`DeviceCalendarPlugin.m`/`.h` + Obj-C model classes). Exactly the
+      opposite direction from where this fork has gone (iOS 17
+      write-only permissions, the #605 EKEventStore fix, #569's
+      cleanup — all Swift, all built on the current file). Also ships a
+      binary `.DS_Store` in the diff, a sign of an unreviewed/low-effort
+      PR. Nothing to extract.
 
 ### 3. Tests
 
