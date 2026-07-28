@@ -28,4 +28,5 @@ class ChannelConstants {
   static const String parameterNameCalendarColorKey = 'calendarColorKey';
   static const String parameterNameLocalAccountName = 'localAccountName';
   static const String parameterAccountName = "accountName";
+  static const String parameterNameCalendarAccessLevel = 'calendarAccessLevel';
 }

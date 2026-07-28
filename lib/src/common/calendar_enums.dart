@@ -59,6 +59,23 @@ enum EventStatus {
   Tentative,
 }
 
+/// The level of calendar access to request/check.
+///
+/// [writeOnly] only exists as a distinct authorization tier on iOS 17+
+/// (EventKit's `.writeOnly` status, for calls to `requestWriteOnlyAccessToEvents`).
+/// Requesting it elsewhere (iOS <17, Android) has no effect: those platforms
+/// only recognise a single granted/not-granted permission state, so the
+/// request is treated the same as [full].
+///
+/// Write-only access lets you create/update/delete events but not read
+/// existing ones back (e.g. [DeviceCalendarPlugin.retrieveEvents] will fail
+/// under write-only access even though [DeviceCalendarPlugin.hasPermissions]
+/// reports true) — request [full] if your app needs to read events.
+enum CalendarAccessLevel {
+  full,
+  writeOnly,
+}
+
 extension DayOfWeekExtension on DayOfWeek {
   static int _value(DayOfWeek val) {
     switch (val) {
@@ -308,6 +325,19 @@ extension EventStatusExtensions on EventStatus {
         return 'CANCELED';
       case EventStatus.None:
         return 'NONE';
+    }
+  }
+
+  String get enumToString => _enumToString(this);
+}
+
+extension CalendarAccessLevelExtensions on CalendarAccessLevel {
+  String _enumToString(CalendarAccessLevel enumValue) {
+    switch (enumValue) {
+      case CalendarAccessLevel.full:
+        return 'FULL';
+      case CalendarAccessLevel.writeOnly:
+        return 'WRITE_ONLY';
     }
   }
 

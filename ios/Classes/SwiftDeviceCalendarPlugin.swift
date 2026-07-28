@@ -116,6 +116,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     let showEventModalMethod = "showiOSEventModal"
     let updateCalendarColor = "updateCalendarColor"
     let calendarIdArgument = "calendarId"
+    let calendarAccessLevelArgument = "calendarAccessLevel"
     let startDateArgument = "startDate"
     let endDateArgument = "endDate"
     let eventIdArgument = "eventId"
@@ -166,7 +167,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case requestPermissionsMethod:
-            requestPermissions(result)
+            requestPermissions(call, result)
         case hasPermissionsMethod:
             hasPermissions(result)
         case retrieveCalendarsMethod:
@@ -194,7 +195,11 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     }
 
     private func hasPermissions(_ result: FlutterResult) {
-        let hasPermissions = hasEventPermissions()
+        // Dart-facing contract: true at *any* granted access level (full or
+        // write-only), unlike checkPermissionsThenExecute's gate below,
+        // which must keep requiring full access since it fronts operations
+        // (e.g. retrieveEvents) that write-only access can't satisfy.
+        let hasPermissions = hasEventPermissions(requireFullAccess: false)
         result(hasPermissions)
     }
 
@@ -1086,20 +1091,30 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         self.finishWithUnauthorizedError(result: result)
     }
 
-    private func requestPermissions(_ completion: @escaping (Bool) -> Void) {
-        if hasEventPermissions() {
-            // Permission already granted – refresh the store
+    private func requestPermissions(_ call: FlutterMethodCall, _ completion: @escaping (Bool) -> Void) {
+        let arguments = call.arguments as? [String: Any]
+        // Only a real distinction on iOS 17+ (EKAuthorizationStatus.writeOnly);
+        // ignored everywhere else, where there's a single permission tier.
+        let requestWriteOnly = (arguments?[calendarAccessLevelArgument] as? String) == "WRITE_ONLY"
+
+        if hasEventPermissions(requireFullAccess: !requestWriteOnly) {
+            // Permission already granted at (at least) the requested level – refresh the store
             self.eventStore = EKEventStore()
             completion(true)
             return
         }
 
         if #available(iOS 17, *) {
-            eventStore.requestFullAccessToEvents { (accessGranted, _) in
+            let grantHandler: (Bool, Error?) -> Void = { (accessGranted, _) in
                 if accessGranted {
                     self.eventStore = EKEventStore() // refresh store after granting
                 }
                 completion(accessGranted)
+            }
+            if requestWriteOnly {
+                eventStore.requestWriteOnlyAccessToEvents(completion: grantHandler)
+            } else {
+                eventStore.requestFullAccessToEvents(completion: grantHandler)
             }
         } else {
             eventStore.requestAccess(to: .event) { (accessGranted, _) in
@@ -1111,10 +1126,20 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         }
     }
 
-    private func hasEventPermissions() -> Bool {
+    /// [requireFullAccess] defaults to true, preserving the original
+    /// behavior for checkPermissionsThenExecute's gate (fronts operations
+    /// like retrieveEvents that write-only access can't satisfy) and for
+    /// any future caller that doesn't think about this explicitly. The two
+    /// call sites that should accept write-only access (hasPermissions(),
+    /// and requestPermissions()'s own already-granted check) pass
+    /// requireFullAccess explicitly instead of relying on a relaxed default.
+    private func hasEventPermissions(requireFullAccess: Bool = true) -> Bool {
         let status = EKEventStore.authorizationStatus(for: .event)
         if #available(iOS 17, *) {
-            return status == EKAuthorizationStatus.fullAccess
+            if requireFullAccess {
+                return status == EKAuthorizationStatus.fullAccess
+            }
+            return status == EKAuthorizationStatus.fullAccess || status == EKAuthorizationStatus.writeOnly
         } else {
             return status == EKAuthorizationStatus.authorized
         }

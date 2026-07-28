@@ -30,18 +30,34 @@ class DeviceCalendarPlugin {
 
   /// Requests permissions to modify the calendars on the device
   ///
-  /// Returns a [Result] indicating if calendar READ and WRITE permissions
-  /// have (true) or have not (false) been granted
-  Future<Result<bool>> requestPermissions() async {
+  /// [accessLevel] defaults to [CalendarAccessLevel.full]. Pass
+  /// [CalendarAccessLevel.writeOnly] to request write-only access instead;
+  /// this only has an effect on iOS 17+ (see [CalendarAccessLevel] for
+  /// platform details and the resulting read-access limitation) -- iOS <17
+  /// and Android always grant the same single permission tier regardless of
+  /// what's requested.
+  ///
+  /// Returns a [Result] indicating if calendar permissions at the requested
+  /// [accessLevel] have (true) or have not (false) been granted
+  Future<Result<bool>> requestPermissions({
+    CalendarAccessLevel accessLevel = CalendarAccessLevel.full,
+  }) async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameRequestPermissions,
+      arguments: () => {
+        ChannelConstants.parameterNameCalendarAccessLevel:
+            accessLevel.enumToString,
+      },
     );
   }
 
   /// Checks if permissions for modifying the device calendars have been granted
   ///
-  /// Returns a [Result] indicating if calendar READ and WRITE permissions
-  /// have (true) or have not (false) been granted
+  /// Returns a [Result] indicating if calendar permissions have (true) or
+  /// have not (false) been granted, at *any* [CalendarAccessLevel] -- this
+  /// does not distinguish full from write-only access. A write-only grant
+  /// reports true here even though operations needing read access (e.g.
+  /// [retrieveEvents]) will still fail; see [CalendarAccessLevel].
   Future<Result<bool>> hasPermissions() async {
     return _invokeChannelMethod(
       ChannelConstants.methodNameHasPermissions,

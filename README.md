@@ -118,4 +118,28 @@ For iOS 17+ support, add the following key/value pair as well.
 <string>Access most functions for calendar viewing and editing.</string>
 ```
 
+If you request `CalendarAccessLevel.writeOnly` (see below), also add:
+
+```xml
+<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+<string>Add events to your calendar.</string>
+```
+
+### Requesting write-only access (iOS 17+)
+
+By default, `requestPermissions()` asks for full read/write access. On iOS
+17+ you can instead request write-only access -- lets you create, update and
+delete events without being able to read existing ones back:
+
+```dart
+await deviceCalendarPlugin.requestPermissions(
+  accessLevel: CalendarAccessLevel.writeOnly,
+);
+```
+
+This has no effect on iOS <17 or Android, which only have a single
+permission tier; the request is treated the same as `CalendarAccessLevel.full`
+there. See the `CalendarAccessLevel` dartdoc for the read-access limitation
+this implies.
+
 Note that on iOS, this is a Swift plugin. There is a known issue being tracked [here](https://github.com/flutter/flutter/issues/16049) by the Flutter team, where adding a plugin developed in Swift to an Objective-C project causes problems. If you run into such issues, please look at the suggested workarounds there.
