@@ -216,27 +216,80 @@ Ordered newest-first (most likely to still be relevant first):
       its "View/edit iOS attendance details" button called
       `showiOSEventModal('')` with an empty id). Author credited
       (haowen737) via merge commit. Not build-verified (no Xcode).
-- [ ] **#531** "Fix: Update Set\<T\> to List\<T\> in calendar_event.dart
-      to comply with rrule 0.2.16" (2024-03-17) — check current `rrule`
-      version already in use (this repo may have already moved past
-      0.2.16 via other commits; verify relevance first).
-- [ ] **#512** "namespace change" (2023-10-27) — likely superseded by
-      #612 (AGP9) and the #587-extraction (namespace/manifest cleanup),
-      both already merged. Verify-then-close is plausible outcome here
-      too, same as #590/#580.
-- [ ] **#510** "rel" (2023-10-14, base: `master` not `develop`) —
-      cryptic title, wrong base branch for this workflow. Investigate
-      what it actually contains before doing anything with it.
-- [ ] **#502** "test update" (2023-09-16) — vague title, read the actual
-      diff to know what it does before judging.
-- [ ] **#471** "macOS support" (2023-02-09) — a whole new platform
-      target, meaningfully larger in scope than anything reviewed so
-      far. Treat as its own mini-project if pursued; confirm with
-      bencouture whether macOS support is even wanted before investing
-      review time here.
-- [ ] **#454** "Removed platform-specific logic from the example app."
-      (2022-11-02) — example-app-only, low risk, but old; check it still
-      applies cleanly.
+- [x] **#531** "Fix: Update Set\<T\> to List\<T\> in calendar_event.dart
+      to comply with rrule 0.2.16" (2024-03-17) — **verified superseded,
+      closed**. Confirmed `develop`'s `pubspec.yaml` (`rrule: ^0.2.15`)
+      resolves to `rrule` 0.2.18 (`flutter pub get`/lockfile), whose
+      `RecurrenceRule.copyWith` already types `byWeekDays`/`byMonthDays`
+      as `List`, and `example/lib/presentation/pages/calendar_event.dart`
+      on `develop` already uses list literals (`[1]`, not `{1}`)
+      everywhere — `flutter analyze` on that file has zero type errors.
+      Diffing pr-531 against current `develop` (not just its stale
+      merge-base) confirms why: the PR branch predates the event-color
+      feature, the `flutter_timezone` migration, and the #569 eventId
+      fix just merged above — applying it would be a net regression,
+      not an update. Nothing to merge.
+- [x] **#512** "namespace change" (2023-10-27) — **reviewed, rejected**.
+      Not literally superseded (its actual content — guarding the
+      `namespace 'com.builttoroam.devicecalendar'` line with
+      `if (project.android.hasProperty("namespace"))` for AGP <4.2
+      compatibility — isn't present on `develop` in any form), but the
+      scenario it guards against can't occur: `android/build.gradle` on
+      `develop` already requires `compileSdkVersion 34` and Java 17,
+      both of which need AGP 7+ (namespace DSL was introduced in AGP
+      7.0), so any consuming project already satisfying this plugin's
+      other requirements necessarily has a namespace-capable AGP. The
+      guard would only matter for an AGP <4.2 project, which couldn't
+      build this plugin at all regardless. Skipped as defensive code
+      for an impossible scenario, not because it's redundant with
+      something already merged.
+- [x] **#510** "rel" (2023-10-14, base: `master` not `develop`) —
+      **reviewed, skipped**. Diffed against the true merge-base on
+      `master` (not `develop` — confirms the title's base-branch note):
+      the entire PR is a 4-line `pubspec.yaml` change — version
+      `4.3.1` → `4.3.2`, drop the `homepage` field, add
+      `publish_to: none`. This is upstream's own internal
+      release-prep/version-bump housekeeping, not a bug fix or feature.
+      `publish_to: none` would actively block the eventual `dart pub
+      publish` this fork's project wants (section 5) — the opposite of
+      what we need. Version/homepage/publish settings for this fork get
+      decided fresh in "Prep for publishing" below, not inherited from
+      here. Nothing to merge.
+- [x] **#502** "test update" (2023-09-16) — **extracted and merged by
+      hand**. Real content: extends
+      `example/integration_test/app_test.dart` to fill and verify
+      description/location/url fields (not just title) round-trip
+      through save, plus matching `key: Key(...)` additions on those
+      `TextFormField`s so the test can find them. The
+      `calendar_event.dart` hunk didn't apply cleanly (file has moved
+      on — event-color feature, `flutter_timezone` migration, #569's
+      eventId fix) so it was hand-applied instead of merged; the test
+      file itself applied clean. Also fixed a leftover unused-variable
+      warning the original PR introduced (`saveEventButtonFinder`
+      became dead after the rewrite switched to inline `keyFinder()`
+      calls). `flutter analyze` clean on both files. Author credited
+      (Thomas / thomassth). Not run against a device — needs a
+      physical device + writable calendar per the test file's own
+      header note.
+- [x] **#471** "macOS support" (2023-02-09) — **skipped, out of scope**.
+      Confirmed with bencouture: don't expand scope beyond what the
+      downstream consumer (the Vikunja Flutter app at `/home/ben/git/app`)
+      needs. That app has no `macos/` platform directory — it doesn't
+      target macOS — so macOS support here isn't needed. Not reviewed
+      in depth. Revisit if the downstream app ever adds a macOS target.
+- [x] **#454** "Removed platform-specific logic from the example app."
+      (2022-11-02) — **extracted and merged by hand**. Its own commit
+      message explains the rationale: the example app hid the 'To'
+      date picker for allDay events on non-Android platforms because
+      iOS allDay events used to always be single-day; PR #450 added
+      multi-day allDay support on both platforms, making that
+      distinction stale. Verified #450 (merge commit `039f047`) really
+      is already an ancestor of `develop`
+      (`git merge-base --is-ancestor 039f047 develop`), so the premise
+      holds today, not just at PR-open time. Didn't apply cleanly as a
+      merge (file has moved on, same staleness as #531/#502/#580) so
+      hand-applied instead. `flutter analyze` clean. Author credited
+      (Julius Bredemeyer / IVLIVS-III).
 - [ ] **#448** "[5.0] rrule legacy layer" (2022-10-12, base: `develop`)
       and **#445** "5.0 prerelease" (2022-10-07, base: `release`) — look
       like two pieces of the same abandoned major-version-bump attempt.
@@ -248,9 +301,8 @@ Ordered newest-first (most likely to still be relevant first):
       (2022-06-10) — a real feature, not just a fix; check for overlap
       with any recurring-event handling already in `develop` before
       merging.
-- [ ] **#419** "update mac support" (2022-04-16) — likely an earlier,
-      probably-superseded piece of whatever #471 is; review both
-      together.
+- [x] **#419** "update mac support" (2022-04-16) — **skipped, out of
+      scope**, same reasoning and same conversation as #471 above.
 - [ ] **#213** "change ios part - migration to Objective-c"
       (2020-03-31) — current iOS implementation is already Swift
       (`SwiftDeviceCalendarPlugin.swift`); this PR appears to move the
