@@ -494,39 +494,55 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
                     insertReminders(event.reminders, eventId, contentResolver)
                 }
             } else {
+                val existingEventId: Long = eventId!!
                 job = GlobalScope.launch(Dispatchers.IO + exceptionHandler) {
-                    contentResolver?.update(
-                        ContentUris.withAppendedId(Events.CONTENT_URI, eventId),
-                        values,
-                        null,
+                    // originalInstanceTime set on an event whose master series
+                    // has an RRULE means "edit only this instance" -- create/
+                    // update a CalendarContract exception event instead of the
+                    // recurring series itself. See CalendarDelegate's own
+                    // deleteEventInstance for the same exception-event pattern
+                    // used for single-instance deletion.
+                    val originalSyncId = if (event.originalInstanceTime != null) {
+                        getOriginalSyncId(contentResolver, existingEventId)
+                    } else {
                         null
-                    )
-                    val existingAttendees =
-                        retrieveAttendees(calendar, eventId.toString(), contentResolver)
-                    val attendeesToDelete =
-                        if (event.attendees.isNotEmpty()) existingAttendees.filter { existingAttendee -> event.attendees.all { it.emailAddress != existingAttendee.emailAddress } } else existingAttendees
-                    for (attendeeToDelete in attendeesToDelete) {
-                        deleteAttendee(eventId, attendeeToDelete, contentResolver)
                     }
 
-                    val attendeesToInsert =
-                        event.attendees.filter { existingAttendees.all { existingAttendee -> existingAttendee.emailAddress != it.emailAddress } }
-                    insertAttendees(attendeesToInsert, eventId, contentResolver)
-                    deleteExistingReminders(contentResolver, eventId)
-                    insertReminders(event.reminders, eventId, contentResolver!!)
+                    if (originalSyncId != null) {
+                        val instanceValues = ContentValues()
+                        instanceValues.put(Events.DTSTART, event.eventStartDate)
+                        instanceValues.put(
+                            Events.DURATION,
+                            buildDurationString(event.eventStartDate!!, event.eventEndDate!!)
+                        )
+                        instanceValues.put(Events.ALL_DAY, if (event.eventAllDay) 1 else 0)
+                        instanceValues.put(Events.TITLE, event.eventTitle)
+                        instanceValues.put(Events.DESCRIPTION, event.eventDescription)
+                        instanceValues.put(Events.EVENT_LOCATION, event.eventLocation)
+                        instanceValues.put(Events.ORIGINAL_SYNC_ID, originalSyncId)
+                        instanceValues.put(
+                            Events.ORIGINAL_INSTANCE_TIME,
+                            event.originalInstanceTime
+                        )
 
-                    val existingSelfAttendee = existingAttendees.firstOrNull {
-                        it.emailAddress == calendar.ownerAccount
+                        val uri = contentResolver?.insert(
+                            ContentUris.withAppendedId(
+                                Events.CONTENT_EXCEPTION_URI,
+                                existingEventId
+                            ), instanceValues
+                        )
+                        eventId = java.lang.Long.parseLong(uri?.lastPathSegment!!)
+                    } else {
+                        contentResolver?.update(
+                            ContentUris.withAppendedId(Events.CONTENT_URI, existingEventId),
+                            values,
+                            null,
+                            null
+                        )
                     }
-                    val newSelfAttendee = event.attendees.firstOrNull {
-                        it.emailAddress == calendar.ownerAccount
-                    }
-                    if (existingSelfAttendee != null && newSelfAttendee != null &&
-                        newSelfAttendee.attendanceStatus != null &&
-                        existingSelfAttendee.attendanceStatus != newSelfAttendee.attendanceStatus
-                    ) {
-                        updateAttendeeStatus(eventId, newSelfAttendee, contentResolver)
-                    }
+
+                    updateAttendees(calendar, eventId!!, contentResolver, event.attendees)
+                    updateReminders(contentResolver, eventId!!, event.reminders)
                 }
             }
             job.invokeOnCompletion { cause ->
@@ -586,6 +602,85 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         contentResolver.bulkInsert(CalendarContract.Reminders.CONTENT_URI, remindersContentValues)
     }
 
+    private fun updateReminders(
+        contentResolver: ContentResolver?,
+        eventId: Long,
+        reminders: List<Reminder>
+    ) {
+        deleteExistingReminders(contentResolver, eventId)
+        insertReminders(reminders, eventId, contentResolver!!)
+    }
+
+    private fun updateAttendees(
+        calendar: Calendar,
+        eventId: Long,
+        contentResolver: ContentResolver?,
+        attendees: List<Attendee>
+    ) {
+        val existingAttendees = retrieveAttendees(calendar, eventId.toString(), contentResolver)
+        val attendeesToDelete =
+            if (attendees.isNotEmpty()) existingAttendees.filter { existingAttendee -> attendees.all { it.emailAddress != existingAttendee.emailAddress } } else existingAttendees
+        for (attendeeToDelete in attendeesToDelete) {
+            deleteAttendee(eventId, attendeeToDelete, contentResolver)
+        }
+
+        val attendeesToInsert =
+            attendees.filter { existingAttendees.all { existingAttendee -> existingAttendee.emailAddress != it.emailAddress } }
+        insertAttendees(attendeesToInsert, eventId, contentResolver)
+
+        val existingSelfAttendee = existingAttendees.firstOrNull {
+            it.emailAddress == calendar.ownerAccount
+        }
+        val newSelfAttendee = attendees.firstOrNull {
+            it.emailAddress == calendar.ownerAccount
+        }
+        if (existingSelfAttendee != null && newSelfAttendee != null &&
+            newSelfAttendee.attendanceStatus != null &&
+            existingSelfAttendee.attendanceStatus != newSelfAttendee.attendanceStatus
+        ) {
+            updateAttendeeStatus(eventId, newSelfAttendee, contentResolver)
+        }
+    }
+
+    // Returns the recurring master event's _SYNC_ID if [eventId] has an
+    // RRULE (i.e. is itself a recurring series, not a single event), else
+    // null. Used to decide whether an update should create/update a
+    // single-instance exception (see Events.CONTENT_EXCEPTION_URI usage in
+    // createOrUpdateEvent) rather than updating the whole series.
+    private fun getOriginalSyncId(contentResolver: ContentResolver?, eventId: Long): String? {
+        val cursor = contentResolver?.query(
+            ContentUris.withAppendedId(Events.CONTENT_URI, eventId),
+            arrayOf(Events.RRULE, Events._SYNC_ID),
+            null, null, null
+        )
+        val syncId = if (cursor != null && cursor.moveToFirst() &&
+            cursor.getString(cursor.getColumnIndexOrThrow(Events.RRULE)) != null
+        ) {
+            cursor.getString(cursor.getColumnIndexOrThrow(Events._SYNC_ID))
+        } else {
+            null
+        }
+        cursor?.close()
+        return syncId
+    }
+
+    // RFC5545 duration string (e.g. "PT1H30M") between two epoch-millis
+    // timestamps, in the same format CalendarContract.Events.DURATION
+    // expects.
+    private fun buildDurationString(startMillis: Long, endMillis: Long): String? {
+        var duration: String? = null
+        val rawDuration = (endMillis - startMillis).toDuration(DurationUnit.MILLISECONDS)
+        rawDuration.toComponents { days, hours, minutes, seconds, _ ->
+            if (days > 0 || hours > 0 || minutes > 0 || seconds > 0) duration = "P"
+            if (days > 0) duration = duration.plus("${days}D")
+            if (hours > 0 || minutes > 0 || seconds > 0) duration = duration.plus("T")
+            if (hours > 0) duration = duration.plus("${hours}H")
+            if (minutes > 0) duration = duration.plus("${minutes}M")
+            if (seconds > 0) duration = duration.plus("${seconds}S")
+        }
+        return duration
+    }
+
     private fun buildEventContentValues(event: Event, calendarId: String): ContentValues {
         val values = ContentValues()
 
@@ -597,7 +692,10 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         values.put(Events.EVENT_LOCATION, event.eventLocation)
         values.put(Events.CUSTOM_APP_URI, event.eventURL)
         values.put(Events.CALENDAR_ID, calendarId)
-        values.put(Events.AVAILABILITY, getAvailability(event.availability))
+        var availability: Int? = getAvailability(event.availability)
+        if (availability != null) {
+            values.put(Events.AVAILABILITY, availability)
+        }
         var status: Int? = getEventStatus(event.eventStatus)
         if (status != null) {
             values.put(Events.STATUS, status)
@@ -610,16 +708,7 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         if (event.recurrenceRule != null) {
             val recurrenceRuleParams = buildRecurrenceRuleParams(event.recurrenceRule!!)
             values.put(Events.RRULE, recurrenceRuleParams)
-            val difference = event.eventEndDate!!.minus(event.eventStartDate!!)
-            val rawDuration = difference.toDuration(DurationUnit.MILLISECONDS)
-            rawDuration.toComponents { days, hours, minutes, seconds, _ ->
-                if (days > 0 || hours > 0 || minutes > 0 || seconds > 0) duration = "P"
-                if (days > 0) duration = duration.plus("${days}D")
-                if (hours > 0 || minutes > 0 || seconds > 0) duration = duration.plus("T")
-                if (hours > 0) duration = duration.plus("${hours}H")
-                if (minutes > 0) duration = duration.plus("${minutes}M")
-                if (seconds > 0) duration = duration.plus("${seconds}S")
-            }
+            duration = buildDurationString(event.eventStartDate!!, event.eventEndDate!!)
         } else {
             end = event.eventEndDate!!
             endTimeZone = getTimeZone(event.eventEndTimeZone).id

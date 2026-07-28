@@ -56,6 +56,12 @@ class Event {
   /// Read-only. Android exclusive. Updatable only using [Event.updateEventColor] with color from [DeviceCalendarPlugin.retrieveEventColors]
   int? colorKey;
 
+  /// Write-only. Android exclusive. Set this to the start time of the
+  /// recurring instance being edited to create/update a single-instance
+  /// exception instead of the whole recurring series. Ignored on iOS and
+  /// ignored if [recurrenceRule] isn't set on the underlying event.
+  TZDateTime? originalInstanceTime;
+
   ///Note for development:
   ///
   ///JSON field names are coded in dart, swift and kotlin to facilitate data exchange.
@@ -79,7 +85,8 @@ class Event {
       this.location,
       this.url,
       this.allDay = false,
-      this.status});
+      this.status,
+      this.originalInstanceTime});
 
   ///Get Event from JSON.
   ///
@@ -248,6 +255,7 @@ class Event {
     data['eventStatus'] = status?.enumToString;
     data['eventColor'] = color;
     data['eventColorKey'] = colorKey;
+    data['originalInstanceTime'] = originalInstanceTime?.millisecondsSinceEpoch;
 
     if (attendees != null) {
       data['attendees'] = attendees?.map((a) => a?.toJson()).toList();

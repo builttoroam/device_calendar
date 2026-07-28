@@ -72,6 +72,7 @@ private const val ATTENDANCE_STATUS_ARGUMENT = "attendanceStatus"
 private const val EVENT_STATUS_ARGUMENT = "eventStatus"
 private const val EVENT_COLOR_KEY_ARGUMENT = "eventColorKey"
 private const val CALENDAR_COLOR_KEY_ARGUMENT = "calendarColorKey"
+private const val EVENT_ORIGINAL_INSTANCE_TIME_ARGUMENT = "originalInstanceTime"
 
 class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
@@ -228,6 +229,7 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         event.availability = parseAvailability(call.argument<String>(EVENT_AVAILABILITY_ARGUMENT))
         event.eventStatus = parseEventStatus(call.argument<String>(EVENT_STATUS_ARGUMENT))
         event.eventColorKey = call.argument<Int>(EVENT_COLOR_KEY_ARGUMENT)
+        event.originalInstanceTime = call.argument<Long>(EVENT_ORIGINAL_INSTANCE_TIME_ARGUMENT)
 
         if (call.hasArgument(RECURRENCE_RULE_ARGUMENT) && call.argument<Map<String, Any>>(
                 RECURRENCE_RULE_ARGUMENT

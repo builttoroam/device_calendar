@@ -265,4 +265,18 @@ void main() {
     expect(newEvent.color, equals(event.color));
     expect(newEvent.colorKey, equals(event.colorKey));
   });
+
+  test('Event_OriginalInstanceTime_SerializesWriteOnly', () async {
+    final instanceTime = TZDateTime.utc(1980, 10, 1);
+    final event = Event('calendarId',
+        eventId: 'eventId', originalInstanceTime: instanceTime);
+
+    expect(event.toJson()['originalInstanceTime'],
+        equals(instanceTime.millisecondsSinceEpoch));
+
+    // Write-only: it's never present in a server/plugin JSON response, so
+    // fromJson has nothing to read it back from.
+    final roundTripped = Event.fromJson(event.toJson());
+    expect(roundTripped.originalInstanceTime, isNull);
+  });
 }
