@@ -374,14 +374,16 @@ Ordered newest-first (most likely to still be relevant first):
 
 ### 3. Tests
 
-- [ ] Add/update tests for everything merged so far. This repo's test
-      layout: Dart unit tests live under each package's own `test/`
-      dir; there's also `example/integration_test/` for real
-      device/platform-channel-level coverage (per patterns seen in
-      sibling plugin `device_calendar_plus`'s CONTRIBUTING.md — check
-      whether `device_calendar` itself already has an equivalent
-      `integration_test` setup, since it predates the federated-plugin
-      convention that repo uses).
+- [ ] Full systematic test coverage, all four languages (Dart, Kotlin,
+      Swift, plus the trivial Obj-C shim). See **[TESTING_PLAN.md](TESTING_PLAN.md)**
+      for the complete checklist, per-layer tooling choices (Robolectric
+      for Android, XCTest for iOS, `integration_test` for end-to-end),
+      known coverage gaps (allDay/`Platform.isAndroid` normalization in
+      `createOrUpdateEvent`, `deleteEventInstance` at zero coverage,
+      zero Android/iOS native tests at all today), and a sequencing
+      recommendation given this environment's toolchain gaps (no Xcode,
+      broken Android Gradle wrapper). Work through it top to bottom;
+      update its checkboxes as items land, same as this file.
 - [x] Regression test for the new `CalendarAccessLevel.writeOnly`
       request path, at the Dart/method-channel boundary: added
       `RequestPermissions_Defaults_ToFullAccessLevel` and
