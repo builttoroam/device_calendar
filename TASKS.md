@@ -163,15 +163,29 @@ These were guessed-superseded in the first pass based on title similarity
 alone, unlike #594 (which was actually diffed and confirmed identical).
 Confirm properly before crossing off:
 
-- [ ] **#590** "Upgrade to timezone 0.10.0" — claimed superseded by
-      #604 (which went further, to 0.11.0). Verify: does #590 touch
-      anything #604 didn't (check `git diff $(git merge-base develop
-      pr-590) pr-590` after fetching `pull/590/head`)? If genuinely
-      subsumed, note it closed here; if not, review it properly.
-- [ ] **#580** "fix event url" — claimed superseded by #594 (itself
-      folded into #604). Same treatment: fetch, diff against true
-      merge-base, confirm it's actually the same change before
-      considering it closed.
+- [x] **#590** "Upgrade to timezone 0.10.0" — **verified superseded,
+      closed**. Diffed against true merge-base: timezone bump (goes to
+      0.11.0 in the PR's own diff) and the `Uri.dataFromString` →
+      `Uri.tryParse` event-url fix are both already on `develop` via
+      #604. Remaining diff is noise: a stale gradle-wrapper distro
+      bump (superseded by #612's AGP9 work), an accidentally-committed
+      generated Xcode lldb ephemeral file, and an unrelated
+      `flutter_lints: ^2.0.1` → `any` loosening not part of the PR's
+      stated purpose (and `any` is worse practice — no upper bound at
+      all). Nothing to merge.
+- [x] **#580** "fix event url" — **verified NOT superseded by #594,
+      reviewed and rejected**. Original triage guess was wrong: #580 is
+      a materially different, broader change, not the same fix as
+      #594/#604. #594/#604 only swapped `Uri.dataFromString` for
+      `Uri.tryParse` while keeping `Event.url` typed as `Uri?`. #580
+      instead changes `Event.url`'s type from `Uri?` to `String?`
+      outright — a breaking public API change — and the underlying bug
+      (`Uri.dataFromString` mishandling real URLs) is already fixed by
+      the milder, non-breaking fix already on `develop`. #580 also
+      bundles an unrelated Android native change in
+      `CalendarDelegate.kt` (`Events.CUSTOM_APP_PACKAGE`) with no
+      connection to the URL fix. Rejected as bundled + unnecessary
+      breaking change, same reasoning as #587. Nothing to merge.
 
 ### 2. Remaining PRs needing a full individual review (13, not merged/decided yet)
 
@@ -185,12 +199,23 @@ or skip with a clearly written reason — same as every item in the
 
 Ordered newest-first (most likely to still be relevant first):
 
-- [ ] **#569** "Remove native ios event modal tool bar" (2024-11-13) —
-      flagged in original triage as a real *behavior* change (removes
-      UI), not obviously a bug fix. Read the linked issue/rationale
-      carefully before deciding; this one needs a judgment call on
-      whether it's a fix or a breaking UX change that shouldn't be
-      default.
+- [x] **#569** "Remove native ios event modal tool bar" (2024-11-13) —
+      **merged** (`git merge --no-ff pr-569`), original triage worry
+      was unfounded. Verified: the removed toolbar-styling lines in
+      `showEventModal` (isTranslucent/tintColor/backgroundColor) styled
+      a `UINavigationController.toolbar` that is never unhidden
+      anywhere in this file (no `setToolbarHidden(false)` /
+      `isToolbarHidden = false` call exists in the whole plugin) — it
+      was dead code styling an invisible bar, not a visible-UI removal.
+      Bundled with two other small, unrelated-but-safe fixes from the
+      same PR: `showEventModal`'s event-not-found path now uses the
+      existing `finishWithEventNotFoundError()` helper (the other 3
+      call sites in the file already did; this was the inconsistent
+      one), and the example app's "Attendees" button now passes the
+      real `eventId` into `EventAttendeePage` (previously omitted, so
+      its "View/edit iOS attendance details" button called
+      `showiOSEventModal('')` with an empty id). Author credited
+      (haowen737) via merge commit. Not build-verified (no Xcode).
 - [ ] **#531** "Fix: Update Set\<T\> to List\<T\> in calendar_event.dart
       to comply with rrule 0.2.16" (2024-03-17) — check current `rrule`
       version already in use (this repo may have already moved past
