@@ -5,7 +5,7 @@ publish_to: none
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
-  flutter: ">=1.20.0"
+  flutter: ">=3.38.0"
 
 dependencies:
   flutter:
@@ -13,6 +13,7 @@ dependencies:
   intl: ^0.20.3
   uuid: ^4.6.0
   flutter_timezone: ^5.1.0
+  collection: ^1.16.0
   device_calendar:
     path: ../
 
