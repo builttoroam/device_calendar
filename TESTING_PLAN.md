@@ -3,12 +3,28 @@
 **Starting point (verified, not assumed):** this repo has exactly one test
 file, `test/device_calendar_test.dart` (16 cases, Dart-layer only, method
 channel mocked). Zero Android native tests (no `android/src/test`, no
-`android/src/androidTest`, no test dependencies in `android/build.gradle`
-at all). Zero iOS native tests. One Flutter `integration_test` file for the
-example app (`example/integration_test/app_test.dart`) that needs a
-physical device with a writable calendar to run. That's the entire safety
-net for four languages (Dart, Kotlin, Swift, plus the Obj-C registration
-shim, which is 6 lines and needs nothing).
+`android/src/androidTest`, no test dependencies in `android/build.gradle.kts`
+at all — the example app's own `androidTest`/`junit` deps in
+`example/android/app/build.gradle.kts` are template boilerplate for the
+example app, not the plugin). Zero iOS native tests. One Flutter
+`integration_test` file for the example app
+(`example/integration_test/app_test.dart`) that needs a physical device
+with a writable calendar to run. That's the entire safety net for four
+languages (Dart, Kotlin, Swift, plus the Obj-C registration shim, which is
+6 lines and needs nothing).
+
+**Updated since this plan was first written:** a separate pass (commits
+`e876e75`..`f806ea1`) modernized the Android build (Kotlin DSL, AGP 9.2.0,
+Gradle 9.6.1, Kotlin 2.3.20, minSdk 19→24), bumped the iOS deployment
+target, fixed the GitHub Actions workflows, and brought `flutter analyze`
+from 52 issues to 0 across both packages. Re-verified directly (not just
+trusting the commit message) before revising this plan: `flutter build apk
+--debug` now genuinely succeeds against the example app in this
+environment, and `flutter analyze` is clean. This changes the "known
+environment gaps" below — the Android Gradle breakage this plan originally
+flagged is **gone**. Only the iOS/Xcode gap remains. Diffs elsewhere in the
+plan below have been updated to match; see section 6 for the revised
+sequencing this unlocks.
 
 This plan is organized by layer, using the idiomatic test tool for each.
 Every checklist item names the behavior it verifies — that description
@@ -28,17 +44,23 @@ Every checklist item names the behavior it verifies — that description
 | Packaging | `dart pub publish --dry-run` | Already planned in TASKS.md section 4; catches metadata/packaging issues no unit test can. |
 | Cross-language contract | a small script test (Dart or shell) diffing argument-key string literals across the 3 languages | Not idiomatic to any one platform, but this codebase's `EM.deleteEventInvalidArgumentsMessage`, `EVENT_ORIGINAL_INSTANCE_TIME_ARGUMENT` etc. only work if the string on both sides of the channel matches exactly — a naming drift here is a silent runtime bug, not a compile error, in any of the three languages. |
 
-**Known environment gaps (from prior work this session), not this plan's
-fault, but they gate what's actually *runnable* right now:**
-- No Xcode/Swift toolchain in this environment → the iOS test target
-  can be written but not run here.
-- `example/android`'s Gradle wrapper is stale (7.3, from 2020) against
-  whatever JDK Flutter resolves in this environment → Android
-  instrumented tests (and even a plain `assembleDebug`) currently fail
-  here. Robolectric (JVM-only) tests may still work once/if the plugin's
-  own `android/build.gradle` gets a `test`/JUnit setup, since that's a
-  narrower Gradle invocation than a full app assemble — untested, flag
-  as first thing to verify when starting section "Android — setup."
+**Known environment gaps, not this plan's fault, but they gate what's
+actually *runnable* right now:**
+- No Xcode/Swift toolchain in this environment → the iOS test target can
+  be written but not run here. Still true, unaffected by the Android
+  modernization pass.
+- ~~Android Gradle toolchain broken~~ — **fixed.** The Android build was
+  modernized to Kotlin DSL (AGP 9.2.0, Gradle 9.6.1, Kotlin 2.3.20) and
+  verified end-to-end; `flutter build apk --debug` succeeds here now.
+  Section 2's Android setup can proceed directly — no more "verify the
+  toolchain even works" hedge needed before writing tests against it.
+  One new, non-blocking risk surfaced during that build worth watching:
+  Flutter warns that `flutter_timezone` (an example-app dependency, not
+  the plugin itself) applies its own Kotlin Gradle Plugin and that
+  future Flutter versions will refuse to build apps with such plugins
+  unless they migrate to "Built-in Kotlin." Doesn't block anything
+  today; re-check if a future `flutter upgrade` starts failing the
+  example app's build.
 
 ## 1. Dart layer (`lib/`) — runnable now, do this first
 
@@ -124,13 +146,21 @@ fault, but they gate what's actually *runnable* right now:**
       (0-6) back through `DayOfWeekExtension.value`, plus one
       out-of-range int to pin down the `default` fallback behavior
 - [ ] Same round-trip pattern for `getMonthOfYearEnumValue` (1-12) and
-      `getWeekNumberEnumValue` (1-4, -1)
-  - **note:** `flutter analyze` already flags 3 `unreachable_switch_default`
-    warnings in this file (lines ~96, ~174, ~201) — meaning the compiler
-    thinks these `default` branches can never execute given the input
-    type. Write the round-trip tests *first*; if they confirm the
-    defaults are truly unreachable, delete the dead branches instead of
-    writing a test that can never fail. Don't test dead code.
+      `getWeekNumberEnumValue` (1-4, -1) — these switches take `int`
+      input over a non-exhaustive type, so their `default` branches are
+      real, reachable fallback behavior; pin it down with an
+      out-of-range-int case for each
+  - **resolved:** the *other* direction (`DayOfWeekExtension.value`,
+    `MonthOfYearExtension.value`, `WeekNumberExtension.value` — enum→int,
+    exhaustively switched over a closed enum type) had 3 provably-dead
+    `default` branches; these were already deleted (commit `f806ea1`,
+    part of the `flutter analyze` 52→0 cleanup) on the strength of the
+    compiler's own exhaustiveness proof, which is a stronger guarantee
+    than a runtime test would have given — no test needed to justify
+    that deletion after the fact. The round-trip tests above for
+    `.value`/`.enumToString` are still worth writing as plain regression
+    coverage; there's just no more "should we delete the default"
+    decision attached to them.
 - [ ] `AvailabilityExtensions.enumToString` — all 4 (`Busy`→`BUSY`,
       `Free`→`FREE`, `Tentative`→`TENTATIVE`, `Unavailable`→`UNAVAILABLE`)
 - [ ] `EventStatusExtensions.enumToString` — all 4
@@ -197,27 +227,32 @@ fault, but they gate what's actually *runnable* right now:**
 - [ ] `InvokeChannelMethod_PlatformException_MapsToResultErrorWithCodeAndMessage`
 - [ ] `InvokeChannelMethod_GenericException_MapsToGenericResultError`
 
-## 2. Android native (`android/src/main/kotlin`) — needs setup first
+## 2. Android native (`android/src/main/kotlin`) — needs setup first, but the toolchain itself is confirmed working
+
+The Android build was modernized and re-verified since this plan was
+first written (`flutter build apk --debug` succeeds in this environment
+now — see the note at the top of this file). That was the actual blocker;
+the setup below is just normal Gradle test-source-set plumbing, not a
+toolchain gamble.
 
 **Setup (do this before any Android test case above the line runs):**
 - [ ] Add `android/src/test/kotlin/...` source set
-- [ ] Add to `android/build.gradle`: `testImplementation
-      'junit:junit:4.13.2'`, `testImplementation
-      'org.robolectric:robolectric:<latest>'`,
-      `testImplementation 'org.mockito.kotlin:mockito-kotlin:<latest>'`
+- [ ] Add to `android/build.gradle.kts`:
+      `testImplementation("junit:junit:4.13.2")`,
+      `testImplementation("org.robolectric:robolectric:<latest>")`,
+      `testImplementation("org.mockito.kotlin:mockito-kotlin:<latest>")`
       (for the few places a plain interaction-verifying mock is cleaner
       than a Robolectric shadow, e.g. verifying `contentResolver.insert`
-      was called with specific `ContentValues`)
-- [ ] Verify `./gradlew testDebugUnitTest` actually runs in this repo's
-      current Gradle/AGP setup *before* writing 50 test cases against it
-      — this environment's Android Gradle toolchain is already known
-      broken for `assembleDebug` (stale `example/android` wrapper vs.
-      resolved JDK); confirm whether the plugin module's own
-      `android/build.gradle` (a separate, more modern config from
-      `example/android`'s) can run unit tests independently. If it can't
-      here, this section is still worth writing — it'll just need
-      verifying in an environment with a working toolchain (e.g. CI, if
-      it's ever made reliable, or a real Android Studio install).
+      was called with specific `ContentValues`). Note this is the
+      *plugin's own* `android/build.gradle.kts` — the `junit`/
+      `androidx.test`/`espresso-core` deps already present in
+      `example/android/app/build.gradle.kts` are unrelated template
+      boilerplate for the example app's own instrumented tests, not
+      something the plugin's unit tests can piggyback on.
+- [ ] Run `./gradlew testDebugUnitTest` once the above is in place to
+      confirm it resolves and executes (a plain, fast sanity check now
+      that the underlying AGP/Gradle/Kotlin versions are known-good —
+      not the open-ended toolchain question this bullet used to be).
 
 ### `CalendarDelegate.kt` — pure/near-pure functions (Robolectric not even required for some of these — plain JUnit)
 - [ ] `BuildRecurrenceRuleParams_*` — one test per `Frequency` value
@@ -421,16 +456,21 @@ hour of work, given what's actually runnable in this environment today:
 2. **Cross-language contract check (section 4).** Cheap, Dart-only,
    catches an entire class of bug the other layers can't catch each on
    their own.
-3. **Android Robolectric setup + pure-function tests.** Try the Gradle
-   setup early — if `testDebugUnitTest` works despite the known
-   `assembleDebug` breakage (different, narrower build path), this
-   whole layer becomes runnable here too.
+3. **Android Robolectric setup + pure-function tests (section 2).**
+   No longer a "try it and see" — the Gradle/AGP/Kotlin toolchain is
+   now confirmed working in this environment (`flutter build apk
+   --debug` succeeds). This moved up in priority since the last
+   revision of this plan specifically because it went from speculative
+   to a known-safe bet: the whole layer (50+ checklist items, currently
+   at zero coverage, the largest gap in the entire repo) is runnable
+   here today.
 4. **Android Robolectric shadow-based tests** (the `ContentResolver`-
    dependent list) — same tooling as (3), just more setup per test.
 5. **iOS XCTest target + pure-logic tests.** Write now regardless of
-   this environment's Xcode gap — verify next time this is picked up
+   this environment's Xcode gap (still present, untouched by the
+   Android modernization work) — verify next time this is picked up
    somewhere with Xcode.
 6. **Expanded `integration_test` coverage.** Needs a device/emulator
    either way; lowest priority not because it matters least, but
-   because sections 1-3 catch more bugs per hour and don't need
+   because sections 1-4 catch more bugs per hour and don't need
    hardware.
