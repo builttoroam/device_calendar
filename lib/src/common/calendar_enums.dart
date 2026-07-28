@@ -93,8 +93,6 @@ extension DayOfWeekExtension on DayOfWeek {
         return 6;
       case DayOfWeek.Sunday:
         return 0;
-      default:
-        return 1;
     }
   }
 
@@ -171,8 +169,6 @@ extension MonthOfYearExtension on MonthOfYear {
         return 11;
       case MonthOfYear.December:
         return 12;
-      default:
-        return 1;
     }
   }
 
@@ -198,8 +194,6 @@ extension WeekNumberExtension on WeekNumber {
         return 4;
       case WeekNumber.Last:
         return -1;
-      default:
-        return 1;
     }
   }
 

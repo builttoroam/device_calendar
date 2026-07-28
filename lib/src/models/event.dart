@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'event_color.dart';
 
 import '../../device_calendar.dart';
 import '../common/error_messages.dart';

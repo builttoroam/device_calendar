@@ -10,29 +10,25 @@ class RecurringEventDialog extends StatefulWidget {
 
   const RecurringEventDialog(this._deviceCalendarPlugin, this._calendarEvent,
       this._onLoadingStarted, this._onDeleteFinished,
-      {Key? key})
-      : super(key: key);
+      {super.key});
 
   @override
-  _RecurringEventDialogState createState() =>
-      _RecurringEventDialogState(_deviceCalendarPlugin, _calendarEvent,
-          onLoadingStarted: _onLoadingStarted,
-          onDeleteFinished: _onDeleteFinished);
+  State<RecurringEventDialog> createState() => _RecurringEventDialogState();
 }
 
 class _RecurringEventDialogState extends State<RecurringEventDialog> {
-  late DeviceCalendarPlugin _deviceCalendarPlugin;
-  late Event _calendarEvent;
+  late final DeviceCalendarPlugin _deviceCalendarPlugin;
+  late final Event _calendarEvent;
   VoidCallback? _onLoadingStarted;
   Function(bool)? _onDeleteFinished;
 
-  _RecurringEventDialogState(
-      DeviceCalendarPlugin deviceCalendarPlugin, Event calendarEvent,
-      {VoidCallback? onLoadingStarted, Function(bool)? onDeleteFinished}) {
-    _deviceCalendarPlugin = deviceCalendarPlugin;
-    _calendarEvent = calendarEvent;
-    _onLoadingStarted = onLoadingStarted;
-    _onDeleteFinished = onDeleteFinished;
+  @override
+  void initState() {
+    super.initState();
+    _deviceCalendarPlugin = widget._deviceCalendarPlugin;
+    _calendarEvent = widget._calendarEvent;
+    _onLoadingStarted = widget._onLoadingStarted;
+    _onDeleteFinished = widget._onDeleteFinished;
   }
 
   @override

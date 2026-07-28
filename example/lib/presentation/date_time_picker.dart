@@ -7,14 +7,13 @@ import 'input_dropdown.dart';
 
 class DateTimePicker extends StatelessWidget {
   const DateTimePicker(
-      {Key? key,
+      {super.key,
       this.labelText,
       this.selectedDate,
       this.selectedTime,
       this.selectDate,
       this.selectTime,
-      this.enableTime = true})
-      : super(key: key);
+      this.enableTime = true});
 
   final String? labelText;
   final DateTime? selectedDate;

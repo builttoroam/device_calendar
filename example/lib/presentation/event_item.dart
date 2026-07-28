@@ -23,8 +23,7 @@ class EventItem extends StatefulWidget {
       this._onDeleteFinished,
       this._onTapped,
       this._isReadOnly,
-      {Key? key})
-      : super(key: key);
+      {super.key});
 
   @override
   State<EventItem> createState() {
@@ -232,7 +231,8 @@ class _EventItemState extends State<EventItem> {
                 ],
               ),
             ),
-            ButtonBar(
+            OverflowBar(
+              alignment: MainAxisAlignment.end,
               children: [
                 if (!widget._isReadOnly) ...[
                   IconButton(

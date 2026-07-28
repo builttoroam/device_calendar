@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:device_calendar/device_calendar.dart';
 import 'package:device_calendar_example/presentation/pages/calendar_add.dart';
 import 'package:device_calendar_example/presentation/color_picker_dialog.dart';
@@ -10,10 +8,10 @@ import 'package:collection/collection.dart';
 import 'calendar_events.dart';
 
 class CalendarsPage extends StatefulWidget {
-  const CalendarsPage({Key? key}) : super(key: key);
+  const CalendarsPage({super.key});
 
   @override
-  _CalendarsPageState createState() {
+  State<CalendarsPage> createState() {
     return _CalendarsPageState();
   }
 }
@@ -102,6 +100,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
                             final calendar = _calendars[index];
                             final googleCalendarColors = await _deviceCalendarPlugin
                                 .retrieveCalendarColors(_calendars[index]);
+                            if (!context.mounted) return;
                             final colors = googleCalendarColors.isNotEmpty
                                 ? googleCalendarColors.map((calendarColor) =>
                                 Color(calendarColor.color)).toList()
@@ -124,7 +123,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
                                   .updateCalendarColor(calendar,
                                   calendarColor: googleCalendarColors
                                       .firstWhereOrNull((calendarColor) =>
-                                  calendarColor.color == color.value),
+                                  calendarColor.color == color.toARGB32()),
                                   color: color);
                               if (success) {
                                 _retrieveCalendars();

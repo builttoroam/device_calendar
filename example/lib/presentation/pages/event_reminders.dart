@@ -3,11 +3,10 @@ import 'package:device_calendar/device_calendar.dart';
 
 class EventRemindersPage extends StatefulWidget {
   final List<Reminder> _reminders;
-  const EventRemindersPage(this._reminders, {Key? key}) : super(key: key);
+  const EventRemindersPage(this._reminders, {super.key});
 
   @override
-  _EventRemindersPageState createState() =>
-      _EventRemindersPageState(_reminders);
+  State<EventRemindersPage> createState() => _EventRemindersPageState();
 }
 
 class _EventRemindersPageState extends State<EventRemindersPage> {
@@ -15,8 +14,10 @@ class _EventRemindersPageState extends State<EventRemindersPage> {
   final _formKey = GlobalKey<FormState>();
   final _minutesController = TextEditingController();
 
-  _EventRemindersPageState(List<Reminder> reminders) {
-    _reminders = <Reminder>[...reminders];
+  @override
+  void initState() {
+    super.initState();
+    _reminders = <Reminder>[...widget._reminders];
   }
 
   @override

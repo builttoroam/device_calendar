@@ -9,12 +9,10 @@ late DeviceCalendarPlugin _deviceCalendarPlugin;
 class EventAttendeePage extends StatefulWidget {
   final Attendee? attendee;
   final String? eventId;
-  const EventAttendeePage({Key? key, this.attendee, this.eventId})
-      : super(key: key);
+  const EventAttendeePage({super.key, this.attendee, this.eventId});
 
   @override
-  _EventAttendeePageState createState() =>
-      _EventAttendeePageState(attendee, eventId ?? '');
+  State<EventAttendeePage> createState() => _EventAttendeePageState();
 }
 
 class _EventAttendeePageState extends State<EventAttendeePage> {
@@ -26,7 +24,10 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
   var _status = AndroidAttendanceStatus.None;
   String _eventId = '';
 
-  _EventAttendeePageState(Attendee? attendee, eventId) {
+  @override
+  void initState() {
+    super.initState();
+    final attendee = widget.attendee;
     if (attendee != null) {
       _attendee = attendee;
       _nameController.text = _attendee!.name!;
@@ -35,7 +36,7 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
       _status = _attendee!.androidAttendeeDetails?.attendanceStatus ??
           AndroidAttendanceStatus.None;
     }
-    _eventId = eventId;
+    _eventId = widget.eventId ?? '';
   }
 
   @override
@@ -114,6 +115,7 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
 
                       await _deviceCalendarPlugin
                           .showiOSEventModal(_eventId);
+                      if (!context.mounted) return;
                       Navigator.popUntil(
                           context, ModalRoute.withName(AppRoutes.calendars));
                       //TODO: finish calling and getting attendee details from iOS

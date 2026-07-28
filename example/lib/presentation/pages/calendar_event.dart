@@ -26,19 +26,19 @@ class CalendarEventPage extends StatefulWidget {
       : super(key: key);
 
   @override
-  _CalendarEventPageState createState() {
-    return _CalendarEventPageState(_calendar, _event, _recurringEventDialog, _eventColors);
+  State<CalendarEventPage> createState() {
+    return _CalendarEventPageState();
   }
 }
 
 class _CalendarEventPageState extends State<CalendarEventPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final Calendar _calendar;
+  late final Calendar _calendar;
 
   Event? _event;
   late final DeviceCalendarPlugin _deviceCalendarPlugin;
-  final RecurringEventDialog? _recurringEventDialog;
+  late final RecurringEventDialog? _recurringEventDialog;
 
   DateTime get nowDate => DateTime.now();
 
@@ -63,11 +63,16 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
   EventStatus? _eventStatus;
   List<Attendee>? _attendees;
   List<Reminder>? _reminders;
-  List<EventColor>? _eventColors;
+  late final List<EventColor>? _eventColors;
   String _timezone = 'Etc/UTC';
 
-  _CalendarEventPageState(
-      this._calendar, this._event, this._recurringEventDialog, this._eventColors) {
+  @override
+  void initState() {
+    super.initState();
+    _calendar = widget._calendar;
+    _event = widget._event;
+    _recurringEventDialog = widget._recurringEventDialog;
+    _eventColors = widget._eventColors;
     getCurentLocation();
   }
 
@@ -304,10 +309,10 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                               )),
                           onTap: () async {
                             if (_eventColors != null) {
-                              final colors = _eventColors?.map((eventColor) => Color(eventColor.color)).toList();
-                              final newColor = await ColorPickerDialog.selectColorDialog(colors ?? [], context);
+                              final colors = _eventColors.map((eventColor) => Color(eventColor.color)).toList();
+                              final newColor = await ColorPickerDialog.selectColorDialog(colors, context);
                               setState(() {
-                                _event?.updateEventColor(_eventColors?.firstWhereOrNull((eventColor) => Color(eventColor.color).value == newColor?.value));
+                                _event?.updateEventColor(_eventColors.firstWhereOrNull((eventColor) => Color(eventColor.color).toARGB32() == newColor?.toARGB32()));
                               });
                             }
                           },
@@ -673,22 +678,28 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 );
                               }),
                               const Divider(color: Colors.black),
-                              ...DayOfWeekGroup.values.map((group) {
-                                return RadioListTile(
-                                    title: Text(group.enumToString),
-                                    value: group,
-                                    groupValue: _dayOfWeekGroup,
-                                    onChanged: (DayOfWeekGroup? selected) {
-                                      if (selected != null) {
-                                        setState(() {
-                                          _dayOfWeekGroup = selected;
-                                          _updateDaysOfWeek();
-                                        });
-                                      }
-                                    },
-                                    controlAffinity:
-                                        ListTileControlAffinity.trailing);
-                              }),
+                              RadioGroup<DayOfWeekGroup>(
+                                groupValue: _dayOfWeekGroup,
+                                onChanged: (selected) {
+                                  if (selected != null) {
+                                    setState(() {
+                                      _dayOfWeekGroup = selected;
+                                      _updateDaysOfWeek();
+                                    });
+                                  }
+                                },
+                                child: Column(
+                                  children: DayOfWeekGroup.values
+                                      .map((group) =>
+                                          RadioListTile<DayOfWeekGroup>(
+                                              title: Text(group.enumToString),
+                                              value: group,
+                                              controlAffinity:
+                                                  ListTileControlAffinity
+                                                      .trailing))
+                                      .toList(),
+                                ),
+                              ),
                             ],
                           )
                         ],
@@ -977,6 +988,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                             });
                       }
 
+                      if (!context.mounted) return;
                       if (result == true) {
                         Navigator.pop(context, true);
                       }
@@ -1013,6 +1025,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
             _event?.status = _eventStatus;
             var createEventResult =
                 await _deviceCalendarPlugin.createOrUpdateEvent(_event);
+            if (!context.mounted) return;
             if (createEventResult?.isSuccess == true) {
               Navigator.pop(context, true);
             } else {
@@ -1065,8 +1078,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         return const Text('After a set number of times');
       case RecurrenceRuleEndType.SpecifiedEndDate:
         return const Text('Continues until a specified date');
-      default:
-        return const Text('');
     }
   }
 
@@ -1120,7 +1131,6 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
         ]);
         break;
       case DayOfWeekGroup.None:
-      default:
         _rrule?.byWeekDays.clear();
         break;
     }

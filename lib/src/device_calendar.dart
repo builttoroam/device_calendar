@@ -308,7 +308,7 @@ class DeviceCalendarPlugin {
       arguments: () => <String, Object?>{
         ChannelConstants.parameterNameCalendarName: calendarName,
         ChannelConstants.parameterNameCalendarColor:
-            '0x${calendarColor?.value.toRadixString(16)}',
+            '0x${calendarColor?.toARGB32().toRadixString(16)}',
         ChannelConstants.parameterNameLocalAccountName:
             localAccountName?.isEmpty ?? true
                 ? 'Device Calendar'
@@ -418,12 +418,12 @@ class DeviceCalendarPlugin {
       arguments: () => <String, dynamic>{
         ChannelConstants.parameterNameCalendarId: Platform.isAndroid ? int.tryParse(calendarId) : calendarId,
         ChannelConstants.parameterNameCalendarColorKey: calendarColor?.colorKey,
-        ChannelConstants.parameterNameCalendarColor: color?.value,
+        ChannelConstants.parameterNameCalendarColor: color?.toARGB32(),
       },
     );
     final success = (result.data as bool?) ?? false;
     if (success) {
-      calendar.color = color?.value ?? calendarColor?.color;
+      calendar.color = color?.toARGB32() ?? calendarColor?.color;
     }
     return success;
   }

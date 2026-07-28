@@ -4,10 +4,10 @@ import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 
 class CalendarAddPage extends StatefulWidget {
-  const CalendarAddPage({Key? key}) : super(key: key);
+  const CalendarAddPage({super.key});
 
   @override
-  _CalendarAddPageState createState() {
+  State<CalendarAddPage> createState() {
     return _CalendarAddPageState();
   }
 }
@@ -94,6 +94,7 @@ class _CalendarAddPageState extends State<CalendarAddPage> {
               localAccountName: _localAccountName,
             );
 
+            if (!context.mounted) return;
             if (result.isSuccess) {
               Navigator.pop(context, true);
             } else {
@@ -155,8 +156,6 @@ extension ColorChoiceExtension on ColorChoice {
         return Colors.black;
       case ColorChoice.White:
         return Colors.white;
-      default:
-        return Colors.red;
     }
   }
 

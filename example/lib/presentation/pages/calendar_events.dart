@@ -10,30 +10,28 @@ import 'calendar_event.dart';
 class CalendarEventsPage extends StatefulWidget {
   final Calendar _calendar;
 
-  const CalendarEventsPage(this._calendar, {Key? key}) : super(key: key);
+  const CalendarEventsPage(this._calendar, {super.key});
 
   @override
-  _CalendarEventsPageState createState() {
-    return _CalendarEventsPageState(_calendar);
+  State<CalendarEventsPage> createState() {
+    return _CalendarEventsPageState();
   }
 }
 
 class _CalendarEventsPageState extends State<CalendarEventsPage> {
-  final Calendar _calendar;
+  late final Calendar _calendar;
   final GlobalKey<ScaffoldState> _scaffoldstate = GlobalKey<ScaffoldState>();
 
-  late DeviceCalendarPlugin _deviceCalendarPlugin;
+  late final DeviceCalendarPlugin _deviceCalendarPlugin;
   List<Event> _calendarEvents = [];
   List<EventColor>? _eventColors;
   bool _isLoading = true;
 
-  _CalendarEventsPageState(this._calendar) {
-    _deviceCalendarPlugin = DeviceCalendarPlugin();
-  }
-
   @override
   void initState() {
     super.initState();
+    _calendar = widget._calendar;
+    _deviceCalendarPlugin = DeviceCalendarPlugin();
     _retrieveEventColors();
     _retrieveCalendarEvents();
   }
@@ -178,6 +176,7 @@ class _CalendarEventsPageState extends State<CalendarEventsPage> {
                     await _deviceCalendarPlugin.deleteCalendar(_calendar.id!);
                 debugPrint(
                     'returnValue: ${returnValue.data}, ${returnValue.errors}');
+                if (!context.mounted) return;
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               },
