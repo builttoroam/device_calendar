@@ -200,6 +200,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: TextFormField(
+                          key: const Key('descriptionField'),
                           initialValue: _event?.description,
                           decoration: const InputDecoration(
                               labelText: 'Description',
@@ -212,6 +213,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: TextFormField(
+                          key: const Key('locationField'),
                           initialValue: _event?.location,
                           decoration: const InputDecoration(
                               labelText: 'Location',
@@ -224,6 +226,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: TextFormField(
+                          key: const Key('urlField'),
                           initialValue: _event?.url?.data?.contentText ?? '',
                           decoration: const InputDecoration(
                               labelText: 'URL', hintText: 'https://google.com'),
