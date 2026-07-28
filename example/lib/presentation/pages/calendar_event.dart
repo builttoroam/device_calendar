@@ -413,7 +413,7 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) =>
-                                            const EventAttendeePage()));
+                                            EventAttendeePage(eventId: _event?.eventId)));
                                 if (result != null) {
                                   _attendees ??= [];
                                   setState(() {
