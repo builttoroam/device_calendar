@@ -10,7 +10,9 @@ class CalendarMethodsParametersCacheModel(
     var calendarEventsEndDate: Long? = null,
     var calendarEventsIds: List<String> = listOf(),
     var eventId: String = "",
-    var event: Event? = null
+    var event: Event? = null,
+    var attendeeEmail: String = "",
+    var attendanceStatus: Int? = null
 ) {
     var ownCacheKey: Int? = null
 }

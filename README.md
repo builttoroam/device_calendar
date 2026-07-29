@@ -20,6 +20,8 @@ A cross platform plugin for modifying calendars on the user's device.
   * **NOTE**: Editing a recurring event will currently edit all instances of it
   * **NOTE**: Deleting multiple instances in **Android** takes time to update, you'll see the changes after a few seconds
 * Add, modify or remove attendees and receive if an attendee is an organiser for an event
+* Update an attendee's RSVP/attendance status (`updateAttendeeStatus`)
+  * **NOTE**: On iOS this can only set the current signed-in user's own status (`EventKit` limitation) -- setting another attendee's status has no effect
 * Setup reminders for an event
 * Specify a time zone for event start and end date
   * **NOTE**: Due to a limitation of iOS API, single time zone property is used for iOS (`event.startTimeZone`)

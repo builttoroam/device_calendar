@@ -14,6 +14,7 @@ class ChannelConstants {
   static const String methodNameRetrieveEventColors = 'retrieveEventColors';
   static const String methodNameRetrieveCalendarColors = 'retrieveCalendarColors';
   static const String methodNameUpdateCalendarColor = 'updateCalendarColor';
+  static const String methodNameUpdateAttendeeStatus = 'updateAttendeeStatus';
 
   static const String parameterNameCalendarId = 'calendarId';
   static const String parameterNameStartDate = 'startDate';
@@ -29,4 +30,6 @@ class ChannelConstants {
   static const String parameterNameLocalAccountName = 'localAccountName';
   static const String parameterAccountName = "accountName";
   static const String parameterNameCalendarAccessLevel = 'calendarAccessLevel';
+  static const String parameterNameAttendeeEmail = 'attendeeEmail';
+  static const String parameterNameAttendanceStatus = 'attendanceStatus';
 }

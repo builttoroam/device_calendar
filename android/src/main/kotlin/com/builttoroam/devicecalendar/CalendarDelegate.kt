@@ -49,6 +49,7 @@ private const val CREATE_OR_UPDATE_EVENT_REQUEST_CODE = RETRIEVE_CALENDAR_REQUES
 private const val DELETE_EVENT_REQUEST_CODE = CREATE_OR_UPDATE_EVENT_REQUEST_CODE + 1
 private const val REQUEST_PERMISSIONS_REQUEST_CODE = DELETE_EVENT_REQUEST_CODE + 1
 private const val DELETE_CALENDAR_REQUEST_CODE = REQUEST_PERMISSIONS_REQUEST_CODE + 1
+private const val UPDATE_ATTENDEE_STATUS_REQUEST_CODE = DELETE_CALENDAR_REQUEST_CODE + 1
 
 class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
     PluginRegistry.RequestPermissionsResultListener {
@@ -131,6 +132,15 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
                 }
                 DELETE_CALENDAR_REQUEST_CODE -> {
                     deleteCalendar(cachedValues.calendarId, cachedValues.pendingChannelResult)
+                }
+                UPDATE_ATTENDEE_STATUS_REQUEST_CODE -> {
+                    updateAttendeeStatus(
+                        cachedValues.calendarId,
+                        cachedValues.eventId,
+                        cachedValues.attendeeEmail,
+                        cachedValues.attendanceStatus!!,
+                        cachedValues.pendingChannelResult
+                    )
                 }
             }
 
@@ -308,6 +318,69 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         }
 
         return null
+    }
+
+    fun updateAttendeeStatus(
+        calendarId: String,
+        eventId: String,
+        attendeeEmail: String,
+        attendanceStatus: Int,
+        pendingChannelResult: MethodChannel.Result
+    ) {
+        if (arePermissionsGranted()) {
+            val existingCal = retrieveCalendar(calendarId, pendingChannelResult, true)
+            if (existingCal == null) {
+                finishWithError(
+                    EC.NOT_FOUND,
+                    "The calendar with the ID $calendarId could not be found",
+                    pendingChannelResult
+                )
+                return
+            }
+
+            if (existingCal.isReadOnly) {
+                finishWithError(
+                    EC.NOT_ALLOWED,
+                    "Calendar with ID $calendarId is read-only",
+                    pendingChannelResult
+                )
+                return
+            }
+
+            val eventIdNumber = eventId.toLongOrNull()
+            if (eventIdNumber == null) {
+                finishWithError(
+                    EC.INVALID_ARGUMENT,
+                    "Event ID is not a number",
+                    pendingChannelResult
+                )
+                return
+            }
+
+            val contentResolver: ContentResolver? = _context?.contentResolver
+            val selection =
+                "(" + CalendarContract.Attendees.EVENT_ID + " = ?) AND (" + CalendarContract.Attendees.ATTENDEE_EMAIL + " = ?)"
+            val selectionArgs = arrayOf(eventIdNumber.toString(), attendeeEmail)
+            val values = ContentValues()
+            values.put(CalendarContract.Attendees.ATTENDEE_STATUS, attendanceStatus)
+            val updatedRows = contentResolver?.update(
+                CalendarContract.Attendees.CONTENT_URI,
+                values,
+                selection,
+                selectionArgs
+            ) ?: 0
+            finishWithSuccess(updatedRows > 0, pendingChannelResult)
+        } else {
+            val parameters = CalendarMethodsParametersCacheModel(
+                pendingChannelResult = pendingChannelResult,
+                calendarDelegateMethodCode = UPDATE_ATTENDEE_STATUS_REQUEST_CODE,
+                calendarId = calendarId,
+                eventId = eventId,
+                attendeeEmail = attendeeEmail,
+                attendanceStatus = attendanceStatus
+            )
+            requestPermissions(parameters)
+        }
     }
 
     fun createCalendar(

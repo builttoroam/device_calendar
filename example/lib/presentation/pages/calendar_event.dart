@@ -417,8 +417,9 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                 var result = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) =>
-                                            EventAttendeePage(eventId: _event?.eventId)));
+                                        builder: (context) => EventAttendeePage(
+                                            eventId: _event?.eventId,
+                                            calendarId: _calendar.id)));
                                 if (result != null) {
                                   _attendees ??= [];
                                   setState(() {
@@ -451,7 +452,8 @@ class _CalendarEventPageState extends State<CalendarEventPage> {
                                     MaterialPageRoute(
                                         builder: (context) => EventAttendeePage(
                                             attendee: _attendees?[index],
-                                            eventId: _event?.eventId)));
+                                            eventId: _event?.eventId,
+                                            calendarId: _calendar.id)));
                                 if (result != null) {
                                   return setState(() {
                                     _attendees?[index] = result;

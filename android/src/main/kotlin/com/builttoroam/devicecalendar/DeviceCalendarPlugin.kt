@@ -28,6 +28,7 @@ private const val DELETE_CALENDAR_METHOD = "deleteCalendar"
 private const val RETRIEVE_EVENT_COLORS_METHOD = "retrieveEventColors"
 private const val RETRIEVE_CALENDAR_COLORS_METHOD = "retrieveCalendarColors"
 private const val UPDATE_CALENDAR_COLOR = "updateCalendarColor"
+private const val UPDATE_ATTENDEE_STATUS_METHOD = "updateAttendeeStatus"
 
 // Method arguments
 private const val CALENDAR_ID_ARGUMENT = "calendarId"
@@ -73,6 +74,7 @@ private const val EVENT_STATUS_ARGUMENT = "eventStatus"
 private const val EVENT_COLOR_KEY_ARGUMENT = "eventColorKey"
 private const val CALENDAR_COLOR_KEY_ARGUMENT = "calendarColorKey"
 private const val EVENT_ORIGINAL_INSTANCE_TIME_ARGUMENT = "originalInstanceTime"
+private const val ATTENDEE_EMAIL_ARGUMENT = "attendeeEmail"
 
 class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
@@ -206,6 +208,20 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val newColor  = (call.argument<Number>(CALENDAR_COLOR_ARGUMENT))?.toInt()
                 val success = _calendarDelegate.updateCalendarColor(calendarId, newColorKey, newColor)
                 result.success(success)
+            }
+            UPDATE_ATTENDEE_STATUS_METHOD -> {
+                val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
+                val eventId = call.argument<String>(EVENT_ID_ARGUMENT)
+                val attendeeEmail = call.argument<String>(ATTENDEE_EMAIL_ARGUMENT)
+                val attendanceStatus = call.argument<Int>(ATTENDANCE_STATUS_ARGUMENT)
+
+                _calendarDelegate.updateAttendeeStatus(
+                    calendarId!!,
+                    eventId!!,
+                    attendeeEmail!!,
+                    attendanceStatus!!,
+                    result
+                )
             }
             else -> {
                 result.notImplemented()

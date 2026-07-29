@@ -693,4 +693,131 @@ void main() {
       expect(calendar.color, isNull);
     });
   });
+
+  group('updateAttendeeStatus', () {
+    test('UpdateAttendeeStatus_CalendarIdMissing_Invalid', () async {
+      final result = await deviceCalendarPlugin.updateAttendeeStatus(
+          null, 'fakeEventId', 'attendee@test.com');
+      expect(result.isSuccess, false);
+      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+      expect(
+        result.errors[0].errorMessage,
+        equals(ErrorMessages.invalidMissingCalendarId),
+      );
+      expect(log, isEmpty);
+    });
+
+    test('UpdateAttendeeStatus_EventIdMissing_Invalid', () async {
+      final result = await deviceCalendarPlugin.updateAttendeeStatus(
+          'fakeCalendarId', null, 'attendee@test.com');
+      expect(result.isSuccess, false);
+      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+      expect(
+        result.errors[0].errorMessage,
+        equals(ErrorMessages.updateAttendeeStatusInvalidArgumentsMessage),
+      );
+      expect(log, isEmpty);
+    });
+
+    test('UpdateAttendeeStatus_EventIdEmpty_Invalid', () async {
+      final result = await deviceCalendarPlugin.updateAttendeeStatus(
+          'fakeCalendarId', '', 'attendee@test.com');
+      expect(result.isSuccess, false);
+      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+    });
+
+    test('UpdateAttendeeStatus_AttendeeEmailMissing_Invalid', () async {
+      final result = await deviceCalendarPlugin.updateAttendeeStatus(
+          'fakeCalendarId', 'fakeEventId', null);
+      expect(result.isSuccess, false);
+      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+      expect(
+        result.errors[0].errorMessage,
+        equals(ErrorMessages.updateAttendeeStatusInvalidArgumentsMessage),
+      );
+      expect(log, isEmpty);
+    });
+
+    test('UpdateAttendeeStatus_AttendeeEmailEmpty_Invalid', () async {
+      final result = await deviceCalendarPlugin.updateAttendeeStatus(
+          'fakeCalendarId', 'fakeEventId', '');
+      expect(result.isSuccess, false);
+      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+    });
+
+    test('UpdateAttendeeStatus_PassesArguments_Correctly', () async {
+      const calendarId = 'fakeCalendarId';
+      const eventId = 'fakeEventId';
+      const attendeeEmail = 'attendee@test.com';
+
+      // Test host is never Android (Platform.isAndroid == false), so only
+      // the iosStatus branch of the platform-select is reachable here; the
+      // androidStatus branch needs an Android runtime, same gap already
+      // documented for the allDay-normalization test above.
+      await deviceCalendarPlugin.updateAttendeeStatus(
+        calendarId,
+        eventId,
+        attendeeEmail,
+        androidStatus: AndroidAttendanceStatus.Accepted,
+        iosStatus: IosAttendanceStatus.Declined,
+      );
+      expect(log, <Matcher>[
+        isMethodCall('updateAttendeeStatus', arguments: <String, dynamic>{
+          'calendarId': calendarId,
+          'eventId': eventId,
+          'attendeeEmail': attendeeEmail,
+          'attendanceStatus': IosAttendanceStatus.Declined.index,
+        })
+      ]);
+    });
+
+    test('UpdateAttendeeStatus_NoStatusProvided_SendsNullAttendanceStatus',
+        () async {
+      const calendarId = 'fakeCalendarId';
+      const eventId = 'fakeEventId';
+      const attendeeEmail = 'attendee@test.com';
+
+      await deviceCalendarPlugin.updateAttendeeStatus(
+          calendarId, eventId, attendeeEmail);
+      expect(log, <Matcher>[
+        isMethodCall('updateAttendeeStatus', arguments: <String, dynamic>{
+          'calendarId': calendarId,
+          'eventId': eventId,
+          'attendeeEmail': attendeeEmail,
+          'attendanceStatus': null,
+        })
+      ]);
+    });
+
+    test('UpdateAttendeeStatus_Returns_Successfully', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        return true;
+      });
+
+      final result = await deviceCalendarPlugin.updateAttendeeStatus(
+          'fakeCalendarId', 'fakeEventId', 'attendee@test.com',
+          iosStatus: IosAttendanceStatus.Accepted);
+      expect(result.isSuccess, true);
+      expect(result.errors, isEmpty);
+      expect(result.data, true);
+    });
+
+    test('UpdateAttendeeStatus_Returns_FalseWhenPlatformReportsNoMatch',
+        () async {
+      // iOS returns false (not an error) when attendeeEmail doesn't match
+      // the current user's own participant -- documented platform gap, not
+      // a failure.
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        return false;
+      });
+
+      final result = await deviceCalendarPlugin.updateAttendeeStatus(
+          'fakeCalendarId', 'fakeEventId', 'someoneelse@test.com',
+          iosStatus: IosAttendanceStatus.Accepted);
+      expect(result.isSuccess, true);
+      expect(result.data, false);
+    });
+  });
 }

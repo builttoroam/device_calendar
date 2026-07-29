@@ -9,7 +9,9 @@ late DeviceCalendarPlugin _deviceCalendarPlugin;
 class EventAttendeePage extends StatefulWidget {
   final Attendee? attendee;
   final String? eventId;
-  const EventAttendeePage({super.key, this.attendee, this.eventId});
+  final String? calendarId;
+  const EventAttendeePage(
+      {super.key, this.attendee, this.eventId, this.calendarId});
 
   @override
   State<EventAttendeePage> createState() => _EventAttendeePageState();
@@ -44,6 +46,30 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
     _nameController.dispose();
     _emailAddressController.dispose();
     super.dispose();
+  }
+
+  Future<void> _respond(
+      AndroidAttendanceStatus androidStatus, IosAttendanceStatus iosStatus) async {
+    final emailAddress = _attendee?.emailAddress;
+    if (emailAddress == null) return;
+
+    _deviceCalendarPlugin = DeviceCalendarPlugin();
+    final result = await _deviceCalendarPlugin.updateAttendeeStatus(
+      widget.calendarId,
+      _eventId,
+      emailAddress,
+      androidStatus: androidStatus,
+      iosStatus: iosStatus,
+    );
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result.isSuccess && result.data == true
+            ? 'RSVP updated'
+            : 'Failed to update RSVP${result.hasErrors ? ': ${result.errors.first.errorMessage}' : ''}'),
+      ),
+    );
   }
 
   @override
@@ -143,7 +169,35 @@ class _EventAttendeePageState extends State<EventAttendeePage> {
                           .toList(),
                     ),
                   ),
-                )
+                ),
+                Visibility(
+                  // RSVP write-back needs a saved event/attendee to target --
+                  // only shown once an attendee already exists on a saved
+                  // event, not while composing a brand-new attendee.
+                  visible: _attendee != null &&
+                      _eventId.isNotEmpty &&
+                      (widget.calendarId?.isNotEmpty ?? false),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () => _respond(
+                              AndroidAttendanceStatus.Accepted,
+                              IosAttendanceStatus.Accepted),
+                          child: const Text('Accept'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => _respond(
+                              AndroidAttendanceStatus.Declined,
+                              IosAttendanceStatus.Declined),
+                          child: const Text('Decline'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

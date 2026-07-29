@@ -337,6 +337,57 @@ class DeviceCalendarPlugin {
     );
   }
 
+  /// Updates the attendance status of an attendee on an event.
+  ///
+  /// Attendees are matched by [attendeeEmail] on both platforms -- Android
+  /// has no stable per-attendee id, so this plugin matches by email address
+  /// everywhere for consistency. Pass [androidStatus] or [iosStatus]
+  /// depending on the current platform (unused values are ignored).
+  ///
+  /// **iOS limitation**: `EventKit` exposes attendees ([EKParticipant]) as
+  /// read-only; only the current device user's own participation status can
+  /// be changed, via the event's implicit self-participant. Setting
+  /// [attendeeEmail] to anyone other than the signed-in user's own address
+  /// has no effect on iOS. Android has no such restriction.
+  ///
+  /// Returns a [Result] indicating if the attendee's status has (true) or
+  /// has not (false) been updated
+  Future<Result<bool>> updateAttendeeStatus(
+    String? calendarId,
+    String? eventId,
+    String? attendeeEmail, {
+    AndroidAttendanceStatus? androidStatus,
+    IosAttendanceStatus? iosStatus,
+  }) async {
+    return _invokeChannelMethod(
+      ChannelConstants.methodNameUpdateAttendeeStatus,
+      assertParameters: (result) {
+        _validateCalendarIdParameter(result, calendarId);
+
+        _assertParameter(
+          result,
+          eventId?.isNotEmpty ?? false,
+          ErrorCodes.invalidArguments,
+          ErrorMessages.updateAttendeeStatusInvalidArgumentsMessage,
+        );
+
+        _assertParameter(
+          result,
+          attendeeEmail?.isNotEmpty ?? false,
+          ErrorCodes.invalidArguments,
+          ErrorMessages.updateAttendeeStatusInvalidArgumentsMessage,
+        );
+      },
+      arguments: () => <String, Object?>{
+        ChannelConstants.parameterNameCalendarId: calendarId,
+        ChannelConstants.parameterNameEventId: eventId,
+        ChannelConstants.parameterNameAttendeeEmail: attendeeEmail,
+        ChannelConstants.parameterNameAttendanceStatus:
+            Platform.isAndroid ? androidStatus?.index : iosStatus?.index,
+      },
+    );
+  }
+
   /// Displays a native iOS view [EKEventViewController]
   /// https://developer.apple.com/documentation/eventkitui/ekeventviewcontroller
   ///

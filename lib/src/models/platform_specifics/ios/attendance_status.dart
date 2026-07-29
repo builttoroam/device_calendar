@@ -1,3 +1,6 @@
+/// Note: [DeviceCalendarPlugin.updateAttendeeStatus] can only write this
+/// back for the current signed-in user's own participant -- `EventKit` has
+/// no public API to set another attendee's status.
 enum IosAttendanceStatus {
   Unknown,
   Pending,

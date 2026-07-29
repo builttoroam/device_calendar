@@ -115,6 +115,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     let deleteEventInstanceMethod = "deleteEventInstance"
     let showEventModalMethod = "showiOSEventModal"
     let updateCalendarColor = "updateCalendarColor"
+    let updateAttendeeStatusMethod = "updateAttendeeStatus"
     let calendarIdArgument = "calendarId"
     let calendarAccessLevelArgument = "calendarAccessLevel"
     let startDateArgument = "startDate"
@@ -153,6 +154,7 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     let calendarColorArgument = "calendarColor"
     let availabilityArgument = "availability"
     let attendanceStatusArgument = "attendanceStatus"
+    let attendeeEmailArgument = "attendeeEmail"
     let eventStatusArgument = "eventStatus"
     let validFrequencyTypes = [EKRecurrenceFrequency.daily, EKRecurrenceFrequency.weekly, EKRecurrenceFrequency.monthly, EKRecurrenceFrequency.yearly]
     
@@ -189,6 +191,8 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
             showEventModal(call, result)
         case updateCalendarColor:
             updateCalendarColor(call, result)
+        case updateAttendeeStatusMethod:
+            updateAttendeeStatus(call, result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -994,6 +998,52 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
                     self.eventStore.reset()
                     result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
                 }
+            }
+        }, result: result)
+    }
+
+    private func updateAttendeeStatus(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+        checkPermissionsThenExecute(permissionsGrantedAction: {
+            let arguments = call.arguments as! Dictionary<String, AnyObject>
+            let calendarId = arguments[self.calendarIdArgument] as! String
+            let eventId = arguments[self.eventIdArgument] as! String
+            let attendeeEmail = arguments[self.attendeeEmailArgument] as! String
+            let attendanceStatus = arguments[self.attendanceStatusArgument] as! Int
+
+            let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId)
+            if ekCalendar == nil {
+                self.finishWithCalendarNotFoundError(result: result, calendarId: calendarId)
+                return
+            }
+
+            guard let ekEvent = self.eventStore.event(withIdentifier: eventId) else {
+                self.finishWithEventNotFoundError(result: result, eventId: eventId)
+                return
+            }
+
+            // EventKit exposes attendees (EKParticipant) as read-only via public
+            // API; only the current device user's own participation status can
+            // be changed, and only through the private "participantStatus" KVC
+            // key (same private-API pattern this file already relies on for
+            // reading `emailAddress` -- see the EKParticipant extension above).
+            // Setting any other attendee's status is a no-op: it can't be
+            // matched here, and even if it could, EventKit doesn't persist
+            // another participant's status from the device.
+            guard let selfParticipant = ekEvent.attendees?.first(where: {
+                $0.isCurrentUser && $0.emailAddress?.caseInsensitiveCompare(attendeeEmail) == .orderedSame
+            }) else {
+                result(false)
+                return
+            }
+
+            selfParticipant.setValue(attendanceStatus, forKey: "participantStatus")
+
+            do {
+                try self.eventStore.save(ekEvent, span: .thisEvent)
+                result(true)
+            } catch {
+                self.eventStore.reset()
+                result(FlutterError(code: self.genericError, message: error.localizedDescription, details: nil))
             }
         }, result: result)
     }
