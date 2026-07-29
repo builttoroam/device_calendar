@@ -868,42 +868,42 @@ void main() {
       expect(log, isEmpty);
     });
 
-    test('UpdateAttendeeStatus_EventIdMissing_Invalid', () async {
-      final result = await deviceCalendarPlugin.updateAttendeeStatus(
+    test('UpdateAttendeeStatus_EventIdMissingOrEmpty_Invalid', () async {
+      final resultNull = await deviceCalendarPlugin.updateAttendeeStatus(
           'fakeCalendarId', null, 'attendee@test.com');
-      expect(result.isSuccess, false);
-      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+      expect(resultNull.isSuccess, false);
       expect(
-        result.errors[0].errorMessage,
+          resultNull.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+      expect(
+        resultNull.errors[0].errorMessage,
         equals(ErrorMessages.updateAttendeeStatusInvalidArgumentsMessage),
       );
       expect(log, isEmpty);
-    });
 
-    test('UpdateAttendeeStatus_EventIdEmpty_Invalid', () async {
-      final result = await deviceCalendarPlugin.updateAttendeeStatus(
+      final resultEmpty = await deviceCalendarPlugin.updateAttendeeStatus(
           'fakeCalendarId', '', 'attendee@test.com');
-      expect(result.isSuccess, false);
-      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+      expect(resultEmpty.isSuccess, false);
+      expect(
+          resultEmpty.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
     });
 
-    test('UpdateAttendeeStatus_AttendeeEmailMissing_Invalid', () async {
-      final result = await deviceCalendarPlugin.updateAttendeeStatus(
+    test('UpdateAttendeeStatus_AttendeeEmailMissingOrEmpty_Invalid', () async {
+      final resultNull = await deviceCalendarPlugin.updateAttendeeStatus(
           'fakeCalendarId', 'fakeEventId', null);
-      expect(result.isSuccess, false);
-      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+      expect(resultNull.isSuccess, false);
       expect(
-        result.errors[0].errorMessage,
+          resultNull.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+      expect(
+        resultNull.errors[0].errorMessage,
         equals(ErrorMessages.updateAttendeeStatusInvalidArgumentsMessage),
       );
       expect(log, isEmpty);
-    });
 
-    test('UpdateAttendeeStatus_AttendeeEmailEmpty_Invalid', () async {
-      final result = await deviceCalendarPlugin.updateAttendeeStatus(
+      final resultEmpty = await deviceCalendarPlugin.updateAttendeeStatus(
           'fakeCalendarId', 'fakeEventId', '');
-      expect(result.isSuccess, false);
-      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+      expect(resultEmpty.isSuccess, false);
+      expect(
+          resultEmpty.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
     });
 
     test('UpdateAttendeeStatus_PassesArguments_Correctly', () async {

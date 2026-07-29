@@ -249,15 +249,14 @@ AttendeeRole _parseRoleParam(String? value) {
 }
 
 String _attendeeLine(String propertyName, Attendee attendee) {
-  final params = StringBuffer(propertyName);
+  var line = propertyName;
   if (attendee.name?.isNotEmpty ?? false) {
-    params.write(';CN=${_escapeParam(attendee.name!)}');
+    line += ';CN=${attendee.name!.replaceAll('"', "'")}';
   }
   if (propertyName == 'ATTENDEE') {
-    params.write(';ROLE=${_roleParam(attendee.role)}');
+    line += ';ROLE=${_roleParam(attendee.role)}';
   }
-  final email = attendee.emailAddress ?? '';
-  return '$params:mailto:$email';
+  return '$line:mailto:${attendee.emailAddress ?? ''}';
 }
 
 final _uidRandom = Random();
@@ -316,8 +315,6 @@ String _unescapeText(String value) {
   }
   return buffer.toString();
 }
-
-String _escapeParam(String value) => value.replaceAll('"', "'");
 
 /// Folds a single unfolded property line to RFC 5545's 75-octet limit
 /// (counted in UTF-16 code units here -- see the module doc comment).
