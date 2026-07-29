@@ -8,12 +8,14 @@ import com.builttoroam.devicecalendar.models.*
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import org.dmfs.rfc5545.recur.Freq
 
 const val CHANNEL_NAME = "plugins.builttoroam.com/device_calendar"
+const val EVENT_CHANNEL_NAME = "plugins.builttoroam.com/device_calendar_events"
 
 // Methods
 private const val REQUEST_PERMISSIONS_METHOD = "requestPermissions"
@@ -83,6 +85,7 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
     private lateinit var channel: MethodChannel
+    private lateinit var eventChannel: EventChannel
     private var context: Context? = null
     private var activity: Activity? = null
 
@@ -92,11 +95,14 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         context = flutterPluginBinding.applicationContext
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, CHANNEL_NAME)
         channel.setMethodCallHandler(this)
+        eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, EVENT_CHANNEL_NAME)
+        eventChannel.setStreamHandler(CalendarChangeStreamHandler(context!!))
         _calendarDelegate = CalendarDelegate(null, context!!)
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
+        eventChannel.setStreamHandler(null)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {

@@ -820,4 +820,48 @@ void main() {
       expect(result.data, false);
     });
   });
+
+  group('onCalendarsChanged', () {
+    const eventChannel =
+        EventChannel('plugins.builttoroam.com/device_calendar_events');
+
+    test('OnCalendarsChanged_NativeEvent_EmitsOnStream', () async {
+      MockStreamHandlerEventSink? capturedSink;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockStreamHandler(
+        eventChannel,
+        MockStreamHandler.inline(
+          onListen: (arguments, events) => capturedSink = events,
+        ),
+      );
+
+      final events = <void>[];
+      final subscription =
+          deviceCalendarPlugin.onCalendarsChanged.listen(events.add);
+      // Let the stream subscription's `listen` platform message land before
+      // asserting the sink was captured.
+      await Future<void>.delayed(Duration.zero);
+      expect(capturedSink, isNotNull);
+
+      capturedSink!.success(null);
+      await Future<void>.delayed(Duration.zero);
+      expect(events, hasLength(1));
+
+      await subscription.cancel();
+    });
+
+    test('OnCalendarsChanged_ReturnsSameBroadcastStreamOnRepeatedAccess',
+        () async {
+      // Repeated `.listen()`/`.cancel()` cycles across the app's lifetime
+      // must not create a fresh EventChannel subscription each time -- that
+      // would leak native ContentObserver/NSNotification registrations.
+      expect(
+        identical(
+          deviceCalendarPlugin.onCalendarsChanged,
+          deviceCalendarPlugin.onCalendarsChanged,
+        ),
+        true,
+      );
+    });
+  });
 }

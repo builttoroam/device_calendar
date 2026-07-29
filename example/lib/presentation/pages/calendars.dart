@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:device_calendar/device_calendar.dart';
 import 'package:device_calendar_example/presentation/pages/calendar_add.dart';
 import 'package:device_calendar_example/presentation/color_picker_dialog.dart';
@@ -18,6 +20,7 @@ class CalendarsPage extends StatefulWidget {
 
 class _CalendarsPageState extends State<CalendarsPage> {
   late DeviceCalendarPlugin _deviceCalendarPlugin;
+  StreamSubscription<void>? _calendarsChangedSubscription;
   List<Calendar> _calendars = [];
 
   List<Calendar> get _writableCalendars =>
@@ -34,6 +37,18 @@ class _CalendarsPageState extends State<CalendarsPage> {
   void initState() {
     super.initState();
     _retrieveCalendars();
+    // Demonstrates onCalendarsChanged: refresh whenever the device calendar
+    // data changes from any source (this app, another app, background sync).
+    _calendarsChangedSubscription =
+        _deviceCalendarPlugin.onCalendarsChanged.listen((_) {
+      _retrieveCalendars();
+    });
+  }
+
+  @override
+  void dispose() {
+    _calendarsChangedSubscription?.cancel();
+    super.dispose();
   }
 
   @override

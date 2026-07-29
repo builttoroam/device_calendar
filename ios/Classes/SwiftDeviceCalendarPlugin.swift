@@ -23,7 +23,7 @@ extension String {
     }
 }
 
-public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDelegate, UINavigationControllerDelegate {
+public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, EKEventViewDelegate, UINavigationControllerDelegate {
     struct DeviceCalendar: Codable {
         let id: String
         let name: String
@@ -94,6 +94,9 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
     }
 
     static let channelName = "plugins.builttoroam.com/device_calendar"
+    static let eventChannelName = "plugins.builttoroam.com/device_calendar_events"
+    var changeEventSink: FlutterEventSink?
+    var changeDebounceTimer: Timer?
     let notFoundErrorCode = "404"
     let notAllowed = "405"
     let genericError = "500"
@@ -164,6 +167,42 @@ public class SwiftDeviceCalendarPlugin: NSObject, FlutterPlugin, EKEventViewDele
         let channel = FlutterMethodChannel(name: channelName, binaryMessenger: registrar.messenger())
         let instance = SwiftDeviceCalendarPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
+
+        let eventChannel = FlutterEventChannel(name: eventChannelName, binaryMessenger: registrar.messenger())
+        eventChannel.setStreamHandler(instance)
+    }
+
+    // MARK: FlutterStreamHandler (calendar change stream)
+
+    public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        changeEventSink = events
+        // `object: nil` (not `eventStore`) deliberately: requestPermissions
+        // above replaces `eventStore` with a fresh instance after a grant, and
+        // a notification observer scoped to a specific object would silently
+        // stop matching once that happens.
+        NotificationCenter.default.addObserver(self, selector: #selector(handleEventStoreChanged), name: .EKEventStoreChanged, object: nil)
+        return nil
+    }
+
+    public func onCancel(withArguments arguments: Any?) -> FlutterError? {
+        NotificationCenter.default.removeObserver(self, name: .EKEventStoreChanged, object: nil)
+        changeDebounceTimer?.invalidate()
+        changeDebounceTimer = nil
+        changeEventSink = nil
+        return nil
+    }
+
+    @objc private func handleEventStoreChanged() {
+        // EKEventStoreChanged can fire in rapid bursts for a single logical
+        // edit; coalesce into one Dart-side event per debounce window,
+        // mirroring the Android ContentObserver side. Notifications aren't
+        // guaranteed to arrive on the main thread, but the timer needs one.
+        DispatchQueue.main.async {
+            self.changeDebounceTimer?.invalidate()
+            self.changeDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
+                self?.changeEventSink?(nil)
+            }
+        }
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {

@@ -16,7 +16,25 @@ class DeviceCalendarPlugin {
   static const MethodChannel channel =
       MethodChannel(ChannelConstants.channelName);
 
+  static const EventChannel _eventChannel =
+      EventChannel(ChannelConstants.eventChannelName);
+
   static final DeviceCalendarPlugin _instance = DeviceCalendarPlugin.private();
+
+  Stream<void>? _onCalendarsChanged;
+
+  /// A broadcast stream that emits an event whenever the device's calendar
+  /// data changes -- new/updated/deleted events or calendars, from this app
+  /// or from an external source (e.g. a background account sync).
+  ///
+  /// This only signals *that* something changed, not *what* -- re-query
+  /// [retrieveEvents]/[retrieveCalendars] to find out what. Rapid bursts of
+  /// native change notifications (common for a single logical edit) are
+  /// coalesced into a single stream event on the native side.
+  Stream<void> get onCalendarsChanged =>
+      _onCalendarsChanged ??= _eventChannel.receiveBroadcastStream().map(
+            (_) {},
+          );
 
   factory DeviceCalendarPlugin({bool shouldInitTimezone = true}) {
     if (shouldInitTimezone) {

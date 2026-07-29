@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added `updateAttendeeStatus(calendarId, eventId, attendeeEmail, {androidStatus, iosStatus})` for writing back an attendee's RSVP status. Attendees are matched by email on both platforms. **iOS limitation**: `EventKit` only allows changing the current signed-in user's own participation status (there's no public API to set another attendee's status); the call returns `false` without error if `attendeeEmail` doesn't match the current user. Not build-verified on iOS (no Xcode in this environment) -- see code comments for the private-KVC mechanism used, consistent with this file's existing `emailAddress` read pattern.
+- Added `onCalendarsChanged`, a broadcast `Stream<void>` that emits whenever device calendar data changes (this app, another app, or a background account sync), backed by a new `EventChannel` (Android: `ContentObserver` on `CalendarContract.CONTENT_URI`; iOS: `NSNotification.Name.EKEventStoreChanged`). Rapid bursts of native change notifications are debounced into a single event on the native side. Android build-verified (`flutter build apk --debug`); iOS not build-verified (no Xcode).
 
 ### Changed
 
