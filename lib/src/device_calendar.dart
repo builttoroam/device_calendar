@@ -364,6 +364,54 @@ class DeviceCalendarPlugin {
     );
   }
 
+  /// Computes merged busy/tentative/unavailable periods across one or more
+  /// calendars over a date range.
+  ///
+  /// ponytail: neither Android's `CalendarContract` nor iOS's `EventKit`
+  /// expose a free/busy primitive -- that's an Exchange/CalDAV server-side
+  /// concept. Both platforms would end up building it the exact same way:
+  /// query events in range, drop the free ones, merge what's left. Doing
+  /// that merge here in Dart over the existing [retrieveEvents] needs no
+  /// new native code or channel plumbing, instead of duplicating identical
+  /// merge logic in Kotlin and Swift for no platform-specific benefit. See
+  /// [FreeBusyPeriod.merge] for the merge/overlap semantics.
+  ///
+  /// Returns a [Result] with the merged, time-ordered busy periods across
+  /// all [calendarIds] combined. An error retrieving any one calendar's
+  /// events fails the whole call.
+  Future<Result<List<FreeBusyPeriod>>> retrieveFreeBusy(
+    List<String> calendarIds,
+    DateTime start,
+    DateTime end,
+  ) async {
+    final result = Result<List<FreeBusyPeriod>>();
+    final periods = <FreeBusyPeriod>[];
+
+    for (final calendarId in calendarIds) {
+      final eventsResult = await retrieveEvents(
+        calendarId,
+        RetrieveEventsParams(startDate: start, endDate: end),
+      );
+      if (eventsResult.hasErrors) {
+        result.errors.addAll(eventsResult.errors);
+        return result;
+      }
+
+      for (final event in eventsResult.data ?? const []) {
+        if (event.availability == Availability.Free) continue;
+        if (event.start == null || event.end == null) continue;
+        periods.add(FreeBusyPeriod(
+          start: event.start!,
+          end: event.end!,
+          status: event.availability,
+        ));
+      }
+    }
+
+    result.data = FreeBusyPeriod.merge(periods);
+    return result;
+  }
+
   /// Creates a new local calendar for the current device.
   ///
   /// The `calendarName` parameter is the name of the new calendar\

@@ -653,6 +653,82 @@ void main() {
     });
   });
 
+  group('retrieveFreeBusy', () {
+    test('EmptyCalendarIds_ReturnsEmptyWithoutChannelCall', () async {
+      final result = await deviceCalendarPlugin.retrieveFreeBusy(
+          [], DateTime(2024, 1, 1), DateTime(2024, 1, 2));
+      expect(result.hasErrors, false);
+      expect(result.data, isEmpty);
+      expect(log, isEmpty);
+    });
+
+    test('FiltersOutFreeEvents_AndMergesTheRest', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        return '['
+            '{"eventId":"1","calendarId":"cal1","eventTitle":"Busy",'
+            '"eventStartDate":${DateTime(2024, 1, 1, 9).millisecondsSinceEpoch},'
+            '"eventEndDate":${DateTime(2024, 1, 1, 10).millisecondsSinceEpoch},'
+            '"availability":"BUSY"},'
+            '{"eventId":"2","calendarId":"cal1","eventTitle":"Free",'
+            '"eventStartDate":${DateTime(2024, 1, 1, 9, 30).millisecondsSinceEpoch},'
+            '"eventEndDate":${DateTime(2024, 1, 1, 9, 45).millisecondsSinceEpoch},'
+            '"availability":"FREE"},'
+            '{"eventId":"3","calendarId":"cal1","eventTitle":"Tentative",'
+            '"eventStartDate":${DateTime(2024, 1, 1, 10).millisecondsSinceEpoch},'
+            '"eventEndDate":${DateTime(2024, 1, 1, 11).millisecondsSinceEpoch},'
+            '"availability":"TENTATIVE"}'
+            ']';
+      });
+
+      final result = await deviceCalendarPlugin.retrieveFreeBusy(
+          ['cal1'], DateTime(2024, 1, 1), DateTime(2024, 1, 2));
+      expect(result.hasErrors, false);
+      // The Busy (9-10) and Tentative (10-11) events touch at 10 and merge
+      // into one period; the Free event in between never becomes a period.
+      expect(result.data, hasLength(1));
+      expect(result.data!.single.status, Availability.Busy);
+      expect(result.data!.single.start.millisecondsSinceEpoch,
+          DateTime(2024, 1, 1, 9).millisecondsSinceEpoch);
+      expect(result.data!.single.end.millisecondsSinceEpoch,
+          DateTime(2024, 1, 1, 11).millisecondsSinceEpoch);
+    });
+
+    test('QueriesEachCalendarSeparately_CombinesResults', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        log.add(methodCall);
+        final calendarId = (methodCall.arguments
+            as Map<dynamic, dynamic>)['calendarId'];
+        if (calendarId == 'cal1') {
+          return '[{"eventId":"1","calendarId":"cal1","eventTitle":"A",'
+              '"eventStartDate":${DateTime(2024, 1, 1, 9).millisecondsSinceEpoch},'
+              '"eventEndDate":${DateTime(2024, 1, 1, 10).millisecondsSinceEpoch},'
+              '"availability":"BUSY"}]';
+        }
+        return '[{"eventId":"2","calendarId":"cal2","eventTitle":"B",'
+            '"eventStartDate":${DateTime(2024, 1, 1, 14).millisecondsSinceEpoch},'
+            '"eventEndDate":${DateTime(2024, 1, 1, 15).millisecondsSinceEpoch},'
+            '"availability":"BUSY"}]';
+      });
+
+      final result = await deviceCalendarPlugin.retrieveFreeBusy(
+          ['cal1', 'cal2'], DateTime(2024, 1, 1), DateTime(2024, 1, 2));
+      expect(result.hasErrors, false);
+      expect(result.data, hasLength(2));
+      expect(log, hasLength(2));
+    });
+
+    test('CalendarRetrievalFails_FailsWholeCall', () async {
+      final result = await deviceCalendarPlugin.retrieveFreeBusy(
+          [''], DateTime(2024, 1, 1), DateTime(2024, 1, 2));
+      // Empty calendarId fails DeviceCalendarPlugin.retrieveEvents's own
+      // validation before ever touching the channel.
+      expect(result.hasErrors, true);
+      expect(result.errors.single.errorCode, equals(ErrorCodes.invalidArguments));
+    });
+  });
+
   group('createCalendar', () {
     test('CreateCalendar_NameNullOrEmpty_Invalid', () async {
       final resultNull = await deviceCalendarPlugin.createCalendar(null);
