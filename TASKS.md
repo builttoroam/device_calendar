@@ -433,23 +433,88 @@ Ordered newest-first (most likely to still be relevant first):
 
 ### 6. Wire up Vikunja
 
-- [ ] In `/home/ben/git/app` (the Vikunja Flutter app), update
-      `pubspec.yaml` to depend on the newly-published package instead
-      of `device_calendar_plus`.
-- [ ] Update `lib/presentation/manager/calendar_sync.dart` and
-      `lib/presentation/pages/settings_page.dart` (the calendar-sync
-      settings UI) to match the new package's API — note the API shape
-      differs from `device_calendar_plus` (different method names/
-      signatures; this package uses `Event`/`Calendar` models and
-      `Result<T>` wrapper types, not `device_calendar_plus`'s API).
-      Re-read both files fresh before editing — don't assume the old
-      `device_calendar_plus`-based implementation maps 1:1.
-- [ ] Re-run the full existing calendar-sync test suite
-      (`test/presentation/calendar_sync_test.dart`,
-      `test/presentation/manager/task_page_controller_test.dart`) and
-      fix/rewrite the fakes to match the new package's interfaces.
-- [ ] Rebuild the debug APK and manually re-verify on the physical
-      device (the whole point of this fork was fixing a real,
-      user-visible bug: completed tasks' calendar events not actually
-      being deleted from Google Calendar). Confirm that specific
-      scenario now works end-to-end with the new package.
+Started early (before publishing) for real integration testing — the
+Android Gradle toolchain needed to catch the bug below only exists in
+this environment via a real consuming app, not this repo's own broken
+example build. **This is git-dependency wiring for testing only**, per
+ground rule 5-style reasoning: not appropriate for an eventual real
+Vikunja PR, which needs a real pub.dev version once this package is
+published (section 5).
+
+- [x] In `/home/ben/git/app`, swapped `pubspec.yaml`'s
+      `device_calendar_plus`/`device_calendar_plus_platform_interface`
+      for a git dependency on this fork
+      (`https://github.com/bencouture/device_calendar.git`, `ref: develop`).
+      Also had to bump `flutter_local_notifications` `^20.0.0` → `^22.2.0`
+      (its own `timezone: ^0.10.0` constraint conflicted with this
+      package's `^0.11.0`) and Vikunja's own `timezone: ^0.10.0` →
+      `^0.11.0`. `flutter analyze` clean after the notifications bump
+      (no breaking API usage hit).
+- [x] Rewrote `lib/presentation/manager/calendar_sync.dart` and the
+      calendar section of `lib/presentation/pages/settings_page.dart`
+      for the real API shape (`DeviceCalendarPlugin()` instance,
+      `Event`/`Calendar` models, `Result<T>` wrapper with
+      `.isSuccess`/`.data`/`.errors`, `deleteEvent(calendarId, eventId)`
+      needing both IDs unlike `device_calendar_plus`'s eventId-only
+      form). Also removed leftover `print("DEBUG ...")` statements from
+      an earlier live-device debugging session that never got cleaned
+      up. Settings page requests **full** access, not write-only —
+      it needs to list existing calendars for the picker dropdown,
+      and it's unverified whether `retrieveCalendars()` still works
+      under a write-only grant on iOS 17 (plausible it doesn't, since
+      write-only is scoped to event data specifically) — didn't want
+      to risk breaking calendar selection to exercise a permission
+      level `calendar_sync.dart` itself doesn't actually need (Vikunja
+      only ever creates/updates/deletes events it made itself, never
+      reads existing ones). The write-only *capability* is already
+      covered by this package's own Dart tests (section 3).
+- [x] Rewrote `test/presentation/calendar_sync_test.dart`: this
+      package has no swappable platform-interface seam like
+      `device_calendar_plus` did (`DeviceCalendarPlusPlatform.instance`)
+      — it's a single package talking directly over its own
+      `MethodChannel`. Mocked that channel directly instead, the same
+      way this package's own `test/device_calendar_test.dart` does.
+      `task_page_controller_test.dart` needed no changes (never
+      referenced the calendar plugin directly, only secure storage).
+      Full Vikunja suite: 187/187 passing.
+- [x] **Found and fixed a real bug via this integration test** that
+      nothing in this repo's own testing had caught: `android/build.gradle.kts`
+      (from the Kotlin-DSL-modernization work) declared its own
+      `buildscript { classpath("com.android.tools.build:gradle:9.2.0") }`.
+      A plugin subproject redeclaring AGP's classpath instead of
+      inheriting the host app's breaks the build for any host app on a
+      different AGP version (Vikunja's root is 8.12.3) — two AGP
+      versions loaded in one build, class-identity collision. Fixed:
+      removed the buildscript block, restored the AGP9-conditional
+      kotlin-android plugin application this package had before the
+      Kotlin DSL rewrite (see #612). Fixed in commit `89574ac`. Verified
+      by actually building Vikunja end to end (`flutter build apk
+      --debug` succeeds).
+- [ ] **New follow-up found while fixing the above, not yet fixed**:
+      this repo's own `example/` app (AGP 9.2.0, the `isAgp9OrAbove=true`
+      path the fix above doesn't touch) still fails to build —
+      `compileDebugKotlin` defaults to JVM target 21 (whatever JDK runs
+      Gradle) while `compileOptions` says Java 17, and AGP9's built-in
+      Kotlin support doesn't inherit from `compileOptions` the way the
+      old standalone kotlin-android plugin did. Tried
+      `android { kotlinOptions { jvmTarget = "17" } }` inside the
+      AGP9 branch; that surfaced 5 *unrelated* deprecation-as-error
+      failures from APIs this same file already uses elsewhere
+      (`android {}` itself, `sourceSets.getByName()`, `java.srcDirs()`
+      — AGP 9.2.0 flags all of them "will be removed in AGP 10.0").
+      Reverted that attempt rather than go further blind on an
+      unfamiliar AGP9 declarative-DSL surface. This means: **the
+      example app's own AGP9 path is currently broken**, independent of
+      anything Vikunja-related — needs someone who can iterate against
+      it directly (this environment's Android toolchain works fine;
+      this is a real AGP9-API-surface problem, not a missing-toolchain
+      one) to migrate the remaining deprecated APIs and find the right
+      AGP9-native way to pin the Kotlin jvmTarget.
+- [x] Rebuilt the debug APK with the fix above and confirmed it
+      installs successfully via `adb install -r`. **Not yet
+      re-verified on-device** that the original motivating bug
+      (completed tasks' calendar events not being deleted from Google
+      Calendar) is actually fixed end-to-end with this package — that
+      needs a human to actually complete a task in the app and check
+      Google Calendar, same as the original debugging session that
+      found the `device_calendar_plus` bug in the first place.
