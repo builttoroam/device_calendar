@@ -8,6 +8,7 @@ export 'src/models/event_color.dart';
 export 'src/models/calendar_color.dart';
 export 'src/models/retrieve_events_params.dart';
 export 'src/models/free_busy_period.dart';
+export 'src/ics_codec.dart';
 export 'package:rrule/rrule.dart';
 export 'package:rrule/src/frequency.dart';
 export 'src/models/platform_specifics/ios/attendee_details.dart';

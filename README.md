@@ -27,6 +27,8 @@ A cross platform plugin for modifying calendars on the user's device.
 * Create or update multiple events with one call, `createOrUpdateEvents` -- validates every event up front (a bad event later in the list can't leave earlier ones half-saved) and returns their ids in order
   * **NOTE**: this is a Dart-side convenience over `createOrUpdateEvent`, not a single native transaction -- see the method's doc comment
 * Compute merged free/busy periods across one or more calendars with `retrieveFreeBusy` -- a Dart-side merge over `retrieveEvents` (neither platform has a native free/busy primitive)
+* Export/import events as iCalendar (`.ics`) text via `Event.toIcs()`/`eventsToIcs()` and `eventsFromIcs()` -- pure Dart, no native involvement
+  * **NOTE**: scoped to this plugin's `Event` model, not a general-purpose RFC 5545 library -- see the doc comment on `eventsToIcs` for the specific simplifications (no `VTIMEZONE` component support, attendee `PARTSTAT`/reminders aren't carried through, the iCalendar `UID` isn't the same thing as this plugin's device-assigned `Event.eventId`)
 * Setup reminders for an event
 * Specify a time zone for event start and end date
   * **NOTE**: Due to a limitation of iOS API, single time zone property is used for iOS (`event.startTimeZone`)
