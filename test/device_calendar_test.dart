@@ -568,6 +568,91 @@ void main() {
     });
   });
 
+  group('createOrUpdateEvents', () {
+    test('CreateOrUpdateEvents_EmptyList_ReturnsEmptySuccessWithoutChannelCall',
+        () async {
+      final result = await deviceCalendarPlugin.createOrUpdateEvents([]);
+      expect(result.hasErrors, false);
+      expect(result.data, isEmpty);
+      expect(log, isEmpty);
+    });
+
+    test('CreateOrUpdateEvents_InvalidEventAtIndex_FailsFastNoChannelCall',
+        () async {
+      final start = TZDateTime.now(local);
+      final valid = Event('fakeCalendarId',
+          title: 'Valid', start: start, end: start.add(const Duration(hours: 1)));
+      final invalid = Event('', allDay: true, title: 'Invalid')
+        ..start = start;
+      final alsoValid = Event('fakeCalendarId',
+          title: 'AlsoValid',
+          start: start,
+          end: start.add(const Duration(hours: 1)));
+
+      final result = await deviceCalendarPlugin
+          .createOrUpdateEvents([valid, invalid, alsoValid]);
+      expect(result.hasErrors, true);
+      expect(result.errors.single.errorCode, equals(ErrorCodes.invalidArguments));
+      expect(result.errors.single.errorMessage, contains('index 1'));
+      expect(result.errors.single.errorMessage,
+          contains(ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay));
+      // Fail-fast validates every event before touching the channel at all --
+      // not even the valid event before the bad one should be sent.
+      expect(log, isEmpty);
+    });
+
+    test('CreateOrUpdateEvents_AllValid_ReturnsIdsInOrder_OneChannelCallPerEvent',
+        () async {
+      var callCount = 0;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        log.add(methodCall);
+        callCount++;
+        return 'fakeEventId$callCount';
+      });
+
+      final start = TZDateTime.now(local);
+      final first = Event('fakeCalendarId',
+          title: 'First', start: start, end: start.add(const Duration(hours: 1)));
+      final second = Event('fakeCalendarId',
+          title: 'Second', start: start, end: start.add(const Duration(hours: 1)));
+
+      final result = await deviceCalendarPlugin.createOrUpdateEvents([first, second]);
+      expect(result.hasErrors, false);
+      expect(result.data, ['fakeEventId1', 'fakeEventId2']);
+      expect(log, hasLength(2));
+      expect(log.every((call) => call.method == 'createOrUpdateEvent'), true);
+    });
+
+    test('CreateOrUpdateEvents_ChannelFailsPartway_StopsAndReturnsError',
+        () async {
+      var callCount = 0;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        log.add(methodCall);
+        callCount++;
+        if (callCount == 2) {
+          throw PlatformException(code: 'ERR', message: 'boom');
+        }
+        return 'fakeEventId$callCount';
+      });
+
+      final start = TZDateTime.now(local);
+      final events = List.generate(
+        3,
+        (i) => Event('fakeCalendarId',
+            title: 'Event$i', start: start, end: start.add(const Duration(hours: 1))),
+      );
+
+      final result = await deviceCalendarPlugin.createOrUpdateEvents(events);
+      expect(result.hasErrors, true);
+      expect(result.errors.single.errorCode, equals(ErrorCodes.platformSpecific));
+      // Only the first (successful) and second (failed) events reach the
+      // channel; the third is never attempted once the second fails.
+      expect(log, hasLength(2));
+    });
+  });
+
   group('createCalendar', () {
     test('CreateCalendar_NameNullOrEmpty_Invalid', () async {
       final resultNull = await deviceCalendarPlugin.createCalendar(null);

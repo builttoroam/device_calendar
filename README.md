@@ -24,6 +24,8 @@ A cross platform plugin for modifying calendars on the user's device.
   * **NOTE**: On iOS this can only set the current signed-in user's own status (`EventKit` limitation) -- setting another attendee's status has no effect
 * Listen for device calendar changes from any source via `onCalendarsChanged`, a broadcast stream that fires whenever calendars or events change (this app, another app, or a background account sync)
   * **NOTE**: this only signals that something changed, not what -- re-query `retrieveCalendars`/`retrieveEvents` to find out
+* Create or update multiple events with one call, `createOrUpdateEvents` -- validates every event up front (a bad event later in the list can't leave earlier ones half-saved) and returns their ids in order
+  * **NOTE**: this is a Dart-side convenience over `createOrUpdateEvent`, not a single native transaction -- see the method's doc comment
 * Setup reminders for an event
 * Specify a time zone for event start and end date
   * **NOTE**: Due to a limitation of iOS API, single time zone property is used for iOS (`event.startTimeZone`)

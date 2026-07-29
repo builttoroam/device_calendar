@@ -240,57 +240,127 @@ class DeviceCalendarPlugin {
     if (event == null) return null;
     return _invokeChannelMethod(
       ChannelConstants.methodNameCreateOrUpdateEvent,
-      assertParameters: (result) {
-        // Setting time to 0 for all day events
-        if (event.allDay == true) {
-          if (event.start != null) {
-            var dateStart = DateTime(event.start!.year, event.start!.month,
-                event.start!.day, 0, 0, 0);
-            // allDay events on Android need to be at midnight UTC
-            event.start = Platform.isAndroid
-                ? TZDateTime.utc(event.start!.year, event.start!.month,
-                    event.start!.day, 0, 0, 0)
-                : TZDateTime.from(dateStart,
-                    timeZoneDatabase.locations[event.start!.location.name]!);
-          }
-          if (event.end != null) {
-            var dateEnd = DateTime(
-                event.end!.year, event.end!.month, event.end!.day, 0, 0, 0);
-            // allDay events on Android need to be at midnight UTC on the
-            // day after the last day. For example, a 2-day allDay event on
-            // Jan 1 and 2, should be from Jan 1 00:00:00 to Jan 3 00:00:00
-            event.end = Platform.isAndroid
-                ? TZDateTime.utc(event.end!.year, event.end!.month,
-                        event.end!.day, 0, 0, 0)
-                    .add(const Duration(days: 1))
-                : TZDateTime.from(dateEnd,
-                    timeZoneDatabase.locations[event.end!.location.name]!);
-          }
-        }
-
-        _assertParameter(
-          result,
-          !(event.allDay == true && (event.calendarId?.isEmpty ?? true) ||
-              event.start == null ||
-              event.end == null),
-          ErrorCodes.invalidArguments,
-          ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay,
-        );
-
-        _assertParameter(
-          result,
-          !(event.allDay != true &&
-              ((event.calendarId?.isEmpty ?? true) ||
-                  event.start == null ||
-                  event.end == null ||
-                  (event.start != null &&
-                      event.end != null &&
-                      event.start!.isAfter(event.end!)))),
-          ErrorCodes.invalidArguments,
-          ErrorMessages.createOrUpdateEventInvalidArgumentsMessage,
-        );
-      },
+      assertParameters: (result) =>
+          _validateAndNormalizeEventForSave(result, event),
       arguments: () => event.toJson(),
+    );
+  }
+
+  /// Creates or updates multiple events.
+  ///
+  /// Every event is validated up front, with the same rules
+  /// [createOrUpdateEvent] applies to a single event -- if any event is
+  /// invalid, the whole call fails before anything is sent to the platform
+  /// channel (so a bad event later in the list can't leave earlier ones
+  /// half-saved), and the error message names the 0-based index of the
+  /// first invalid event.
+  ///
+  /// ponytail: this is `events.length` sequential native calls under the
+  /// hood, not one native transaction -- true batching would need
+  /// `ContentResolver.applyBatch`/`EKEventStore` deferred-commit
+  /// reimplementations of this plugin's large, already-tested per-event
+  /// native logic (recurrence exceptions, attendee diffing, all-day
+  /// normalization, colors), which is a lot of new native surface to
+  /// duplicate and verify for a round-trip-count optimization most callers
+  /// won't need. Upgrade path: a native plural channel method doing real
+  /// batched writes, if a caller's workload actually needs the atomicity or
+  /// the round-trip count matters in practice.
+  ///
+  /// Returns a [Result] with the created/updated [Event.eventId]s, in the
+  /// same order as [events].
+  Future<Result<List<String>>> createOrUpdateEvents(
+    List<Event> events,
+  ) async {
+    final result = Result<List<String>>();
+
+    for (var i = 0; i < events.length; i++) {
+      final validation = Result<void>();
+      _validateAndNormalizeEventForSave(validation, events[i]);
+      if (validation.hasErrors) {
+        result.errors.add(
+          ResultError(
+            validation.errors.first.errorCode,
+            'Event at index $i: ${validation.errors.first.errorMessage}',
+          ),
+        );
+        return result;
+      }
+    }
+
+    final eventIds = <String>[];
+    for (final event in events) {
+      final singleResult = await _invokeChannelMethod<String>(
+        ChannelConstants.methodNameCreateOrUpdateEvent,
+        arguments: () => event.toJson(),
+      );
+      if (singleResult.hasErrors || (singleResult.data?.isEmpty ?? true)) {
+        result.errors.addAll(
+          singleResult.errors.isNotEmpty
+              ? singleResult.errors
+              : [
+                  const ResultError(
+                    ErrorCodes.unknown,
+                    ErrorMessages.unknownDeviceIssue,
+                  )
+                ],
+        );
+        return result;
+      }
+      eventIds.add(singleResult.data!);
+    }
+
+    result.data = eventIds;
+    return result;
+  }
+
+  void _validateAndNormalizeEventForSave<T>(Result<T> result, Event event) {
+    // Setting time to 0 for all day events
+    if (event.allDay == true) {
+      if (event.start != null) {
+        var dateStart = DateTime(event.start!.year, event.start!.month,
+            event.start!.day, 0, 0, 0);
+        // allDay events on Android need to be at midnight UTC
+        event.start = Platform.isAndroid
+            ? TZDateTime.utc(event.start!.year, event.start!.month,
+                event.start!.day, 0, 0, 0)
+            : TZDateTime.from(dateStart,
+                timeZoneDatabase.locations[event.start!.location.name]!);
+      }
+      if (event.end != null) {
+        var dateEnd = DateTime(
+            event.end!.year, event.end!.month, event.end!.day, 0, 0, 0);
+        // allDay events on Android need to be at midnight UTC on the
+        // day after the last day. For example, a 2-day allDay event on
+        // Jan 1 and 2, should be from Jan 1 00:00:00 to Jan 3 00:00:00
+        event.end = Platform.isAndroid
+            ? TZDateTime.utc(
+                    event.end!.year, event.end!.month, event.end!.day, 0, 0, 0)
+                .add(const Duration(days: 1))
+            : TZDateTime.from(dateEnd,
+                timeZoneDatabase.locations[event.end!.location.name]!);
+      }
+    }
+
+    _assertParameter(
+      result,
+      !(event.allDay == true && (event.calendarId?.isEmpty ?? true) ||
+          event.start == null ||
+          event.end == null),
+      ErrorCodes.invalidArguments,
+      ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay,
+    );
+
+    _assertParameter(
+      result,
+      !(event.allDay != true &&
+          ((event.calendarId?.isEmpty ?? true) ||
+              event.start == null ||
+              event.end == null ||
+              (event.start != null &&
+                  event.end != null &&
+                  event.start!.isAfter(event.end!)))),
+      ErrorCodes.invalidArguments,
+      ErrorMessages.createOrUpdateEventInvalidArgumentsMessage,
     );
   }
 
