@@ -401,10 +401,10 @@ Dart `Platform.isAndroid` note above):**
 - [ ] Create/update/delete event, single instance vs. whole series
 - [ ] `showEventModal`/`EKEventViewDelegate` dismissal handling
 
-## 4. Cross-language contract check — new, nothing like it exists today
+## 4. Cross-language contract check — new, nothing like it exists today — done
 
-- [ ] Write one script (Dart, run via `dart test` or as a plain
-      `dart run` check — doesn't need `flutter_test`) that:
+- [x] `tool/check_channel_argument_contract.dart` (`dart run
+      tool/check_channel_argument_contract.dart`):
       1. Extracts every `private const val ..._ARGUMENT = "..."` string
          from `DeviceCalendarPlugin.kt`
       2. Extracts every `ChannelConstants.parameterName...` string from
@@ -412,14 +412,26 @@ Dart `Platform.isAndroid` note above):**
       3. Extracts every Swift argument-key string literal used for
          `call.arguments`/`arguments?[...]` lookups in
          `SwiftDeviceCalendarPlugin.swift`
-      4. Asserts the three sets are identical
-      This would have caught nothing that's currently broken (spot-
-      checked `originalInstanceTime`, `calendarAccessLevel` — both match
-      across all three), but it's exactly the kind of drift that a
-      future one-line typo in any of the three files turns into a silent
-      runtime failure instead of a compile error, in a codebase already
-      shown (this session, #428/#502/#454) to accumulate stale/divergent
-      branches easily.
+      4. Asserts every key Dart sends is read by at least one native side
+      Revised from the original plan: "assert the three sets are
+      identical" turned out to be the wrong check and would have failed
+      on day one for reasons that aren't bugs. Two corrections found
+      while building it:
+      - Request-direction args (Dart → native) go through the
+        `..._ARGUMENT`-style constants this section describes, but
+        response-direction fields (native → Dart, e.g. `Event`/`Attendee`
+        coming back from `retrieveEvents`) go through a *second*,
+        structurally different mechanism: Gson reflection over
+        `Event.kt`/`Attendee.kt` field names on Kotlin, `Codable` structs
+        on Swift. The script extracts both.
+      - This plan's own claim that `originalInstanceTime` "match[es]
+        across all three" was wrong when written: Swift has zero
+        references to it. Not a bug — `Event.originalInstanceTime` is
+        documented "Android exclusive" in `event.dart` — but the spot
+        check itself was never actually run against the code.
+      Net result: one real assertion (nothing Dart sends goes
+      unrecognized by both native platforms), everything else reported
+      informationally since platform-exclusive keys are legitimate.
 
 ## 5. Integration tests (`example/integration_test/`) — expand, device/simulator required
 

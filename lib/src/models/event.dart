@@ -100,24 +100,18 @@ class Event {
     String? endLocationName;
     int? startTimestamp;
     int? endTimestamp;
-    bool legacyJSON = false;
-    var legacyName = {
-      title: 'title',
-      description: 'description',
-      startTimestamp: 'start',
-      endTimestamp: 'end',
-      startLocationName: 'startTimeZone',
-      endLocationName: 'endTimeZone',
-      allDay: 'allDay',
-      location: 'location',
-      foundUrl: 'url',
-    };
-    legacyName.forEach((key, value) {
-      if (json[value] != null) {
-        key = json[value];
-        legacyJSON = true;
-      }
-    });
+    const legacyKeys = [
+      'title',
+      'description',
+      'start',
+      'end',
+      'startTimeZone',
+      'endTimeZone',
+      'allDay',
+      'location',
+      'url',
+    ];
+    final legacyJSON = legacyKeys.any((key) => json[key] != null);
 
     eventId = json['eventId'];
     calendarId = json['calendarId'];

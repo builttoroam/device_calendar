@@ -455,21 +455,15 @@ class DeviceCalendarPlugin {
         result.data = rawData;
       }
     } catch (e, s) {
-      if (e is ArgumentError) {
-        debugPrint(
-            "INVOKE_CHANNEL_METHOD_ERROR! Name: ${e.name}, InvalidValue: ${e.invalidValue}, Message: ${e.message}, ${e.toString()}");
-      } else if (e is PlatformException) {
-        debugPrint('INVOKE_CHANNEL_METHOD_ERROR: $e\n$s');
-      } else {
-        _parsePlatformExceptionAndUpdateResult<T>(e as Exception?, result);
-      }
+      debugPrint('INVOKE_CHANNEL_METHOD_ERROR: $e\n$s');
+      _parsePlatformExceptionAndUpdateResult<T>(e, result);
     }
 
     return result;
   }
 
   void _parsePlatformExceptionAndUpdateResult<T>(
-      Exception? exception, Result<T> result) {
+      Object? exception, Result<T> result) {
     if (exception == null) {
       result.errors.add(
         const ResultError(
@@ -479,8 +473,6 @@ class DeviceCalendarPlugin {
       );
       return;
     }
-
-    debugPrint('$exception');
 
     if (exception is PlatformException) {
       result.errors.add(
@@ -493,7 +485,7 @@ class DeviceCalendarPlugin {
       result.errors.add(
         ResultError(
           ErrorCodes.generic,
-          '${ErrorMessages.unknownDeviceGenericExceptionTemplate} ${exception.toString}',
+          '${ErrorMessages.unknownDeviceGenericExceptionTemplate} ${exception.toString()}',
         ),
       );
     }

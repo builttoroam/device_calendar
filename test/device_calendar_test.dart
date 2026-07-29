@@ -1,5 +1,7 @@
 import 'package:device_calendar/device_calendar.dart';
 import 'package:device_calendar/src/common/error_codes.dart';
+import 'package:device_calendar/src/common/error_messages.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -278,5 +280,417 @@ void main() {
     // fromJson has nothing to read it back from.
     final roundTripped = Event.fromJson(event.toJson());
     expect(roundTripped.originalInstanceTime, isNull);
+  });
+
+  group('requestPermissions/hasPermissions error paths', () {
+    test('RequestPermissions_PlatformException_MapsToResultError', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        throw PlatformException(code: 'ERR', message: 'boom');
+      });
+
+      final result = await deviceCalendarPlugin.requestPermissions();
+      expect(result.isSuccess, false);
+      expect(result.data, isNull);
+      // Was previously swallowed silently (see git history / TESTING_PLAN.md):
+      // _invokeChannelMethod's catch block special-cased `e is
+      // PlatformException` to only debugPrint it, never reaching
+      // _parsePlatformExceptionAndUpdateResult. Fixed so every caught
+      // throwable now maps to a ResultError.
+      expect(result.hasErrors, true);
+      expect(result.errors.single.errorCode, equals(ErrorCodes.platformSpecific));
+      expect(result.errors.single.errorMessage, contains('ERR'));
+      expect(result.errors.single.errorMessage, contains('boom'));
+    });
+
+    test('RetrieveEvents_NullChannelResponse_MapsToResultErrorNotCrash',
+        () async {
+      // Was previously an unhandled crash: the catch block's `e as
+      // Exception?` threw a TypeError whenever `e` wasn't itself an
+      // Exception. A null channel response makes evaluateResponse's
+      // `json.decode(null)` throw a real TypeError, which is exactly such
+      // a case -- this used to blow up instead of returning a Result.
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        return null;
+      });
+
+      final result = await deviceCalendarPlugin
+          .retrieveEvents('fakeCalendarId', const RetrieveEventsParams(eventIds: ['1']));
+      expect(result.isSuccess, false);
+      expect(result.errors.single.errorCode, equals(ErrorCodes.generic));
+    });
+
+    test('HasPermissions_Failure_ReturnsFalseResult', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        return false;
+      });
+
+      final result = await deviceCalendarPlugin.hasPermissions();
+      // isSuccess reflects "the channel call completed", not "permission
+      // granted" -- data == false still satisfies `data != null`.
+      expect(result.isSuccess, true);
+      expect(result.data, false);
+    });
+  });
+
+  group('retrieveCalendars', () {
+    test('RetrieveCalendars_EmptyList_ReturnsEmptyNotNull', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        return '[]';
+      });
+
+      final result = await deviceCalendarPlugin.retrieveCalendars();
+      expect(result.isSuccess, true);
+      expect(result.data, isNotNull);
+      expect(result.data, isEmpty);
+    });
+
+    test('RetrieveCalendars_MalformedJson_ReturnsGenericErrorNotCrash',
+        () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        return 'not valid json {{{';
+      });
+
+      final result = await deviceCalendarPlugin.retrieveCalendars();
+      // json.decode inside evaluateResponse throws FormatException, which is
+      // neither ArgumentError nor PlatformException, so it falls through to
+      // the generic-Exception branch of _parsePlatformExceptionAndUpdateResult.
+      expect(result.isSuccess, false);
+      expect(result.hasErrors, true);
+      expect(result.errors.single.errorCode, equals(ErrorCodes.generic));
+    });
+  });
+
+  group('retrieveEvents', () {
+    test('RetrieveEvents_EventIdsOnly_SkipsDateValidation', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        log.add(methodCall);
+        return '[]';
+      });
+      const calendarId = 'fakeCalendarId';
+      const params = RetrieveEventsParams(eventIds: ['1', '2']);
+
+      final result =
+          await deviceCalendarPlugin.retrieveEvents(calendarId, params);
+      expect(result.isSuccess, true); // no *validation* error was raised
+      expect(result.errors, isEmpty);
+      expect(log, <Matcher>[
+        isMethodCall('retrieveEvents', arguments: <String, dynamic>{
+          'calendarId': calendarId,
+          'startDate': null,
+          'endDate': null,
+          'eventIds': ['1', '2'],
+        })
+      ]);
+    });
+
+    test('RetrieveEvents_NoEventIdsNoDates_Invalid', () async {
+      const calendarId = 'fakeCalendarId';
+      const params = RetrieveEventsParams();
+
+      final result =
+          await deviceCalendarPlugin.retrieveEvents(calendarId, params);
+      expect(result.isSuccess, false);
+      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+    });
+
+    test('RetrieveEvents_OnlyStartDate_Invalid', () async {
+      const calendarId = 'fakeCalendarId';
+      final params = RetrieveEventsParams(startDate: DateTime(2024, 1, 1));
+
+      final result =
+          await deviceCalendarPlugin.retrieveEvents(calendarId, params);
+      expect(result.isSuccess, false);
+      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+    });
+
+    test('RetrieveEvents_StartAfterEnd_Invalid', () async {
+      const calendarId = 'fakeCalendarId';
+      final params = RetrieveEventsParams(
+        startDate: DateTime(2024, 1, 2),
+        endDate: DateTime(2024, 1, 1),
+      );
+
+      final result =
+          await deviceCalendarPlugin.retrieveEvents(calendarId, params);
+      expect(result.isSuccess, false);
+      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+    });
+
+    test('RetrieveEvents_ValidDateRange_PassesMillisecondArgs', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        log.add(methodCall);
+        return '[]';
+      });
+      const calendarId = 'fakeCalendarId';
+      final startDate = DateTime(2024, 1, 1);
+      final endDate = DateTime(2024, 1, 2);
+      final params = RetrieveEventsParams(startDate: startDate, endDate: endDate);
+
+      await deviceCalendarPlugin.retrieveEvents(calendarId, params);
+      expect(log, <Matcher>[
+        isMethodCall('retrieveEvents', arguments: <String, dynamic>{
+          'calendarId': calendarId,
+          'startDate': startDate.millisecondsSinceEpoch,
+          'endDate': endDate.millisecondsSinceEpoch,
+          'eventIds': null,
+        })
+      ]);
+    });
+
+    test('RetrieveEvents_SuccessResponse_ParsesEventList', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        return '[{"eventId":"1","calendarId":"fakeCalendarId","eventTitle":"Test"}]';
+      });
+
+      const calendarId = 'fakeCalendarId';
+      final params = RetrieveEventsParams(eventIds: const ['1']);
+      final result =
+          await deviceCalendarPlugin.retrieveEvents(calendarId, params);
+      expect(result.isSuccess, true);
+      expect(result.data, hasLength(1));
+      expect(result.data!.first.eventId, '1');
+      expect(result.data!.first.title, 'Test');
+    });
+  });
+
+  group('deleteEventInstance', () {
+    test('DeleteEventInstance_AllArgsProvided_PassesThroughCorrectly',
+        () async {
+      const calendarId = 'fakeCalendarId';
+      const eventId = 'fakeEventId';
+      final startDate = DateTime(2024, 1, 1).millisecondsSinceEpoch;
+      final endDate = DateTime(2024, 1, 2).millisecondsSinceEpoch;
+
+      await deviceCalendarPlugin.deleteEventInstance(
+          calendarId, eventId, startDate, endDate, true);
+      expect(log, <Matcher>[
+        isMethodCall('deleteEventInstance', arguments: <String, dynamic>{
+          'calendarId': calendarId,
+          'eventId': eventId,
+          'eventStartDate': startDate,
+          'eventEndDate': endDate,
+          'followingInstances': true,
+        })
+      ]);
+    });
+
+    test('DeleteEventInstance_CalendarIdMissing_Invalid', () async {
+      final result = await deviceCalendarPlugin.deleteEventInstance(
+          null, 'fakeEventId', null, null, false);
+      expect(result.isSuccess, false);
+      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+    });
+
+    test('DeleteEventInstance_EventIdMissing_Invalid', () async {
+      final result = await deviceCalendarPlugin.deleteEventInstance(
+          'fakeCalendarId', null, null, null, false);
+      expect(result.isSuccess, false);
+      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+    });
+  });
+
+  group('createOrUpdateEvent', () {
+    test('CreateOrUpdateEvent_NullEvent_ReturnsNull', () async {
+      final result = await deviceCalendarPlugin.createOrUpdateEvent(null);
+      expect(result, isNull);
+    });
+
+    test('CreateOrUpdateEvent_AllDay_CalendarIdEmpty_UsesAllDayErrorMessage',
+        () async {
+      final event = Event('', allDay: true, title: 'Title')
+        ..start = TZDateTime.now(local);
+
+      final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
+      expect(result!.isSuccess, false);
+      expect(
+        result.errors[0].errorMessage,
+        equals(
+            ErrorMessages.createOrUpdateEventInvalidArgumentsMessageAllDay),
+      );
+    });
+
+    test(
+        'CreateOrUpdateEvent_NonAllDay_StartAfterEnd_UsesNonAllDayErrorMessage',
+        () async {
+      final start = TZDateTime.now(local);
+      final event = Event('fakeCalendarId',
+          allDay: false, start: start, end: start.subtract(const Duration(hours: 1)));
+
+      final result = await deviceCalendarPlugin.createOrUpdateEvent(event);
+      expect(result!.isSuccess, false);
+      expect(
+        result.errors[0].errorMessage,
+        equals(ErrorMessages.createOrUpdateEventInvalidArgumentsMessage),
+      );
+    });
+
+    test('CreateOrUpdateEvent_AllDay_NormalizesStartEndToMidnight_NonAndroid',
+        () async {
+      // This test host isn't Android (Platform.isAndroid == false), so this
+      // exercises the non-Android normalization branch only; the Android
+      // branch needs an actual Android runtime and is integration-test-only
+      // coverage (see TESTING_PLAN.md section 5).
+      //
+      // The non-Android branch builds midnight via the platform-native
+      // `DateTime(y, m, d, 0, 0, 0)` constructor (host-local wall clock, NOT
+      // the timezone package's `local`) and then reinterprets that instant
+      // in the event's own TZ location. That means the exact instant this
+      // produces is coupled to the test host's OS timezone -- asserting a
+      // literal hour of 0 is only correct when the host OS TZ happens to
+      // match the event's TZ (it doesn't in this container: host is
+      // America/New_York, event is Australia/Sydney). So this test mirrors
+      // the same formula independently rather than hard-coding an hour,
+      // which still catches a real regression (e.g. switching to a UTC- or
+      // TZDateTime-relative midnight) without being flaky across hosts.
+      final sydney = getLocation('Australia/Sydney');
+      final start = TZDateTime(sydney, 2024, 3, 10, 14, 30);
+      final end = TZDateTime(sydney, 2024, 3, 11, 9, 15);
+      final event = Event('fakeCalendarId',
+          allDay: true, title: 'Title', start: start, end: end);
+
+      final expectedStart =
+          TZDateTime.from(DateTime(start.year, start.month, start.day), sydney);
+      final expectedEnd =
+          TZDateTime.from(DateTime(end.year, end.month, end.day), sydney);
+
+      await deviceCalendarPlugin.createOrUpdateEvent(event);
+
+      expect(event.start, expectedStart);
+      expect(event.end, expectedEnd);
+    });
+  });
+
+  group('createCalendar', () {
+    test('CreateCalendar_NameNullOrEmpty_Invalid', () async {
+      final resultNull = await deviceCalendarPlugin.createCalendar(null);
+      expect(resultNull.isSuccess, false);
+      expect(resultNull.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+
+      final resultEmpty = await deviceCalendarPlugin.createCalendar('');
+      expect(resultEmpty.isSuccess, false);
+      expect(
+          resultEmpty.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+    });
+
+    test('CreateCalendar_ColorNull_DefaultsToRed', () async {
+      await deviceCalendarPlugin.createCalendar('Test Calendar');
+      final arguments = log.single.arguments as Map<dynamic, dynamic>;
+      expect(arguments['calendarColor'], '0x${Colors.red.toARGB32().toRadixString(16)}');
+    });
+
+    test('CreateCalendar_LocalAccountNameEmpty_DefaultsToDeviceCalendar',
+        () async {
+      await deviceCalendarPlugin.createCalendar('Test Calendar',
+          localAccountName: '');
+      final arguments = log.single.arguments as Map<dynamic, dynamic>;
+      expect(arguments['localAccountName'], 'Device Calendar');
+    });
+  });
+
+  group('deleteCalendar', () {
+    test('DeleteCalendar_Success', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        return true;
+      });
+
+      final result = await deviceCalendarPlugin.deleteCalendar('fakeCalendarId');
+      expect(result.isSuccess, true);
+      expect(result.data, true);
+    });
+
+    test('DeleteCalendar_CalendarIdInvalid', () async {
+      final result = await deviceCalendarPlugin.deleteCalendar('');
+      expect(result.isSuccess, false);
+      expect(result.errors[0].errorCode, equals(ErrorCodes.invalidArguments));
+    });
+  });
+
+  test('ShowIosEventModal_PassesEventIdArgument', () async {
+    const eventId = 'fakeEventId';
+    await deviceCalendarPlugin.showiOSEventModal(eventId);
+    expect(log, <Matcher>[
+      isMethodCall('showiOSEventModal',
+          arguments: <String, String>{'eventId': eventId})
+    ]);
+  });
+
+  group('retrieveEventColors / retrieveCalendarColors (non-Android host)', () {
+    // This test host is never Android, so only the `!Platform.isAndroid`
+    // early-return branch of each method is reachable here. The
+    // account-name-null and success-mapping branches require an actual
+    // Android runtime and aren't covered by this suite -- documenting the
+    // gap rather than skipping it silently, per TESTING_PLAN.md.
+    test('RetrieveEventColors_NonAndroid_ReturnsNullWithoutChannelCall',
+        () async {
+      final colors =
+          await deviceCalendarPlugin.retrieveEventColors(Calendar());
+      expect(colors, isNull);
+      expect(log, isEmpty);
+    });
+
+    test('RetrieveCalendarColors_NonAndroid_ReturnsEmptyWithoutChannelCall',
+        () async {
+      // Note: unlike retrieveEventColors (returns null), this one returns an
+      // empty list on non-Android -- a real difference between the two
+      // "same shape" methods, not an oversight in this test.
+      final colors =
+          await deviceCalendarPlugin.retrieveCalendarColors(Calendar());
+      expect(colors, isEmpty);
+      expect(log, isEmpty);
+    });
+  });
+
+  group('updateCalendarColor', () {
+    test('UpdateCalendarColor_CalendarIdNull_ReturnsFalseWithoutChannelCall',
+        () async {
+      final result =
+          await deviceCalendarPlugin.updateCalendarColor(Calendar(id: null));
+      expect(result, false);
+      expect(log, isEmpty);
+    });
+
+    test('UpdateCalendarColor_BothColorArgsNull_ReturnsFalseWithoutChannelCall',
+        () async {
+      final result = await deviceCalendarPlugin
+          .updateCalendarColor(Calendar(id: 'fakeCalendarId'));
+      expect(result, false);
+      expect(log, isEmpty);
+    });
+
+    test('UpdateCalendarColor_Success_UpdatesLocalCalendarColorField',
+        () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        return true;
+      });
+
+      final calendar = Calendar(id: 'fakeCalendarId');
+      final result = await deviceCalendarPlugin
+          .updateCalendarColor(calendar, color: Colors.blue);
+      expect(result, true);
+      expect(calendar.color, Colors.blue.toARGB32());
+    });
+
+    test('UpdateCalendarColor_Failure_ReturnsFalse', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        return false;
+      });
+
+      final calendar = Calendar(id: 'fakeCalendarId');
+      final result = await deviceCalendarPlugin
+          .updateCalendarColor(calendar, color: Colors.blue);
+      expect(result, false);
+      expect(calendar.color, isNull);
+    });
   });
 }
