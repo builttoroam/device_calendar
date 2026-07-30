@@ -940,21 +940,22 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
                         endDate!!
                     )
 
-                    while (instanceCursor.moveToNext()) {
-                        val foundEventID =
-                            instanceCursor.getLong(Cst.EVENT_INSTANCE_DELETION_ID_INDEX)
+                    instanceCursor.use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val foundEventID =
+                                cursor.getLong(Cst.EVENT_INSTANCE_DELETION_ID_INDEX)
 
-                        if (eventIdNumber == foundEventID) {
-                            values.put(
-                                Events.ORIGINAL_INSTANCE_TIME,
-                                instanceCursor.getLong(Cst.EVENT_INSTANCE_DELETION_BEGIN_INDEX)
-                            )
-                            values.put(Events.STATUS, Events.STATUS_CANCELED)
+                            if (eventIdNumber == foundEventID) {
+                                values.put(
+                                    Events.ORIGINAL_INSTANCE_TIME,
+                                    cursor.getLong(Cst.EVENT_INSTANCE_DELETION_BEGIN_INDEX)
+                                )
+                                values.put(Events.STATUS, Events.STATUS_CANCELED)
+                            }
                         }
                     }
 
                     val deleteSucceeded = contentResolver?.insert(exceptionUriWithId, values)
-                    instanceCursor.close()
                     finishWithSuccess(deleteSucceeded != null, pendingChannelResult)
                 } else { // This and following instances
                     val eventsUriWithId =
@@ -967,59 +968,60 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
                         endDate!!
                     )
 
-                    while (instanceCursor.moveToNext()) {
-                        val foundEventID =
-                            instanceCursor.getLong(Cst.EVENT_INSTANCE_DELETION_ID_INDEX)
+                    instanceCursor.use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val foundEventID =
+                                cursor.getLong(Cst.EVENT_INSTANCE_DELETION_ID_INDEX)
 
-                        if (eventIdNumber == foundEventID) {
-                            val newRule =
-                                Rrule(instanceCursor.getString(Cst.EVENT_INSTANCE_DELETION_RRULE_INDEX))
-                            val lastDate =
-                                instanceCursor.getLong(Cst.EVENT_INSTANCE_DELETION_LAST_DATE_INDEX)
+                            if (eventIdNumber == foundEventID) {
+                                val newRule =
+                                    Rrule(cursor.getString(Cst.EVENT_INSTANCE_DELETION_RRULE_INDEX))
+                                val lastDate =
+                                    cursor.getLong(Cst.EVENT_INSTANCE_DELETION_LAST_DATE_INDEX)
 
-                            if (lastDate > 0 && newRule.count != null && newRule.count > 0) { // Update occurrence rule
-                                val cursor = CalendarContract.Instances.query(
-                                    contentResolver,
-                                    Cst.EVENT_INSTANCE_DELETION,
-                                    startDate,
-                                    lastDate
-                                )
-                                while (cursor.moveToNext()) {
-                                    if (eventIdNumber == cursor.getLong(Cst.EVENT_INSTANCE_DELETION_ID_INDEX)) {
-                                        newRule.count--
+                                if (lastDate > 0 && newRule.count != null && newRule.count > 0) { // Update occurrence rule
+                                    CalendarContract.Instances.query(
+                                        contentResolver,
+                                        Cst.EVENT_INSTANCE_DELETION,
+                                        startDate,
+                                        lastDate
+                                    ).use { countCursor ->
+                                        while (countCursor.moveToNext()) {
+                                            if (eventIdNumber == countCursor.getLong(Cst.EVENT_INSTANCE_DELETION_ID_INDEX)) {
+                                                newRule.count--
+                                            }
+                                        }
+                                    }
+                                } else { // Indefinite and specified date rule
+                                    var lastRecurrenceDate: Long? = null
+
+                                    CalendarContract.Instances.query(
+                                        contentResolver,
+                                        Cst.EVENT_INSTANCE_DELETION,
+                                        startDate - DateUtils.YEAR_IN_MILLIS,
+                                        startDate - 1
+                                    ).use { untilCursor ->
+                                        while (untilCursor.moveToNext()) {
+                                            if (eventIdNumber == untilCursor.getLong(Cst.EVENT_INSTANCE_DELETION_ID_INDEX)) {
+                                                lastRecurrenceDate =
+                                                    untilCursor.getLong(Cst.EVENT_INSTANCE_DELETION_END_INDEX)
+                                            }
+                                        }
+                                    }
+
+                                    if (lastRecurrenceDate != null) {
+                                        newRule.until = DateTime(lastRecurrenceDate)
+                                    } else {
+                                        newRule.until = DateTime(startDate - 1)
                                     }
                                 }
-                                cursor.close()
-                            } else { // Indefinite and specified date rule
-                                val cursor = CalendarContract.Instances.query(
-                                    contentResolver,
-                                    Cst.EVENT_INSTANCE_DELETION,
-                                    startDate - DateUtils.YEAR_IN_MILLIS,
-                                    startDate - 1
-                                )
-                                var lastRecurrenceDate: Long? = null
 
-                                while (cursor.moveToNext()) {
-                                    if (eventIdNumber == cursor.getLong(Cst.EVENT_INSTANCE_DELETION_ID_INDEX)) {
-                                        lastRecurrenceDate =
-                                            cursor.getLong(Cst.EVENT_INSTANCE_DELETION_END_INDEX)
-                                    }
-                                }
-
-                                if (lastRecurrenceDate != null) {
-                                    newRule.until = DateTime(lastRecurrenceDate)
-                                } else {
-                                    newRule.until = DateTime(startDate - 1)
-                                }
-                                cursor.close()
+                                values.put(Events.RRULE, newRule.toString())
+                                contentResolver?.update(eventsUriWithId, values, null, null)
+                                finishWithSuccess(true, pendingChannelResult)
                             }
-
-                            values.put(Events.RRULE, newRule.toString())
-                            contentResolver?.update(eventsUriWithId, values, null, null)
-                            finishWithSuccess(true, pendingChannelResult)
                         }
                     }
-                    instanceCursor.close()
                 }
             }
         } else {
