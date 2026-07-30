@@ -702,17 +702,20 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
             attendees.filter { existingAttendees.all { existingAttendee -> existingAttendee.emailAddress != it.emailAddress } }
         insertAttendees(attendeesToInsert, eventId, contentResolver)
 
-        val existingSelfAttendee = existingAttendees.firstOrNull {
-            it.emailAddress == calendar.ownerAccount
-        }
-        val newSelfAttendee = attendees.firstOrNull {
-            it.emailAddress == calendar.ownerAccount
-        }
-        if (existingSelfAttendee != null && newSelfAttendee != null &&
-            newSelfAttendee.attendanceStatus != null &&
-            existingSelfAttendee.attendanceStatus != newSelfAttendee.attendanceStatus
-        ) {
-            updateAttendeeStatus(eventId, newSelfAttendee, contentResolver)
+        // Any attendee kept from the existing list (not deleted/re-inserted
+        // above) whose status actually changed still needs its Attendees row
+        // updated -- not just the calendar owner's. Previously this only
+        // checked the owner's row, so status changes to other attendees
+        // (e.g. accepting/declining on behalf of a shared mailbox, or an
+        // organizer updating a guest's RSVP) were silently dropped (#572).
+        val existingAttendeesByEmail = existingAttendees.associateBy { it.emailAddress }
+        for (newAttendee in attendees) {
+            val existingAttendee = existingAttendeesByEmail[newAttendee.emailAddress] ?: continue
+            if (newAttendee.attendanceStatus != null &&
+                existingAttendee.attendanceStatus != newAttendee.attendanceStatus
+            ) {
+                updateAttendeeStatus(eventId, newAttendee, contentResolver)
+            }
         }
     }
 
