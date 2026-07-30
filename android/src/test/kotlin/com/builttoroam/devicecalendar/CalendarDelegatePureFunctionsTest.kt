@@ -62,6 +62,9 @@ class CalendarDelegatePureFunctionsTest {
     private fun getTimeZone(timeZoneString: String?): TimeZone =
         invokePrivate("getTimeZone", timeZoneString)
 
+    private fun parseRecurrenceRuleString(recurrenceRuleString: String?): RecurrenceRule? =
+        invokePrivate("parseRecurrenceRuleString", recurrenceRuleString)
+
     // ---- buildDurationString ----
 
     @Test
@@ -175,6 +178,35 @@ class CalendarDelegatePureFunctionsTest {
     fun getTimeZone_Null_FallsBackToDeviceTimeZone() {
         val deviceTimeZone = java.util.Calendar.getInstance().timeZone
         assertEquals(deviceTimeZone.id, getTimeZone(null).id)
+    }
+
+    // ---- parseRecurrenceRuleString ----
+
+    @Test
+    fun parseRecurrenceRuleString_Null_ReturnsNull() {
+        assertNull(parseRecurrenceRuleString(null))
+    }
+
+    @Test
+    fun parseRecurrenceRuleString_Blank_ReturnsNull() {
+        assertNull(parseRecurrenceRuleString(""))
+    }
+
+    @Test
+    fun parseRecurrenceRuleString_ValidDaily_ReturnsFrequencyDaily() {
+        assertEquals(Freq.DAILY, parseRecurrenceRuleString("FREQ=DAILY")?.freq)
+    }
+
+    @Test
+    fun parseRecurrenceRuleString_MalformedMissingFreq_ReturnsNullInsteadOfCrashing() {
+        // #566: some third-party sync adapters write a non-blank RRULE column value
+        // that's missing the RFC 5545-mandatory FREQ part (e.g. "COUNT=5" alone).
+        // org.dmfs.rfc5545.recur.RecurrenceRule(String) throws
+        // InvalidRecurrenceRuleException("FREQ part is missing") in that case; since
+        // Kotlin doesn't enforce checked exceptions, that propagated uncaught all the
+        // way out of retrieveEvents and crashed the whole call instead of just
+        // skipping the one unparseable recurrence rule.
+        assertNull(parseRecurrenceRuleString("COUNT=5"))
     }
 
     // ---- buildRecurrenceRuleParams ----

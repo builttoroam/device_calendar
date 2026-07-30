@@ -38,6 +38,7 @@ import com.builttoroam.devicecalendar.common.Constants.Companion as Cst
 import com.builttoroam.devicecalendar.common.ErrorCodes.Companion as EC
 import com.builttoroam.devicecalendar.common.ErrorMessages.Companion as EM
 import org.dmfs.rfc5545.recur.Freq as RruleFreq
+import org.dmfs.rfc5545.recur.InvalidRecurrenceRuleException
 import org.dmfs.rfc5545.recur.RecurrenceRule as Rrule
 import android.provider.CalendarContract.Colors
 import androidx.collection.SparseArrayCompat
@@ -1135,7 +1136,14 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         if (recurrenceRuleString.isNullOrBlank()) {
             return null
         }
-        val rfcRecurrenceRule = Rrule(recurrenceRuleString)
+        val rfcRecurrenceRule = try {
+            Rrule(recurrenceRuleString)
+        } catch (e: InvalidRecurrenceRuleException) {
+            // #566: some third-party sync adapters write a non-blank RRULE column value
+            // that doesn't conform to RFC 5545 (e.g. missing the mandatory FREQ part).
+            // Skip the unparseable recurrence rule rather than crashing the whole call.
+            return null
+        }
         val frequency = when (rfcRecurrenceRule.freq) {
             RruleFreq.YEARLY -> RruleFreq.YEARLY
             RruleFreq.MONTHLY -> RruleFreq.MONTHLY
