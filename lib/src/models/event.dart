@@ -5,6 +5,54 @@ import 'package:collection/collection.dart';
 import '../../device_calendar.dart';
 import '../common/error_messages.dart';
 
+/// Corrects the wall-clock date of an all-day event's [start]/[end] as read
+/// back from the native Android calendar provider (#535/#559/#323): the raw
+/// millis represent midnight UTC of the intended calendar day, but the
+/// timezone attached to them by the provider can be a non-UTC zone, so
+/// reading `.year`/`.month`/`.day` directly can show the wrong day.
+///
+/// The fix re-derives the calendar day directly from the UTC millis (not
+/// from `raw.year`/`.month`/`.day`, which read it through the possibly-wrong
+/// zone) and constructs local midnight for that exact date. An earlier
+/// version of this function instead subtracted the zone's current UTC
+/// offset from the instant -- that assumes the offset at the raw instant
+/// still applies once shifted to local midnight, which is false on the
+/// UTC-calendar-day of a DST transition: e.g. Australia/Sydney's October
+/// 2024 "spring forward" produced 2024-10-05 23:00 for an event intended as
+/// 2024-10-06, an off-by-one-day result. See the brute-force property test
+/// in event_test.dart that caught this.
+///
+/// Extracted as a pure function (rather than inlined behind
+/// `Platform.isAndroid`) so both branches are unit-testable on any host.
+({TZDateTime? start, TZDateTime? end}) normalizeAllDayDatesFromNative({
+  required TZDateTime? start,
+  required TZDateTime? end,
+  required bool allDay,
+  required bool isAndroid,
+}) {
+  if (!isAndroid || !allDay) {
+    return (start: start, end: end);
+  }
+  // The Event End Date for allDay events is midnight of the day after the
+  // last day, so subtract one day after re-deriving the correct date.
+  return (
+    start: _localMidnightOnUtcCalendarDay(start),
+    end: _localMidnightOnUtcCalendarDay(end)
+        ?.subtract(const Duration(days: 1)),
+  );
+}
+
+TZDateTime? _localMidnightOnUtcCalendarDay(TZDateTime? raw) {
+  if (raw == null) {
+    return null;
+  }
+  final utcCalendarDay = DateTime.fromMillisecondsSinceEpoch(
+      raw.millisecondsSinceEpoch,
+      isUtc: true);
+  return TZDateTime(
+      raw.location, utcCalendarDay.year, utcCalendarDay.month, utcCalendarDay.day);
+}
+
 /// An event associated with a calendar
 class Event {
   /// Read-only. The unique identifier for this event. This is auto-generated when a new event is created
@@ -136,19 +184,14 @@ class Event {
         ? TZDateTime.fromMillisecondsSinceEpoch(endLocation, endTimestamp)
         : TZDateTime.now(local);
     allDay = json['eventAllDay'] ?? false;
-    if (Platform.isAndroid && (allDay ?? false)) {
-      // On Android, the datetime in an allDay event is adjusted to local
-      // timezone, which can result in the wrong day, so we need to bring the
-      // date back to midnight UTC to get the correct date
-      var startOffset = start?.timeZoneOffset.inMilliseconds ?? 0;
-      var endOffset = end?.timeZoneOffset.inMilliseconds ?? 0;
-      // subtract the offset to get back to midnight on the correct date
-      start = start?.subtract(Duration(milliseconds: startOffset));
-      end = end?.subtract(Duration(milliseconds: endOffset));
-      // The Event End Date for allDay events is midnight of the next day, so
-      // subtract one day
-      end = end?.subtract(const Duration(days: 1));
-    }
+    final normalized = normalizeAllDayDatesFromNative(
+      start: start,
+      end: end,
+      allDay: allDay ?? false,
+      isAndroid: Platform.isAndroid,
+    );
+    start = normalized.start;
+    end = normalized.end;
     location = json['eventLocation'];
     availability = parseStringToAvailability(json['availability']);
     status = parseStringToEventStatus(json['eventStatus']);

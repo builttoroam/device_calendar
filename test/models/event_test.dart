@@ -278,4 +278,145 @@ void main() {
       expect(event.colorKey, isNull);
     });
   });
+
+  group('normalizeAllDayDatesFromNative', () {
+    // #535/#559/#323: extracted from the `Platform.isAndroid` branch in
+    // Event.fromJson (event.dart) so it's testable without a real Android
+    // host. `start`/`end` here simulate what parseEvent's cursor read would
+    // produce: raw millis that are genuinely midnight UTC of the intended
+    // calendar day, reinterpreted in whatever zone name the DB's
+    // EVENT_TIMEZONE column happened to hold.
+
+    test('NotAndroid_ReturnsUnchanged', () {
+      final start = TZDateTime.utc(2024, 1, 15);
+      final end = TZDateTime.utc(2024, 1, 16);
+      final result = normalizeAllDayDatesFromNative(
+        start: start,
+        end: end,
+        allDay: true,
+        isAndroid: false,
+      );
+      expect(result.start, same(start));
+      expect(result.end, same(end));
+    });
+
+    test('AndroidNotAllDay_ReturnsUnchanged', () {
+      final start = TZDateTime.utc(2024, 1, 15, 9);
+      final end = TZDateTime.utc(2024, 1, 15, 10);
+      final result = normalizeAllDayDatesFromNative(
+        start: start,
+        end: end,
+        allDay: false,
+        isAndroid: true,
+      );
+      expect(result.start, same(start));
+      expect(result.end, same(end));
+    });
+
+    test('AndroidAllDay_UtcZone_DayUnchanged', () {
+      // EVENT_TIMEZONE == "UTC" (this plugin's own create/update path):
+      // offset is 0, so the correction is a no-op and the day stays correct.
+      final start = TZDateTime.utc(2024, 1, 15);
+      final end = TZDateTime.utc(2024, 1, 17); // exclusive end, 2-day event
+      final result = normalizeAllDayDatesFromNative(
+        start: start,
+        end: end,
+        allDay: true,
+        isAndroid: true,
+      );
+      expect(result.start!.year, 2024);
+      expect(result.start!.month, 1);
+      expect(result.start!.day, 15);
+      // end is normalized back by one day (the "day after the last day"
+      // convention gets undone here), landing on the actual last day.
+      expect(result.end!.day, 16);
+    });
+
+    test('AndroidAllDay_PositiveOffsetZone_DayStaysCorrect', () {
+      // EVENT_TIMEZONE == "Pacific/Auckland" (+13 in Jan, DST): a sync
+      // adapter that writes the device's local zone instead of UTC into
+      // EVENT_TIMEZONE, while the millis still are midnight UTC of the
+      // intended day.
+      final zone = getLocation('Pacific/Auckland');
+      final utcMidnight =
+          TZDateTime.utc(2024, 1, 15).millisecondsSinceEpoch;
+      final start = TZDateTime.fromMillisecondsSinceEpoch(zone, utcMidnight);
+      // Before correction: a positive offset from UTC midnight just moves
+      // later within the same day (never crosses forward into the next
+      // day), so the raw day is already right -- only the hour is off.
+      expect(start.day, 15);
+      expect(start.hour, 13);
+
+      final result = normalizeAllDayDatesFromNative(
+        start: start,
+        end: null,
+        allDay: true,
+        isAndroid: true,
+      );
+      expect(result.start!.year, 2024);
+      expect(result.start!.month, 1);
+      expect(result.start!.day, 15);
+      expect(result.start!.hour, 0);
+    });
+
+    test('AndroidAllDay_NegativeOffsetZone_DayStaysCorrect', () {
+      // EVENT_TIMEZONE == "America/Los_Angeles" (-8 in Jan, standard time).
+      final zone = getLocation('America/Los_Angeles');
+      final utcMidnight =
+          TZDateTime.utc(2024, 1, 15).millisecondsSinceEpoch;
+      final start = TZDateTime.fromMillisecondsSinceEpoch(zone, utcMidnight);
+      // Before correction: negative offset rolls back to the previous day.
+      expect(start.day, 14);
+
+      final result = normalizeAllDayDatesFromNative(
+        start: start,
+        end: null,
+        allDay: true,
+        isAndroid: true,
+      );
+      expect(result.start!.year, 2024);
+      expect(result.start!.month, 1);
+      expect(result.start!.day, 15);
+      expect(result.start!.hour, 0);
+    });
+
+    test(
+        'AndroidAllDay_EveryDayOfYearAcrossDstZones_AlwaysRecoversLocalMidnightOnCorrectDay',
+        () {
+      // Brute-force property check across a full year (incl. both US and
+      // southern-hemisphere DST transitions) rather than hand-picking dates
+      // that might happen to dodge a transition-boundary edge case.
+      for (final zoneName in [
+        'America/Los_Angeles',
+        'America/New_York',
+        'Europe/London',
+        'Australia/Sydney',
+        'Pacific/Auckland',
+      ]) {
+        final zone = getLocation(zoneName);
+        for (var day = 0; day < 366; day++) {
+          final intendedDay = DateTime.utc(2024, 1, 1).add(Duration(days: day));
+          final utcMidnightMillis = intendedDay.millisecondsSinceEpoch;
+          final rawStart =
+              TZDateTime.fromMillisecondsSinceEpoch(zone, utcMidnightMillis);
+
+          final result = normalizeAllDayDatesFromNative(
+            start: rawStart,
+            end: null,
+            allDay: true,
+            isAndroid: true,
+          );
+
+          expect(result.start!.year, intendedDay.year,
+              reason: '$zoneName day $day: year mismatch');
+          expect(result.start!.month, intendedDay.month,
+              reason: '$zoneName day $day: month mismatch');
+          expect(result.start!.day, intendedDay.day,
+              reason: '$zoneName day $day: day mismatch');
+          expect(result.start!.hour, 0,
+              reason: '$zoneName day $day: not midnight local');
+        }
+      }
+    });
+  });
 }

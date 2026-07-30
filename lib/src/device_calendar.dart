@@ -11,6 +11,45 @@ import 'common/channel_constants.dart';
 import 'common/error_codes.dart';
 import 'common/error_messages.dart';
 
+/// Computes the start/end an all-day event should be sent to the native
+/// side with (#535/#559/#323), given the platforms' differing all-day
+/// storage conventions: Android expects UTC-midnight instants (end is
+/// midnight of the day *after* the last day); iOS expects local wall-clock
+/// midnight in the event's own timezone.
+///
+/// Extracted as a pure function (rather than inlined behind
+/// `Platform.isAndroid`) so both branches are unit-testable on any host --
+/// see device_calendar_test.dart.
+({TZDateTime? start, TZDateTime? end}) normalizeAllDayBoundsForSave({
+  required TZDateTime? start,
+  required TZDateTime? end,
+  required bool isAndroid,
+}) {
+  TZDateTime? newStart = start;
+  TZDateTime? newEnd = end;
+  if (start != null) {
+    final dateStart =
+        DateTime(start.year, start.month, start.day, 0, 0, 0);
+    // allDay events on Android need to be at midnight UTC
+    newStart = isAndroid
+        ? TZDateTime.utc(start.year, start.month, start.day, 0, 0, 0)
+        : TZDateTime.from(
+            dateStart, timeZoneDatabase.locations[start.location.name]!);
+  }
+  if (end != null) {
+    final dateEnd = DateTime(end.year, end.month, end.day, 0, 0, 0);
+    // allDay events on Android need to be at midnight UTC on the day after
+    // the last day. For example, a 2-day allDay event on Jan 1 and 2,
+    // should be from Jan 1 00:00:00 to Jan 3 00:00:00
+    newEnd = isAndroid
+        ? TZDateTime.utc(end.year, end.month, end.day, 0, 0, 0)
+            .add(const Duration(days: 1))
+        : TZDateTime.from(
+            dateEnd, timeZoneDatabase.locations[end.location.name]!);
+  }
+  return (start: newStart, end: newEnd);
+}
+
 /// Provides functionality for working with device calendar(s)
 class DeviceCalendarPlugin {
   static const MethodChannel channel =
@@ -316,29 +355,13 @@ class DeviceCalendarPlugin {
   void _validateAndNormalizeEventForSave<T>(Result<T> result, Event event) {
     // Setting time to 0 for all day events
     if (event.allDay == true) {
-      if (event.start != null) {
-        var dateStart = DateTime(event.start!.year, event.start!.month,
-            event.start!.day, 0, 0, 0);
-        // allDay events on Android need to be at midnight UTC
-        event.start = Platform.isAndroid
-            ? TZDateTime.utc(event.start!.year, event.start!.month,
-                event.start!.day, 0, 0, 0)
-            : TZDateTime.from(dateStart,
-                timeZoneDatabase.locations[event.start!.location.name]!);
-      }
-      if (event.end != null) {
-        var dateEnd = DateTime(
-            event.end!.year, event.end!.month, event.end!.day, 0, 0, 0);
-        // allDay events on Android need to be at midnight UTC on the
-        // day after the last day. For example, a 2-day allDay event on
-        // Jan 1 and 2, should be from Jan 1 00:00:00 to Jan 3 00:00:00
-        event.end = Platform.isAndroid
-            ? TZDateTime.utc(
-                    event.end!.year, event.end!.month, event.end!.day, 0, 0, 0)
-                .add(const Duration(days: 1))
-            : TZDateTime.from(dateEnd,
-                timeZoneDatabase.locations[event.end!.location.name]!);
-      }
+      final normalized = normalizeAllDayBoundsForSave(
+        start: event.start,
+        end: event.end,
+        isAndroid: Platform.isAndroid,
+      );
+      event.start = normalized.start;
+      event.end = normalized.end;
     }
 
     _assertParameter(

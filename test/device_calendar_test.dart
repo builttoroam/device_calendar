@@ -568,6 +568,66 @@ void main() {
     });
   });
 
+  group('normalizeAllDayBoundsForSave', () {
+    // #535/#559/#323: the Android branch here was previously inlined behind
+    // `Platform.isAndroid`, which is always false on this test host, so it
+    // had zero coverage (see the isAndroid: false-only note on the test
+    // above). Extracted to a pure function taking isAndroid explicitly so
+    // both platforms' behavior is directly testable here.
+
+    test('Android_BuildsUtcMidnightStart_AndDayAfterEnd', () {
+      final sydney = getLocation('Australia/Sydney');
+      final start = TZDateTime(sydney, 2024, 3, 10, 14, 30);
+      final end = TZDateTime(sydney, 2024, 3, 11, 9, 15);
+
+      final result = normalizeAllDayBoundsForSave(
+        start: start,
+        end: end,
+        isAndroid: true,
+      );
+
+      expect(result.start, TZDateTime.utc(2024, 3, 10));
+      // end is midnight UTC of the day *after* the last day.
+      expect(result.end, TZDateTime.utc(2024, 3, 12));
+    });
+
+    test('NonAndroid_BuildsLocalMidnightInEventsOwnZone', () {
+      // Same host-OS-timezone caveat as
+      // CreateOrUpdateEvent_AllDay_NormalizesStartEndToMidnight_NonAndroid
+      // above: the non-Android branch builds midnight via the platform
+      // `DateTime(y, m, d)` constructor (host-local wall clock), then
+      // reinterprets that *instant* in the event's own zone via
+      // `TZDateTime.from` -- so the expected value has to be computed with
+      // the same formula rather than assumed as Sydney-local midnight.
+      final sydney = getLocation('Australia/Sydney');
+      final start = TZDateTime(sydney, 2024, 3, 10, 14, 30);
+      final end = TZDateTime(sydney, 2024, 3, 11, 9, 15);
+
+      final result = normalizeAllDayBoundsForSave(
+        start: start,
+        end: end,
+        isAndroid: false,
+      );
+
+      final expectedStart =
+          TZDateTime.from(DateTime(start.year, start.month, start.day), sydney);
+      final expectedEnd =
+          TZDateTime.from(DateTime(end.year, end.month, end.day), sydney);
+      expect(result.start, expectedStart);
+      expect(result.end, expectedEnd);
+    });
+
+    test('NullStartAndEnd_ReturnsNull', () {
+      final result = normalizeAllDayBoundsForSave(
+        start: null,
+        end: null,
+        isAndroid: true,
+      );
+      expect(result.start, isNull);
+      expect(result.end, isNull);
+    });
+  });
+
   group('createOrUpdateEvents', () {
     test('CreateOrUpdateEvents_EmptyList_ReturnsEmptySuccessWithoutChannelCall',
         () async {
