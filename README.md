@@ -4,6 +4,14 @@
 
 A cross platform plugin for modifying calendars on the user's device.
 
+## This is a community-maintained fork
+
+The original [`builttoroam/device_calendar`](https://github.com/builttoroam/device_calendar) is effectively unmaintained -- issues and pull requests have gone unanswered for years. This fork exists to fix that: it's a **drop-in replacement**, working through the entire backlog of outstanding upstream PRs and issues (merging the good ones, fixing what's broken in them, and resolving or closing the rest), with a stronger focus on test coverage along the way.
+
+This project is **open and community-driven**, and it stays that way. Bug reports, feature requests, and pull requests are genuinely welcome -- this fork's entire reason for existing is to be the place where community contributions actually get reviewed and merged instead of sitting untouched. All contributions go through review before merging, same as any healthy project, but "subject to review" means "will get a response," not "will get ignored."
+
+If you're picking this up as a dependency for the first time, or migrating off the original package, the API is unchanged -- see the sections below.
+
 ## Breaking changes at v4
 
 * **If you're upgrading from previous versions, your code will need to be modified (slightly), otherwise it will not run after update. See [Timezone support](https://github.com/builttoroam/device_calendar#timezone-support-with-tzdatetime) for more details.**
@@ -152,3 +160,14 @@ there. See the `CalendarAccessLevel` dartdoc for the read-access limitation
 this implies.
 
 Note that on iOS, this is a Swift plugin. There is a known issue being tracked [here](https://github.com/flutter/flutter/issues/16049) by the Flutter team, where adding a plugin developed in Swift to an Objective-C project causes problems. If you run into such issues, please look at the suggested workarounds there.
+
+## Contributing
+
+All contributions are welcome -- bug reports, feature requests, documentation fixes, and pull requests alike. This fork was started specifically because the upstream project stopped reviewing them, so opening one here is very much the point, not an imposition.
+
+A few notes on how contributions get handled:
+
+* Every PR is reviewed before merging. That's normal project hygiene, not a barrier -- expect a real response, not silence.
+* Coming from an old, stale PR against the upstream repo? Feel free to open it here instead (or ping an existing issue) -- reviving abandoned contributions is exactly what this fork is for.
+* New functionality should come with tests where practical. Improving test coverage is an explicit goal of this fork, and PRs that include tests are much easier to review and merge quickly.
+* If you're not sure whether something is worth a PR, open an issue or discussion first -- happy to talk it through.
