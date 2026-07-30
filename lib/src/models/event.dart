@@ -103,6 +103,16 @@ class Event {
   /// Read-only. Android exclusive. Updatable only using [Event.updateEventColor] with color from [DeviceCalendarPlugin.retrieveEventColors]
   int? colorKey;
 
+  /// Read-only. A stable identifier for this event assigned by the calendar
+  /// provider's sync adapter (Android's `CalendarContract.Events._SYNC_ID`),
+  /// as opposed to [eventId] which is a local provider row id that can
+  /// change if the event gets re-synced/recreated. Useful for matching the
+  /// "same" event across devices/re-syncs.
+  ///
+  /// Android only for now -- always null on iOS (EventKit's equivalent,
+  /// `calendarItemExternalIdentifier`, isn't wired up yet; see #509).
+  String? syncId;
+
   /// Write-only. Android exclusive. Set this to the start time of the
   /// recurring instance being edited to create/update a single-instance
   /// exception instead of the whole recurring series. Ignored on iOS and
@@ -167,6 +177,7 @@ class Event {
     description = json['eventDescription'];
     color = json['eventColor'];
     colorKey = json['eventColorKey'];
+    syncId = json['syncId'];
 
     startTimestamp = json['eventStartDate'];
     startLocationName = json['eventStartTimeZone'];
@@ -291,6 +302,7 @@ class Event {
     data['eventStatus'] = status?.enumToString;
     data['eventColor'] = color;
     data['eventColorKey'] = colorKey;
+    data['syncId'] = syncId;
     data['originalInstanceTime'] = originalInstanceTime?.millisecondsSinceEpoch;
 
     if (attendees != null) {

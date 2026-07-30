@@ -165,7 +165,9 @@ void main() {
         availability: Availability.Tentative,
         status: EventStatus.Confirmed,
         allDay: false,
-      )..updateEventColor(EventColor(0xff112233, 7));
+      )
+        ..updateEventColor(EventColor(0xff112233, 7))
+        ..syncId = 'provider-sync-id-123';
 
       final roundTripped =
           Event.fromJson(json.decode(json.encode(event.toJson())));
@@ -198,6 +200,34 @@ void main() {
       // color
       expect(roundTripped.color, 0xff112233);
       expect(roundTripped.colorKey, 7);
+      // sync id (#509)
+      expect(roundTripped.syncId, 'provider-sync-id-123');
+    });
+  });
+
+  group('Event.syncId', () {
+    // #509: a stable, provider/sync-adapter-assigned identifier for the
+    // event (Android's CalendarContract.Events._SYNC_ID / iOS's
+    // EKCalendarItem.calendarItemExternalIdentifier), as opposed to
+    // [Event.eventId] which is just the local provider row id and can
+    // change if the event is re-synced/recreated.
+    test('FromJson_SyncIdPresent_IsParsed', () {
+      final event = Event.fromJson({
+        'calendarId': 'calendarId',
+        'eventId': 'eventId',
+        'syncId': 'provider-sync-id-123',
+      });
+      expect(event.syncId, 'provider-sync-id-123');
+    });
+
+    test('FromJson_SyncIdAbsent_DefaultsToNull', () {
+      // Simulates iOS, which doesn't populate this field yet (#509 tracked
+      // as Android + Dart only; iOS follow-up needed).
+      final event = Event.fromJson({
+        'calendarId': 'calendarId',
+        'eventId': 'eventId',
+      });
+      expect(event.syncId, isNull);
     });
   });
 
