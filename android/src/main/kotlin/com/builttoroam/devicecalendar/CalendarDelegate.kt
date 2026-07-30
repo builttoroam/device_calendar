@@ -433,8 +433,18 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         )
 
         val result = contentResolver?.insert(uri, values)
+        val lastPathSegment = result?.lastPathSegment
+        if (lastPathSegment == null) {
+            finishWithError(
+                EC.GENERIC_ERROR,
+                "Failed to create the calendar - the content provider did not return a calendar ID",
+                pendingChannelResult
+            )
+            return
+        }
+
         // Get the calendar ID that is the last element in the Uri
-        val calendarId = java.lang.Long.parseLong(result?.lastPathSegment!!)
+        val calendarId = java.lang.Long.parseLong(lastPathSegment)
 
         finishWithSuccess(calendarId.toString(), pendingChannelResult)
     }
