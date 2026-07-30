@@ -156,5 +156,9 @@ void main() {
     test('EnumToString_WriteOnly', () {
       expect(CalendarAccessLevel.writeOnly.enumToString, 'WRITE_ONLY');
     });
+
+    test('EnumToString_ReadOnly', () {
+      expect(CalendarAccessLevel.readOnly.enumToString, 'READ_ONLY');
+    });
   });
 }

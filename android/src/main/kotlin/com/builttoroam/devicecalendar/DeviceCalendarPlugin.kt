@@ -33,6 +33,7 @@ private const val UPDATE_CALENDAR_COLOR = "updateCalendarColor"
 private const val UPDATE_ATTENDEE_STATUS_METHOD = "updateAttendeeStatus"
 
 // Method arguments
+private const val CALENDAR_ACCESS_LEVEL_ARGUMENT = "calendarAccessLevel"
 private const val CALENDAR_ID_ARGUMENT = "calendarId"
 private const val CALENDAR_NAME_ARGUMENT = "calendarName"
 private const val CALENDAR_ACCOUNT_NAME_ARGUMENT = "accountName"
@@ -128,7 +129,8 @@ class DeviceCalendarPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             REQUEST_PERMISSIONS_METHOD -> {
-                _calendarDelegate.requestPermissions(result)
+                val calendarAccessLevel = call.argument<String>(CALENDAR_ACCESS_LEVEL_ARGUMENT)
+                _calendarDelegate.requestPermissions(result, calendarAccessLevel)
             }
             HAS_PERMISSIONS_METHOD -> {
                 _calendarDelegate.hasPermissions(result)

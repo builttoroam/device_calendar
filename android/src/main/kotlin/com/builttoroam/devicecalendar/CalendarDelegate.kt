@@ -52,6 +52,8 @@ private const val REQUEST_PERMISSIONS_REQUEST_CODE = DELETE_EVENT_REQUEST_CODE +
 private const val DELETE_CALENDAR_REQUEST_CODE = REQUEST_PERMISSIONS_REQUEST_CODE + 1
 private const val UPDATE_ATTENDEE_STATUS_REQUEST_CODE = DELETE_CALENDAR_REQUEST_CODE + 1
 
+private const val READ_ONLY_ACCESS_LEVEL = "READ_ONLY"
+
 class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
     PluginRegistry.RequestPermissionsResultListener {
 
@@ -151,15 +153,23 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         }
     }
 
-    fun requestPermissions(pendingChannelResult: MethodChannel.Result) {
-        if (arePermissionsGranted()) {
+    // #233: Android has no native read-only permission tier -- WRITE_CALENDAR
+    // and READ_CALENDAR are just two ordinary runtime permissions. Passing
+    // "READ_ONLY" here (from CalendarAccessLevel.readOnly on the Dart side)
+    // requests only READ_CALENDAR, so a caller that only wants to read
+    // calendars/events isn't forced through a WRITE_CALENDAR prompt. Any
+    // other/no value (including "FULL"/"WRITE_ONLY", the latter only
+    // meaningful on iOS) keeps requesting both, unchanged.
+    fun requestPermissions(pendingChannelResult: MethodChannel.Result, calendarAccessLevel: String? = null) {
+        val requireWriteAccess = calendarAccessLevel != READ_ONLY_ACCESS_LEVEL
+        if (arePermissionsGranted(requireWriteAccess)) {
             finishWithSuccess(true, pendingChannelResult)
         } else {
             val parameters = CalendarMethodsParametersCacheModel(
                 pendingChannelResult,
                 REQUEST_PERMISSIONS_REQUEST_CODE
             )
-            requestPermissions(parameters)
+            requestPermissions(parameters, requireWriteAccess)
         }
     }
 
@@ -1035,29 +1045,41 @@ class CalendarDelegate(binding: ActivityPluginBinding?, context: Context) :
         }
     }
 
-    private fun arePermissionsGranted(): Boolean {
+    // [requireWriteAccess] defaults to true, preserving the original
+    // behavior (both permissions required) for every existing call site
+    // (retrieveCalendars/retrieveEvents/createOrUpdateEvent/deleteEvent/etc.)
+    // that doesn't think about access level explicitly. Only the top-level
+    // requestPermissions() entry point passes this explicitly, based on the
+    // requested CalendarAccessLevel.
+    private fun arePermissionsGranted(requireWriteAccess: Boolean = true): Boolean {
         if (atLeastAPI(23) && _binding != null) {
-            val writeCalendarPermissionGranted = _binding!!.activity.checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
             val readCalendarPermissionGranted = _binding!!.activity.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
+            if (!requireWriteAccess) {
+                return readCalendarPermissionGranted
+            }
+            val writeCalendarPermissionGranted = _binding!!.activity.checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
             return writeCalendarPermissionGranted && readCalendarPermissionGranted
         }
 
         return true
     }
 
-    private fun requestPermissions(parameters: CalendarMethodsParametersCacheModel) {
+    private fun requestPermissions(parameters: CalendarMethodsParametersCacheModel, requireWriteAccess: Boolean = true) {
         val requestCode: Int = generateUniqueRequestCodeAndCacheParameters(parameters)
-        requestPermissions(requestCode)
+        requestPermissions(requestCode, requireWriteAccess)
     }
 
-    private fun requestPermissions(requestCode: Int) {
+    private fun requestPermissions(requestCode: Int, requireWriteAccess: Boolean = true) {
         if (atLeastAPI(23)) {
-            _binding!!.activity.requestPermissions(
+            val permissions = if (requireWriteAccess) {
                 arrayOf(
                     Manifest.permission.WRITE_CALENDAR,
                     Manifest.permission.READ_CALENDAR
-                ), requestCode
-            )
+                )
+            } else {
+                arrayOf(Manifest.permission.READ_CALENDAR)
+            }
+            _binding!!.activity.requestPermissions(permissions, requestCode)
         }
     }
 

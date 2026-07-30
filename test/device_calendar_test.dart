@@ -69,6 +69,17 @@ void main() {
     ]);
   });
 
+  test('RequestPermissions_ReadOnly_PassesAccessLevelArgument', () async {
+    await deviceCalendarPlugin.requestPermissions(
+      accessLevel: CalendarAccessLevel.readOnly,
+    );
+    expect(log, <Matcher>[
+      isMethodCall('requestPermissions', arguments: <String, dynamic>{
+        'calendarAccessLevel': 'READ_ONLY',
+      })
+    ]);
+  });
+
   test('RetrieveCalendars_Returns_Successfully', () async {
     const fakeCalendarName = 'fakeCalendarName';
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

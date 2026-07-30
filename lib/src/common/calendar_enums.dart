@@ -71,9 +71,16 @@ enum EventStatus {
 /// existing ones back (e.g. [DeviceCalendarPlugin.retrieveEvents] will fail
 /// under write-only access even though [DeviceCalendarPlugin.hasPermissions]
 /// reports true) — request [full] if your app needs to read events.
+///
+/// [readOnly] only exists as a distinct authorization tier on Android, where
+/// it requests only `READ_CALENDAR` (not `WRITE_CALENDAR`) -- so a user isn't
+/// forced to grant write access just to call [DeviceCalendarPlugin.retrieveCalendars]/
+/// [DeviceCalendarPlugin.retrieveEvents]. EventKit has no equivalent read-only
+/// tier, so on iOS this is treated the same as [full].
 enum CalendarAccessLevel {
   full,
   writeOnly,
+  readOnly,
 }
 
 extension DayOfWeekExtension on DayOfWeek {
@@ -332,6 +339,8 @@ extension CalendarAccessLevelExtensions on CalendarAccessLevel {
         return 'FULL';
       case CalendarAccessLevel.writeOnly:
         return 'WRITE_ONLY';
+      case CalendarAccessLevel.readOnly:
+        return 'READ_ONLY';
     }
   }
 

@@ -91,8 +91,11 @@ class DeviceCalendarPlugin {
   /// [CalendarAccessLevel.writeOnly] to request write-only access instead;
   /// this only has an effect on iOS 17+ (see [CalendarAccessLevel] for
   /// platform details and the resulting read-access limitation) -- iOS <17
-  /// and Android always grant the same single permission tier regardless of
-  /// what's requested.
+  /// always grants the same single permission tier regardless of what's
+  /// requested. Pass [CalendarAccessLevel.readOnly] to request read-only
+  /// access instead; this only has an effect on Android (requests
+  /// `READ_CALENDAR` without `WRITE_CALENDAR`) -- iOS has no read-only
+  /// EventKit tier, so it's treated the same as [CalendarAccessLevel.full].
   ///
   /// Returns a [Result] indicating if calendar permissions at the requested
   /// [accessLevel] have (true) or have not (false) been granted
